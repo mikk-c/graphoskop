@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backboning &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Node vector analysis" href="node_vector_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Backboning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.noise_corrected"><code class="docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.disparity_filter"><code class="docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.doubly_stochastic"><code class="docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.high_salience_skeleton"><code class="docutils literal notranslate"><span class="pre">high_salience_skeleton()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.extract_backbone"><code class="docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.spanning_tree"><code class="docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.maximally_filtered_graph"><code class="docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.triangulated_filtered_graph"><code class="docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.test_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.find_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Backboning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/backboning.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.backboning">
+<span id="backboning"></span><h1>Backboning<a class="headerlink" href="#module-graphoskop.backboning" title="Link to this heading"></a></h1>
+<p>Network backboning: scoring edges against a null model, so that edges weaker than expected can be
+filtered out.</p>
+<p>Scoring functions store their scores as new edge attributes of the <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>
+(existing attributes with the same name are overwritten); computations run in double precision on
+the device of each component. <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> then keeps the edges whose score
+passes a threshold, <a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a> summarizes the backbones given by a
+range of thresholds, and <a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> finds the thresholds at which the
+backbone changes qualitatively.</p>
+<p>Scoring methods:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#graphoskop.noise_corrected" title="graphoskop.noise_corrected"><code class="xref py py-func docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a>: score and standard deviation, thresholded as a z-score.</p></li>
+<li><p><a class="reference internal" href="#graphoskop.disparity_filter" title="graphoskop.disparity_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a>: score only.</p></li>
+<li><p><a class="reference internal" href="#graphoskop.doubly_stochastic" title="graphoskop.doubly_stochastic"><code class="xref py py-func docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a>: score only.</p></li>
+<li><p><a class="reference internal" href="#graphoskop.high_salience_skeleton" title="graphoskop.high_salience_skeleton"><code class="xref py py-func docutils literal notranslate"><span class="pre">high_salience_skeleton()</span></code></a>: score only.</p></li>
+</ul>
+<p><a class="reference internal" href="#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>, <a class="reference internal" href="#graphoskop.maximally_filtered_graph" title="graphoskop.maximally_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a> and
+<a class="reference internal" href="#graphoskop.triangulated_filtered_graph" title="graphoskop.triangulated_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a> instead filter the edges directly, keeping a
+maximum or minimum spanning tree, or a planar filtered graph, of every component.</p>
+<p>The functions above take the name of the score attribute, <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>; if the attribute
+<code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_sdev&quot;</span></code> exists, it is used as its standard deviation, otherwise the
+score is thresholded directly.</p>
+<p>In multilayer networks every method works layer by layer, as if each layer were a separate
+network (the same as running it on <a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a> of each layer): only
+intra-layer edges are scored, with strengths, degrees, totals and paths of their own layer;
+couplings and other interlayer edges get NaN scores. <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a>,
+<a class="reference internal" href="#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>, <a class="reference internal" href="#graphoskop.maximally_filtered_graph" title="graphoskop.maximally_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a> and
+<a class="reference internal" href="#graphoskop.triangulated_filtered_graph" title="graphoskop.triangulated_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a> always keep the interlayer edges between the
+copies they keep, and the statistics of <a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a> and
+<a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> are computed on the intra-layer edges.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.noise_corrected">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">noise_corrected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nc'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.noise_corrected" title="Link to this definition"></a></dt>
+<dd><p>Noise-corrected backbone scores of all edges (Coscia and Neffke, 2017).</p>
+<p>The weight <span class="math notranslate nohighlight">\(n_{ij}\)</span> of each edge is compared with its expectation given the total weights
+of its source and target, <span class="math notranslate nohighlight">\(n_{i.}\)</span> and <span class="math notranslate nohighlight">\(n_{.j}\)</span>, and of the network,
+<span class="math notranslate nohighlight">\(n_{..}\)</span> (summed over all components). The score lies in <span class="math notranslate nohighlight">\([-1, 1]\)</span>, positive when
+the edge is stronger than expected; its standard deviation comes from a Bayesian (beta-binomial)
+estimate of the variance of <span class="math notranslate nohighlight">\(n_{ij}\)</span>. The backbone keeps the edges with
+<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">&gt;</span> <span class="pre">delta</span> <span class="pre">*</span> <span class="pre">sdev</span></code>, e.g. with <code class="docutils literal notranslate"><span class="pre">delta</span></code> 1.28, 1.64 or 2.32 (one-sided p-values of 0.1,
+0.05 and 0.01).</p>
+<p>In undirected networks every edge is stored in both directions, so <span class="math notranslate nohighlight">\(n_{i.} = n_{.i}\)</span> is
+the strength of the node and both directions get the same values. Self loops are scored too;
+they count once in the strength of their node. Edges whose source or target holds all the
+weight of the network get NaN.</p>
+<p>In multilayer networks, the strengths and <span class="math notranslate nohighlight">\(n_{..}\)</span> are those of the layer of the edge
+(<span class="math notranslate nohighlight">\(n_{i.l}\)</span>, <span class="math notranslate nohighlight">\(n_{.jl}\)</span>, <span class="math notranslate nohighlight">\(n_{..l}\)</span>): each layer is scored on its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, modified in place.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>prefix</strong> – Prefix of the names of the two new edge attributes, <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_sdev&quot;</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">noise_corrected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">keep</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;nc_score&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.64</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;nc_sdev&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.disparity_filter">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">disparity_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.disparity_filter" title="Link to this definition"></a></dt>
+<dd><p>Disparity filter backbone scores of all edges (Serrano, Boguna and Vespignani, 2009).</p>
+<p>From the point of view of a node with <code class="docutils literal notranslate"><span class="pre">k</span></code> edges, the shares of its strength taken by its edges
+are compared with <code class="docutils literal notranslate"><span class="pre">k</span></code> uniformly random shares: an edge taking a share <code class="docutils literal notranslate"><span class="pre">p</span></code> gets the score
+<span class="math notranslate nohighlight">\(1 - \alpha\)</span>, with <span class="math notranslate nohighlight">\(\alpha = (1 - p)^{k - 1}\)</span> the probability of a share at least
+as large. Nodes with a single edge give the score 0. The backbone keeps the edges with
+<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">&gt;</span> <span class="pre">threshold</span></code>, e.g. 0.95 for <span class="math notranslate nohighlight">\(\alpha &lt; 0.05\)</span>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;df_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Every edge has two scores: from its source (its share of the out-strength, among the out-edges)
+and from its target (its share of the in-strength, among the in-edges). In undirected networks
+these are the shares of the strengths of its two endpoints. <code class="docutils literal notranslate"><span class="pre">policy</span></code> combines them:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>: the edge passes if it is significant for at least one endpoint (as in the
+original paper);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>: the edge passes only if it is significant for both endpoints;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (directed networks only): the score from the source or from the target.</p></li>
+</ul>
+<p>Parallel edges and self loops count as separate edges of their nodes (a self loop once in
+undirected networks). In multilayer networks, strengths and degrees count the intra-layer
+edges only, so they are those of each copy in its layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, modified in place.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>policy</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>.</p></li>
+<li><p><strong>prefix</strong> – The score is stored in the edge attribute <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">policy</span></code> is not valid for the network.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">disparity_filter</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;df_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.doubly_stochastic">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">doubly_stochastic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pseudocount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ds'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.doubly_stochastic" title="Link to this definition"></a></dt>
+<dd><p>Doubly stochastic backbone scores of all edges (Slater, 2009).</p>
+<p>The weighted adjacency matrix of each component, plus <code class="docutils literal notranslate"><span class="pre">pseudocount</span></code> in every cell, is scaled
+into a doubly stochastic matrix <span class="math notranslate nohighlight">\(D_1 (A + \epsilon J) D_2\)</span> (every row and column summing
+to 1); the score of an edge is its entry. The scaling of a positive matrix is unique. It is
+computed by Sinkhorn-Knopp iteration, which converges in a few iterations on most components,
+and, for the components not converged after 100 iterations (typically small, nearly
+decomposable ones, e.g. directed components with a small pseudocount), by the Newton method
+of Knight and Ruiz (2013) started from there. Components are scaled independently, so the
+scores of each component sum to its number of nodes. The pseudocount makes the matrix positive,
+which guarantees that the scaling exists; it is applied implicitly, so memory is linear in the
+number of edges and nodes. Parallel edges are summed into one cell and each gets its score;
+self loops are diagonal cells.</p>
+<p>In multilayer networks, the matrices are those of the components of each layer (connected by
+intra-layer edges), as in <a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a>.</p>
+<p>The backbone keeps the edges with <code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">&gt;</span> <span class="pre">threshold</span></code>. Scores scale with the inverse of the
+component size, so a threshold means different things in components of very different sizes.
+Slater’s second stage, adding edges by decreasing score until the network is connected, keeps
+the edges with a score of at least the smallest score of a maximum spanning forest:
+<a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> gives it as the smaller of <code class="docutils literal notranslate"><span class="pre">first_isolate</span></code> and
+<code class="docutils literal notranslate"><span class="pre">first_component_break</span></code> (keep the edges with a score above a threshold just below it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, modified in place.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>pseudocount</strong> – Value added to every cell of each component’s matrix, in units of the
+weights. With 0 the scaling exists only for matrices with total support, and never if a
+node has no out- or in-edges.</p></li>
+<li><p><strong>tol</strong> – Convergence threshold: every row and column sum within <code class="docutils literal notranslate"><span class="pre">tol</span></code> of 1.</p></li>
+<li><p><strong>max_iter</strong> – Maximum number of Newton iterations after the Sinkhorn-Knopp ones; if reached,
+a warning is issued and the current scores are stored.</p></li>
+<li><p><strong>prefix</strong> – The score is stored in the edge attribute <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">pseudocount</span></code> is 0 and a node has no out- or in-edges.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">doubly_stochastic</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;ds_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.high_salience_skeleton">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">high_salience_skeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hss'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.high_salience_skeleton" title="Link to this definition"></a></dt>
+<dd><p>Link salience of all edges, for the high salience skeleton (Grady, Thiemann and Brockmann,
+2012).</p>
+<p>With effective distances <span class="math notranslate nohighlight">\(1 / w\)</span> (edges with a non-positive weight are not used), the
+shortest-path tree of a root is the union of all shortest paths from it to the other nodes
+(all tied paths included). The salience of an edge is the fraction of roots whose tree contains
+it, so it lies in <span class="math notranslate nohighlight">\([0, 1]\)</span>; the high salience skeleton is made of the edges with salience
+close to 1, and salience is typically bimodal, so a threshold such as 0.5 works:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;hss_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The paper defines salience on connected undirected networks, normalized by the number of nodes.
+Here each component is normalized by its own number of nodes (the roots that can reach the edge
+at all), which is the same on a connected network. In directed networks trees follow the edge
+directions; in undirected networks an edge is in a tree if it is in either direction. Among
+parallel edges only the shortest ones can be on a shortest path; self loops never are. Paths
+whose lengths differ by less than one part in <span class="math notranslate nohighlight">\(10^{10}\)</span> count as tied, so that rounding
+in the sums of distances does not split ties.</p>
+<p>In multilayer networks, trees use the intra-layer edges only, and each edge is normalized by
+the number of nodes of its connected piece within its layer (its component in
+<a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a>).</p>
+<p>This needs a shortest-path search from every node, <span class="math notranslate nohighlight">\(O(N E \log N)\)</span>, run by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.sparse.csgraph.dijkstra()</span></code> on the CPU; the edges on each tree are then found on the
+device of the component. <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> processes split the roots of large components (checking
+edges on the CPU); on systems that start processes by spawning (Windows, macOS), the calling
+script must then be protected by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, modified in place.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes.</p></li>
+<li><p><strong>prefix</strong> – The score is stored in the edge attribute <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">high_salience_skeleton</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">skeleton</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;hss_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.extract_backbone">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">extract_backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nc_score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_isolates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnect_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnect_isolates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.extract_backbone" title="Link to this definition"></a></dt>
+<dd><p>Backbone of a network: the edges whose score is above a threshold.</p>
+<p>If the score has a standard deviation (an attribute <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_sdev&quot;</span></code> next to
+<code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>, as stored by <a class="reference internal" href="#graphoskop.noise_corrected" title="graphoskop.noise_corrected"><code class="xref py py-func docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a>), the edges with
+<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">&gt;</span> <span class="pre">threshold</span> <span class="pre">*</span> <span class="pre">sdev</span></code> are kept, <code class="docutils literal notranslate"><span class="pre">threshold</span></code> being the z-score (e.g. 1.28, 1.64 or
+2.32 for one-sided p-values of 0.1, 0.05 and 0.01). Otherwise the edges with
+<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">&gt;</span> <span class="pre">threshold</span></code> are kept, for scores without a standard deviation or to threshold any
+edge attribute directly (e.g. the weight). Edges with a NaN score or standard deviation are
+dropped.</p>
+<p>Dropped edges can be added back, ranked by the same criterion (<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">/</span> <span class="pre">sdev</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">score</span></code>; NaN ranks last):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">reconnect_components</span></code>: each original component split into <code class="docutils literal notranslate"><span class="pre">p</span></code> pieces (isolated nodes
+included) is joined again with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">-</span> <span class="pre">1</span></code> edges, the fewest possible, chosen as a maximum
+spanning forest of the pieces (Kruskal: repeatedly the most significant edge joining two
+different pieces). The backbone then has the same components, with the same nodes, as
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, so this implies <code class="docutils literal notranslate"><span class="pre">reconnect_isolates</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reconnect_isolates</span></code>: each node left without edges gets back an edge, without rejoining
+larger pieces. Going from the most significant edge, an edge is added if one of its endpoints
+is still isolated, so at most one edge per isolated node and fewer when an edge joins two of
+them. Nodes without edges in <code class="docutils literal notranslate"><span class="pre">net</span></code> stay isolated.</p></li>
+</ul>
+<p>Removing edges can split components, so the backbone is a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>,
+with components recomputed and sorted by size; <code class="docutils literal notranslate"><span class="pre">net</span></code> is not modified. All edge and node
+attributes (numeric and qualitative) are kept; a bipartite network gives a bipartite backbone,
+with the same node types. In undirected networks both directions of an edge are kept or dropped
+together, according to the values of the input direction.</p>
+<p>In multilayer networks only intra-layer edges are filtered, and reconnection works within each
+layer (its components and isolated copies). Interlayer edges (couplings included) are always
+kept between the copies that are kept; a copy left without intra-layer edges is dropped with
+its interlayer edges, unless <code class="docutils literal notranslate"><span class="pre">keep_isolates</span></code>. The backbone is multilayer, with the same
+layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>threshold</strong> – Threshold.</p></li>
+<li><p><strong>score</strong> – Name of the edge attribute with the score.</p></li>
+<li><p><strong>keep_isolates</strong> – Keep nodes left without edges, as isolated components.</p></li>
+<li><p><strong>reconnect_components</strong> – Add back the fewest most significant dropped edges keeping every
+original component connected.</p></li>
+<li><p><strong>reconnect_isolates</strong> – Add back the most significant dropped edges of the nodes left
+without edges.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The backbone, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">noise_corrected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">1.64</span><span class="p">)</span>                                  <span class="c1"># z-score</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">1.64</span><span class="p">,</span> <span class="n">reconnect_components</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>     <span class="c1"># same components</span>
+<span class="n">strong</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>                    <span class="c1"># weight above 10</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.spanning_tree">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">spanning_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maximum'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.spanning_tree" title="Link to this definition"></a></dt>
+<dd><p>Maximum or minimum spanning tree of every component (a spanning forest), as a new network.</p>
+<p>Unlike the scoring functions, this filters the edges directly: each component keeps <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>
+of its edges, connecting all its nodes with the largest (or smallest) total weight, so the
+result has the same components, with the same nodes, as <code class="docutils literal notranslate"><span class="pre">net</span></code>, which is not modified. All
+edge and node attributes (numeric and qualitative) are kept, and node types in bipartite
+networks. <code class="docutils literal notranslate"><span class="pre">weight</span></code> can be any edge attribute, e.g. a backbone score.</p>
+<p>Edge directions are ignored when choosing the edges (the tree spans each weakly connected
+component) and kept in the result. In multilayer networks the trees span the components of each
+layer, made of intra-layer edges only, and all interlayer edges are kept. Among parallel edges only the best one can be chosen; self
+loops never are. Edges with a NaN weight are used last, only if needed to connect the
+component. Ties are broken arbitrarily but deterministically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights
+(any spanning tree).</p></li>
+<li><p><strong>kind</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;maximum&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;minimum&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The spanning forest, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">kind</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">spanning_tree</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                  <span class="c1"># maximum weight</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">spanning_tree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;minimum&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">spanning_tree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;nc_score&quot;</span><span class="p">)</span>                      <span class="c1"># most significant edges</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.maximally_filtered_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">maximally_filtered_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maximum'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.maximally_filtered_graph" title="Link to this definition"></a></dt>
+<dd><p>Planar maximally filtered graph (PMFG; Tumminello et al., 2005) of a network, as a new network:
+a planar subgraph with a large total weight.</p>
+<p>Edges are taken from the largest weight to the smallest, and an edge is kept if the kept edges
+stay planar (they can be drawn on a plane without crossings), as Kruskal’s algorithm keeps an
+edge if no cycle is formed. The result contains the maximum spanning tree (see
+<a class="reference internal" href="#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>) and keeps the same components, with the same nodes, as
+<code class="docutils literal notranslate"><span class="pre">net</span></code>; a component of <span class="math notranslate nohighlight">\(n \geq 3\)</span> nodes keeps at most <span class="math notranslate nohighlight">\(3(n - 2)\)</span> edges, exactly
+that many if it was a complete graph (it is then a triangulation, with only triangles and
+4-cliques as cliques). Finding the planar subgraph of largest total weight is NP-hard: this
+greedy construction is the one of the paper, and it is exact for planar networks, which are
+returned whole.</p>
+<p>As in <a class="reference internal" href="#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>, edge directions are ignored when choosing the edges and
+kept in the result, only the best of parallel edges can be chosen, self loops never are, edges
+with a NaN weight come last, and ties are broken deterministically. All edge and node attributes
+(numeric and qualitative) are kept, and node types in bipartite networks. In multilayer networks
+each layer is filtered on its own (intra-layer edges only), and all interlayer edges are kept.</p>
+<p>Runs on the CPU, with the planarity test of <a class="reference internal" href="network.html#graphoskop.Network.is_planar" title="graphoskop.Network.is_planar"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_planar()</span></code></a>. In dense
+networks most edges are dropped, each after a planarity test; these are shortened by testing
+first only the kept edges near the dropped one (a part with it that is not planar is enough),
+and edges likely to be kept are tested in runs. For a complete graph of <span class="math notranslate nohighlight">\(n\)</span> nodes this
+takes about 10 seconds for <span class="math notranslate nohighlight">\(n = 200\)</span> and 2 minutes for <span class="math notranslate nohighlight">\(n = 500\)</span> (the cost grows
+about as <span class="math notranslate nohighlight">\(n^3\)</span>; <a class="reference internal" href="#graphoskop.triangulated_filtered_graph" title="graphoskop.triangulated_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a> is a fast alternative).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight (e.g. a correlation or a backbone
+score), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights (edges taken in input order).</p></li>
+<li><p><strong>kind</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;maximum&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;minimum&quot;</span></code> to favor the smallest weights (e.g. distances).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The PMFG, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">kind</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;correlations.tsv&quot;</span><span class="p">)</span>                   <span class="c1"># complete graph, weight column</span>
+<span class="n">pmfg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximally_filtered_graph</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">pmfg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>                                       <span class="c1"># 3 * (n - 2)</span>
+<span class="n">pmfg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximally_filtered_graph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;minimum&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.triangulated_filtered_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">triangulated_filtered_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'maximum'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.triangulated_filtered_graph" title="Link to this definition"></a></dt>
+<dd><p>Triangulated maximally filtered graph (TMFG; Massara et al., 2016) of a network, as a new
+network: a planar subgraph with a large total weight, much faster to build than
+<a class="reference internal" href="#graphoskop.maximally_filtered_graph" title="graphoskop.maximally_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a>.</p>
+<p>Starting from the 4 nodes with the largest strength (sum of their weights above the mean
+weight), joined as a tetrahedron, the node joined with the largest total weight to the 3 nodes
+of a triangular face is repeatedly inserted in that face, which it splits into 3 new faces,
+until all nodes are in. The result is a maximal planar graph (a triangulation, <span class="math notranslate nohighlight">\(3(n - 2)\)</span>
+edges for <span class="math notranslate nohighlight">\(n \geq 3\)</span> nodes) made of 4-cliques glued on triangles, so it is chordal; it
+is usually close to the PMFG in total weight. Each step needs an arg-max over the faces and an
+update of the faces that had the inserted node as best candidate, all as tensor operations on
+the device of the network, so a GPU helps for large networks. On a CPU, a complete graph of
+<span class="math notranslate nohighlight">\(n\)</span> nodes takes about 0.4 seconds for <span class="math notranslate nohighlight">\(n = 500\)</span> (the PMFG takes minutes) and 13
+seconds for <span class="math notranslate nohighlight">\(n = 5000\)</span>. Ties are broken by node order.</p>
+<p>The method is designed for complete graphs (e.g. correlation matrices), and works on a dense
+<span class="math notranslate nohighlight">\(n \times n\)</span> weight matrix of every component (memory grows as <span class="math notranslate nohighlight">\(n^2\)</span>). In sparse
+networks the pairs without an edge are used last (a node is inserted where it has the most
+edges to the face, then by weight); they are not in the result, which can then have fewer edges
+and more components than <code class="docutils literal notranslate"><span class="pre">net</span></code>. Components of 3 or fewer nodes are kept whole.</p>
+<p>As in <a class="reference internal" href="#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>, edge directions are ignored when choosing the edges and
+kept in the result, only the best of parallel edges can be chosen and self loops never are;
+edges with a NaN weight are treated as absent. All edge and node attributes (numeric and
+qualitative) are kept, and node types in bipartite networks. In multilayer networks each layer
+is filtered on its own (intra-layer edges only), and all interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight (e.g. a correlation or a backbone
+score), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;maximum&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;minimum&quot;</span></code> to favor the smallest weights (e.g. distances).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The TMFG, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">kind</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;correlations.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>  <span class="c1"># complete graph, weight column</span>
+<span class="n">tmfg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">triangulated_filtered_graph</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">tmfg</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>                                       <span class="c1"># 3 * (n - 2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.test_bb_thresholds">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">test_bb_thresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nc_score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.test_bb_thresholds" title="Link to this definition"></a></dt>
+<dd><p>Size of the backbones given by a regular grid of thresholds, to help choosing one.</p>
+<p>The thresholds go from <code class="docutils literal notranslate"><span class="pre">min_threshold</span></code> to <code class="docutils literal notranslate"><span class="pre">max_threshold</span></code> (included if on the grid) in
+steps of <code class="docutils literal notranslate"><span class="pre">step</span></code>, and edges are kept as in <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> (without reconnection).
+For each threshold the result reports, in absolute terms and as a percentage of the original
+network (the same statistic computed on <code class="docutils literal notranslate"><span class="pre">net</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code>: nodes that are not isolated, i.e. with at least one edge to another node;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">edges</span></code>: edges (in undirected networks, each counted once; self loops included);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">avg_degree</span></code>: average degree of the non-isolated nodes, <span class="math notranslate nohighlight">\(2E / N\)</span> in undirected and
+<span class="math notranslate nohighlight">\(E / N\)</span> (average out- or in-degree) in directed networks;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">components</span></code>: weakly connected components with more than one node.</p></li>
+</ul>
+<p>Backbones are not built, so this is much faster than calling <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> for
+each threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>min_threshold</strong> – First threshold.</p></li>
+<li><p><strong>max_threshold</strong> – Last threshold.</p></li>
+<li><p><strong>step</strong> – Distance between consecutive thresholds, positive.</p></li>
+<li><p><strong>score</strong> – Name of the edge attribute with the score (its standard deviation, if any, is
+found as in <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per threshold and columns <code class="docutils literal notranslate"><span class="pre">threshold</span></code>,
+<code class="docutils literal notranslate"><span class="pre">nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">nodes_pct</span></code>, <code class="docutils literal notranslate"><span class="pre">edges</span></code>, <code class="docutils literal notranslate"><span class="pre">edges_pct</span></code>, <code class="docutils literal notranslate"><span class="pre">avg_degree</span></code>, <code class="docutils literal notranslate"><span class="pre">avg_degree_pct</span></code>,
+<code class="docutils literal notranslate"><span class="pre">components</span></code>, <code class="docutils literal notranslate"><span class="pre">components_pct</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">step</span></code> is not positive or <code class="docutils literal notranslate"><span class="pre">max_threshold</span> <span class="pre">&lt;</span> <span class="pre">min_threshold</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">noise_corrected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">test_bb_thresholds</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>   <span class="c1"># z-scores 1, 1.25, ..., 3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.find_bb_thresholds">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">find_bb_thresholds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nc_score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.find_bb_thresholds" title="Link to this definition"></a></dt>
+<dd><p>Thresholds at which the backbone changes qualitatively.</p>
+<p>An edge is kept when its significance (<code class="docutils literal notranslate"><span class="pre">score</span> <span class="pre">/</span> <span class="pre">sdev</span></code> if the score has a standard deviation,
+as in <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a>, otherwise <code class="docutils literal notranslate"><span class="pre">score</span></code>) is above the threshold, so every statistic of <a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a> only changes at the
+significance of some edge. The thresholds below are found exactly among these values (no grid),
+then checked with the comparison of <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> and, if rounding of the scores
+makes it disagree, moved up by the smallest float32 steps until it agrees.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">first_isolate</span></code>: smallest threshold at which a node that has edges to other nodes in
+<code class="docutils literal notranslate"><span class="pre">net</span></code> is left without them; every smaller threshold keeps all such nodes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_component_break</span></code>: smallest threshold at which the number of components with more
+than one node differs from <code class="docutils literal notranslate"><span class="pre">net</span></code> (a component splits into pieces with more than one node,
+or vanishes into isolated nodes). Nodes falling off a component without splitting it are
+reported by <code class="docutils literal notranslate"><span class="pre">first_isolate</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_degree</span></code>: smallest threshold at which the average degree (as in
+<a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a>) reaches <code class="docutils literal notranslate"><span class="pre">target_degree</span></code>, from above if it is lower than the
+average degree of <code class="docutils literal notranslate"><span class="pre">net</span></code> and from below otherwise.</p></li>
+</ul>
+<p>A threshold is NaN if the change never happens, and <code class="docutils literal notranslate"><span class="pre">-inf</span></code> if it happens at every threshold
+(e.g. a node whose edges all have a NaN significance). Standard deviations are assumed
+positive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>target_degree</strong> – Target average degree, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to skip that row.</p></li>
+<li><p><strong>score</strong> – Name of the edge attribute with the score (its standard deviation, if any, is
+found as in <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with a <code class="docutils literal notranslate"><span class="pre">criterion</span></code> column and the columns of
+<a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a>, one row per criterion.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">noise_corrected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">find_bb_thresholds</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">target_degree</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">backbone</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;criterion&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">threshold</span><span class="p">[</span><span class="s2">&quot;first_isolate&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.01</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="node_vector_analysis.html" class="btn btn-neutral float-left" title="Node vector analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

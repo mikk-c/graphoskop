@@ -1,0 +1,91 @@
+Networks and their attributes
+=============================
+
+.. automodule:: graphoskop.network
+   :no-members:
+
+.. autofunction:: graphoskop.load_network
+
+.. autofunction:: graphoskop.save_network
+
+.. autofunction:: graphoskop.load_pickled_network
+
+.. autoclass:: graphoskop.Network
+   :members: get_node_attribute, set_node_attribute, get_edge_attribute, set_edge_attribute, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
+
+.. autodata:: graphoskop.BIPARTITE
+   :annotation: = "bipartite_type"
+
+Numeric and qualitative node attributes
+---------------------------------------
+
+Numeric node attributes live in the ``node_attr`` tensor of each component, on the device of the
+network, and are what Laplacian solvers and node vector analysis work on. Qualitative node
+attributes (strings, categories) cannot be used by these computations, so they never take GPU
+memory: they are kept once for the whole network in ``Network.qualitative_node_attr``, a
+:class:`pandas.DataFrame` of categorical columns in CPU memory, with rows in the network wide node
+order (component by component). Both kinds are read and written by name with
+:meth:`~graphoskop.Network.get_node_attribute` and :meth:`~graphoskop.Network.set_node_attribute`,
+and are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning_tree`.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv", "nodes.tsv", device = "cuda")
+   net.node_attributes               # ["age", "height"]: on the GPU
+   net.qualitative_node_attributes   # ["city"]: in CPU memory
+   net.get_node_attribute("city")    # NumPy object array over the nodes of component 0
+
+Bipartite networks
+------------------
+
+A bipartite network is loaded with ``bipartite = True`` and a node table giving every node a value
+of the ``bipartite_type`` attribute, with two distinct values. Node ids must be unique across the
+two types. Loading fails if a node has no type, or two different ones, or if an edge joins two
+nodes of the same type.
+
+The node types fix a canonical node order: in every component, nodes of type 0 (the smaller value
+of ``bipartite_type``) come first, then nodes of type 1. With ``k = net.bipartite_split[c]``, nodes
+``0`` to ``k - 1`` of component ``c`` have type 0, so the biadjacency matrix is the block of rows
+``0`` to ``k - 1`` and columns ``k`` to ``n - 1`` of the adjacency matrix, and the attributes of
+each type are the slices ``[:k]`` and ``[k:]`` of the node tables. The order is kept by every
+function returning a new network, and ``bipartite_type`` cannot be changed after loading.
+Unipartite networks of one node type are obtained with the functions in
+:doc:`bipartite_projections`.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   # nodes.tsv:   id   bipartite_type   price
+   #              u1   user
+   #              i1   item             9.5
+   net = gsk.load_network("purchases.tsv", "nodes.tsv", bipartite = True)
+   net.bipartite_labels                       # ("item", "user")
+   k = net.bipartite_split[0]
+   price = net.get_node_attribute("price")[:k]   # items of component 0
+
+Multilayer networks
+-------------------
+
+A multilayer network is loaded with ``multilayer = True`` from an edge table with a ``layer``
+column. Nodes are then copies of entities in layers, with input ids ``(entity, layer)``, and
+couplings between the copies of an entity are generated with ``coupling = "all"``, ``"ordinal"``
+or ``"temporal"``. See :doc:`multilayer`.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv", multilayer = True, coupling = "all")
+   net.node_map[("alice", "work")]   # copy of alice in layer "work"
+   gsk.degree(net, "alice")          # summed over the layers of alice
+
+Node ids
+--------
+
+Functions taking nodes accept their input id or their internal id ``(component, index)``, and, in
+multilayer networks, an entity (all its copies). A tuple that is both an input id and a valid
+internal id (e.g. ``(0, 1)`` with integer entities and layers) raises :class:`ValueError`: give the
+node by its input id. Ids read from files are strings, so a number is also tried as a string.

@@ -1,0 +1,9 @@
+numpy
+pandas
+scipy
+torch
+torch_geometric
+
+[docs]
+sphinx
+sphinx_rtd_theme

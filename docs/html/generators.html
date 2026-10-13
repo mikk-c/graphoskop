@@ -1,0 +1,715 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generators &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Backboning" href="backboning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Generators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#random-graphs">Random graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnm_random_graph"><code class="docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnp_random_graph"><code class="docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#clustered-graphs">Clustered graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.caveman_graph"><code class="docutils literal notranslate"><span class="pre">caveman_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.watts_strogatz_graph"><code class="docutils literal notranslate"><span class="pre">watts_strogatz_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#broad-degree-graphs">Broad degree graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.barabasi_albert_graph"><code class="docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.link_selection_graph"><code class="docutils literal notranslate"><span class="pre">link_selection_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.copying_graph"><code class="docutils literal notranslate"><span class="pre">copying_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.holme_kim_graph"><code class="docutils literal notranslate"><span class="pre">holme_kim_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Generators</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/generators.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.generators">
+<span id="generators"></span><h1>Generators<a class="headerlink" href="#module-graphoskop.generators" title="Link to this heading"></a></h1>
+<p>Synthetic network generators, in three families:</p>
+<ul class="simple">
+<li><p>random graphs, where every pair of nodes is equally likely to be linked:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code>;</p></li>
+<li><p>clustered graphs, with many triangles: <code class="xref py py-func docutils literal notranslate"><span class="pre">caveman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">watts_strogatz_graph()</span></code>;</p></li>
+<li><p>broad degree graphs, with hubs: <code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">link_selection_graph()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">copying_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">holme_kim_graph()</span></code> (with clustering).</p></li>
+</ul>
+<p>Every generator takes its natural parameters (e.g. the number of nodes and edges) or, with
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, an existing network, from which it infers them: the result is then a randomization of
+<code class="docutils literal notranslate"><span class="pre">net</span></code>. A randomization keeps the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code>, with their ids, numeric and qualitative
+attributes, node types (bipartite networks) and layers (multilayer networks), and the device; only
+the edges are generated anew. Parameters given explicitly together with <code class="docutils literal notranslate"><span class="pre">net</span></code> override the
+inferred ones, when they can change without changing the nodes.</p>
+<p>New edges take their attributes from the edges they replace: each gets the attribute row of one
+original edge, drawn at random without replacement; if there are more new edges than original
+ones, every original row is used once and the extra edges get rows drawn with replacement.
+Weights and signs (see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>) are therefore shuffled over the new edges, keeping their
+distribution.</p>
+<p>All random numbers are drawn with <code class="xref py py-mod docutils literal notranslate"><span class="pre">torch</span></code> on the device of the network, so results depend
+on <code class="docutils literal notranslate"><span class="pre">seed</span></code> and on the device.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                <span class="c1"># column weight; age, city</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                 <span class="c1"># same nodes, attributes and m</span>
+<span class="n">rnd</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>                                <span class="c1"># the weights of net, shuffled</span>
+
+<span class="n">ml</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">ml</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})</span>         <span class="c1"># each layer on its own; couplings kept</span>
+</pre></div>
+</div>
+<section id="random-graphs">
+<h2>Random graphs<a class="headerlink" href="#random-graphs" title="Link to this heading"></a></h2>
+<p>Every pair of nodes is equally likely to be an edge (Erdős–Rényi).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># nodes 0 to 999, 5000 random edges</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>     <span class="c1"># bipartite, edges in either direction</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># each pair with probability 0.01</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                           <span class="c1"># p = density of net</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.gnm_random_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">gnm_random_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.gnm_random_graph" title="Link to this definition"></a></dt>
+<dd><p>Gnm random graph (Erdős and Rényi, 1959): <code class="docutils literal notranslate"><span class="pre">m</span></code> edges placed uniformly at random among all
+possible pairs of <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes, without parallel edges.</p>
+<p>The pairs are distinct node pairs (ordered if directed), with or without self loops. A
+bipartite random graph has <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">(n0,</span> <span class="pre">n1)</span></code> nodes of two types and its edges only join nodes
+of different types (if directed, in either direction). Sparse graphs draw random pairs until
+<code class="docutils literal notranslate"><span class="pre">m</span></code> are distinct, dense ones permute all pairs, so the time is about linear in <code class="docutils literal notranslate"><span class="pre">m</span></code>, on the
+device.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> without attributes; bipartite nodes
+<code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n0</span> <span class="pre">-</span> <span class="pre">1</span></code> have <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> 0, the others 1. With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the
+result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description) and:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">directed</span></code> are those of <code class="docutils literal notranslate"><span class="pre">net</span></code> (giving others raises an error), and so are the
+node types of bipartite networks;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">m</span></code> is the number of edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> (parallel edges and self loops count, as in
+<a class="reference internal" href="network.html#graphoskop.Network.number_of_edges" title="graphoskop.Network.number_of_edges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_edges()</span></code></a>), unless given;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">self_loops</span></code> is whether <code class="docutils literal notranslate"><span class="pre">net</span></code> has any self loop, unless given;</p></li>
+<li><p>in multilayer networks each layer is randomized on its own, with its own copies and number
+of intra-layer edges (<code class="docutils literal notranslate"><span class="pre">m</span></code> can be a dictionary from layer to number of edges, for the
+layers to change), drawing attributes from the edges of that layer; interlayer edges
+(couplings included) are kept as they are.</p></li>
+</ul>
+<p>The network is split into weakly connected components as usual, so the internal ids
+<code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> of the nodes of a randomization differ from those in <code class="docutils literal notranslate"><span class="pre">net</span></code>; their
+input ids do not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes, or <code class="docutils literal notranslate"><span class="pre">(n0,</span> <span class="pre">n1)</span></code> for a bipartite graph; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>m</strong> – Number of edges (in multilayer networks, a dictionary from layer to number of
+edges), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to take it from <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the
+direction of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>self_loops</strong> – Whether edges from a node to itself are allowed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for no, or for
+whether <code class="docutils literal notranslate"><span class="pre">net</span></code> has them. Bipartite graphs have none.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The random graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">m</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">directed</span></code>
+or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if <code class="docutils literal notranslate"><span class="pre">m</span></code> exceeds the number of possible pairs,
+if a multilayer <code class="docutils literal notranslate"><span class="pre">m</span></code> is not a dictionary (or names unknown layers), or if self loops are
+asked for a bipartite graph.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                    <span class="c1"># undirected, nodes 0 to 999</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="mi">1000</span><span class="p">)</span>                        <span class="c1"># bipartite: 100 + 300 nodes</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                  <span class="c1"># column weight; age, city</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                   <span class="c1"># same nodes and attributes, random edges</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">rnd</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>    <span class="c1"># observed vs random</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="n">m</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(),</span> <span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>   <span class="c1"># twice as dense</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.gnp_random_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">gnp_random_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.gnp_random_graph" title="Link to this definition"></a></dt>
+<dd><p>Gnp random graph (Gilbert, 1959; the Erdős–Rényi model): each possible pair of <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes is
+an edge with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>, independently of the others.</p>
+<p>Pairs, bipartite graphs, self loops and node ids are as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>. The
+number of edges is drawn from its binomial distribution over all possible pairs, then that
+many pairs are placed uniformly at random, which is the same distribution as testing every
+pair (a Gnp graph with <code class="docutils literal notranslate"><span class="pre">m</span></code> edges is a Gnm graph), in time about linear in the number of
+edges instead of <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">**</span> <span class="pre">2</span></code>.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description), as in
+<a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>, except that the number of edges is random:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code> is the density of <code class="docutils literal notranslate"><span class="pre">net</span></code>, the number of its edges (parallel edges and self loops
+count) over the number of possible pairs (with self loops if <code class="docutils literal notranslate"><span class="pre">net</span></code> has any, unless
+<code class="docutils literal notranslate"><span class="pre">self_loops</span></code> is given), so that <code class="docutils literal notranslate"><span class="pre">net</span></code> has as many edges as expected; or as given;</p></li>
+<li><p>in multilayer networks each layer gets the density of its own intra-layer edges; <code class="docutils literal notranslate"><span class="pre">p</span></code> can
+be one probability for all layers, or a dictionary from layer to probability, for the
+layers to change. Interlayer edges (couplings included) are kept as they are.</p></li>
+</ul>
+<p>As the number of edges varies, new edges take the attributes of the original edges of their
+layer as described in the module description: shuffled, with some left out if fewer edges are
+drawn, and some repeated if more are.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes, or <code class="docutils literal notranslate"><span class="pre">(n0,</span> <span class="pre">n1)</span></code> for a bipartite graph; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>p</strong> – Probability of each edge (in multilayer networks, also a dictionary from layer to
+probability), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to take it from <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the
+direction of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>self_loops</strong> – Whether edges from a node to itself are allowed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for no, or for
+whether <code class="docutils literal notranslate"><span class="pre">net</span></code> has them. Bipartite graphs have none.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The random graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">p</span></code> is not between
+0 and 1, if <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if a
+dictionary <code class="docutils literal notranslate"><span class="pre">p</span></code> is given for a network that is not multilayer (or names unknown layers),
+or if self loops are asked for a bipartite graph.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                    <span class="c1"># about 4995 edges</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>       <span class="c1"># bipartite</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                   <span class="c1"># same nodes, density of net</span>
+<span class="n">ml</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">ml</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">})</span>           <span class="c1"># other layers: their own density</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="clustered-graphs">
+<h2>Clustered graphs<a class="headerlink" href="#clustered-graphs" title="Link to this heading"></a></h2>
+<p>Many triangles: cliques (caves), or neighborhoods on a ring with a few random shortcuts (small
+world).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">connected</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                  <span class="c1"># 10 cliques of 5 nodes in a ring</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;cave&quot;</span><span class="p">)</span>                                       <span class="c1"># planted partition, node attribute</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                    <span class="c1"># nodes of net in random caves</span>
+
+<span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">connected</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>    <span class="c1"># small world, one component</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">rewire</span> <span class="o">=</span> <span class="s2">&quot;add&quot;</span><span class="p">)</span>     <span class="c1"># Newman-Watts shortcuts</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>              <span class="c1"># n and m of net, p always given</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.caveman_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">caveman_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cave'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.caveman_graph" title="Link to this definition"></a></dt>
+<dd><p>Caveman graph (Watts, 1999): <code class="docutils literal notranslate"><span class="pre">l</span></code> caves, each a clique of <code class="docutils literal notranslate"><span class="pre">k</span></code> nodes.</p>
+<p>Caves are disconnected, or, with <code class="docutils literal notranslate"><span class="pre">connected</span> <span class="pre">=</span> <span class="pre">True</span></code>, joined in a ring (the connected caveman
+graph): in every cave the edge between its first two nodes is removed, and its first node is
+linked to the last node of the previous cave instead, so that every node keeps degree
+<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">-</span> <span class="pre">1</span></code> (a cave of one node only gains its ring edge). Directed caveman graphs have every
+edge in both directions. The cave of every node is stored as the numeric node attribute
+<code class="docutils literal notranslate"><span class="pre">attribute</span></code>, a planted partition for e.g. <a class="reference internal" href="communities.html#graphoskop.modularity" title="graphoskop.modularity"><code class="xref py py-func docutils literal notranslate"><span class="pre">modularity()</span></code></a>.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, cave by cave; <code class="docutils literal notranslate"><span class="pre">k</span></code> can also be a
+list of cave sizes, for caves of different sizes. With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization
+of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes are assigned at random to caves, whose
+sizes differ by at most one. As every node of a caveman graph has degree <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">-</span> <span class="pre">1</span></code>, the size
+of the caves follows from the average degree of <code class="docutils literal notranslate"><span class="pre">net</span></code>: the number of caves is the one that
+gives the number of edges closest to that of <code class="docutils literal notranslate"><span class="pre">net</span></code> (pairs of nodes in either direction, if
+directed), unless <code class="docutils literal notranslate"><span class="pre">l</span></code> (number of caves) or <code class="docutils literal notranslate"><span class="pre">k</span></code> (cave size, from which <code class="docutils literal notranslate"><span class="pre">l</span></code> is <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">/</span> <span class="pre">k</span></code>
+rounded) is given. In multilayer networks each layer is randomized on its own, with its own
+caves (numbered across layers, so that no two layers share one); <code class="docutils literal notranslate"><span class="pre">l</span></code> can be a dictionary
+from layer to number of caves, <code class="docutils literal notranslate"><span class="pre">k</span></code> one size for all layers or a dictionary. Interlayer
+edges are kept. The new edges take the attributes of the old ones of their layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>l</strong> – Number of caves; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, or if <code class="docutils literal notranslate"><span class="pre">k</span></code> is a list.</p></li>
+<li><p><strong>k</strong> – Number of nodes of each cave, or list of cave sizes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>connected</strong> – Whether to join the caves in a ring.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed (both directions); <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected,
+or for the direction of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the cave of each node (overwritten if
+<code class="docutils literal notranslate"><span class="pre">net</span></code> has it), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for no attribute.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers (with <code class="docutils literal notranslate"><span class="pre">net</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The caveman graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">l</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if both <code class="docutils literal notranslate"><span class="pre">l</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>
+are given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite (it has no cliques), if <code class="docutils literal notranslate"><span class="pre">directed</span></code> or
+<code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if a layer cannot be split into <code class="docutils literal notranslate"><span class="pre">l</span></code> caves, or for
+dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>                                   <span class="c1"># 10 disconnected 5-cliques</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">connected</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                 <span class="c1"># in a ring: one component</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="n">k</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>                           <span class="c1"># caves of different sizes</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;cave&quot;</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">caveman_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                   <span class="c1"># nodes in random caves, same average degree</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">rnd</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>                                  <span class="c1"># attributes of net, on caves</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.watts_strogatz_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">watts_strogatz_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewire</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.watts_strogatz_graph" title="Link to this definition"></a></dt>
+<dd><p>Watts-Strogatz small world graph (Watts and Strogatz, 1998): a ring lattice whose edges are
+rewired at random with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes sit on a ring, each linked to its nearest neighbors: with average degree <code class="docutils literal notranslate"><span class="pre">k</span></code>,
+the lattice has <code class="docutils literal notranslate"><span class="pre">round(n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2)</span></code> edges, linking every node to the <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code> nearest nodes on
+each side for even <code class="docutils literal notranslate"><span class="pre">k</span></code> (the lattice of NetworkX). Any <code class="docutils literal notranslate"><span class="pre">k</span></code> is allowed: for odd (or
+fractional) <code class="docutils literal notranslate"><span class="pre">k</span></code> the last distance links only some pairs, evenly spaced, so that the lattice
+has exactly the number of edges asked and degrees differ by at most one whenever possible.
+Then each edge, independently with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>, is rewired according to <code class="docutils literal notranslate"><span class="pre">rewire</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;target&quot;</span></code>: one endpoint moves, as in the original model: <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> becomes <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">w)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">w</span></code> uniformly random among the nodes not linked to <code class="docutils literal notranslate"><span class="pre">u</span></code>. All picked edges are rewired at
+once (on the device) instead of one after the other; in very dense graphs, an edge whose
+node is already linked to all the others moves to a random free pair instead;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>: both endpoints move: the edge becomes a uniformly random pair of unlinked nodes;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;add&quot;</span></code>: the edge stays, and a new edge joins a uniformly random pair of unlinked nodes
+(Newman and Watts, 1999), so there are about <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">+</span> <span class="pre">p)</span> <span class="pre">n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code> edges (at most all pairs)
+and the lattice is never broken.</p></li>
+</ul>
+<p>The graph has no self loops nor parallel edges, and is undirected. With <code class="docutils literal notranslate"><span class="pre">connected</span> <span class="pre">=</span> <span class="pre">True</span></code>,
+rewiring is drawn again, up to <code class="docutils literal notranslate"><span class="pre">tries</span></code> times, until the graph is connected (the lattice must
+be, so <code class="docutils literal notranslate"><span class="pre">k</span></code> at least 2).</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in ring order. With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the
+result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes are placed on the
+ring in random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>, the average degree) are
+those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code> is given; <code class="docutils literal notranslate"><span class="pre">p</span></code> is always needed. In multilayer networks each
+layer is randomized on its own, with its own ring and number of edges (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
+for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>p</strong> – Probability of rewiring each edge.</p></li>
+<li><p><strong>net</strong> – An undirected, not bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>rewire</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;target&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;add&quot;</span></code>.</p></li>
+<li><p><strong>connected</strong> – Whether the graph must be connected (each layer, in multilayer networks).</p></li>
+<li><p><strong>tries</strong> – Maximum number of attempts to get a connected graph.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The small world graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">p</span></code> is missing or not between 0 and 1, if neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor
+<code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">rewire</span></code> is not valid, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or bipartite, if
+<code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if there are more edges than node pairs,
+if <code class="docutils literal notranslate"><span class="pre">connected</span></code> is asked with <code class="docutils literal notranslate"><span class="pre">k</span></code> below 2 or no connected graph is found in <code class="docutils literal notranslate"><span class="pre">tries</span></code>
+attempts, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># rewire one endpoint</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">rewire</span> <span class="o">=</span> <span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">connected</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">rewire</span> <span class="o">=</span> <span class="s2">&quot;add&quot;</span><span class="p">)</span>            <span class="c1"># Newman-Watts shortcuts</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">watts_strogatz_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># same n and m, nodes on a ring</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">rnd</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="broad-degree-graphs">
+<h2>Broad degree graphs<a class="headerlink" href="#broad-degree-graphs" title="Link to this heading"></a></h2>
+<p>Growing networks whose new nodes link more to nodes with more links, so that a few hubs emerge
+and degrees follow a power law: by knowing all degrees (preferential attachment), or locally,
+through random links (link selection) or the links of random nodes (copying); with triangles
+closed by new nodes, degrees stay broad and clustering stays high (Holme-Kim).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ba</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">barabasi_albert_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>              <span class="c1"># average degree 6: 3 edges per new node</span>
+<span class="n">ls</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_selection_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>               <span class="c1"># each new node picks 3 random links</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">copying_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                      <span class="c1"># each new node copies 3 links of random nodes</span>
+<span class="n">hk</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">holme_kim_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>               <span class="c1"># power law with clustering</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">holme_kim_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                            <span class="c1"># n, m and average clustering of net</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>                                        <span class="c1"># exponent about 3</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">barabasi_albert_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                      <span class="c1"># n and m of net</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.barabasi_albert_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">barabasi_albert_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.barabasi_albert_graph" title="Link to this definition"></a></dt>
+<dd><p>Barabási-Albert graph (Barabási and Albert, 1999): nodes arrive one at a time and link to
+earlier nodes chosen with probability proportional to their degree (preferential attachment),
+giving a power law degree distribution with exponent about 3.</p>
+<p><code class="docutils literal notranslate"><span class="pre">k</span></code> is the average degree: each node brings <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code> edges, to distinct earlier nodes, so
+<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">m</span></code> is the classic model with <code class="docutils literal notranslate"><span class="pre">m</span></code> edges per node. The graph starts from the first
+<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span></code> nodes, each linked to all the earlier ones (a clique). Any <code class="docutils literal notranslate"><span class="pre">k</span></code> is allowed: for
+odd (or fractional) <code class="docutils literal notranslate"><span class="pre">k</span></code>, evenly spaced nodes bring one edge more, so that the graph has
+exactly <code class="docutils literal notranslate"><span class="pre">round(n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2)</span></code> edges. Probabilities are those before the node arrives, as in the
+original model and in NetworkX (whose seed is a star instead of a clique). The graph is
+undirected, without self loops nor parallel edges, and connected if <code class="docutils literal notranslate"><span class="pre">k</span></code> is at least 2.</p>
+<p>Arrivals are simulated in parallel on the device: each new edge copies an endpoint at a
+random position in the list of the earlier edges (Batagelj and Brandes, 2005), copies of
+copies are resolved together, and targets a node already chose are drawn again.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in order of arrival. With <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes arrive in
+random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
+is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
+for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>net</strong> – An undirected, not bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Barabási-Albert graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed
+or bipartite, if <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if there are more edges
+than node pairs, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">barabasi_albert_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># m = 3 edges per new node</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>                                    <span class="c1"># exponent about 3</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">barabasi_albert_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># same n and m, nodes arrive at random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.link_selection_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">link_selection_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.link_selection_graph" title="Link to this definition"></a></dt>
+<dd><p>Link selection graph: nodes arrive one at a time, and each picks random links of the network
+and connects to one of the two nodes of each, chosen uniformly at random.</p>
+<p>This is a local process: a node needs to know a few random links, not everyone’s degree. Yet
+a node with degree <span class="math notranslate nohighlight">\(k_i\)</span> is an endpoint of <span class="math notranslate nohighlight">\(k_i\)</span> of the <span class="math notranslate nohighlight">\(2 m\)</span> endpoint slots,
+so it is reached with probability <span class="math notranslate nohighlight">\(k_i / 2 m\)</span>: exactly linear preferential attachment,
+and the same broad degree distribution as <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a> (power law with
+exponent about 3). The only difference is that a node never uses the same link twice: once
+linked to a node through a link, it cannot reach the other node of that link through it.</p>
+<p>As in <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">k</span></code> is the average degree (each node brings <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code>
+links, to distinct nodes, so <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">m</span></code> picks <code class="docutils literal notranslate"><span class="pre">m</span></code> links), any <code class="docutils literal notranslate"><span class="pre">k</span></code> gives exactly
+<code class="docutils literal notranslate"><span class="pre">round(n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2)</span></code> edges, the first <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span></code> nodes form a clique, a link or a node already
+used is drawn again, and links are picked among those existing before the node arrives. The
+graph is undirected, without self loops nor parallel edges, connected if <code class="docutils literal notranslate"><span class="pre">k</span></code> is at least 2,
+and generated in parallel on the device, with the same result as the sequential process.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in order of arrival. With <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes arrive in
+random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
+is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
+for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>net</strong> – An undirected, not bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The link selection graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed
+or bipartite, if <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if there are more edges
+than node pairs, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_selection_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>            <span class="c1"># each new node picks 3 links</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>                                     <span class="c1"># exponent about 3, as preferential attachment</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_selection_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>         <span class="c1"># same n and m, nodes arrive at random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.copying_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">copying_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.copying_graph" title="Link to this definition"></a></dt>
+<dd><p>Copying graph: nodes arrive one at a time, and each picks an earlier node uniformly at random
+and copies one of its connections, chosen uniformly at random: it links to a random neighbor
+of a random node.</p>
+<p>Like <a class="reference internal" href="#graphoskop.link_selection_graph" title="graphoskop.link_selection_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_selection_graph()</span></code></a>, this is a local process: the new node knows nothing about
+the network, and picks a node instead of a link. A node is reached through each of its
+neighbors <span class="math notranslate nohighlight">\(u\)</span>, with probability <span class="math notranslate nohighlight">\(1 / (N k_u)\)</span> for <span class="math notranslate nohighlight">\(N\)</span> earlier nodes, so the
+more neighbors a node has, the more likely it is to be copied. Since the neighbors of hubs
+tend to have few neighbors themselves, hubs are copied even more than by preferential
+attachment: degrees are broader than in <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a>, with a power law
+exponent close to 2 instead of 3 (as for pure copying in Kumar et al., 2000).</p>
+<p>As in <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">k</span></code> is the average degree (each node makes <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code>
+copies, of distinct neighbors, so <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">m</span></code> makes <code class="docutils literal notranslate"><span class="pre">m</span></code> copies), any <code class="docutils literal notranslate"><span class="pre">k</span></code> gives exactly
+<code class="docutils literal notranslate"><span class="pre">round(n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2)</span></code> edges, the first <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span></code> nodes form a clique, and a copy is drawn again
+(another random node, another random neighbor) if it gives a node already chosen. Nodes and
+neighborhoods are those before the node arrives. The graph is undirected, without self loops
+nor parallel edges, and connected if <code class="docutils literal notranslate"><span class="pre">k</span></code> is at least 2.</p>
+<p>Each copy depends on the whole neighborhood of a node, so unlike the other generators arrivals
+are simulated one after the other, in Python on the CPU (about 12 seconds per million nodes
+with <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">10</span></code>), and the result is then moved to <code class="docutils literal notranslate"><span class="pre">device</span></code>.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in order of arrival. With <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes arrive in
+random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
+is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
+for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>net</strong> – An undirected, not bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The copying graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed
+or bipartite, if <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if there are more edges
+than node pairs, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">copying_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                   <span class="c1"># each new node makes 3 copies</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">copying_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                <span class="c1"># same n and m, nodes arrive at random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.holme_kim_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">holme_kim_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.holme_kim_graph" title="Link to this definition"></a></dt>
+<dd><p>Holme-Kim graph (Holme and Kim, 2002): a power law with clustering. Nodes arrive one at a time
+as in <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a>, but after linking to a node by preferential attachment,
+each further edge of the new node is, with probability <code class="docutils literal notranslate"><span class="pre">p</span></code>, a triad formation step: it links
+to a random neighbor of the node just chosen by preferential attachment, closing a triangle.</p>
+<p>Degrees follow a power law with exponent about 3, as in preferential attachment, while <code class="docutils literal notranslate"><span class="pre">p</span></code>
+tunes the clustering, from that of <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0</span></code>) to a high value
+that does not vanish as the graph grows (<code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">1</span></code>).</p>
+<p>As in <a class="reference internal" href="#graphoskop.barabasi_albert_graph" title="graphoskop.barabasi_albert_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a>, <code class="docutils literal notranslate"><span class="pre">k</span></code> is the average degree (each node brings <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span></code>
+edges, to distinct nodes, so <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">m</span></code> is the model with <code class="docutils literal notranslate"><span class="pre">m</span></code> edges per node), any <code class="docutils literal notranslate"><span class="pre">k</span></code>
+gives exactly <code class="docutils literal notranslate"><span class="pre">round(n</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">2)</span></code> edges, the first <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">1</span></code> nodes form a clique, a node
+already chosen is drawn again, and degrees and neighbors are those before the node arrives.
+The first edge of a node is always by preferential attachment, and a triad formation step
+whose node has no neighbor left falls back to it. The graph is undirected, without self loops
+nor parallel edges, and connected if <code class="docutils literal notranslate"><span class="pre">k</span></code> is at least 2.</p>
+<p>Triad formation needs the neighbors of a node when the new node arrives, so, as for
+<a class="reference internal" href="#graphoskop.copying_graph" title="graphoskop.copying_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">copying_graph()</span></code></a>, arrivals are simulated one after the other, in Python on the CPU, and
+the result is then moved to <code class="docutils literal notranslate"><span class="pre">device</span></code>.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in order of arrival. With <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes arrive in
+random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
+is given. <code class="docutils literal notranslate"><span class="pre">p</span></code> too is inferred, unless given: it is the probability whose graphs have the
+average clustering (<a class="reference internal" href="network_statistics.html#graphoskop.average_clustering" title="graphoskop.average_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_clustering()</span></code></a>) of <code class="docutils literal notranslate"><span class="pre">net</span></code>, found by simulation
+(regula falsi on <code class="docutils literal notranslate"><span class="pre">p</span></code>, on graphs of at most 100,000 nodes with the average degree of the
+result, all with the same random numbers; clustering varies little with size beyond a few
+thousand nodes), which costs a few extra generations. A network more clustered than any
+Holme-Kim graph of its density gets <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">1</span></code>, with a warning. In multilayer networks each
+layer is randomized on its own, with its own <code class="docutils literal notranslate"><span class="pre">p</span></code> (<code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code> can be one value for all
+layers or a dictionary from layer to value); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>p</strong> – Probability of a triad formation step, after the first edge of each node; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+with <code class="docutils literal notranslate"><span class="pre">net</span></code>, to match its average clustering.</p></li>
+<li><p><strong>net</strong> – An undirected, not bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Holme-Kim graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">p</span></code> is not between 0 and 1, or missing without <code class="docutils literal notranslate"><span class="pre">net</span></code>, if neither
+<code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or bipartite, if <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from
+those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, if there are more edges than node pairs, or for dictionaries as in
+<a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">holme_kim_graph</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>            <span class="c1"># 3 edges per node, mostly closing triangles</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">holme_kim_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>              <span class="c1"># same n, m and average clustering</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">holme_kim_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>     <span class="c1"># same n and m, p given</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="backboning.html" class="btn btn-neutral float-left" title="Backboning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

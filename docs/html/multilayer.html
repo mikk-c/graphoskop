@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multilayer networks &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Signed networks" href="signed.html" />
+    <link rel="prev" title="Transformations" href="transformations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Multilayer networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#representation">Representation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.LAYER"><code class="docutils literal notranslate"><span class="pre">LAYER</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#loading">Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyses">Analyses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#saving">Saving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#single-layers-and-aggregation">Single layers and aggregation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.layer_network"><code class="docutils literal notranslate"><span class="pre">layer_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.aggregate_network"><code class="docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#signed-networks">Signed networks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Multilayer networks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/multilayer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.multilayer">
+<span id="multilayer-networks"></span><h1>Multilayer networks<a class="headerlink" href="#module-graphoskop.multilayer" title="Link to this heading"></a></h1>
+<p>Multilayer networks: single layers and the aggregate network.</p>
+<p>A multilayer network (loaded with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code>, see <a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>) is
+stored as its supra-graph. Each node is a copy of an entity in a layer, with input id
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>; entities absent from a layer have no copy there. Intra-layer edges join copies
+in the same layer; interlayer edges join copies in different layers: couplings when both are
+copies of the same entity, otherwise interdependencies between different entities. All of them are
+ordinary edges of the components, so the Laplacian of a component is the supra-Laplacian of the
+multilayer network (e.g. as in the multilayer generalized Euclidean distance, Coscia 2022), and
+every function working on Laplacians, node vectors or paths works on the supra-graph unchanged.
+Couplings are explicit edges, with their weight in the edge attributes: the Laplacians read it as
+an affinity (the larger, the stronger the coupling); with unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) every
+coupling weighs 1.</p>
+<p>The functions here turn a multilayer network into ordinary networks: one of its layers, or all the
+layers flattened into one network of entities.</p>
+<section id="representation">
+<h2>Representation<a class="headerlink" href="#representation" title="Link to this heading"></a></h2>
+<p>A multilayer network is stored as its supra-graph. A node is a copy of an entity in one layer, with
+input id <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, and internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> like any other node. Entities
+absent from a layer have no copy there. Edges come in three kinds, all stored as ordinary edges:</p>
+<ul class="simple">
+<li><p>intra-layer edges, between copies in the same layer;</p></li>
+<li><p>couplings, between copies of the same entity in different layers;</p></li>
+<li><p>other interlayer edges, between copies of different entities in different layers.</p></li>
+</ul>
+<p>Components are the weakly connected components of the supra-graph, so a component can hold copies
+of many layers, connected through couplings. Within a component, nodes are sorted by layer (by type
+first, then by layer, in bipartite networks). Every component has two int64 tensors on its device:
+<code class="docutils literal notranslate"><span class="pre">layer</span></code> (position of the layer of each node in <code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_labels</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">entity</span></code> (position of its entity in <code class="xref py py-attr docutils literal notranslate"><span class="pre">entity_ids</span></code>). An edge <code class="docutils literal notranslate"><span class="pre">(s,</span> <span class="pre">t)</span></code>
+is interlayer if <code class="docutils literal notranslate"><span class="pre">layer[s]</span> <span class="pre">!=</span> <span class="pre">layer[t]</span></code> (see <a class="reference internal" href="network.html#graphoskop.Network.interlayer_mask" title="graphoskop.Network.interlayer_mask"><code class="xref py py-meth docutils literal notranslate"><span class="pre">interlayer_mask()</span></code></a>) and a
+coupling if moreover <code class="docutils literal notranslate"><span class="pre">entity[s]</span> <span class="pre">==</span> <span class="pre">entity[t]</span></code>. <code class="xref py py-attr docutils literal notranslate"><span class="pre">entity_map</span></code> maps every
+entity to its copies.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="graphoskop.LAYER">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">LAYER</span></span><span class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></span><a class="headerlink" href="#graphoskop.LAYER" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to ‘utf-8’.
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+</section>
+<section id="loading">
+<h2>Loading<a class="headerlink" href="#loading" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code> reads an edge table with a <code class="docutils literal notranslate"><span class="pre">layer</span></code>
+column, an optional table of interlayer edges and an optional node table with the entity and the
+layer in its first two columns. Couplings are generated with <code class="docutils literal notranslate"><span class="pre">coupling</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>: every pair of copies of each entity (a multiplex); a warning is issued if there are
+more couplings than intra-layer edges, which happens with many layers;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;ordinal&quot;</span></code>: copies in adjacent layers only, undirected (stored in both directions in directed
+networks). A copy is not coupled across a layer where its entity has no copy. Adjacency follows
+the layer order, so a layer without any node (e.g. a time step without contacts) must be
+declared in <code class="docutils literal notranslate"><span class="pre">layers</span></code> to separate its neighbors;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;temporal&quot;</span></code>: from each copy to the copy in the next layer, forward only, so the network must be
+directed (give undirected contacts in both directions). Paths then respect time;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: no generated couplings (interlayer edges are then only those given explicitly).</p></li>
+</ul>
+<p>Layers are ordered by their values, or by <code class="docutils literal notranslate"><span class="pre">layers</span></code>. <code class="docutils literal notranslate"><span class="pre">coupling_weight</span></code> is a positive number or
+an <code class="docutils literal notranslate"><span class="pre">L</span></code> by <code class="docutils literal notranslate"><span class="pre">L</span></code> matrix (one value per pair of layers, in layer order), stored in every edge
+attribute of the generated couplings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="c1"># edges.tsv:   source   target   layer     weight</span>
+<span class="c1">#              alice    bob      work      2</span>
+<span class="c1">#              alice    carol    friends   1</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">coupling_weight</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">layer_labels</span>                     <span class="c1"># (&quot;friends&quot;, &quot;work&quot;)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">)]</span>      <span class="c1"># (component, index)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">entity_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>              <span class="c1"># internal ids of both copies</span>
+<span class="n">net</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(</span><span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;inter&quot;</span><span class="p">)</span>  <span class="c1"># couplings</span>
+
+<span class="c1"># snapshots of a contact network, couplings forward in time</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">layer</span> <span class="o">=</span> <span class="s2">&quot;day&quot;</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;temporal&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the node table, a row with a missing layer applies to all the copies of its entity, and the rows
+of a copy override it: entity-wide attributes are given once, layer-specific ones per copy.</p>
+</section>
+<section id="analyses">
+<h2>Analyses<a class="headerlink" href="#analyses" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Laplacians and node vectors</strong> (<a class="reference internal" href="laplacians.html"><span class="doc">Laplacians</span></a>, <a class="reference internal" href="node_vector_analysis.html"><span class="doc">Node vector analysis</span></a>): the Laplacian of
+a component is the supra-Laplacian, so <a class="reference internal" href="node_vector_analysis.html#graphoskop.generalized_euclidean" title="graphoskop.generalized_euclidean"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a> is the
+multilayer generalized Euclidean distance (Coscia, 2022), and resistances, solvers, correlations,
+variances and entropies are their multilayer versions. Couplings weigh as affinities. Dense
+matrices have one row per copy.</p></li>
+<li><p><strong>Degree</strong> (<a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>): intra-layer edges only. A copy has its degree in its
+layer, an entity the sum over its copies; distributions are given per layer, or per entity with
+<code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;entity&quot;</span></code>.</p></li>
+<li><p><strong>Shortest paths</strong> (<a class="reference internal" href="shortest_paths.html"><span class="doc">Shortest paths</span></a>): on the supra-graph, changing layer along a coupling
+is a step. Entities can be given as origins or destinations (shortest over their copies). Use
+<code class="docutils literal notranslate"><span class="pre">inverse</span> <span class="pre">=</span> <span class="pre">True</span></code> for lengths consistent with coupling affinities.</p></li>
+<li><p><strong>Backboning</strong> (<a class="reference internal" href="backboning.html"><span class="doc">Backboning</span></a>): layer by layer, as on <code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code>; interlayer edges
+are never scored and are kept between kept copies.</p></li>
+<li><p><strong>Bipartite projections</strong> (<a class="reference internal" href="bipartite_projections.html"><span class="doc">Bipartite projections</span></a>): a bipartite multilayer network is
+bipartite in every layer (an entity has the same type in all its copies, and interlayer edges join
+nodes of the same type); projections are layer by layer, and keep the interlayer edges between
+the copies of the kept type.</p></li>
+</ul>
+</section>
+<section id="saving">
+<h2>Saving<a class="headerlink" href="#saving" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="network.html#graphoskop.save_network" title="graphoskop.save_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_network()</span></code></a> writes <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_edges.tsv&quot;</span></code> (intra-layer edges, with a
+<code class="docutils literal notranslate"><span class="pre">layer</span></code> column), <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_interlayer.tsv&quot;</span></code> (all interlayer edges, couplings included) and
+<code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_nodes.tsv&quot;</span></code> (one row per copy). Load them back with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code> and
+<code class="docutils literal notranslate"><span class="pre">interlayer_edges</span></code>; generated couplings already in the interlayer table are not added twice.</p>
+</section>
+<section id="single-layers-and-aggregation">
+<h2>Single layers and aggregation<a class="headerlink" href="#single-layers-and-aggregation" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.layer_network">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">layer_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.layer_network" title="Link to this definition"></a></dt>
+<dd><p>One layer of a multilayer network, as an ordinary network of entities.</p>
+<p>The nodes are the copies in that layer, with the entity as id, and the edges are the intra-layer
+edges of the layer; couplings and other interlayer edges are left out. All node and edge
+attributes are kept (an attribute classified as qualitative is read back as numeric if all its
+values in the layer look like numbers, as when saving and loading), and so are node types in
+bipartite networks. Components are recomputed, so they are the components of the layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A multilayer <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>layer</strong> – Layer, one of <code class="docutils literal notranslate"><span class="pre">net.layer_labels</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The layer, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not multilayer, or the layer has no node.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such layer.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">work</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">layer_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">work</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">))</span>   <span class="c1"># True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.aggregate_network">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">aggregate_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.aggregate_network" title="Link to this definition"></a></dt>
+<dd><p>Aggregate (flattened) network of a multilayer network: one node per entity, with the edges of
+all layers.</p>
+<p>This is the limit of infinitely strong couplings: the copies of each entity collapse into one
+node, couplings disappear and the other interlayer edges become ordinary edges between their
+entities (except in bipartite networks, where they would join two nodes of the same type, and
+are left out). With <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">=</span> <span class="pre">True</span></code> the edges between the same two entities (in the same
+direction, if directed), from any layer, are merged into one edge whose numeric attributes are
+the sums of theirs (NaN only if all are NaN): the weight of an edge is then its total weight
+over the layers, and the degree of an entity its number of distinct neighbors. With
+<code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">=</span> <span class="pre">False</span></code> they stay as parallel edges, which give the same Laplacians.</p>
+<p>Node attributes take, for each entity, the first value found in layer order (attributes given
+for the whole entity have the same value in every copy); node types are kept in bipartite
+networks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A multilayer <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>merge</strong> – Merge the edges between the same two entities.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The aggregate network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not multilayer.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">flat</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">aggregate_network</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                    <span class="c1"># edge weights summed over the layers</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                            <span class="c1"># distinct neighbors of alice</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="signed-networks">
+<h2>Signed networks<a class="headerlink" href="#signed-networks" title="Link to this heading"></a></h2>
+<p>A signed network is a two-layer network, positive and negative, flattened into one network of
+entities whose edges carry a sign: build it from two layers with
+<code class="docutils literal notranslate"><span class="pre">gsk.signed_network(net,</span> <span class="pre">positive</span> <span class="pre">=</span> <span class="pre">...,</span> <span class="pre">negative</span> <span class="pre">=</span> <span class="pre">...)</span></code> (see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="transformations.html" class="btn btn-neutral float-left" title="Transformations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signed.html" class="btn btn-neutral float-right" title="Signed networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

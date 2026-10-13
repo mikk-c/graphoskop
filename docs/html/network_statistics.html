@@ -1,0 +1,859 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network statistics &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Communities" href="communities.html" />
+    <link rel="prev" title="Bipartite projections" href="bipartite_projections.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Network statistics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#connected-components">Connected components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.connected_components_count"><code class="docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.connected_components_nodes"><code class="docutils literal notranslate"><span class="pre">connected_components_nodes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#degree">Degree</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree"><code class="docutils literal notranslate"><span class="pre">degree()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.average_degree"><code class="docutils literal notranslate"><span class="pre">average_degree()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_power_law"><code class="docutils literal notranslate"><span class="pre">degree_power_law()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_centralization"><code class="docutils literal notranslate"><span class="pre">degree_centralization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#density">Density</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.density"><code class="docutils literal notranslate"><span class="pre">density()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#reciprocity">Reciprocity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.reciprocity"><code class="docutils literal notranslate"><span class="pre">reciprocity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#average-shortest-path-length">Average shortest path length</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.average_shortest_path_length"><code class="docutils literal notranslate"><span class="pre">average_shortest_path_length()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#clustering">Clustering</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.local_clustering"><code class="docutils literal notranslate"><span class="pre">local_clustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.global_clustering"><code class="docutils literal notranslate"><span class="pre">global_clustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.average_clustering"><code class="docutils literal notranslate"><span class="pre">average_clustering()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#assortativity">Assortativity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.assortativity"><code class="docutils literal notranslate"><span class="pre">assortativity()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Network statistics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/network_statistics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.network_statistics">
+<span id="network-statistics"></span><h1>Network statistics<a class="headerlink" href="#module-graphoskop.network_statistics" title="Link to this heading"></a></h1>
+<p>Simple network statistics: connected components, degree of nodes, degree distributions, average
+degree, power law fits of the degree distribution, degree centralization, density,
+reciprocity, average shortest path length, clustering coefficients,
+assortativity.</p>
+<p>Nodes are given by their input id (a key of <code class="xref py py-attr docutils literal notranslate"><span class="pre">node_map</span></code>) or by their
+internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; a tuple that is both raises <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>. Parallel
+edges are counted separately. A self loop adds 1 to the out- and the in-degree of its node, so 2
+to its degree in undirected networks.</p>
+<p>In multilayer networks only intra-layer edges count: couplings and other interlayer edges never
+do. The degree of a copy <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code> is its degree within its layer; an entity can also be
+given on its own, and its degree is then the sum over its copies (the overlapping degree, parallel
+edges in different layers counting separately). The number of distinct neighbors of an entity
+across layers is its degree in <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a>.</p>
+<p>Clustering coefficients count the triangles around nodes. Edges are taken as unweighted, parallel
+edges count once and self loops are ignored. For node <span class="math notranslate nohighlight">\(i\)</span>, with <span class="math notranslate nohighlight">\(A\)</span> the adjacency
+matrix, <span class="math notranslate nohighlight">\(d_i\)</span> its total (in plus out) degree and <span class="math notranslate nohighlight">\(d^\leftrightarrow_i\)</span> its number of
+reciprocated edges, the local clustering coefficient is (Fagiolo, 2007)</p>
+<div class="math notranslate nohighlight">
+\[C_i = \frac{[(A + A^T)^3]_{ii}}{2 \, [d_i (d_i - 1) - 2 d^\leftrightarrow_i]},\]</div>
+<p>the fraction of the possible directed triangles around <span class="math notranslate nohighlight">\(i\)</span> that exist. In undirected
+networks it is the usual <span class="math notranslate nohighlight">\(C_i = 2 T_i / (k_i (k_i - 1))\)</span>, with <span class="math notranslate nohighlight">\(T_i\)</span> the number of
+triangles through <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(k_i\)</span> its number of neighbors. The global clustering
+coefficient (transitivity) is the sum of the numerators over the sum of the denominators: in
+undirected networks, three times the number of triangles over the number of connected triples.
+The average clustering coefficient is the mean of the local ones.</p>
+<p>Triangles are found without forming matrix powers: the pairs of adjacent nodes are oriented from
+lower to higher degree, and each triangle is found once by expanding the 2-paths along the
+orientation (the work grows with <span class="math notranslate nohighlight">\(m^{3/2}\)</span> at most, even with hubs). Paths are expanded in
+batches of <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>, so memory stays bounded (about 50 bytes per path), and all the work runs
+on the device of the network.</p>
+<p>In multilayer networks only intra-layer edges count, so triangles are within layers: the clustering
+of a copy is its clustering in its layer, and global and average clustering are given per layer.</p>
+<section id="connected-components">
+<h2>Connected components<a class="headerlink" href="#connected-components" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.connected_components_count">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_count" title="Link to this definition"></a></dt>
+<dd><p>Number of connected components.</p>
+<p>Weakly connected components (<code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">&quot;weak&quot;</span></code>) are the components the network is split into
+(see <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>), isolated nodes included (each is a component). Strongly
+connected components (<code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">&quot;strong&quot;</span></code>, for directed networks) are the largest sets of nodes
+with a directed path from every node to every other; each weakly connected component splits into
+one or more of them. In undirected networks the two coincide. In multilayer networks the
+components are those of the supra-graph, interlayer edges included.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>type</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;weak&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;strong&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of components.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                    <span class="c1"># weakly connected</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;strong&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.connected_components_nodes">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_nodes" title="Link to this definition"></a></dt>
+<dd><p>Nodes of each connected component (see <a class="reference internal" href="#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a> for the types).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>type</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;weak&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;strong&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of arrays of input node ids, one per component, largest first (for weakly
+connected components, the same order as the components of the network, and the same as
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">node_ids</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sccs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;strong&quot;</span><span class="p">)</span>
+<span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">sccs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>            <span class="c1"># the largest strongly connected component</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="degree">
+<h2>Degree<a class="headerlink" href="#degree" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.degree">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'count'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.degree" title="Link to this definition"></a></dt>
+<dd><p>Degree of nodes, or degree distribution.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the weighted degree (strength): each edge adds the value of that edge
+attribute instead of 1 (in undirected networks a self loop adds twice its value, as it adds 2
+to the degree); NaN values make the degree NaN. Values are then floats, and the distribution
+lists every distinct value.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span></code> given: the degree of that node, as an <code class="docutils literal notranslate"><span class="pre">int</span></code> (a <code class="docutils literal notranslate"><span class="pre">float</span></code> with <code class="docutils literal notranslate"><span class="pre">weight</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span></code> a list (or array) of nodes: a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">node</span></code> (as
+given) and <code class="docutils literal notranslate"><span class="pre">degree</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>: the degree distribution, as a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with column
+<code class="docutils literal notranslate"><span class="pre">degree</span></code> (the values that occur, increasing) and a column named as <code class="docutils literal notranslate"><span class="pre">distribution</span></code>:
+<code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code> (number of nodes with that degree), <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code> (fraction of nodes with that
+degree) or <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code> (fraction of nodes with that degree or higher).</p></li>
+</ul>
+<p>In multilayer networks (see the module description), <code class="docutils literal notranslate"><span class="pre">by</span></code> chooses the distribution:
+<code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> gives the distribution of each layer, over its copies, in one table with a first
+column <code class="docutils literal notranslate"><span class="pre">layer</span></code> (pdf and ccdf normalized within each layer); <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code> gives the
+distribution of the degrees of the entities (sums over their copies). Pooling the copies of all
+layers into one distribution is not offered: it would mix layers, and count each entity once per
+layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node</strong> – Node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> or, in multilayer networks,
+entity), list of nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code>; used when <code class="docutils literal notranslate"><span class="pre">node</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code> (in plus out)
+degree; ignored in undirected networks.</p></li>
+<li><p><strong>component</strong> – For the distribution, index of the component (0 is the largest), or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given. With <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;entity&quot;</span></code>,
+only the copies in that component are summed.</p></li>
+<li><p><strong>by</strong> – In multilayer networks, <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code>; ignored otherwise.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute for the weighted degree, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the
+number of edges.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Degree, or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">distribution</span></code>, <code class="docutils literal notranslate"><span class="pre">direction</span></code> or <code class="docutils literal notranslate"><span class="pre">by</span></code> is not valid, or if a node is
+both an input id and an internal id.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                                <span class="c1"># out-degree of a node</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;in&quot;</span><span class="p">)</span>               <span class="c1"># by internal id</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">])</span>                   <span class="c1"># several nodes</span>
+<span class="n">ccdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;ccdf&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;total&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>             <span class="c1"># weighted out-degree (strength)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;work&quot;</span><span class="p">))</span>                      <span class="c1"># degree in layer &quot;work&quot;</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                                <span class="c1"># summed over the layers</span>
+<span class="n">pdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;pdf&quot;</span><span class="p">)</span>                 <span class="c1"># one distribution per layer</span>
+<span class="n">pdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;pdf&quot;</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="s2">&quot;entity&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.average_degree">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">average_degree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.average_degree" title="Link to this definition"></a></dt>
+<dd><p>Average degree: the mean of the degrees of all nodes, as given by <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>.</p>
+<p>This is <span class="math notranslate nohighlight">\(2m / n\)</span> in undirected networks (each edge adds 1 to the degree of both its
+nodes) and <span class="math notranslate nohighlight">\(m / n\)</span> in directed networks for the out- or the in-degree (each edge adds 1 to
+one out-degree and one in-degree, so the two averages are equal), <span class="math notranslate nohighlight">\(2m / n\)</span> for the total
+degree. Here <span class="math notranslate nohighlight">\(m\)</span> counts edges as <a class="reference internal" href="network.html#graphoskop.Network.number_of_edges" title="graphoskop.Network.number_of_edges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_edges()</span></code></a> does
+(parallel edges and self loops included) and <span class="math notranslate nohighlight">\(n\)</span> counts all nodes, isolated nodes
+included. NaN if there are no nodes.</p>
+<p>In multilayer networks only intra-layer edges count, and <code class="docutils literal notranslate"><span class="pre">by</span></code> chooses the average:
+<code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> gives the average degree of the copies of each layer (<span class="math notranslate nohighlight">\(2 m_l / n_l\)</span> in
+undirected networks), <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code> the average of the degrees of the entities (sums over their
+copies, as in <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code>; ignored in
+undirected networks.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>by</strong> – In multilayer networks, <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code>; ignored otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code> and <code class="docutils literal notranslate"><span class="pre">average_degree</span></code>, one row per layer with copies.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> or <code class="docutils literal notranslate"><span class="pre">by</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_degree</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                          <span class="c1"># 2 m / n</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_degree</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                          <span class="c1"># m / n, out-degree (equal to in-degree)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;total&quot;</span><span class="p">)</span>     <span class="c1"># 2 m / n</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.degree_power_law">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">degree_power_law</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">significance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ccdf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.degree_power_law" title="Link to this definition"></a></dt>
+<dd><p>Fit of a power law to the degree distribution, with the tests needed to decide whether it is
+one (Clauset, Shalizi and Newman, 2009).</p>
+<p>Degrees are integers, so all distributions are discrete, fitted by maximum likelihood to the
+tail <span class="math notranslate nohighlight">\(k \ge k_{min}\)</span> (degree 0 is left out):</p>
+<ol class="arabic simple">
+<li><p><strong>Regime.</strong> <span class="math notranslate nohighlight">\(k_{min}\)</span> (the shift) is the smallest degree from which the distribution is
+closest to a power law: for each candidate (each degree value leaving at least 10 nodes in the
+tail), the exponent is fitted and the Kolmogorov-Smirnov distance between the tail and the
+fit is computed; the minimum wins. <code class="docutils literal notranslate"><span class="pre">k_min</span></code> fixes it instead. A shift exists when
+<span class="math notranslate nohighlight">\(k_{min}\)</span> is above the smallest degree. The tests below compare models on this tail.</p></li>
+<li><p><strong>Exponential.</strong> Log-likelihood ratio test (Vuong) against a discrete exponential, over all
+positive degrees and over the tail. If the exponential is significantly better over all
+degrees and the tail does not significantly favor the power law, the distribution is not a
+power law: no exponent is given (NaN) and a warning is issued, and the best fit returned is
+the exponential over all positive degrees. Both tests are needed: on
+exponential data, the search of step 1 can settle on a short far tail where a steep power
+law looks acceptable and the test lacks power; while a power law tail above a different body
+(a shift) must not be refused because of its body. If only the tail test is inconclusive, a
+warning is issued and the fit goes on.</p></li>
+<li><p><strong>Lognormal.</strong> Same test against a discrete lognormal. Unless the power law is significantly
+better, a warning is issued (a lognormal and a power law are hard to tell apart on finite
+data), and the fit goes on.</p></li>
+<li><p><strong>Cutoff.</strong> Nested likelihood ratio test against a power law with exponential cutoff,
+<span class="math notranslate nohighlight">\(p(k) \propto k^{-\alpha} e^{-\lambda k}\)</span>. If the cutoff is significantly better, the
+exponent and <span class="math notranslate nohighlight">\(\lambda\)</span> of that fit are returned; otherwise the pure power law exponent,
+with <span class="math notranslate nohighlight">\(\lambda = 0\)</span>.</p></li>
+</ol>
+<p>A test is significant when its p-value is below <code class="docutils literal notranslate"><span class="pre">significance</span></code> (0.1 as in Clauset et al.).
+The goodness-of-fit p-value of Clauset et al. (by bootstrap) is not computed. Weighted degrees
+are not integers, so they are not supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code> degree.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>layer</strong> – In multilayer networks, a layer (its copies’ degrees), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the degrees
+of the entities (sums over their copies, as <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;entity&quot;</span></code>).</p></li>
+<li><p><strong>k_min</strong> – Smallest degree of the tail, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to choose it as above.</p></li>
+<li><p><strong>significance</strong> – Threshold on the p-values of the tests.</p></li>
+<li><p><strong>ccdf</strong> – Also return the fitted complementary cumulative distribution (see below).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary describing the best fit and the tests behind it:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">verdict</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;power</span> <span class="pre">law&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;power</span> <span class="pre">law</span> <span class="pre">with</span> <span class="pre">exponential</span> <span class="pre">cutoff&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;not</span> <span class="pre">a</span> <span class="pre">power</span> <span class="pre">law&quot;</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code>: the best fit, <code class="docutils literal notranslate"><span class="pre">&quot;power</span> <span class="pre">law&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;power</span> <span class="pre">law</span> <span class="pre">with</span> <span class="pre">exponential</span> <span class="pre">cutoff&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;exponential&quot;</span></code> (when the verdict is <code class="docutils literal notranslate"><span class="pre">&quot;not</span> <span class="pre">a</span> <span class="pre">power</span> <span class="pre">law&quot;</span></code>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exponent</span></code>: <span class="math notranslate nohighlight">\(\alpha\)</span> (NaN for the exponential); <code class="docutils literal notranslate"><span class="pre">cutoff</span></code>: <span class="math notranslate nohighlight">\(\lambda\)</span> of the
+power law with cutoff (0 otherwise); <code class="docutils literal notranslate"><span class="pre">rate</span></code>: <span class="math notranslate nohighlight">\(\lambda\)</span> of the exponential (only then);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k_min</span></code>: smallest degree of the fitted range (for the exponential, the smallest positive
+degree);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalization</span></code>: <span class="math notranslate nohighlight">\(Z\)</span>, the sum of the unnormalized model over the fitted range
+(<span class="math notranslate nohighlight">\(\zeta(\alpha, k_{min})\)</span> for the power law,
+<span class="math notranslate nohighlight">\(\sum_{j \ge k_{min}} j^{-\alpha} e^{-\lambda j}\)</span> with cutoff,
+<span class="math notranslate nohighlight">\(e^{-\lambda k_{min}} / (1 - e^{-\lambda})\)</span> for the exponential);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tail_fraction</span></code>: <span class="math notranslate nohighlight">\(f\)</span>, the fraction of the nodes considered (degree 0 included) with
+degree at least <code class="docutils literal notranslate"><span class="pre">k_min</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">formula</span></code>: the fitted distribution written out, <span class="math notranslate nohighlight">\(P(k)\)</span> being the fraction of the
+nodes with degree <span class="math notranslate nohighlight">\(k\)</span>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;P(k)</span> <span class="pre">=</span> <span class="pre">0.2647</span> <span class="pre">*</span> <span class="pre">k^(-2.368)</span> <span class="pre">/</span> <span class="pre">0.025817,</span> <span class="pre">for</span> <span class="pre">k</span> <span class="pre">&gt;=</span> <span class="pre">12&quot;</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n</span></code> (nodes with positive degree), <code class="docutils literal notranslate"><span class="pre">n_tail</span></code> (nodes in the fitted range), <code class="docutils literal notranslate"><span class="pre">ks</span></code>
+(Kolmogorov-Smirnov distance of the power law on its tail, NaN for the exponential);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests</span></code>: <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, one row per test: <code class="docutils literal notranslate"><span class="pre">alternative</span></code>, <code class="docutils literal notranslate"><span class="pre">degrees</span></code>
+(<code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">loglikelihood_ratio</span></code> (positive favors the power law), <code class="docutils literal notranslate"><span class="pre">p</span></code>
+and <code class="docutils literal notranslate"><span class="pre">favors</span></code>;</p></li>
+<li><p>with <code class="docutils literal notranslate"><span class="pre">ccdf</span> <span class="pre">=</span> <span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">ccdf</span></code>: <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per degree value
+from <code class="docutils literal notranslate"><span class="pre">k_min</span></code>: <code class="docutils literal notranslate"><span class="pre">degree</span></code>, <code class="docutils literal notranslate"><span class="pre">ccdf</span></code> (fraction of nodes with that degree or higher, as
+<a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">distribution</span> <span class="pre">=</span> <span class="pre">&quot;ccdf&quot;</span></code>) and <code class="docutils literal notranslate"><span class="pre">fit</span></code> (the same from the best fit).
+Plotting both columns on log-log axes shows the fit over the empirical distribution.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If fewer than 10 nodes are in the tail, or a parameter is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;exponent&quot;</span><span class="p">],</span> <span class="n">fit</span><span class="p">[</span><span class="s2">&quot;k_min&quot;</span><span class="p">],</span> <span class="n">fit</span><span class="p">[</span><span class="s2">&quot;cutoff&quot;</span><span class="p">]</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;formula&quot;</span><span class="p">]</span>       <span class="c1"># e.g. &quot;P(k) = 0.2647 * k^(-2.368) / 0.025817, for k &gt;= 12&quot;</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;tests&quot;</span><span class="p">]</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_power_law</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">ccdf</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;ccdf&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ccdf&quot;</span><span class="p">,</span> <span class="s2">&quot;fit&quot;</span><span class="p">],</span> <span class="n">loglog</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.degree_centralization">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">degree_centralization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.degree_centralization" title="Link to this definition"></a></dt>
+<dd><p>Degree centralization from the entropy of the degree sequence, adjusted for the size and density
+of the network.</p>
+<p>The degree share entropy (the first degree-based entropy of Cambie and Mazzamurro, 2022),
+<span class="math notranslate nohighlight">\(H = -\sum_i \frac{k_i}{T} \log \frac{k_i}{T}\)</span> with <span class="math notranslate nohighlight">\(T = \sum_i k_i\)</span>, is
+<span class="math notranslate nohighlight">\(\log n\)</span> when all nodes have the same degree and decreases as the edges concentrate on
+fewer nodes. It also grows with the number of nodes, so it is compared with its expected value
+<span class="math notranslate nohighlight">\(E[H]\)</span> in uniform random graphs with the same numbers of nodes <span class="math notranslate nohighlight">\(n\)</span> and edges
+<span class="math notranslate nohighlight">\(m\)</span> (Erdos-Renyi <span class="math notranslate nohighlight">\(G(n, m)\)</span>). There the degrees always sum to <span class="math notranslate nohighlight">\(T\)</span>, so
+<span class="math notranslate nohighlight">\(H = \log T - \frac{1}{T} \sum_i k_i \log k_i\)</span> and
+<span class="math notranslate nohighlight">\(E[H] = \log T - \frac{n}{T} E[k \log k]\)</span>, exactly, with the degree <span class="math notranslate nohighlight">\(k\)</span> of a node
+hypergeometric: a node takes part in <span class="math notranslate nohighlight">\(n - 1\)</span> of the <span class="math notranslate nohighlight">\(n (n - 1) / 2\)</span> possible edges
+(<span class="math notranslate nohighlight">\(n (n - 1)\)</span> in directed networks, <span class="math notranslate nohighlight">\(2 (n - 1)\)</span> per node with <code class="docutils literal notranslate"><span class="pre">mode</span> <span class="pre">=</span> <span class="pre">&quot;all&quot;</span></code>),
+<span class="math notranslate nohighlight">\(m\)</span> of which are drawn. No sampling is needed.</p>
+<p>The centralization is <span class="math notranslate nohighlight">\(C = 1 - e^{H - E[H]}\)</span>: <span class="math notranslate nohighlight">\(e^H\)</span> is the effective number of nodes
+sharing the edges, so <span class="math notranslate nohighlight">\(C\)</span> is the fraction of effective nodes lost with respect to a random
+network of the same size and density. It is 0 for degrees as even as at random, tends to 1 as
+the edges concentrate on a few hubs (a star has <span class="math notranslate nohighlight">\(C = 0.74\)</span> with 101 nodes, 0.97 with
+10,001), and is negative for networks more even than random (e.g. a cycle). Networks of the same
+kind and different sizes have similar values.</p>
+<p>For connected undirected networks with <span class="math notranslate nohighlight">\(n - 1 \leq m \leq 2n - 3\)</span> (sparse networks: trees
+up to average degree about 4), the smallest possible entropy <span class="math notranslate nohighlight">\(H_{min}\)</span> is known (Cambie and
+Mazzamurro, 2022): a node joined to all others plus a second hub. The relative centralization
+<span class="math notranslate nohighlight">\(C' = (E[H] - H) / (E[H] - H_{min})\)</span> then places the network between random (0) and the
+most centralized network with its numbers of nodes and edges (1). Since that range widens with
+<span class="math notranslate nohighlight">\(\log n\)</span> while networks of the same kind stay at a similar distance from random,
+<span class="math notranslate nohighlight">\(C'\)</span> decreases with size and is meant to compare networks of similar size; outside that
+range (directed, disconnected or denser networks) it is NaN.</p>
+<p>Degrees are those of the simple graph: parallel edges count once, self loops are ignored, and
+weights are not used (the closed form holds for unweighted graphs only). Nodes without edges
+count in <span class="math notranslate nohighlight">\(n\)</span>. In multilayer networks the supra-graph is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>mode</strong> – In directed networks, the degree used: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> (in plus out), <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">&quot;centralization&quot;</span></code> (<span class="math notranslate nohighlight">\(C\)</span>), <code class="docutils literal notranslate"><span class="pre">&quot;relative_centralization&quot;</span></code>
+(<span class="math notranslate nohighlight">\(C'\)</span>), <code class="docutils literal notranslate"><span class="pre">&quot;entropy&quot;</span></code> (<span class="math notranslate nohighlight">\(H\)</span>), <code class="docutils literal notranslate"><span class="pre">&quot;expected_entropy&quot;</span></code> (<span class="math notranslate nohighlight">\(E[H]\)</span>) and
+<code class="docutils literal notranslate"><span class="pre">&quot;minimum_entropy&quot;</span></code> (<span class="math notranslate nohighlight">\(H_{min}\)</span>, NaN when unknown); all NaN without edges.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_centralization</span><span class="p">(</span><span class="n">net</span><span class="p">)[</span><span class="s2">&quot;centralization&quot;</span><span class="p">]</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree_centralization</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>             <span class="c1"># largest component, with C&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="density">
+<h2>Density<a class="headerlink" href="#density" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.density">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.density" title="Link to this definition"></a></dt>
+<dd><p>Density: the fraction of the possible edges that are present.</p>
+<ul class="simple">
+<li><p>undirected networks: <span class="math notranslate nohighlight">\(2m / (n (n - 1))\)</span>;</p></li>
+<li><p>directed networks: <span class="math notranslate nohighlight">\(m / (n (n - 1))\)</span> (both directions are possible for every pair);</p></li>
+<li><p>bipartite networks: <span class="math notranslate nohighlight">\(m / (n_0 n_1)\)</span>, or <span class="math notranslate nohighlight">\(m / (2 n_0 n_1)\)</span> if directed, with
+<span class="math notranslate nohighlight">\(n_0\)</span> and <span class="math notranslate nohighlight">\(n_1\)</span> the numbers of nodes of the two types (edges are only possible
+between types).</p></li>
+</ul>
+<p><span class="math notranslate nohighlight">\(m\)</span> counts the distinct pairs of nodes joined by an edge (distinct ordered pairs in
+directed networks): parallel edges count once and self loops are left out, so the density is
+between 0 and 1 (NetworkX instead counts every edge, self loops included). <span class="math notranslate nohighlight">\(n\)</span> counts all
+nodes, isolated nodes included. NaN if no edge is possible.</p>
+<p>In multilayer networks only intra-layer edges count: couplings and other interlayer edges are
+left out, and the possible edges are those within each layer. <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> gives the
+density of each layer, over its copies; <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;network&quot;</span></code> pools the layers, as the fraction of
+all the possible intra-layer edges, <span class="math notranslate nohighlight">\(\sum_l m_l / \sum_l \binom{n_l}{2}\)</span> in undirected
+networks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>by</strong> – In multilayer networks, <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;network&quot;</span></code>; ignored otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code> and <code class="docutils literal notranslate"><span class="pre">density</span></code>, one row per layer with copies.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">by</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">gsk</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">))</span>                         <span class="c1"># 2 m / (n (n - 1))</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>        <span class="c1"># m / (n (n - 1))</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                                   <span class="c1"># one density per layer</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">density</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="s2">&quot;network&quot;</span><span class="p">)</span>                                   <span class="c1"># all layers pooled</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="reciprocity">
+<h2>Reciprocity<a class="headerlink" href="#reciprocity" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.reciprocity">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">reciprocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.reciprocity" title="Link to this definition"></a></dt>
+<dd><p>Reciprocity of a directed network: the fraction of edges whose reverse edge is also present,
+<span class="math notranslate nohighlight">\(r = L^\leftrightarrow / L\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(L\)</span> counts the distinct ordered pairs joined by an edge (parallel edges count once, self
+loops are left out, as in <a class="reference internal" href="#graphoskop.density" title="graphoskop.density"><code class="xref py py-func docutils literal notranslate"><span class="pre">density()</span></code></a>), and <span class="math notranslate nohighlight">\(L^\leftrightarrow\)</span> those whose reverse
+pair is joined too. With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code>, the measure of Garlaschelli and Loffredo (2004),
+<span class="math notranslate nohighlight">\(\rho = (r - a) / (1 - a)\)</span> with <span class="math notranslate nohighlight">\(a\)</span> the density (<a class="reference internal" href="#graphoskop.density" title="graphoskop.density"><code class="xref py py-func docutils literal notranslate"><span class="pre">density()</span></code></a>): 0 if edges are
+reciprocated as often as by chance, positive if more often, negative if less, so that networks
+of different density can be compared. NaN if there are no edges (or, normalized, if the density
+is 1).</p>
+<p>In multilayer networks only intra-layer edges count; <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> gives the reciprocity of
+each layer, <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;network&quot;</span></code> pools the edges of all layers (and their densities, as in
+<a class="reference internal" href="#graphoskop.density" title="graphoskop.density"><code class="xref py py-func docutils literal notranslate"><span class="pre">density()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>normalized</strong> – Return <span class="math notranslate nohighlight">\(\rho\)</span> instead of <span class="math notranslate nohighlight">\(r\)</span>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>by</strong> – In multilayer networks, <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;network&quot;</span></code>; ignored otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>
+with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code> and <code class="docutils literal notranslate"><span class="pre">reciprocity</span></code>, one row per layer with edges.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected (where every edge is reciprocated), or <code class="docutils literal notranslate"><span class="pre">by</span></code>
+is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">reciprocity</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                       <span class="c1"># fraction of reciprocated edges</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">reciprocity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">normalized</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>    <span class="c1"># compared with the density</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="average-shortest-path-length">
+<h2>Average shortest path length<a class="headerlink" href="#average-shortest-path-length" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.average_shortest_path_length">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">average_shortest_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.average_shortest_path_length" title="Link to this definition"></a></dt>
+<dd><p>Average shortest path length: the mean length of the shortest paths between all ordered pairs
+of distinct nodes connected by a path.</p>
+<p>Paths are those of <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a> (same engine, same <code class="docutils literal notranslate"><span class="pre">weight</span></code> and
+<code class="docutils literal notranslate"><span class="pre">inverse</span></code> options, shortest of parallel edges, directions followed in directed networks, the
+supra-graph in multilayer networks, where changing layer along a coupling is a step and pairs
+of copies of the same entity count). Pairs without a path are left out: nodes in different
+components, and, in directed networks, pairs where the target cannot be reached from the
+source (NetworkX instead raises an error unless the network is strongly connected). In an
+undirected component every pair counts, so this is the usual
+<span class="math notranslate nohighlight">\(\frac{1}{n (n - 1)} \sum_{s \ne t} d(s, t)\)</span>. NaN if no pair is connected.</p>
+<p>Lengths from each batch of sources are summed as soon as they are found, so memory stays at a
+few rows of lengths, not <span class="math notranslate nohighlight">\(n^2\)</span>; searches are split across processes as in
+<a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> (see <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a> for
+<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> and the <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code> guard). On large networks, <code class="docutils literal notranslate"><span class="pre">samples</span></code> uses
+only that many random source nodes (drawn uniformly from the nodes considered, <code class="docutils literal notranslate"><span class="pre">seed</span></code> for
+reproducibility), which estimates the average with <span class="math notranslate nohighlight">\(O(\text{samples} \cdot m)\)</span> work.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">lengths</span></code>, the lengths precomputed by <a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a>
+(with the same <code class="docutils literal notranslate"><span class="pre">component</span></code>, <code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code>) are used and no path is searched
+again; <code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code> are then ignored. The sums run on their device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network
+(pairs in different components left out).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>samples</strong> – Number of random source nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all nodes (exact).</p></li>
+<li><p><strong>seed</strong> – Seed of the random sources.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths: a tensor for one component, or the list of tensors of
+<code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths(net,</span> <span class="pre">None,</span> <span class="pre">...)</span></code> for <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The average length, a float.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code> does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_shortest_path_length</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                   <span class="c1"># largest component</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_shortest_path_length</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_shortest_path_length</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span>                   <span class="c1"># estimate</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_shortest_path_length</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">lengths</span> <span class="o">=</span> <span class="n">P</span><span class="p">)</span>                      <span class="c1"># no new search</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>   <span class="c1"># needed for parallel searches on some platforms</span>
+   <span class="n">gsk</span><span class="o">.</span><span class="n">average_shortest_path_length</span><span class="p">(</span><span class="n">big_net</span><span class="p">,</span> <span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="clustering">
+<h2>Clustering<a class="headerlink" href="#clustering" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.local_clustering">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">local_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.local_clustering" title="Link to this definition"></a></dt>
+<dd><p>Local clustering coefficient of nodes (see the module description).</p>
+<p>NaN for nodes with fewer than two neighbors, where it is undefined.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node</strong> – Node (input id or internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; in multilayer networks a
+copy <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>), list of nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>component</strong> – With <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+for a list with one vector per component; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once; larger is faster, especially on GPU,
+and uses more memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>With <code class="docutils literal notranslate"><span class="pre">node</span></code>, a float; with a list of nodes, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns
+<code class="docutils literal notranslate"><span class="pre">node</span></code> (as given) and <code class="docutils literal notranslate"><span class="pre">clustering</span></code>; with <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, a float64 vector over the nodes
+of the component, on its device, ordered by internal index (as node attributes).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If a node is an entity of a multilayer network (give one of its copies),
+or is both an input id and an internal id.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">local_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">local_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">])</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                  <span class="c1"># vector over component 0</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;clustering&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.global_clustering">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">global_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.global_clustering" title="Link to this definition"></a></dt>
+<dd><p>Global clustering coefficient (transitivity, see the module description).</p>
+<p><span class="math notranslate nohighlight">\(\sum_i [(A + A^T)^3]_{ii} / \sum_i 2 [d_i (d_i - 1) - 2 d^\leftrightarrow_i]\)</span>; in
+undirected networks, three times the number of triangles over the number of connected triples.
+NaN if there are no connected triples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once; larger is faster, especially on GPU,
+and uses more memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code>
+and <code class="docutils literal notranslate"><span class="pre">clustering</span></code>, one row per layer.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">global_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.average_clustering">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">average_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_undefined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.average_clustering" title="Link to this definition"></a></dt>
+<dd><p>Average clustering coefficient: the mean of the local clustering coefficients
+(<a class="reference internal" href="#graphoskop.local_clustering" title="graphoskop.local_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">local_clustering()</span></code></a>).</p>
+<p>Nodes with fewer than two neighbors, where the local coefficient is undefined, count as 0 (as
+in Watts and Strogatz, 1998, and NetworkX), or are left out with <code class="docutils literal notranslate"><span class="pre">skip_undefined</span> <span class="pre">=</span> <span class="pre">True</span></code>. NaN
+if no node is left.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>skip_undefined</strong> – Leave out the nodes with fewer than two neighbors.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once; larger is faster, especially on GPU,
+and uses more memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code>
+and <code class="docutils literal notranslate"><span class="pre">clustering</span></code>, one row per layer (the mean over its copies).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">skip_undefined</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="assortativity">
+<h2>Assortativity<a class="headerlink" href="#assortativity" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>              <span class="c1"># degree assortativity</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>       <span class="c1"># numeric attribute: Pearson correlation over the edges</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>      <span class="c1"># qualitative attribute: Newman&#39;s categorical coefficient</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.assortativity">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">assortativity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('out',</span> <span class="pre">'in')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.assortativity" title="Link to this definition"></a></dt>
+<dd><p>Assortativity: the tendency of nodes to connect to nodes with similar attribute values
+(Newman, 2002 and 2003).</p>
+<p>The kind of assortativity follows the type of the attribute:</p>
+<ul class="simple">
+<li><p>numeric attribute: the Pearson correlation between the values at the two ends of the edges;</p></li>
+<li><p>qualitative attribute: <span class="math notranslate nohighlight">\(r = (\sum_i e_{ii} - \sum_i a_i b_i) / (1 - \sum_i a_i b_i)\)</span>,
+with <span class="math notranslate nohighlight">\(e_{ij}\)</span> the fraction of edges from a node of category <span class="math notranslate nohighlight">\(i\)</span> to one of
+category <span class="math notranslate nohighlight">\(j\)</span>, <span class="math notranslate nohighlight">\(a_i = \sum_j e_{ij}\)</span> and <span class="math notranslate nohighlight">\(b_j = \sum_i e_{ij}\)</span>;</p></li>
+<li><p>no attribute (<code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">None</span></code>): degree assortativity, the Pearson correlation between
+the degrees at the two ends of the edges, computed from the edges without any node attribute.</p></li>
+</ul>
+<p>Both range from -1 (disassortative) to 1 (assortative). In undirected networks every edge counts
+in both directions, so the result is symmetric; in directed networks the value at the source is
+compared with the value at the target, and for degree assortativity <code class="docutils literal notranslate"><span class="pre">direction</span></code> chooses which
+degree is taken at each end (default: out-degree of the source, in-degree of the target). A self
+loop counts as much as any other edge (as in Newman’s formula and igraph; NetworkX counts self
+loops of undirected networks half), and degrees count them as <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a> does. Edges with a missing value (NaN)
+at either end are left out; in long node tables, nodes without a numeric value have 0, as in
+<a class="reference internal" href="network.html#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, edges count proportionally to
+that edge attribute. NaN if undefined (no edges, or no variance).</p>
+<p>In multilayer networks only intra-layer edges count, degrees are within layers (as in
+<a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>), and the result is given per layer.</p>
+<p>All the work runs on the device of the network, in one pass over the edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>attribute</strong> – Node attribute name (numeric or qualitative), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for degree
+assortativity.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>weight</strong> – Edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>direction</strong> – For degree assortativity in directed networks, the degree at the source and
+at the target: each <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float; in multilayer networks, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">layer</span></code>
+and <code class="docutils literal notranslate"><span class="pre">assortativity</span></code>, one row per layer with edges.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If there is no such node or edge attribute.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                       <span class="c1"># degree</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>                <span class="c1"># numeric attribute: Pearson</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>               <span class="c1"># qualitative attribute: categorical</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bipartite_projections.html" class="btn btn-neutral float-left" title="Bipartite projections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="communities.html" class="btn btn-neutral float-right" title="Communities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

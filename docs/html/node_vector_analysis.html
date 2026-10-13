@@ -1,0 +1,435 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Node vector analysis &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Backboning" href="backboning.html" />
+    <link rel="prev" title="Shortest paths" href="shortest_paths.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Node vector analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">pairwise_generalized_euclidean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_correlation"><code class="docutils literal notranslate"><span class="pre">network_correlation()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_network_correlation"><code class="docutils literal notranslate"><span class="pre">pairwise_network_correlation()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_variance"><code class="docutils literal notranslate"><span class="pre">network_variance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_entropy"><code class="docutils literal notranslate"><span class="pre">network_entropy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Node vector analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/node_vector_analysis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.node_vector_analysis">
+<span id="node-vector-analysis"></span><h1>Node vector analysis<a class="headerlink" href="#module-graphoskop.node_vector_analysis" title="Link to this heading"></a></h1>
+<p>Analysis of vectors defined on the nodes of a network: generalized Euclidean distance, network
+correlation, variance and entropy.</p>
+<p>In multilayer networks, vectors are defined on the copies <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code> of a component, and
+distances use the supra-Laplacian (see <a class="reference internal" href="laplacians.html"><span class="doc">Laplacians</span></a>): this is the multilayer generalized
+Euclidean distance (Coscia, 2022). An attribute given for a whole entity has its value on every
+copy; for the probability distributions of <code class="xref py py-func docutils literal notranslate"><span class="pre">network_variance()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">network_entropy()</span></code>,
+this gives more mass to the entities present in more layers.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.generalized_euclidean">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">generalized_euclidean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.generalized_euclidean" title="Link to this definition"></a></dt>
+<dd><p>Generalized Euclidean distance <span class="math notranslate nohighlight">\(\sqrt{(a - b)^H L^+ (a - b)}\)</span> between two node vectors,
+or norm <span class="math notranslate nohighlight">\(\sqrt{a^H L^+ a}\)</span> of a single one, with <span class="math notranslate nohighlight">\(L^+\)</span> the pseudoinverse of the
+Laplacian (see <a class="reference internal" href="laplacians.html#graphoskop.laplacian" title="graphoskop.laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian()</span></code></a> for the available Laplacians).</p>
+<p><span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code>, either as a dense tensor (from
+<a class="reference internal" href="laplacians.html#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>) or as a solver (from
+<a class="reference internal" href="laplacians.html#graphoskop.laplacian_solver" title="graphoskop.laplacian_solver"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a>). If <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> it is computed,
+densely or, if <code class="docutils literal notranslate"><span class="pre">sparse</span></code>, as a solver. Pass <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> to reuse it across calls.</p>
+<p>For Hermitian Laplacians (undirected, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>) the quadratic form is non
+negative. The <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> Laplacian is not symmetric, so the quadratic form can be negative, and
+the result is then NaN. Missing attribute values propagate as NaN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>).</p></li>
+<li><p><strong>b</strong> – Second node vector, same modalities as <code class="docutils literal notranslate"><span class="pre">a</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>lpinv</strong> – Cached pseudoinverse or solver, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>sparse</strong> – Compute a solver instead of the dense pseudoinverse when <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Distance, or list of distances if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="s2">&quot;height&quot;</span><span class="p">)</span>       <span class="c1"># attributes by name</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sparse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>      <span class="c1"># norm, attribute by position</span>
+<span class="n">lp</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">laplacian_pinv</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lpinv</span> <span class="o">=</span> <span class="n">lp</span><span class="p">)</span>      <span class="c1"># vectors, cached pseudoinverse</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_generalized_euclidean">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_generalized_euclidean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_generalized_euclidean" title="Link to this definition"></a></dt>
+<dd><p>Generalized Euclidean distances between all pairs of node attributes.</p>
+<p>Works like <a class="reference internal" href="#graphoskop.generalized_euclidean" title="graphoskop.generalized_euclidean"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a>, applied to every pair of columns of <code class="docutils literal notranslate"><span class="pre">node_attr</span></code>.
+Instead of one product with <span class="math notranslate nohighlight">\(L^+\)</span> per pair, it computes <span class="math notranslate nohighlight">\(Y = L^+ X\)</span> once for the
+<code class="docutils literal notranslate"><span class="pre">k</span></code> attributes <span class="math notranslate nohighlight">\(X\)</span> and then all squared distances from the <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix
+<span class="math notranslate nohighlight">\(G = X^H Y\)</span>, as <span class="math notranslate nohighlight">\(G_{ii} + G_{jj} - G_{ij} - G_{ji}\)</span>. The attributes are first
+centered across attributes for each node, which leaves the distances unchanged and reduces
+rounding errors. The cost is <code class="docutils literal notranslate"><span class="pre">k</span></code> products with <span class="math notranslate nohighlight">\(L^+\)</span> (or <code class="docutils literal notranslate"><span class="pre">k</span></code> solves, run together)
+plus an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> product.</p>
+<p><span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (dense tensor or solver). If <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, a
+solver is built when <code class="docutils literal notranslate"><span class="pre">sparse</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default, usually faster, since
+only <code class="docutils literal notranslate"><span class="pre">k</span></code> solves are needed), and the dense pseudoinverse when <code class="docutils literal notranslate"><span class="pre">sparse</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is given as a list with one entry per component.</p></li>
+<li><p><strong>lpinv</strong> – Cached pseudoinverse or solver, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>sparse</strong> – Laplacian solver (<code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>) or dense pseudoinverse (<code class="docutils literal notranslate"><span class="pre">False</span></code>) when
+<code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+<li><p><strong>output_device</strong> – Device of the result, <code class="docutils literal notranslate"><span class="pre">None</span></code> for the device of the component. With
+<code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code> the computation still runs on the device of the component (e.g. the GPU), one
+block of rows at a time, and only the result is kept on the CPU: useful when the <code class="docutils literal notranslate"><span class="pre">k</span></code> by
+<code class="docutils literal notranslate"><span class="pre">k</span></code> result does not fit in GPU memory.</p></li>
+<li><p><strong>output_dtype</strong> – Dtype of the result. <code class="docutils literal notranslate"><span class="pre">torch.float32</span></code> halves its memory (a <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code>
+float64 matrix needs <span class="math notranslate nohighlight">\(8 k^2\)</span> bytes, 3.2 GB for 20,000 attributes); the computation
+itself stays in double precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> tensor, rows and columns ordered as <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code>, or
+a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. NaN where the quadratic form is negative
+(possible only for the <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> Laplacian) or for attributes with missing values.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">D</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_generalized_euclidean</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">output_device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.network_correlation">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">network_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.network_correlation" title="Link to this definition"></a></dt>
+<dd><p>Network Pearson correlation (Coscia, 2021; Coscia and Devriendt, 2024,
+<a class="reference external" href="https://arxiv.org/abs/2402.09489">https://arxiv.org/abs/2402.09489</a>):</p>
+<div class="math notranslate nohighlight">
+\[\rho_{a, b, G} = \frac{\hat{a}^T W \hat{b}}{\sqrt{(\hat{a}^T W \hat{a}) (\hat{b}^T W \hat{b})}},\]</div>
+<p>with <span class="math notranslate nohighlight">\(\hat{a} = a - \bar{a}\)</span> the centered vectors. The numerator is
+<span class="math notranslate nohighlight">\(\sum W \times (\hat{a} \otimes \hat{b})\)</span>: every pair of entries is compared, weighted by
+the proximity of the two nodes. With <span class="math notranslate nohighlight">\(W = I\)</span> this is the Pearson correlation.</p>
+<p>The default weights are <span class="math notranslate nohighlight">\(W = e^{-k \Omega}\)</span> (entrywise), with <span class="math notranslate nohighlight">\(\Omega\)</span> the
+effective resistance matrix (see <a class="reference internal" href="laplacians.html#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a>). The
+correlation is real and in <span class="math notranslate nohighlight">\([-1, 1]\)</span> when <span class="math notranslate nohighlight">\(W\)</span> is positive definite on vectors with
+zero sum, which holds for any <span class="math notranslate nohighlight">\(k &gt; 0\)</span> when <span class="math notranslate nohighlight">\(\Omega\)</span> is a metric of negative type:
+true for undirected, <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> Laplacians, not guaranteed for <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>.
+<code class="docutils literal notranslate"><span class="pre">k</span></code> sets how fast proximity decays: as <span class="math notranslate nohighlight">\(k \to 0\)</span> all pairs weigh the same, as
+<span class="math notranslate nohighlight">\(k \to \infty\)</span> the result tends to the Pearson correlation. Choose it relative to the
+scale of <span class="math notranslate nohighlight">\(\Omega\)</span>: the <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code> Laplacian is scaled by the stationary distribution,
+which sums to 1, so its resistances are about <code class="docutils literal notranslate"><span class="pre">n</span></code> times larger and need a <code class="docutils literal notranslate"><span class="pre">k</span></code> about <code class="docutils literal notranslate"><span class="pre">n</span></code>
+times smaller.</p>
+<p><span class="math notranslate nohighlight">\(W\)</span> can be passed precomputed (an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor), to reuse it across calls; it is
+then used as given, and <code class="docutils literal notranslate"><span class="pre">k</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is
+computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (cached dense pseudoinverse) or from scratch, in place, needing one
+<code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix besides <code class="docutils literal notranslate"><span class="pre">lpinv</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>).</p></li>
+<li><p><strong>b</strong> – Second node vector, same modalities as <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors, <code class="docutils literal notranslate"><span class="pre">W</span></code> and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>W</strong> – Precomputed weight matrix, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>k</strong> – Scale of the effective resistance in <span class="math notranslate nohighlight">\(W = e^{-k \Omega}\)</span>.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse of the Laplacian, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Correlation, or list of correlations if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. NaN for constant
+vectors or missing values.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">network_correlation</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="s2">&quot;height&quot;</span><span class="p">)</span>
+<span class="n">W</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">gsk</span><span class="o">.</span><span class="n">effective_resistance</span><span class="p">(</span><span class="n">net</span><span class="p">))</span>         <span class="c1"># cached weights, k = 2</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">network_correlation</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="s2">&quot;height&quot;</span><span class="p">,</span> <span class="n">W</span> <span class="o">=</span> <span class="n">W</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_network_correlation">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_network_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.float64</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_network_correlation" title="Link to this definition"></a></dt>
+<dd><p>Network Pearson correlations between all pairs of node attributes.</p>
+<p>Works like <a class="reference internal" href="#graphoskop.network_correlation" title="graphoskop.network_correlation"><code class="xref py py-func docutils literal notranslate"><span class="pre">network_correlation()</span></code></a>, applied to every pair of columns of <code class="docutils literal notranslate"><span class="pre">node_attr</span></code>. With
+<span class="math notranslate nohighlight">\(\hat{X}\)</span> the centered attributes, it computes <span class="math notranslate nohighlight">\(G = \hat{X}^T W \hat{X}\)</span> with a single
+product of <span class="math notranslate nohighlight">\(W\)</span> with the <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix <span class="math notranslate nohighlight">\(\hat{X}\)</span>, and then all correlations as
+<span class="math notranslate nohighlight">\(G_{ij} / \sqrt{G_{ii} G_{jj}}\)</span>. <span class="math notranslate nohighlight">\(W\)</span> is computed once, or reused if given.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">W</span></code> and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>W</strong> – Precomputed weight matrix, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <span class="math notranslate nohighlight">\(e^{-k \Omega}\)</span>.</p></li>
+<li><p><strong>k</strong> – Scale of the effective resistance in <span class="math notranslate nohighlight">\(W = e^{-k \Omega}\)</span>.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse of the Laplacian, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+<li><p><strong>output_device</strong> – Device of the result, <code class="docutils literal notranslate"><span class="pre">None</span></code> for the device of the component. With
+<code class="docutils literal notranslate"><span class="pre">&quot;cpu&quot;</span></code> the computation still runs on the device of the component (e.g. the GPU), one
+block of rows at a time, and only the result is kept on the CPU: useful when the <code class="docutils literal notranslate"><span class="pre">k</span></code> by
+<code class="docutils literal notranslate"><span class="pre">k</span></code> result does not fit in GPU memory.</p></li>
+<li><p><strong>output_dtype</strong> – Dtype of the result. <code class="docutils literal notranslate"><span class="pre">torch.float32</span></code> halves its memory (a <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code>
+float64 matrix needs <span class="math notranslate nohighlight">\(8 k^2\)</span> bytes, 3.2 GB for 20,000 attributes); the computation
+itself stays in double precision.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> tensor, rows and columns ordered as <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code>, or
+a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. NaN for constant attributes or missing values.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_network_correlation</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_network_correlation</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">output_device</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.network_variance">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">network_variance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.network_variance" title="Link to this definition"></a></dt>
+<dd><p>Network variance of a node vector interpreted as a probability distribution (Devriendt,
+Martin-Gutierrez and Lambiotte, 2022, <a class="reference external" href="https://arxiv.org/abs/2008.09155">https://arxiv.org/abs/2008.09155</a>):</p>
+<div class="math notranslate nohighlight">
+\[\mathrm{var}(p) = \frac{1}{2} \sum_{i, j} p_i p_j d^2(i, j) = \frac{1}{2} p^T \Omega p,\]</div>
+<p>with <span class="math notranslate nohighlight">\(p = a / \sum_i a_i\)</span>, <span class="math notranslate nohighlight">\(\Omega\)</span> the effective resistance matrix (see
+<a class="reference internal" href="laplacians.html#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a>) and <span class="math notranslate nohighlight">\(d = \sqrt{\Omega}\)</span> the square
+root effective resistance distance, as in the paper. On an undirected network, Kemeny’s constant
+is <span class="math notranslate nohighlight">\(\kappa = 2 m \, \mathrm{var}(\pi)\)</span>, with <span class="math notranslate nohighlight">\(\pi\)</span> the stationary distribution of
+the random walk and <span class="math notranslate nohighlight">\(m\)</span> the total edge weight, and the Kirchhoff index is
+<span class="math notranslate nohighlight">\(n^2 \, \mathrm{var}(u / n)\)</span>, with <span class="math notranslate nohighlight">\(u / n\)</span> the uniform distribution.</p>
+<p><code class="docutils literal notranslate"><span class="pre">a</span></code> must be a probability mass up to normalization: a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> is raised if it has
+negative entries or sums to zero.</p>
+<p><span class="math notranslate nohighlight">\(\Omega\)</span> can be passed precomputed as <code class="docutils literal notranslate"><span class="pre">R</span></code>, to reuse it across calls; it is then used as
+given and left unchanged, and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is
+computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (cached dense pseudoinverse) or from scratch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>), with non negative entries.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors, <code class="docutils literal notranslate"><span class="pre">R</span></code> and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>R</strong> – Precomputed effective resistance matrix, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse of the Laplacian, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Variance, or list of variances if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. NaN for missing values.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">network_variance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;population&quot;</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">effective_resistance</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">network_variance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;income&quot;</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">R</span><span class="p">)</span>       <span class="c1"># cached resistances</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.network_entropy">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">network_entropy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.network_entropy" title="Link to this definition"></a></dt>
+<dd><p>Network entropy of a node vector interpreted as a probability distribution:</p>
+<div class="math notranslate nohighlight">
+\[H(p) = -\sum_i p_i \log (W p)_i,\]</div>
+<p>with <span class="math notranslate nohighlight">\(p = a / \sum_i a_i\)</span> and node similarities <span class="math notranslate nohighlight">\(W = e^{-k \Omega}\)</span> (entrywise),
+<span class="math notranslate nohighlight">\(\Omega\)</span> being the effective resistance matrix (see
+<a class="reference internal" href="laplacians.html#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a>). <span class="math notranslate nohighlight">\((W p)_i\)</span> is the probability mass
+near node <span class="math notranslate nohighlight">\(i\)</span>, so mass spread over distant nodes gives a high entropy and mass concentrated
+on nearby nodes a low one. With <span class="math notranslate nohighlight">\(W = I\)</span> this is the Shannon entropy. It is the order 1
+similarity-sensitive diversity of Leinster and Cobbold (2012). Nodes with <span class="math notranslate nohighlight">\(p_i = 0\)</span> add
+nothing to the sum.</p>
+<p><code class="docutils literal notranslate"><span class="pre">a</span></code> must be a probability mass up to normalization: a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> is raised if it has
+negative entries or sums to zero.</p>
+<p><span class="math notranslate nohighlight">\(W\)</span> can be passed precomputed (an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor), to reuse it across calls (for
+instance the one of <a class="reference internal" href="#graphoskop.network_correlation" title="graphoskop.network_correlation"><code class="xref py py-func docutils literal notranslate"><span class="pre">network_correlation()</span></code></a>); it is then used as given, and <code class="docutils literal notranslate"><span class="pre">k</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code>
+(cached dense pseudoinverse) or from scratch. As for <a class="reference internal" href="#graphoskop.network_correlation" title="graphoskop.network_correlation"><code class="xref py py-func docutils literal notranslate"><span class="pre">network_correlation()</span></code></a>, choose <code class="docutils literal notranslate"><span class="pre">k</span></code>
+relative to the scale of <span class="math notranslate nohighlight">\(\Omega\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>), with non negative entries.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors, <code class="docutils literal notranslate"><span class="pre">W</span></code> and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>W</strong> – Precomputed similarity matrix, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <span class="math notranslate nohighlight">\(e^{-k \Omega}\)</span>.</p></li>
+<li><p><strong>k</strong> – Scale of the effective resistance in <span class="math notranslate nohighlight">\(W = e^{-k \Omega}\)</span>.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse of the Laplacian, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Entropy (in nats), or list of entropies if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. NaN for missing
+values.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">network_entropy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;population&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="shortest_paths.html" class="btn btn-neutral float-left" title="Shortest paths" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="backboning.html" class="btn btn-neutral float-right" title="Backboning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

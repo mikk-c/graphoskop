@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exploration &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shortest paths" href="shortest_paths.html" />
+    <link rel="prev" title="Laplacians" href="laplacians.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exploration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.dfs"><code class="docutils literal notranslate"><span class="pre">dfs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Exploration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/exploration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.exploration">
+<span id="exploration"></span><h1>Exploration<a class="headerlink" href="#module-graphoskop.exploration" title="Link to this heading"></a></h1>
+<p>Graph exploration: breadth first and depth first search from a node.</p>
+<p>Both return the nodes reached from the source, in the order they are visited, with the node they
+were reached from (their parent in the search tree) and their depth in that tree; in breadth first
+search the depth is the number of edges of a shortest path from the source. Only the component of
+the source is explored. Searches run on the CPU with <code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.sparse.csgraph</span></code> (compiled code,
+<span class="math notranslate nohighlight">\(O(n + m)\)</span>), whatever the device of the network, as in <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>.
+Neighbors are visited in order of internal index; parallel edges and self loops do not matter.</p>
+<p>In directed networks <code class="docutils literal notranslate"><span class="pre">direction</span></code> chooses the edges followed: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (along their direction),
+<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (against it) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>. In multilayer networks the search runs on the supra-graph
+(couplings are edges like the others), and an entity given as source stands for all its copies,
+which are all searched from at once (as one source linked to each of them).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                     <span class="c1"># node, depth, parent, in visit order</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>      <span class="c1"># neighborhood up to two edges away</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">dfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.bfs">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">bfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.bfs" title="Link to this definition"></a></dt>
+<dd><p>Breadth first search: the nodes reachable from <code class="docutils literal notranslate"><span class="pre">source</span></code>, by increasing number of edges from
+it (see the module description).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
+multilayer networks).</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
+<li><p><strong>max_depth</strong> – Only nodes at most this many edges away, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> in visit order, with columns <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id),
+<code class="docutils literal notranslate"><span class="pre">depth</span></code> (number of edges from the source, 0 for the source) and <code class="docutils literal notranslate"><span class="pre">parent</span></code> (input id of
+the node it was reached from, missing for the source).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">friends_of_friends</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">depth</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># alice and her neighbors</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.dfs">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">dfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.dfs" title="Link to this definition"></a></dt>
+<dd><p>Depth first search: the nodes reachable from <code class="docutils literal notranslate"><span class="pre">source</span></code>, each followed by all the nodes reached
+through it before backtracking (preorder; see the module description).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
+multilayer networks).</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> in visit order, with columns <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id),
+<code class="docutils literal notranslate"><span class="pre">depth</span></code> (depth in the search tree, 0 for the source) and <code class="docutils literal notranslate"><span class="pre">parent</span></code> (input id of the node
+it was reached from, missing for the source).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">dfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>                            <span class="c1"># visit order</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="laplacians.html" class="btn btn-neutral float-left" title="Laplacians" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shortest_paths.html" class="btn btn-neutral float-right" title="Shortest paths" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

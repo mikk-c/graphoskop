@@ -1,0 +1,423 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signed networks &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bipartite projections" href="bipartite_projections.html" />
+    <link rel="prev" title="Multilayer networks" href="multilayer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Signed networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.SIGN"><code class="docutils literal notranslate"><span class="pre">SIGN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-signed-network">Building a signed network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.signed_network"><code class="docutils literal notranslate"><span class="pre">signed_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.signed_adjacency"><code class="docutils literal notranslate"><span class="pre">signed_adjacency()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#structural-balance-and-signed-triangles">Structural balance and signed triangles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.structural_balance"><code class="docutils literal notranslate"><span class="pre">structural_balance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.signed_triangle_counts"><code class="docutils literal notranslate"><span class="pre">signed_triangle_counts()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Signed networks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/signed.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.signed">
+<span id="signed-networks"></span><h1>Signed networks<a class="headerlink" href="#module-graphoskop.signed" title="Link to this heading"></a></h1>
+<p>Signed networks: construction, signed adjacency matrix and structural balance.</p>
+<p>A signed network is an ordinary <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> whose edges carry a sign, +1 (a
+positive relationship: friendship, trust, alliance) or -1 (a negative one: enmity, distrust,
+conflict), in a numeric edge attribute, by default <code class="xref py py-data docutils literal notranslate"><span class="pre">SIGN</span></code>. It can be seen as a multilayer
+network with two layers, positive and negative, flattened into one network of entities: an edge is
+in exactly one of the two layers. <code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code> builds one in either of two ways:</p>
+<ul class="simple">
+<li><p>from a multilayer network, naming its positive and its negative layer. Two entities cannot be
+joined by an edge in both layers (in the same direction, if directed);</p></li>
+<li><p>from an ordinary network, thresholding an edge attribute: edges at or above the threshold are
+positive, edges below it negative.</p></li>
+</ul>
+<p>The signed adjacency matrix <span class="math notranslate nohighlight">\(A\)</span> (<code class="xref py py-func docutils literal notranslate"><span class="pre">signed_adjacency()</span></code>) has <span class="math notranslate nohighlight">\(A_{ij}\)</span> equal to the
+sign of the edge from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, and 0 without an edge; parallel edges count once (they
+must have the same sign). Edges with sign 0 or NaN in the sign attribute are treated as absent.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="graphoskop.SIGN">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">SIGN</span></span><span class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">&quot;sign&quot;</span></span><a class="headerlink" href="#graphoskop.SIGN" title="Link to this definition"></a></dt>
+<dd><p>str(object=’’) -&gt; str
+str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p>
+<p>Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to ‘utf-8’.
+errors defaults to ‘strict’.</p>
+</dd></dl>
+
+<section id="building-a-signed-network">
+<h2>Building a signed network<a class="headerlink" href="#building-a-signed-network" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="c1"># (i) two layers of a multilayer network</span>
+<span class="c1"># relations.tsv:   source   target   layer</span>
+<span class="c1">#                  alice    bob      ally</span>
+<span class="c1">#                  bob      carol    enemy</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;relations.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">positive</span> <span class="o">=</span> <span class="s2">&quot;ally&quot;</span><span class="p">,</span> <span class="n">negative</span> <span class="o">=</span> <span class="s2">&quot;enemy&quot;</span><span class="p">)</span>
+
+<span class="c1"># (ii) thresholding an edge attribute of an ordinary network</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;ratings.tsv&quot;</span><span class="p">)</span>                  <span class="c1"># column &quot;score&quot;</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>   <span class="c1"># score &gt;= 3 positive</span>
+
+<span class="n">signed</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;sign&quot;</span><span class="p">)</span>                       <span class="c1"># +1 / -1, one entry per stored edge</span>
+</pre></div>
+</div>
+<p>The result is an ordinary network, so every other function works on it; the sign is one more edge
+attribute, kept when saving and loading.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.signed_network">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">signed_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.signed_network" title="Link to this definition"></a></dt>
+<dd><p>Signed network, from two layers of a multilayer network or by thresholding an edge attribute.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">positive</span></code> and <code class="docutils literal notranslate"><span class="pre">negative</span></code> given: <code class="docutils literal notranslate"><span class="pre">net</span></code> must be multilayer. The result is a network of
+entities with the intra-layer edges of the two layers, signed +1 and -1. Couplings, other
+interlayer edges and the other layers are left out. An edge present in both layers (between
+the same two entities, in the same direction if directed) raises <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>: an
+edge cannot be positive and negative at the same time. Nodes are the entities with a copy in
+either layer; node attributes take the first value found in layer order, as in
+<a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> given: <code class="docutils literal notranslate"><span class="pre">net</span></code> must not be multilayer. Edges whose <code class="docutils literal notranslate"><span class="pre">weight</span></code> is greater than or
+equal to <code class="docutils literal notranslate"><span class="pre">threshold</span></code> are signed +1, the others -1; edges with a NaN <code class="docutils literal notranslate"><span class="pre">weight</span></code> are dropped.
+Parallel edges with opposite signs raise <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>. All nodes are kept, also those
+left without edges.</p></li>
+</ul>
+<p>All edge attributes are kept, and the sign is stored as the edge attribute <code class="docutils literal notranslate"><span class="pre">sign</span></code> (replaced
+if it exists). Components are recomputed, so they are the components of the signed network;
+node attributes and node types (bipartite networks) are kept, and so are the device and
+directedness.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>positive</strong> – Positive layer, one of <code class="docutils literal notranslate"><span class="pre">net.layer_labels</span></code>.</p></li>
+<li><p><strong>negative</strong> – Negative layer, one of <code class="docutils literal notranslate"><span class="pre">net.layer_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Edge attribute (name or position in <code class="xref py py-attr docutils literal notranslate"><span class="pre">edge_attributes</span></code>)
+to threshold.</p></li>
+<li><p><strong>threshold</strong> – Threshold on <code class="docutils literal notranslate"><span class="pre">weight</span></code>.</p></li>
+<li><p><strong>sign</strong> – Name of the edge attribute storing the sign.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The signed network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If both or neither of the two ways are given, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is not multilayer
+(layers) or is multilayer (weight), if the two layers are the same, or if an edge is both
+positive and negative.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such layer or edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;relations.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>       <span class="c1"># layers &quot;ally&quot;, &quot;enemy&quot;</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">positive</span> <span class="o">=</span> <span class="s2">&quot;ally&quot;</span><span class="p">,</span> <span class="n">negative</span> <span class="o">=</span> <span class="s2">&quot;enemy&quot;</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;votes.tsv&quot;</span><span class="p">)</span>                               <span class="c1"># column &quot;score&quot;</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_balance</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.signed_adjacency">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">signed_adjacency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.signed_adjacency" title="Link to this definition"></a></dt>
+<dd><p>Signed adjacency matrix of a component of a signed network.</p>
+<p><span class="math notranslate nohighlight">\(A_{ij}\)</span> is the sign (+1 or -1) of the edge from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, 0 without an
+edge; the matrix is symmetric in undirected networks. Parallel edges count once, self loops are
+kept on the diagonal. Rows and columns are ordered by internal node index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A signed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (see <a class="reference internal" href="#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a list with one
+matrix per component.</p></li>
+<li><p><strong>sign</strong> – Edge attribute (name or position) holding the sign.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sparse COO tensor (coalesced), <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code>, in the dtype of the edge attributes and
+on the device of the component.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the network is multilayer, or parallel edges have opposite signs.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_adjacency</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>
+<span class="n">A</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="structural-balance-and-signed-triangles">
+<h2>Structural balance and signed triangles<a class="headerlink" href="#structural-balance-and-signed-triangles" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">structural_balance</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>        <span class="c1"># Tr(A^3) / Tr(|A|^3), a float</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_balance</span><span class="p">(</span><span class="n">signed</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>   <span class="c1"># Tr(exp(beta A)) / Tr(exp(beta |A|)), all closed walks</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">signed_triangle_counts</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>    <span class="c1"># count of each type, expected under shuffled signs, ratio, z</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.structural_balance">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">structural_balance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.structural_balance" title="Link to this definition"></a></dt>
+<dd><p>Structural balance of a signed network, over its triangles or over all its closed walks.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">None</span></code>, over triangles:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\mathrm{Tr}(A^3)}{\mathrm{Tr}(|A|^3)} = \frac{B - U}{B + U},\]</div>
+<p>with <span class="math notranslate nohighlight">\(A\)</span> the signed adjacency matrix (<a class="reference internal" href="#graphoskop.signed_adjacency" title="graphoskop.signed_adjacency"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_adjacency()</span></code></a>), <span class="math notranslate nohighlight">\(B\)</span> the number of
+balanced triangles (the product of the signs of their edges is positive: <code class="docutils literal notranslate"><span class="pre">&quot;+++&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;+--&quot;</span></code>) and <span class="math notranslate nohighlight">\(U\)</span> the number of unbalanced ones (<code class="docutils literal notranslate"><span class="pre">&quot;++-&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;---&quot;</span></code>): 1 if all
+triangles are balanced, -1 if none is, NaN if there are no triangles. In directed networks the
+triangles are the directed 3-cycles <span class="math notranslate nohighlight">\(i \to j \to k \to i\)</span>. For the counts of each
+type, and their comparison with shuffled signs, see <a class="reference internal" href="#graphoskop.signed_triangle_counts" title="graphoskop.signed_triangle_counts"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_triangle_counts()</span></code></a>. The traces
+are computed without forming <span class="math notranslate nohighlight">\(A^3\)</span>: the pairs of adjacent nodes are oriented from lower to
+higher degree, and each triangle is found once by expanding the 2-paths along the orientation
+(the work grows with <span class="math notranslate nohighlight">\(m^{3/2}\)</span> at most, even with hubs). Paths are expanded in batches of
+<code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (about 50 bytes per path). Counts are exact (integers).</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">beta</span></code> given, over all closed walks (walk-based balance, Estrada and Benzi, 2014):</p>
+<div class="math notranslate nohighlight">
+\[\frac{\mathrm{Tr}(e^{\beta A})}{\mathrm{Tr}(e^{\beta |A|})}
+= \frac{\sum_k \frac{\beta^k}{k!} \mathrm{Tr}(A^k)}{\sum_k \frac{\beta^k}{k!} \mathrm{Tr}(|A|^k)},\]</div>
+<p>in <span class="math notranslate nohighlight">\((0, 1]\)</span> for undirected networks. Closed walks of length <span class="math notranslate nohighlight">\(k\)</span> weigh
+<span class="math notranslate nohighlight">\(\beta^k / k!\)</span>, so longer cycles count less, and more so the smaller <span class="math notranslate nohighlight">\(\beta\)</span> (even
+with <span class="math notranslate nohighlight">\(\beta = 1\)</span> a walk of length <span class="math notranslate nohighlight">\(k\)</span> weighs <span class="math notranslate nohighlight">\(1 / k!\)</span>). The traces include
+the walks of length 0 (one per node, isolated nodes included) and 2 (always positive), so the
+ratio tends to 1 as <span class="math notranslate nohighlight">\(\beta \to 0\)</span>; as <span class="math notranslate nohighlight">\(\beta\)</span> grows it is dominated by the
+largest eigenvalues. Traces are computed per component and summed:</p>
+<ul class="simple">
+<li><p>exactly, from the eigenvalues of the dense matrix (<span class="math notranslate nohighlight">\(O(n^3)\)</span>), for components with at most
+2048 nodes (<code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">None</span></code>), or for all components (<code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code>);</p></li>
+<li><p>otherwise by stochastic estimation (Hutch++, Meyer et al., 2021), without forming
+<span class="math notranslate nohighlight">\(e^{\beta A}\)</span>: <span class="math notranslate nohighlight">\(e^{\beta A}\)</span> is applied to <code class="docutils literal notranslate"><span class="pre">samples</span></code> random vectors with
+<code class="docutils literal notranslate"><span class="pre">steps</span></code> Arnoldi iterations each (sparse matrix products, on the device of the network). The
+walks of length up to 3 are counted exactly (length 3 from the triangles); for the longer ones, the dominant directions found
+with the first half of the vectors are traced exactly, and only the remainder is estimated with
+the second half. <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(|A|\)</span> use the same random vectors, so that their errors
+partly cancel in the ratio. Memory is about <code class="docutils literal notranslate"><span class="pre">8</span> <span class="pre">*</span> <span class="pre">steps</span> <span class="pre">*</span> <span class="pre">n</span></code> bytes per vector, with vectors
+processed in groups of at most <code class="docutils literal notranslate"><span class="pre">batch_size</span> <span class="pre">/</span> <span class="pre">(steps</span> <span class="pre">*</span> <span class="pre">n)</span></code>. More <code class="docutils literal notranslate"><span class="pre">samples</span></code> reduce the
+random error, more <code class="docutils literal notranslate"><span class="pre">steps</span></code> the truncation error (needed for large <span class="math notranslate nohighlight">\(\beta \lambda_{max}\)</span>).
+Results depend on <code class="docutils literal notranslate"><span class="pre">seed</span></code>.</p></li>
+</ul>
+<p>Self loops are ignored and parallel edges count once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A signed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (see <a class="reference internal" href="#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>sign</strong> – Edge attribute (name or position) holding the sign.</p></li>
+<li><p><strong>beta</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> for triangles, or a positive number for closed walks.</p></li>
+<li><p><strong>exact</strong> – With <code class="docutils literal notranslate"><span class="pre">beta</span></code>: <code class="docutils literal notranslate"><span class="pre">None</span></code> (exact for small components only), <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>samples</strong> – With <code class="docutils literal notranslate"><span class="pre">beta</span></code>: number of random vectors of the stochastic estimate.</p></li>
+<li><p><strong>steps</strong> – With <code class="docutils literal notranslate"><span class="pre">beta</span></code>: Arnoldi iterations per vector.</p></li>
+<li><p><strong>seed</strong> – With <code class="docutils literal notranslate"><span class="pre">beta</span></code>: seed of the random vectors.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once (triangles), or bound on the number of
+entries of the Krylov bases held at once (walks); larger is faster, especially on GPU, and
+uses more memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The balance, a float.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the network is multilayer, parallel edges have opposite signs, or
+<code class="docutils literal notranslate"><span class="pre">beta</span></code> is not positive.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;relations.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">positive</span> <span class="o">=</span> <span class="s2">&quot;ally&quot;</span><span class="p">,</span> <span class="n">negative</span> <span class="o">=</span> <span class="s2">&quot;enemy&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_balance</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>                  <span class="c1"># triangles: 0.62</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_balance</span><span class="p">(</span><span class="n">signed</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>      <span class="c1"># all closed walks</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.signed_triangle_counts">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">signed_triangle_counts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.signed_triangle_counts" title="Link to this definition"></a></dt>
+<dd><p>Number of triangles of each sign pattern, compared with randomly shuffled signs.</p>
+<p>In undirected networks there are four types, by the signs of their edges: <code class="docutils literal notranslate"><span class="pre">&quot;+++&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;++-&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;+--&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;---&quot;</span></code>. In directed networks a triangle is three directed edges joining three
+nodes, one per pair (a pair joined in both directions is in two triangles). It is either a
+cycle <span class="math notranslate nohighlight">\(i \to j \to k \to i\)</span>, with types <code class="docutils literal notranslate"><span class="pre">&quot;cycle</span> <span class="pre">+++&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;cycle</span> <span class="pre">---&quot;</span></code> as above, or
+a feedforward loop <span class="math notranslate nohighlight">\(i \to j \to k\)</span>, <span class="math notranslate nohighlight">\(i \to k\)</span>, with eight types such as
+<code class="docutils literal notranslate"><span class="pre">&quot;feedforward</span> <span class="pre">+-+&quot;</span></code>, the signs given in the order source to middle, middle to sink, source
+to sink. Which types are balanced is left to the user; <a class="reference internal" href="#graphoskop.structural_balance" title="graphoskop.structural_balance"><code class="xref py py-func docutils literal notranslate"><span class="pre">structural_balance()</span></code></a> takes
+<code class="docutils literal notranslate"><span class="pre">&quot;+++&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;+--&quot;</span></code> (cycles, in directed networks).</p>
+<p>Each count is compared with its expected value when the signs are shuffled at random among the
+edges, keeping the number of positive and negative edges (self loops are left out). The mean
+and the variance under this null model are computed exactly, without sampling: the variance
+accounts for triangles sharing edges, from how many triangles use each edge in each position.
+<code class="docutils literal notranslate"><span class="pre">ratio</span></code> is the count over its expected value (above 1: overrepresented), <code class="docutils literal notranslate"><span class="pre">z</span></code> the count minus
+its expected value, over the standard deviation. Self loops are ignored and parallel edges count
+once. The triangles are found as in <a class="reference internal" href="#graphoskop.structural_balance" title="graphoskop.structural_balance"><code class="xref py py-func docutils literal notranslate"><span class="pre">structural_balance()</span></code></a>; the null model adds memory for
+4 integers per edge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A signed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (see <a class="reference internal" href="#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network
+(signs are then shuffled over all its edges).</p></li>
+<li><p><strong>sign</strong> – Edge attribute (name or position) holding the sign.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once; larger is faster, especially on GPU,
+and uses more memory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">triangle</span></code> (the type), <code class="docutils literal notranslate"><span class="pre">count</span></code>,
+<code class="docutils literal notranslate"><span class="pre">expected</span></code>, <code class="docutils literal notranslate"><span class="pre">ratio</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code>; NaN where the expected value or the variance is 0.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the network is multilayer, or parallel edges have opposite signs.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">signed_network</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;ratings.tsv&quot;</span><span class="p">),</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">signed_triangle_counts</span><span class="p">(</span><span class="n">signed</span><span class="p">)</span>
+<span class="c1">#   triangle  count  expected  ratio      z</span>
+<span class="c1"># 0      +++   8120    7311.4   1.11   12.0</span>
+<span class="c1"># ...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="multilayer.html" class="btn btn-neutral float-left" title="Multilayer networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bipartite_projections.html" class="btn btn-neutral float-right" title="Bipartite projections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

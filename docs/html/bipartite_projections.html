@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bipartite projections &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Network statistics" href="network_statistics.html" />
+    <link rel="prev" title="Multilayer networks" href="multilayer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bipartite projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.simple_count_projection"><code class="docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hist_intersection_projection"><code class="docutils literal notranslate"><span class="pre">hist_intersection_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hyperbolic_projection"><code class="docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.resource_allocation_projection"><code class="docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.random_walk_projection"><code class="docutils literal notranslate"><span class="pre">random_walk_projection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Bipartite projections</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/bipartite_projections.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.bipartite_projections">
+<span id="bipartite-projections"></span><h1>Bipartite projections<a class="headerlink" href="#module-graphoskop.bipartite_projections" title="Link to this heading"></a></h1>
+<p>Projections of bipartite networks onto one of their node types.</p>
+<p>A projection keeps the nodes of one type and connects two of them according to the nodes of the
+other type they share. The result is a new, unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, with the
+edge weights in the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>, the node attributes that have values on the kept
+nodes (attributes only defined on the other type are dropped), and components recomputed.</p>
+<p>Let <span class="math notranslate nohighlight">\(B\)</span> be the biadjacency matrix, rows for the kept nodes and columns for the other ones,
+with parallel edges summed. In an undirected network, kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are
+connected through every other node <span class="math notranslate nohighlight">\(c\)</span> with <span class="math notranslate nohighlight">\(B_{ac} &gt; 0\)</span> and <span class="math notranslate nohighlight">\(B_{bc} &gt; 0\)</span>. In a
+directed network, through every directed path <span class="math notranslate nohighlight">\(a \to c \to b\)</span> of length two, with
+<span class="math notranslate nohighlight">\(B_{ac}\)</span> the weight of <span class="math notranslate nohighlight">\(a \to c\)</span> and <span class="math notranslate nohighlight">\(B_{bc}\)</span> the weight of <span class="math notranslate nohighlight">\(c \to b\)</span>;
+the projection is then directed, and its components can split even if the bipartite ones do
+not. Each function combines the two weights of every path differently.</p>
+<p>All functions generate the paths of length two explicitly, <span class="math notranslate nohighlight">\(\sum_c d_c (d_c - 1) / 2\)</span> of
+them (<span class="math notranslate nohighlight">\(\sum_c d^{in}_c d^{out}_c\)</span> if directed), in batches of about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> paths,
+each reduced to the sums of its distinct node pairs on the device of the network. Batches cover
+disjoint sets of kept nodes, so no pair is split between two batches and nothing needs merging:
+peak memory is about 60 bytes per path of a batch (1 GB with the default <code class="docutils literal notranslate"><span class="pre">batch_size</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">**</span> <span class="pre">24</span></code>)
+plus the result. Smaller batches use less memory and take a little longer. This is faster and
+leaner than a sparse matrix product, even for projections that are one.</p>
+<p>All functions take a <code class="docutils literal notranslate"><span class="pre">weight</span></code> parameter, defaulting to the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>; if the
+network has none, a warning is issued and all weights are 1. Any other missing name raises
+<code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code>. Degrees become strengths (sums of edge weights) with weights.</p>
+<p>Multilayer bipartite networks are projected layer by layer: paths of length two only use
+intra-layer edges, which stay within a layer, and couplings are ignored, so strengths and totals
+are those of each layer. The projection is a multilayer network with the copies of the kept type,
+re-coupled with the interlayer edges of the input between them (couplings and the other
+interlayer edges, which join nodes of the same type), whose <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> is their value of the
+<code class="docutils literal notranslate"><span class="pre">weight</span></code> attribute (1 with unit weights).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.simple_count_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simple_count_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simple_count_projection" title="Link to this definition"></a></dt>
+<dd><p>Projection counting the shared neighbors, weighted: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are
+connected with weight <span class="math notranslate nohighlight">\(\sum_c B_{ac} B_{bc}\)</span>, i.e. <span class="math notranslate nohighlight">\(B B^T\)</span>
+(<span class="math notranslate nohighlight">\(B_{out} B_{in}\)</span> in directed networks), summing over the nodes <span class="math notranslate nohighlight">\(c\)</span> of the other
+type they share (paths of length two in directed networks, see the module description). With
+unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is the number of shared neighbors, parallel edges
+counting as many times as they appear. Kept nodes sharing no neighbor stay as isolated nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>   <span class="c1"># items bought in common</span>
+<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
+<span class="n">users</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hist_intersection_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hist_intersection_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hist_intersection_projection" title="Link to this definition"></a></dt>
+<dd><p>Histogram intersection projection: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are connected with
+weight <span class="math notranslate nohighlight">\(\sum_c \min(B_{ac}, B_{bc})\)</span>, summing over the nodes <span class="math notranslate nohighlight">\(c\)</span> of the other type
+they share (over the paths <span class="math notranslate nohighlight">\(a \to c \to b\)</span> in directed networks, see the module
+description). Parallel edges are first summed. With unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is
+the number of shared neighbors, as in <a class="reference internal" href="#graphoskop.simple_count_projection" title="graphoskop.simple_count_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a>. Kept nodes sharing no
+neighbor stay as isolated nodes.</p>
+<p>A sum of minima is not a matrix product, so the paths of length two are generated explicitly,
+<span class="math notranslate nohighlight">\(\sum_c d_c (d_c - 1) / 2\)</span> of them (<span class="math notranslate nohighlight">\(\sum_c d^{in}_c d^{out}_c\)</span> if directed), in
+batches of about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> paths, each reduced to the sums of its distinct node pairs on
+the device of the network. Batches cover disjoint sets of kept nodes, so no pair is split
+between two batches and nothing needs merging: peak memory is about 60 bytes per path of a
+batch (1 GB with the default) plus the result. Smaller batches use less memory and take a
+little longer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If there is no edge attribute named <code class="docutils literal notranslate"><span class="pre">weight</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hist_intersection_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">)</span>                          <span class="c1"># edge attribute &quot;weight&quot;</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hist_intersection_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hist_intersection_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">22</span><span class="p">)</span>    <span class="c1"># less memory</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hyperbolic_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hyperbolic_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hyperbolic_projection" title="Link to this definition"></a></dt>
+<dd><p>Newman’s hyperbolic projection: every node <span class="math notranslate nohighlight">\(c\)</span> of the other type shared by two kept nodes
+<span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> counts <span class="math notranslate nohighlight">\(1 / k_c\)</span>, with <span class="math notranslate nohighlight">\(k_c\)</span> the degree of <span class="math notranslate nohighlight">\(c\)</span>, so
+that shared neighbors with many connections count less. With weights, <span class="math notranslate nohighlight">\(k_c\)</span> is the
+strength <span class="math notranslate nohighlight">\(s_c = \sum_x B_{xc}\)</span> (sum of the weights of the edges of <span class="math notranslate nohighlight">\(c\)</span>) and each
+path counts its two weights, so the weight is
+<span class="math notranslate nohighlight">\(\sum_c B_{ac} B_{bc} / s_c\)</span>, i.e. <span class="math notranslate nohighlight">\(B S^{-1} B^T\)</span> with <span class="math notranslate nohighlight">\(S\)</span> the diagonal
+matrix of the strengths of the other nodes; with unit weights, <span class="math notranslate nohighlight">\(\sum_c 1 / k_c\)</span>.
+Parallel edges are summed, so with unit weights they count as many times as they appear. In
+directed networks the sum runs over the paths <span class="math notranslate nohighlight">\(a \to c \to b\)</span> (see the module
+description), and <span class="math notranslate nohighlight">\(s_c\)</span> sums the edges of <span class="math notranslate nohighlight">\(c\)</span> in both directions. Kept nodes
+sharing no neighbor stay as isolated nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;papers.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">authors</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hyperbolic_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>   <span class="c1"># co-authorship, large papers count less</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.resource_allocation_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">resource_allocation_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.resource_allocation_projection" title="Link to this definition"></a></dt>
+<dd><p>Resource allocation projections (Zhou et al.): ProbS (mass diffusion), HeatS (heat conduction)
+and their hybrid. They start from the hyperbolic sum
+<span class="math notranslate nohighlight">\(H_{ab} = \sum_c B_{ac} B_{bc} / s_c\)</span> of <a class="reference internal" href="#graphoskop.hyperbolic_projection" title="graphoskop.hyperbolic_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a>, and normalize it by
+the strengths <span class="math notranslate nohighlight">\(s_a\)</span> and <span class="math notranslate nohighlight">\(s_b\)</span> of the kept nodes (sums of the weights of their
+edges; their degrees with unit weights). Each projected edge <span class="math notranslate nohighlight">\(a \to b\)</span> carries what flows
+from <span class="math notranslate nohighlight">\(a\)</span> to <span class="math notranslate nohighlight">\(b\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[w_{a \to b} = \frac{H_{ab}}{s_a^{\lambda} s_b^{1 - \lambda}}\]</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lambd</span> <span class="pre">=</span> <span class="pre">1</span></code>, ProbS: normalized by the sender. In undirected networks the weights leaving a
+node, its self loop included (which is dropped), sum to 1: the fraction of its resource
+reaching each other node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lambd</span> <span class="pre">=</span> <span class="pre">0</span></code>, HeatS: normalized by the receiver. In undirected networks the weights entering
+a node, its self loop included, sum to 1: the share of its value averaged from each other
+node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">lambd</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>: the hybrid. With <code class="docutils literal notranslate"><span class="pre">lambd</span> <span class="pre">=</span> <span class="pre">0.5</span></code>, <span class="math notranslate nohighlight">\(H_{ab} / \sqrt{s_a s_b}\)</span> is
+symmetric.</p></li>
+</ul>
+<p>The projection is undirected only if <code class="docutils literal notranslate"><span class="pre">lambd</span> <span class="pre">=</span> <span class="pre">0.5</span></code> and <code class="docutils literal notranslate"><span class="pre">net</span></code> is undirected; otherwise it is
+directed, with both directions of every pair if <code class="docutils literal notranslate"><span class="pre">net</span></code> is undirected. Parallel edges are
+summed. In directed networks <span class="math notranslate nohighlight">\(H\)</span> sums over the paths <span class="math notranslate nohighlight">\(a \to c \to b\)</span> (see the
+module description), and strengths sum the edges in both directions. Kept nodes sharing no
+neighbor stay as isolated nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>lambd</strong> – Hybrid parameter <span class="math notranslate nohighlight">\(\lambda\)</span>, from 0 (HeatS) to 1 (ProbS).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with the edge attribute
+<code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">lambd</span></code> is not between 0 and 1, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or if it
+has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">)</span>                 <span class="c1"># ProbS, directed</span>
+<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">lambd</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>      <span class="c1"># HeatS, directed</span>
+<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">lambd</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>    <span class="c1"># hybrid, undirected</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.random_walk_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">random_walk_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.random_walk_projection" title="Link to this definition"></a></dt>
+<dd><p>Random walk projection (YCN, Yildirim and Coscia, 2014): the weight from <span class="math notranslate nohighlight">\(a\)</span> to <span class="math notranslate nohighlight">\(b\)</span>
+is the probability that a random walker on the bipartite network moves from <span class="math notranslate nohighlight">\(a\)</span> to
+<span class="math notranslate nohighlight">\(b\)</span> in two steps (through a node of the other type), times the probability of finding it
+on <span class="math notranslate nohighlight">\(b\)</span> after infinitely many steps:</p>
+<div class="math notranslate nohighlight">
+\[U_{a \to b} = T_{ab} \pi_b, \qquad T_{ab} = \sum_c \frac{B_{ac}}{s_a} \frac{B_{bc}}{s_c}\]</div>
+<p>with <span class="math notranslate nohighlight">\(B\)</span> the biadjacency matrix, <span class="math notranslate nohighlight">\(s\)</span> the strengths (sums of edge weights; degrees
+with unit weights), <span class="math notranslate nohighlight">\(T\)</span> the two-step transition matrix (ProbS, see
+<a class="reference internal" href="#graphoskop.resource_allocation_projection" title="graphoskop.resource_allocation_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a>) and <span class="math notranslate nohighlight">\(\pi\)</span> its stationary distribution. The walk
+is reversible, so <span class="math notranslate nohighlight">\(\pi_b = s_b / S\)</span>, with <span class="math notranslate nohighlight">\(S\)</span> the total edge weight, and no
+eigenvector is computed: <span class="math notranslate nohighlight">\(U_{a \to b} = H_{ab} s_b / (s_a S)\)</span>, with <span class="math notranslate nohighlight">\(H\)</span> the
+hyperbolic sum of <a class="reference internal" href="#graphoskop.hyperbolic_projection" title="graphoskop.hyperbolic_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">directed</span> <span class="pre">=</span> <span class="pre">False</span></code> the two directions
+are averaged, <span class="math notranslate nohighlight">\((U_{a \to b} + U_{b \to a}) / 2\)</span>. Parallel edges are summed. Kept nodes
+sharing no neighbor stay as isolated nodes.</p>
+<p>This is the stationary distribution of the whole network, so on networks with several
+components, weights are comparable across components (the reference implementation takes an
+arbitrary eigenvector of eigenvalue 1 instead, which is unique only on connected networks). In
+multilayer networks, <span class="math notranslate nohighlight">\(S\)</span> is the total edge weight of the layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>directed</strong> – Return the directed projection <span class="math notranslate nohighlight">\(U\)</span>, with both directions of every
+pair, instead of the average of the two directions.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with the edge attribute
+<code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed (the walk is then not reversible), is not
+bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;occupations.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">occupations</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">)</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="multilayer.html" class="btn btn-neutral float-left" title="Multilayer networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="network_statistics.html" class="btn btn-neutral float-right" title="Network statistics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

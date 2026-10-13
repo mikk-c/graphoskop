@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transformations &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Multilayer networks" href="multilayer.html" />
+    <link rel="prev" title="Networks and their attributes" href="network.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Transformations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.to_undirected"><code class="docutils literal notranslate"><span class="pre">to_undirected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_isolates"><code class="docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_self_loops"><code class="docutils literal notranslate"><span class="pre">remove_self_loops()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.subgraph"><code class="docutils literal notranslate"><span class="pre">subgraph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.to_strongly_connected"><code class="docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Transformations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/transformations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.transformations">
+<span id="transformations"></span><h1>Transformations<a class="headerlink" href="#module-graphoskop.transformations" title="Link to this heading"></a></h1>
+<p>Transformations of a network into another network.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">to_undirected()</span></code> symmetrizes a directed network: all the edges between two nodes, in either
+direction, become one undirected edge, whose attributes combine theirs. <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_isolates()</span></code>
+drops the nodes without edges, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_self_loops()</span></code> the edges from a node to itself,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code> merges the edges between the same two nodes. <code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code> keeps a
+set of nodes and the edges between them, <code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code> the edges within strongly
+connected components.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;trust.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>          <span class="c1"># columns weight, sign</span>
+<span class="n">und</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                    <span class="c1"># weights summed: A + A^T</span>
+<span class="n">und</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">combine</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">disagree</span> <span class="o">=</span> <span class="s2">&quot;positive&quot;</span><span class="p">)</span>
+<span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                 <span class="c1"># nodes without edges dropped</span>
+<span class="n">clean</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">remove_self_loops</span><span class="p">(</span><span class="n">net</span><span class="p">))</span>         <span class="c1"># no self loops, then no isolates</span>
+<span class="n">simple</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_parallel_edges</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                         <span class="c1"># one edge per pair (per direction)</span>
+<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>              <span class="c1"># induced subgraph</span>
+<span class="n">scc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_strongly_connected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                            <span class="c1"># one component per strongly connected component</span>
+</pre></div>
+</div>
+<p>See also <a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a> and <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a> for multilayer
+networks, and <a class="reference internal" href="signed.html#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.to_undirected">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">to_undirected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disagree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.to_undirected" title="Link to this definition"></a></dt>
+<dd><p>Undirected version of a directed network.</p>
+<p>All the edges between the same two nodes, in either direction (parallel edges included), are
+merged into one undirected edge; self loops of a node are merged into one self loop. Each
+numeric edge attribute of the merged edge combines the values of its edges, ignoring NaN:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>: their sum, so that weights give <span class="math notranslate nohighlight">\(A + A^T\)</span>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code>: their mean (an edge in one direction only keeps its value);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>: their maximum.</p></li>
+</ul>
+<p>The sign attribute (if the network has one, see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>) is not combined: if all the
+merged edges have the same sign, the edge keeps it; if some are positive and some negative,
+<code class="docutils literal notranslate"><span class="pre">disagree</span></code> decides: <code class="docutils literal notranslate"><span class="pre">&quot;positive&quot;</span></code> (+1), <code class="docutils literal notranslate"><span class="pre">&quot;negative&quot;</span></code> (-1) or <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code> (0, which signed
+analyses treat as no edge). Edges with sign 0 or NaN do not count as disagreeing.</p>
+<p>Nodes and node attributes are kept, isolated nodes included, and so are node types (bipartite
+networks) and the device. In multilayer networks intra-layer edges are merged within each
+layer, and interlayer edges (couplings included) between the same two copies are merged too.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>combine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>.</p></li>
+<li><p><strong>sign</strong> – Name of the sign edge attribute (ignored if the network has no such attribute).</p></li>
+<li><p><strong>disagree</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;positive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;negative&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The undirected network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is undirected, or <code class="docutils literal notranslate"><span class="pre">combine</span></code> or <code class="docutils literal notranslate"><span class="pre">disagree</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;trust.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>           <span class="c1"># columns weight, sign</span>
+<span class="n">und</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_undirected</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">combine</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">disagree</span> <span class="o">=</span> <span class="s2">&quot;negative&quot;</span><span class="p">)</span>
+<span class="n">und</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">edge</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>       <span class="c1"># mean of both directions</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_isolates">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_isolates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_isolates" title="Link to this definition"></a></dt>
+<dd><p>Network without its isolated nodes.</p>
+<p>An isolated node has no edges at all; a node whose only edge is a self loop is not isolated.
+Since every isolated node is a component on its own, the other components are kept unchanged,
+in the same order, with the same node and edge attributes, node types and device; only their
+positions in the list of components can shift (isolated nodes are among the smallest
+components, so the largest ones keep their index). Their tensors are copied, so changing one
+network does not change the other.</p>
+<p>In multilayer networks a copy is isolated if it has no edges, couplings and other interlayer
+edges included; a copy coupled to the other copies of its entity is not isolated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network without isolated nodes, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (with the same
+nodes, copied, if there are none).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>   <span class="c1"># nodes.tsv lists nodes without edges too</span>
+<span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">core</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>     <span class="c1"># True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_self_loops">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_self_loops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_self_loops" title="Link to this definition"></a></dt>
+<dd><p>Network without its self loops (edges from a node to itself).</p>
+<p>All nodes are kept, so a node whose only edges were self loops becomes isolated (follow with
+<a class="reference internal" href="#graphoskop.remove_isolates" title="graphoskop.remove_isolates"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a> to drop it as well). Removing self loops never splits a component, so
+components, internal ids <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, node attributes, node types and device stay
+the same, and so do the attributes of the other edges. Tensors are copied, so changing one
+network does not change the other. In multilayer networks self loops are intra-layer edges
+from a copy to itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network without self loops, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;replies.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># people replying to themselves</span>
+<span class="n">clean</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">remove_self_loops</span><span class="p">(</span><span class="n">net</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_parallel_edges">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_parallel_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disagree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_parallel_edges" title="Link to this definition"></a></dt>
+<dd><p>Network without parallel edges: all the edges between the same two nodes become one edge,
+whose attributes combine theirs.</p>
+<p>In directed networks, parallel edges have the same source and the same target: the edges
+<span class="math notranslate nohighlight">\(u \to v\)</span> and <span class="math notranslate nohighlight">\(v \to u\)</span> are not parallel and both stay (use <a class="reference internal" href="#graphoskop.to_undirected" title="graphoskop.to_undirected"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_undirected()</span></code></a>
+to merge them). In undirected networks, <span class="math notranslate nohighlight">\(u - v\)</span> and <span class="math notranslate nohighlight">\(v - u\)</span> are the same edge. Self
+loops of a node are parallel to each other. In multilayer networks the endpoints are copies
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, so only edges within the same layer are merged (and interlayer edges
+between the same two copies), never edges of different layers.</p>
+<p>Each numeric edge attribute of a merged edge combines the values of its edges, ignoring NaN, as
+in <a class="reference internal" href="#graphoskop.to_undirected" title="graphoskop.to_undirected"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_undirected()</span></code></a>: <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code> (weights then give the same adjacency matrix and Laplacians),
+<code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>. The sign attribute (see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>) keeps the common sign of the
+edges, and <code class="docutils literal notranslate"><span class="pre">disagree</span></code> decides when they have both signs: <code class="docutils literal notranslate"><span class="pre">&quot;positive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;negative&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>. A merged edge keeps the position and orientation of the first of its edges.</p>
+<p>Merging parallel edges never changes which nodes are connected, so nodes, components, internal
+ids, node attributes, node types and device are kept, and all the work runs on the device of
+the network. Tensors are copied, so changing one network does not change the other.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>combine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mean&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>.</p></li>
+<li><p><strong>sign</strong> – Name of the sign edge attribute (ignored if the network has no such attribute).</p></li>
+<li><p><strong>disagree</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;positive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;negative&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network without parallel edges, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">combine</span></code> or <code class="docutils literal notranslate"><span class="pre">disagree</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;emails.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>    <span class="c1"># one row per email</span>
+<span class="n">simple</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_parallel_edges</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                   <span class="c1"># one edge per sender and receiver, weights summed</span>
+<span class="n">simple</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_parallel_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">combine</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.subgraph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">subgraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.subgraph" title="Link to this definition"></a></dt>
+<dd><p>Subgraph induced by a set of nodes: those nodes, with their attributes, and the edges between
+them, with theirs.</p>
+<p>Components are recomputed, so they are those of the subgraph; node types (bipartite networks),
+node table format, directedness and device are kept. In multilayer networks nodes are copies
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, and an entity stands for all its copies; interlayer edges (couplings
+included) between kept copies are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>nodes</strong> – Iterable of nodes (input ids, internal ids <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entities in
+multilayer networks), for example one of the arrays of <a class="reference internal" href="network_statistics.html#graphoskop.connected_components_nodes" title="graphoskop.connected_components_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_nodes()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The subgraph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>KeyError</strong> – If a node does not exist.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.to_strongly_connected">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">to_strongly_connected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.to_strongly_connected" title="Link to this definition"></a></dt>
+<dd><p>Directed network split into its strongly connected components: the edges between different
+strongly connected components are dropped, so that each of them becomes a component of its own
+(see <a class="reference internal" href="network_statistics.html#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a>).</p>
+<p>All nodes and their attributes are kept (a node in no directed cycle becomes isolated), and so
+are the attributes of the remaining edges, node types, node table format and device. In
+multilayer networks the strongly connected components are those of the supra-graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network split into strongly connected components, a new
+<a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>; its components are sorted by size as usual.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is undirected (its components are already strongly connected).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">scc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_strongly_connected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">scc</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span> <span class="o">==</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;strong&quot;</span><span class="p">)</span>   <span class="c1"># True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="network.html" class="btn btn-neutral float-left" title="Networks and their attributes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="multilayer.html" class="btn btn-neutral float-right" title="Multilayer networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

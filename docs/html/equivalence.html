@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equivalence &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Node vector analysis" href="node_vector_analysis.html" />
+    <link rel="prev" title="Hierarchy" href="hierarchy.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Equivalence</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.structural_equivalence"><code class="docutils literal notranslate"><span class="pre">structural_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_structural_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_structural_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_automorphic_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.regular_equivalence"><code class="docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">path_regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_path_regular_equivalence()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Equivalence</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/equivalence.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.equivalence">
+<span id="equivalence"></span><h1>Equivalence<a class="headerlink" href="#module-graphoskop.equivalence" title="Link to this heading"></a></h1>
+<p>Equivalence of nodes: how far two nodes have the same position in the network.</p>
+<p>Two nodes are structurally equivalent (Lorrain and White, 1971) when they have exactly the same
+neighbors; <code class="xref py py-func docutils literal notranslate"><span class="pre">structural_equivalence()</span></code> measures how close two nodes are to it. Two nodes are
+automorphically equivalent when some relabeling of the nodes keeping all edges (an automorphism)
+maps one onto the other: they cannot be told apart by the structure of the network, although their
+neighbors can differ. Structurally equivalent nodes are automorphically equivalent;
+<code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code> measures how close two nodes are to it. Two nodes are regularly
+equivalent when they are joined to equivalent nodes, not necessarily the same ones;
+<code class="xref py py-func docutils literal notranslate"><span class="pre">regular_equivalence()</span></code> measures how close two nodes are to it with the classical REGE
+algorithm, and <code class="xref py py-func docutils literal notranslate"><span class="pre">path_regular_equivalence()</span></code> with the path counts of Leicht, Holme and Newman
+(2006), a different quantity that mostly reflects proximity.
+Structural equivalence implies automorphic equivalence, which implies regular equivalence. The
+<code class="docutils literal notranslate"><span class="pre">pairwise_</span></code> versions give the scores of all pairs of nodes at once, as <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrices,
+much faster than calling the single versions on every pair.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.structural_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">structural_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.structural_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of structural equivalence of two nodes: the Jaccard coefficient of their sets of
+neighbors, <span class="math notranslate nohighlight">\(|N(u) \cap N(v)| / |N(u) \cup N(v)|\)</span>, 1 if they have the same neighbors and 0
+if they have none in common.</p>
+<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">mode</span></code> chooses the neighbors: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (successors), <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>
+(predecessors) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>, where a node is equivalent only if it has the same successors and
+the same predecessors (the two sets are compared together: a successor of one and a predecessor
+of the other do not match). With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the weighted Jaccard (Ruzicka) coefficient
+<span class="math notranslate nohighlight">\(\sum_x \min(w_{ux}, w_{vx}) / \sum_x \max(w_{ux}, w_{vx})\)</span>, with the weights of the
+edges to each neighbor (summed over parallel edges); weights must be non negative.</p>
+<p>Neighbors are taken as they are: a self loop makes a node its own neighbor, and two adjacent
+nodes count each other as neighbors (so the two nodes of an isolated edge score 0, although they
+are interchangeable). Two nodes without neighbors score 0 (as NetworkX’s
+<code class="docutils literal notranslate"><span class="pre">jaccard_coefficient</span></code>). Nodes in different components share no neighbors. In multilayer
+networks neighbors are those of the supra-graph: copies in different layers are different
+neighbors, and the copies of a node in other layers, joined by couplings, are neighbors too. An
+entity stands for all its copies, with the union of their neighbors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>u</strong> – A node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in multilayer
+networks).</p></li>
+<li><p><strong>v</strong> – Another node.</p></li>
+<li><p><strong>mode</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the plain Jaccard
+coefficient.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float between 0 and 1.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not valid or weights are negative.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">structural_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_structural_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_structural_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_structural_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of structural equivalence (see <a class="reference internal" href="#graphoskop.structural_equivalence" title="graphoskop.structural_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">structural_equivalence()</span></code></a>) of all pairs of nodes.</p>
+<p>The overlaps <span class="math notranslate nohighlight">\(\sum_x \min(w_{ux}, w_{vx})\)</span> of all pairs are accumulated over the common
+neighbors: every node <span class="math notranslate nohighlight">\(x\)</span> contributes to each pair of its neighbors, so the work is
+<span class="math notranslate nohighlight">\(\sum_x d_x^2\)</span> (the number of 2-paths), done in blocks of about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> pairs on
+the device of the network; then
+<span class="math notranslate nohighlight">\(J_{uv} = M_{uv} / (s_u + s_v - M_{uv})\)</span>, with <span class="math notranslate nohighlight">\(s\)</span> the number (or total weight) of
+neighbors. Pairs of nodes in different components score 0, so a component is computed on its
+own; <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> gives the matrix of the whole network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>mode</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the plain Jaccard
+coefficient.</p></li>
+<li><p><strong>batch_size</strong> – Largest number of neighbor pairs expanded at once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> float64 tensor on the device of the network, rows and columns
+ordered by internal index (component by component with <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not valid or weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">J</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_structural_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
+<span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                 <span class="c1"># if both are in component 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.automorphic_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">automorphic_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.automorphic_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of automorphic equivalence of two nodes (Borgatti and Everett, 1992): 1 if some
+relabeling of the nodes that keeps all edges (an automorphism) maps one onto the other, so that
+they have the same position in the structure of the network; less the more their positions
+differ.</p>
+<p>As in the role similarity of Everett and Borgatti (1988), nodes are compared by their profiles
+of geodesic distances: the number of nodes at each distance from the node (pairs of distances
+from and to it in directed networks; unreachable nodes, also in other components, count at
+distance infinity). An automorphism keeps distances, so automorphically equivalent nodes have
+the same profile. The score is the weighted Jaccard coefficient of the two profiles,
+<span class="math notranslate nohighlight">\(\sum_k \min(P_{uk}, P_{vk}) / \sum_k \max(P_{uk}, P_{vk})\)</span> (Everett and Borgatti compare
+them by Euclidean distance; this puts the comparison between 0 and 1). When the profiles are
+equal, an automorphism mapping <code class="docutils literal notranslate"><span class="pre">u</span></code> onto <code class="docutils literal notranslate"><span class="pre">v</span></code> is searched exactly, by individualization and
+refinement (the strategy of nauty) on two copies of the network, one with <code class="docutils literal notranslate"><span class="pre">u</span></code> marked and one
+with <code class="docutils literal notranslate"><span class="pre">v</span></code>: if it exists the score is 1, otherwise (equal distance profiles without
+equivalence) it is <span class="math notranslate nohighlight">\(1 - 1 / n\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> the number of nodes of the network, so that
+1 always means automorphic equivalence.</p>
+<p>The automorphisms considered keep edge directions, self loops and, in multilayer networks, the
+layer of every copy; weights and edge multiplicities are ignored. The whole network is used
+(automorphisms can swap isomorphic components). The profiles take two breadth first searches;
+the search for an automorphism is usually immediate, but can take exponential time on rare,
+very symmetric networks. It runs on the CPU. A node is equivalent to itself (score 1).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>u</strong> – A node (input id or internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; in multilayer networks a copy
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>).</p></li>
+<li><p><strong>v</strong> – Another node.</p></li>
+<li><p><strong>seed</strong> – Seed of the random hashes of refinement.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float between 0 and 1.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If a node stands for several copies.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">automorphic_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_automorphic_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_automorphic_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_automorphic_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of automorphic equivalence (see <a class="reference internal" href="#graphoskop.automorphic_equivalence" title="graphoskop.automorphic_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a>) of all pairs of nodes.</p>
+<p>The distance profiles of all nodes come from one breadth first search per node (on the CPU).
+Every profile counts all <span class="math notranslate nohighlight">\(N\)</span> nodes of the network, so the weighted Jaccard coefficient of
+two profiles is <span class="math notranslate nohighlight">\(M / (2N - M)\)</span>, with <span class="math notranslate nohighlight">\(M\)</span> the sum of their minima, computed for all
+pairs in blocks of rows (about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> numbers at once) on the device of the network.
+Pairs with equal profiles are then split into automorphism orbits: twins (nodes with the same
+neighbors) are equivalent and merged first, the other nodes are separated by color refinement,
+which automorphisms keep, and each automorphism found by the exact search is applied to all
+nodes at once (it maps every node to an equivalent one), so most pairs are settled without a
+search of their own. Pairs in the same orbit score 1, the others with equal
+profiles <span class="math notranslate nohighlight">\(1 - 1 / N\)</span>.</p>
+<p>With a component index, its nodes are compared (the nodes of other components count as
+unreachable in the profiles, as in <a class="reference internal" href="#graphoskop.automorphic_equivalence" title="graphoskop.automorphic_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a>); <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>
+compares all nodes of the network, so that isomorphic components are found equivalent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random hashes of refinement.</p></li>
+<li><p><strong>batch_size</strong> – Bound on the numbers held at once while comparing profiles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> float64 tensor on the device of the network, rows and columns
+ordered by internal index (component by component with <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_automorphic_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">orbits</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>                          <span class="c1"># automorphic equivalence, as a boolean matrix</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.regular_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">regular_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.regular_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of regular equivalence of two nodes, by REGE (White and Reitz, 1983): two nodes are
+regularly equivalent when they are joined to equivalent nodes, not necessarily the same ones.
+See <a class="reference internal" href="#graphoskop.pairwise_regular_equivalence" title="graphoskop.pairwise_regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">pairwise_regular_equivalence()</span></code></a> for the algorithm. The scores of a pair depend on
+those of the pairs of their neighbors, and so on, so all pairs of nodes of the components of
+<code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are computed, and the pair is picked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>u</strong> – A node (input id or internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; in multilayer networks a copy
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>).</p></li>
+<li><p><strong>v</strong> – Another node.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge value, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit values.</p></li>
+<li><p><strong>iterations</strong> – Number of iterations (3 as UCINET), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to iterate until the scores
+change by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p></li>
+<li><p><strong>tol</strong> – Tolerance, with <code class="docutils literal notranslate"><span class="pre">iterations</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch_size</strong> – Bound on the numbers held at once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float between 0 and 1.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If weights are negative, or a node stands for several copies.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">regular_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_regular_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_regular_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_regular_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Degree of regular equivalence of all pairs of nodes, by REGE (White and Reitz, 1983), in the form
+given by Wasserman and Faust (1994, section 12.4).</p>
+<p>Two nodes are regularly equivalent when they are joined to equivalent nodes, not necessarily the
+same ones: two parents are equivalent because both have children, whoever the children are.
+REGE starts with all pairs equivalent (<span class="math notranslate nohighlight">\(M^0_{ij} = 1\)</span>) and, at every iteration, matches
+each neighbor <span class="math notranslate nohighlight">\(k\)</span> of <span class="math notranslate nohighlight">\(i\)</span> to the neighbor <span class="math notranslate nohighlight">\(m\)</span> of <span class="math notranslate nohighlight">\(j\)</span> most equivalent to
+it, with ties in the same directions and of similar values:</p>
+<div class="math notranslate nohighlight">
+\[M^{t+1}_{ij} = \frac{\sum_k \max_m M^t_{km} \left( \min(x_{ik}, x_{jm}) + \min(x_{ki}, x_{mj}) \right) + (i \leftrightarrow j)}
+{\sum_k \left( \max(x_{ik}, x_{jm^*}) + \max(x_{ki}, x_{m^*j}) \right) + (i \leftrightarrow j)},\]</div>
+<p>with <span class="math notranslate nohighlight">\(k\)</span> over the neighbors of <span class="math notranslate nohighlight">\(i\)</span> (in either direction), <span class="math notranslate nohighlight">\(m\)</span> over those of
+<span class="math notranslate nohighlight">\(j\)</span>, <span class="math notranslate nohighlight">\(m^*\)</span> the best match (ties broken by the smallest denominator; a node without
+neighbors offers no match), <span class="math notranslate nohighlight">\(x\)</span> the edge values (<code class="docutils literal notranslate"><span class="pre">weight</span></code>, or 1; parallel edges summed),
+and <span class="math notranslate nohighlight">\((i \leftrightarrow j)\)</span> the same sums matching the neighbors of <span class="math notranslate nohighlight">\(j\)</span> to those of
+<span class="math notranslate nohighlight">\(i\)</span>. Scores are between 0 and 1, 1 for regularly equivalent nodes, and do not increase
+from one iteration to the next. UCINET runs 3 iterations by default, as here, which gives graded
+scores; with <code class="docutils literal notranslate"><span class="pre">iterations</span> <span class="pre">=</span> <span class="pre">None</span></code> they are run until the scores change by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code>,
+which tends to separate the regularly equivalent pairs (1) from the others (towards 0). Two nodes
+without neighbors score 1 (they are regularly equivalent), a node with neighbors and one
+without score 0.</p>
+<p>Regular equivalence needs directions or values to tell nodes apart: in an undirected network
+with unit values, every node with neighbors is regularly equivalent to every other (each of
+its neighbors matches any neighbor of the other, all equivalent at the start), so all such
+pairs score 1. Use it on directed or valued networks; for undirected unweighted ones see
+<a class="reference internal" href="#graphoskop.automorphic_equivalence" title="graphoskop.automorphic_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a>. Unlike <a class="reference internal" href="#graphoskop.path_regular_equivalence" title="graphoskop.path_regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">path_regular_equivalence()</span></code></a>, it does not depend on
+the distance between the two nodes: nodes in different components can be equivalent, so
+<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> compares all nodes of the network. E.g. with two separate families, a
+parent with edges to four children and one with edges to three, the two parents score 1, and so
+do any two children; a parent and a child score 0. The parents are not automorphically
+equivalent (the families differ in size), and have no paths between them.</p>
+<p>Every iteration compares every neighbor relation <span class="math notranslate nohighlight">\((i, k)\)</span> with every relation
+<span class="math notranslate nohighlight">\((j, m)\)</span>, <span class="math notranslate nohighlight">\((2m)^2\)</span> comparisons for <span class="math notranslate nohighlight">\(m\)</span> edges, in blocks of about
+<code class="docutils literal notranslate"><span class="pre">batch_size</span></code> numbers on the device of the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge value, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit values.</p></li>
+<li><p><strong>iterations</strong> – Number of iterations (3 as UCINET), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to iterate until the scores
+change by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p></li>
+<li><p><strong>tol</strong> – Tolerance, with <code class="docutils literal notranslate"><span class="pre">iterations</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch_size</strong> – Bound on the numbers held at once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> float64 tensor on the device of the network, rows and columns
+ordered by internal index (component by component with <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_regular_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_regular_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">iterations</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.path_regular_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">path_regular_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.97</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.path_regular_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Path-based regular equivalence of two nodes: the vertex similarity of Leicht, Holme and Newman
+(2006), where a node is similar to another if its neighbors are similar to it, counting the
+paths between them. See <a class="reference internal" href="#graphoskop.pairwise_path_regular_equivalence" title="graphoskop.pairwise_path_regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">pairwise_path_regular_equivalence()</span></code></a> for the definition and how
+it differs from <a class="reference internal" href="#graphoskop.regular_equivalence" title="graphoskop.regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a>; this computes a single pair by iterating
+<span class="math notranslate nohighlight">\(x = \frac{\alpha}{\lambda_1} A x + e_v\)</span> on the device of the network (no <code class="docutils literal notranslate"><span class="pre">n</span></code> by
+<code class="docutils literal notranslate"><span class="pre">n</span></code> matrix), until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>u</strong> – A node (input id or internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; in multilayer networks a copy
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>).</p></li>
+<li><p><strong>v</strong> – Another node.</p></li>
+<li><p><strong>alpha</strong> – Weight of longer paths, between 0 and 1 (0.9 to 0.99 recommended).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>tol</strong> – Tolerance per node.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The similarity, a non negative float (not bounded by 1).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is not between 0 and 1, weights are negative, or a node stands
+for several copies.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">path_regular_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pairwise_path_regular_equivalence">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pairwise_path_regular_equivalence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.97</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pairwise_path_regular_equivalence" title="Link to this definition"></a></dt>
+<dd><p>Path-based regular equivalence of all pairs of nodes: the vertex similarity of Leicht, Holme and
+Newman (2006).</p>
+<p>Two nodes are regularly equivalent (White and Reitz, 1983) when they are joined to equivalent
+nodes, not necessarily the same ones (as structural equivalence requires). Leicht, Holme and
+Newman make it graded and recursive in a different way from <a class="reference internal" href="#graphoskop.regular_equivalence" title="graphoskop.regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a>:
+<span class="math notranslate nohighlight">\(i\)</span> is similar to <span class="math notranslate nohighlight">\(j\)</span> if <span class="math notranslate nohighlight">\(i\)</span> has a neighbor similar to <span class="math notranslate nohighlight">\(j\)</span>,
+<span class="math notranslate nohighlight">\(S = \phi A S + I\)</span> (every node is similar to itself), so
+<span class="math notranslate nohighlight">\(S = (I - \phi A)^{-1} = \sum_l \phi^l A^l\)</span>, which counts the paths of every length
+<span class="math notranslate nohighlight">\(l\)</span> between the two nodes. Each count is divided by its expected value in a random
+network with the same degrees, <span class="math notranslate nohighlight">\(k_i k_j \lambda_1^{l - 1} / 2m\)</span>, with <span class="math notranslate nohighlight">\(\lambda_1\)</span>
+the largest eigenvalue of <span class="math notranslate nohighlight">\(A\)</span>, and longer paths are discounted by <span class="math notranslate nohighlight">\(\alpha^l\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[S = 2 m \lambda_1 D^{-1} \left( I - \frac{\alpha}{\lambda_1} A \right)^{-1} D^{-1},\]</div>
+<p>with <span class="math notranslate nohighlight">\(D\)</span> the diagonal matrix of the degrees (strengths with <code class="docutils literal notranslate"><span class="pre">weight</span></code>) and <span class="math notranslate nohighlight">\(m\)</span> the
+number (total weight) of edges. <span class="math notranslate nohighlight">\(\alpha\)</span> must be between 0 and 1; values close to 1 (0.9
+to 0.99, as recommended by the authors) give weight to the whole structure of the network,
+small values reduce the measure to common neighbors over <span class="math notranslate nohighlight">\(k_i k_j\)</span>, a structural
+equivalence (the <span class="math notranslate nohighlight">\(l = 2\)</span> term). Similarities are ratios of observed to expected paths,
+non negative and not bounded by 1; they rank pairs within a network.</p>
+<p>Since it counts paths between the two nodes, this similarity rewards proximity: nodes with the
+same role far apart score low. E.g. in two identical families (a parent with four children)
+whose parents are joined by a path of six edges, the two parents (regularly, and even
+automorphically, equivalent) score 5.4 with <span class="math notranslate nohighlight">\(\alpha = 0.97\)</span>, while a parent and one of
+its own children score 68.7; over all pairs, similarities follow the shortest path distance
+closely (Spearman correlation 0.87 to 0.97 for <span class="math notranslate nohighlight">\(\alpha \leq 0.5\)</span>, 0.25 to 0.75 for
+<span class="math notranslate nohighlight">\(\alpha = 0.97\)</span>, on Zachary’s karate club, a Barabasi-Albert and a Watts-Strogatz
+network). For roles independent of distance see <a class="reference internal" href="#graphoskop.regular_equivalence" title="graphoskop.regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a> (the classical
+measure) and <a class="reference internal" href="#graphoskop.automorphic_equivalence" title="graphoskop.automorphic_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a>.</p>
+<p>Edges are taken as undirected (the expected path counts assume it) and weights as their
+multiplicities; a self loop adds its weight once to the diagonal of <span class="math notranslate nohighlight">\(A\)</span>. Each component
+is computed on its own (pairs in different components have no paths); nodes without edges get
+0. The inverse is a dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix, computed by Cholesky factorization
+(<span class="math notranslate nohighlight">\(I - \frac{\alpha}{\lambda_1} A\)</span> is positive definite) on the device of the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest).</p></li>
+<li><p><strong>alpha</strong> – Weight of longer paths, between 0 and 1 (0.9 to 0.99 recommended).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> float64 tensor on the device of the network, rows and columns
+ordered by internal index.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is not between 0 and 1 or weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">S</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pairwise_path_regular_equivalence</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hierarchy.html" class="btn btn-neutral float-left" title="Hierarchy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="node_vector_analysis.html" class="btn btn-neutral float-right" title="Node vector analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

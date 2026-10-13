@@ -15,3 +15,7 @@ docs = ["sphinx", "sphinx_rtd_theme"]
 
 [tool.setuptools.packages.find]
 include = ["graphoskop*"]
+
+[project.urls]
+Homepage = "https://github.com/mikk-c/graphoskop"
+Issues = "https://github.com/mikk-c/graphoskop/issues"

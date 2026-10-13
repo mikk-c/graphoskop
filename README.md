@@ -4,9 +4,7 @@ Analysis of networks and of vectors defined on their nodes.
 
 ## Install
 
-    pip install .
-
-or, while developing the library, `pip install -e .` so that changes take effect without reinstalling.
+    pip install graphoskop
 
 ## Usage
 
@@ -127,7 +125,3 @@ Synthetic networks: every generator takes its parameters, or an existing network
     rnd = gsk.copying_graph(net = net)                   # same n and m, nodes arrive in random order
     rnd = gsk.holme_kim_graph(net = net)                 # same n, m and average clustering (p inferred)
 
-## Documentation
-
-    pip install .[docs]
-    sphinx-build docs docs/_build

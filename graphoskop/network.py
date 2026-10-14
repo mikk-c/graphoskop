@@ -268,6 +268,8 @@ class Network:
       values are not stored. Values are cast to the dtype of ``node_attr``. A new qualitative
       attribute is appended to :attr:`qualitative_node_attributes`; components not set get NaN
       (missing).
+      A node can have several values of a qualitative attribute, given as a list, tuple or set
+      (see :ref:`overlapping-communities`).
 
       :param key: Attribute name, or position in :attr:`node_attributes`.
       :param values: Vector of length ``n``, ordered by internal node index, or a list of them
@@ -339,7 +341,7 @@ class Network:
       a, b = self.node_offsets[component], self.node_offsets[component + 1]
       if isinstance(values, torch.Tensor):
          values = values.cpu().numpy()
-      v = np.asarray(values, dtype = object)
+      v = _memberships(values)
       if v.shape != (b - a,):
          raise ValueError(f"expected a vector of length {b - a}, got shape {v.shape}")
       Q = self.qualitative_node_attr
@@ -583,9 +585,10 @@ class Network:
          pos.append(r + off)
          attribute.append(names[c])
          value.append(X.values().cpu().numpy().astype(object))
-      pos.append(Q["node"].to_numpy())
-      attribute.append(np.asarray(Q["attribute"], dtype = object))
-      value.append(np.asarray(Q["value"], dtype = object))
+      cols, vals = _explode({"node": Q["node"].to_numpy(), "attribute": np.asarray(Q["attribute"], dtype = object)}, np.asarray(Q["value"], dtype = object))   # one row per community of a node
+      pos.append(cols["node"])
+      attribute.append(cols["attribute"])
+      value.append(vals)
       if ml:   # copies without values, so that they are not lost
          bare = np.ones(int(self.node_offsets[-1]), dtype = bool)
          for p in pos:
@@ -623,7 +626,86 @@ def _is_numeric(values):
    :param values: Vector (:class:`torch.Tensor`, :class:`numpy.ndarray` or list).
    :return: ``True`` for tensors and for arrays of numbers or booleans.
    """
-   return isinstance(values, torch.Tensor) or np.asarray(values).dtype.kind in "biuf"
+   if isinstance(values, torch.Tensor):
+      return True
+   try:
+      a = np.asarray(values)
+   except ValueError:   # ragged nested values, e.g. lists of communities
+      return False
+   return a.ndim == 1 and a.dtype.kind in "biuf"
+
+
+def _membership(v):
+   """
+   A qualitative value, with a collection of values (list, tuple, set, array: e.g. the
+   communities of a node in several) as a tuple of its distinct values, in order (sorted for
+   sets), and a collection of one value as that value. Strings are single values.
+
+   :param v: Value.
+   :return: The value, a tuple of two or more values, or NaN for an empty collection.
+   """
+   if isinstance(v, (str, bytes)) or not isinstance(v, (list, tuple, set, frozenset, np.ndarray, pd.Series)):
+      return v
+   items = list(v)
+   if isinstance(v, (set, frozenset)):
+      try:
+         items = sorted(items)
+      except TypeError:
+         pass
+   items = list(dict.fromkeys(x.item() if isinstance(x, np.generic) else x for x in items if not (x is None or (isinstance(x, float) and np.isnan(x)))))
+   return np.nan if not items else items[0] if len(items) == 1 else tuple(items)
+
+
+def _memberships(values):
+   """
+   Qualitative values as a one dimensional object array, collections normalized by
+   :func:`_membership` (only scanned when the values are not all strings or numbers).
+
+   :param values: Sequence of values.
+   :return: :class:`numpy.ndarray` of objects.
+   """
+   v = pd.Series(list(values), dtype = object)
+   if pd.api.types.infer_dtype(v, skipna = True) in ("string", "integer", "floating", "mixed-integer-float", "boolean", "empty"):
+      return v.to_numpy()
+   try:   # each distinct value once
+      code, uniq = pd.factorize(v)
+   except TypeError:   # lists, sets: not hashable
+      return v.map(_membership).to_numpy()
+   out = np.empty(len(uniq) + 1, dtype = object)
+   out[:-1] = [_membership(x) for x in uniq]
+   out[-1] = np.nan
+   return out[code]
+
+
+def _explode(columns, value):
+   """
+   Rows of a long table with one row per value of every collection (tuple) of values.
+
+   :param columns: Dictionary of the other columns, arrays aligned with ``value``.
+   :param value: Object array of values, some of them tuples.
+   :return: The columns and the values, repeated and flattened.
+   """
+   size = np.fromiter((len(x) if isinstance(x, tuple) else 1 for x in value), dtype = np.int64, count = len(value))
+   if (size == 1).all():
+      return columns, value
+   flat = np.empty(int(size.sum()), dtype = object)
+   flat[:] = [y for x in value for y in (x if isinstance(x, tuple) else (x,))]
+   return {k: np.repeat(np.asarray(c), size) for k, c in columns.items()}, flat
+
+
+def _merge_values(Q):
+   """
+   Long qualitative rows with the several values of a node and attribute merged into a tuple
+   (a node in several communities).
+
+   :param Q: Table with columns ``node``, ``attribute`` and ``value``.
+   :return: Table with one row per node and attribute.
+   """
+   dup = Q.duplicated(["node", "attribute"], keep = False).to_numpy()
+   if not dup.any():
+      return Q
+   merged = Q[dup].groupby(["node", "attribute"], sort = False)["value"].agg(lambda x: _membership(tuple(x))).reset_index()
+   return pd.concat([Q[~dup], merged], ignore_index = True)
 
 
 def _categorize(Q):
@@ -1124,7 +1206,9 @@ def _layered(edges, src, tgt, lcol, eattr, inter, iattr, nodes, node_format, dir
          key = feats.index.to_numpy()
          feats = feats.reset_index(drop = True)
       return names, s, t, ea, cols, key, feats, ml, inter_mask
-   rows = pd.DataFrame({"key": key, "attribute": table.iloc[:, 2].to_numpy(), "value": table.iloc[:, 3].to_numpy()}).drop_duplicates(["key", "attribute"], keep = "last").reset_index(drop = True)
+   rows = pd.DataFrame({"key": key, "attribute": table.iloc[:, 2].to_numpy(), "value": table.iloc[:, 3].to_numpy(), "own": np.r_[np.zeros(len(key) - len(own), dtype = bool), np.ones(len(own), dtype = bool)]})
+   top = rows.groupby(["key", "attribute"], sort = False, dropna = False)["own"].transform("max")
+   rows = rows[(rows["own"] == top).to_numpy()].drop(columns = "own").reset_index(drop = True)   # several rows of a level: several values
    if (rows["attribute"] == LAYER).any():
       raise ValueError(f"{LAYER!r} cannot be a node attribute of a multilayer network: the layer is the second column of the node table")
    return names, s, t, ea, cols, rows["key"].to_numpy(), (rows["attribute"], rows["value"]), ml, inter_mask
@@ -1200,7 +1284,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
             row = _positions(perm)[key]
             Q = {}
             for a in quals:   # as category codes: no Python object per value
-               cat = pd.Categorical(feats[a])
+               cat = pd.Categorical(_memberships(feats[a]))
                c = np.full(n, -1, dtype = cat.codes.dtype)
                c[row] = cat.codes
                Q[a] = pd.Categorical.from_codes(c, cat.categories)
@@ -1209,13 +1293,20 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
          val = pd.to_numeric(v, errors = "coerce")
          has = v.notna().to_numpy()
          text = name.isin(set(name[has & val.isna().to_numpy()])).to_numpy()   # attributes with a non-numeric value
-         isq = text | (bipartite & (name == BIPARTITE).to_numpy())
+         repeated = pd.DataFrame({"k": key, "a": name.to_numpy()})[has].duplicated(keep = False).to_numpy()
+         multi = name.isin(set(name[has][repeated])).to_numpy()   # attributes with several values for a node
+         isq = text | multi | (bipartite & (name == BIPARTITE).to_numpy())
          ok = has & ~isq
          attrs = list(name[ok].unique())
          col = pd.Index(attrs).get_indexer(name[ok])
          qrow = has & isq
          qval = np.where(text, np.asarray(v, dtype = object), val.to_numpy())[qrow]
          quals = list(name[qrow].unique())
+         for a in set(name[multi & ~text]):   # numeric labels of several values: integers stay integers
+            m = (name[qrow] == a).to_numpy()
+            x = qval[m].astype(float)
+            if (x == np.round(x)).all():
+               qval[m] = [int(y) for y in x]
          if bipartite:
             if BIPARTITE not in quals:
                raise ValueError(f"a bipartite network needs {BIPARTITE!r} values in the node table")
@@ -1229,7 +1320,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
 
          def qtable(perm):
             Q = pd.DataFrame({"node": _positions(perm)[key[qrow]], "attribute": name[qrow].to_numpy(), "value": qval})
-            return _categorize(Q.drop_duplicates(["node", "attribute"], keep = "last"))
+            return _categorize(_merge_values(Q.drop_duplicates()))
 
    types, labels = _bipartite_types(tkey, tval, names, s, t, inter_mask, None if ml is None else ml[1]) if bipartite else (None, None)
    return _build(s, t, names, ea, enames, table, attrs, directed, device, qtable, quals, node_format, types, labels, ml)
@@ -1254,6 +1345,12 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
    ``node_attr`` on ``device``. The others are qualitative, and are stored in
    :attr:`Network.qualitative_node_attr`, always in CPU memory. In long format, this is decided
    for each attribute name: one non-numeric value makes the attribute qualitative.
+
+   A node can have several values of a qualitative attribute, e.g. overlapping communities (see
+   :ref:`overlapping-communities`): in long format, as several rows with the same node and
+   attribute (which makes the attribute qualitative, even with numeric values; integer values stay
+   integers); in a wide DataFrame, as a list, tuple or set in the cell. They are stored as a tuple
+   of the distinct values.
 
    With ``bipartite = True``, the node table must give every node, isolated ones included, a value
    of the :data:`BIPARTITE` attribute (``"bipartite_type"``), with at most two distinct values
@@ -1403,6 +1500,20 @@ def _wide_rows(net, rows):
    return nodes
 
 
+def _multivalued(net):
+   """
+   Qualitative node attributes with several values for some node (e.g. overlapping communities).
+
+   :param net: Network.
+   :return: List of attribute names.
+   """
+   Q = net.qualitative_node_attr
+   if net.node_format == "wide":
+      return [a for a in net.qualitative_node_attributes if any(isinstance(c, tuple) for c in Q[a].cat.categories)]
+   multi = Q["value"].map(lambda x: isinstance(x, tuple)).to_numpy(bool)
+   return list(pd.unique(np.asarray(Q["attribute"], dtype = object)[multi]))
+
+
 def _to_long(nodes, ids = 1):
    """
    Long node table from a wide one, node by node; missing values are left out. With two id
@@ -1420,7 +1531,7 @@ def _to_long(nodes, ids = 1):
    if ids > 1:
       bare = np.setdiff1d(np.arange(len(nodes)), long.index.to_numpy())
       long = pd.concat([long, pd.DataFrame({"attribute": np.nan, "value": np.nan}, index = bare)])
-   long = long.sort_index(kind = "stable")
+   long = long.sort_index(kind = "stable").explode("value")   # one row per community of a node
    for k in reversed(idc):
       long.insert(0, k, nodes[k].to_numpy()[long.index])
    return long.reset_index(drop = True)
@@ -1467,6 +1578,10 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    a numeric value that is missing (NaN) in a wide table is left out, and so reads back as 0. In
    wide format, numeric values absent from a long table are written as 0.
 
+   A node with several values of an attribute (see :ref:`overlapping-communities`) gets one row per
+   value in a long table, which loads back as several values. A wide table cannot hold them: the
+   long format is then the default, and asking for the wide one raises :class:`ValueError`.
+
    A multilayer network also writes its interlayer edges (couplings included) to
    ``prefix + "_interlayer.tsv"``, and always writes the node table (one row per copy, with the
    entity and the layer). The files load back with ``multilayer = True``,
@@ -1487,13 +1602,15 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    :param net: A :class:`Network`.
    :param prefix: Path and file name prefix, e.g. ``"data/flights"``.
    :param sep: Column separator, e.g. ``"\\t"``, ``","``, ``";"`` or ``" "``.
-   :param node_format: ``"wide"`` or ``"long"`` node table, or ``None`` for the format of ``net``.
+   :param node_format: ``"wide"`` or ``"long"`` node table, or ``None`` for the format of ``net``
+      (long if some node has several values of an attribute).
    :param pickle: Write the Python object instead of tables.
    :param warn_size: Expected size in bytes of the node table above which a warning is issued.
    :param max_size: Expected size in bytes of the node table, in the larger of the two formats,
       above which nothing is written.
-   :raises ValueError: If ``node_format`` is not valid, or if the node table would be larger than
-      ``max_size`` in the chosen format and smaller in the other one.
+   :raises ValueError: If ``node_format`` is not valid, if it is ``"wide"`` and some node has
+      several values of an attribute, or if the node table would be larger than ``max_size`` in the
+      chosen format and smaller in the other one.
 
    Example:
 
@@ -1518,10 +1635,13 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    if pickle:
       torch.save(net, prefix + ".pt")
       return
-   node_format = net.node_format if node_format is None else node_format
+   multi = _multivalued(net)
+   node_format = ("long" if multi else net.node_format) if node_format is None else node_format
    if node_format not in ("wide", "long"):
       raise ValueError(f"unknown node format: {node_format}")
    ext = ".tsv" if sep == "\t" else ".csv"
+   if node_format == "wide" and multi:
+      raise ValueError(f"node attributes {multi} have several values for some nodes, which a wide table cannot hold: use node_format = 'long' (one row per value) or pickle = True")
    ml = net.layer_labels is not None
    has_nodes = bool(net.node_attributes or net.qualitative_node_attributes) or ml
    out = net.to_pandas_dataframes()

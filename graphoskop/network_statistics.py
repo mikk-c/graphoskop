@@ -50,6 +50,7 @@ import scipy.sparse as sp
 from scipy import integrate, optimize, special, stats
 from scipy.sparse.csgraph import connected_components
 
+from .network import _multivalued
 from .shortest_paths import _source_stats
 
 
@@ -1195,6 +1196,8 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
    comps = range(len(net.components)) if component is None else [component]
    qual = isinstance(attribute, str) and attribute in net.qualitative_node_attributes
    if qual:   # category codes, consistent over components
+      if attribute in _multivalued(net):
+         raise ValueError(f"some nodes have several {attribute!r} values: assortativity needs one value per node")
       values = [net.get_node_attribute(attribute, c) for c in comps]
       codes = pd.factorize(pd.Series(np.concatenate(values)), use_na_sentinel = True)[0]
       K = int(codes.max()) + 1 if len(codes) and codes.max() >= 0 else 1

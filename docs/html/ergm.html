@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exponential random graph models &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Generators" href="generators.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exponential random graph models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#fitting">Fitting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ergm"><code class="docutils literal notranslate"><span class="pre">ergm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ERGMFit"><code class="docutils literal notranslate"><span class="pre">ERGMFit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#statistics">Statistics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ergm_statistics"><code class="docutils literal notranslate"><span class="pre">ergm_statistics()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Exponential random graph models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ergm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.ergms">
+<span id="exponential-random-graph-models"></span><h1>Exponential random graph models<a class="headerlink" href="#module-graphoskop.ergms" title="Link to this heading"></a></h1>
+<p>Exponential random graph models (ERGMs): the probability of a network <span class="math notranslate nohighlight">\(y\)</span> is
+<span class="math notranslate nohighlight">\(P_\theta(y) = e^{\theta^T g(y)} / \kappa(\theta)\)</span>, where <span class="math notranslate nohighlight">\(g(y)\)</span> is a vector of
+network statistics (number of edges, of triangles, of edges between nodes with the same value of
+an attribute, …) and <span class="math notranslate nohighlight">\(\theta\)</span> their coefficients: a positive coefficient makes networks
+with more of that statistic more likely, all else equal. Equivalently, the log-odds of a tie,
+given the rest of the network, is <span class="math notranslate nohighlight">\(\theta^T \delta_{ij}(y)\)</span>, where
+<span class="math notranslate nohighlight">\(\delta_{ij}(y)\)</span> is the change in the statistics when the tie is added (Robins, Pattison,
+Kalish and Lusher, 2007).</p>
+<p>Models are written as in R’s <code class="docutils literal notranslate"><span class="pre">ergm</span></code> package (Hunter, Handcock, Butts, Goodreau and Morris,
+2008), with the same terms, statistics and coefficient names, so that results can be compared:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodematch(&#39;city&#39;) + nodecov(&#39;age&#39;) + gwesp(0.5, fixed = TRUE)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Node attributes enter through terms such as <code class="docutils literal notranslate"><span class="pre">nodecov</span></code> (numeric), <code class="docutils literal notranslate"><span class="pre">nodefactor</span></code> (one dummy
+variable per category of a qualitative attribute, the first category being the baseline),
+<code class="docutils literal notranslate"><span class="pre">nodematch</span></code> (homophily) and <code class="docutils literal notranslate"><span class="pre">nodemix</span></code> (mixing between categories); dyadic covariates, such as
+the weights of another network, through <code class="docutils literal notranslate"><span class="pre">edgecov</span></code>. See <code class="xref py py-func docutils literal notranslate"><span class="pre">ergm()</span></code> for the list of terms.</p>
+<p>Markov chain Monte Carlo on networks is sequential (every step depends on the network left by the
+previous one), so it does not benefit from a GPU: change statistics and the sampler are compiled
+with Numba and run on the CPU, a few chains in parallel threads, on the dense adjacency matrix.
+Models are meant for networks of up to a few thousand nodes, as ERGMs usually are. The first fit
+of a session compiles the kernels (cached on disk afterwards). Multilayer and bipartite networks
+are not supported yet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                  <span class="c1"># node attributes age (numeric), city (qualitative)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">ergm_statistics</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + triangle + nodematch(&#39;city&#39;)&quot;</span><span class="p">)</span>  <span class="c1"># g(y), as R&#39;s summary(net ~ ...)</span>
+
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodecov(&#39;age&#39;) + nodefactor(&#39;city&#39;) + nodematch(&#39;city&#39;)&quot;</span><span class="p">)</span>   <span class="c1"># dyad independent: exact MLE</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">summary</span>                                                       <span class="c1"># estimates, standard errors, z, p</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">aic</span>
+
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodematch(&#39;city&#39;) + gwesp(0.5, fixed = TRUE)&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># MCMC MLE</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">coef</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">fit</span><span class="o">.</span><span class="n">converged</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">samples</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">fit</span><span class="o">.</span><span class="n">observed</span>                                 <span class="c1"># sampled statistics around the observed ones</span>
+</pre></div>
+</div>
+<section id="fitting">
+<h2>Fitting<a class="headerlink" href="#fitting" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.ergm">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">ergm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mcmc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samplesize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ergm" title="Link to this definition"></a></dt>
+<dd><p>Fit an exponential random graph model (ERGM), as R’s <code class="docutils literal notranslate"><span class="pre">ergm()</span></code>.</p>
+<p>The model gives every network <span class="math notranslate nohighlight">\(y\)</span> the probability
+<span class="math notranslate nohighlight">\(P_\theta(y) = e^{\theta^T g(y)} / \kappa(\theta)\)</span>, with <span class="math notranslate nohighlight">\(g\)</span> the statistics of
+the terms of <code class="docutils literal notranslate"><span class="pre">formula</span></code> (see below). Estimation follows R’s <code class="docutils literal notranslate"><span class="pre">ergm</span></code>:</p>
+<ul class="simple">
+<li><p>the maximum pseudo-likelihood estimate (MPLE; Strauss and Ikeda, 1990): a logistic
+regression of every dyad on its change statistics, computed on the distinct rows of change
+statistics. For dyad independent models (only terms whose change statistics do not depend
+on the rest of the network, such as <code class="docutils literal notranslate"><span class="pre">edges</span></code>, <code class="docutils literal notranslate"><span class="pre">nodecov</span></code>, <code class="docutils literal notranslate"><span class="pre">nodematch</span></code>, <code class="docutils literal notranslate"><span class="pre">edgecov</span></code>) it is
+the maximum likelihood estimate, with exact standard errors and log-likelihood;</p></li>
+<li><p>otherwise, the Monte Carlo maximum likelihood estimate (MCMC MLE; Geyer and Thompson, 1992),
+starting from the MPLE: networks are sampled at the current coefficients by Markov chain Monte
+Carlo, the log-likelihood ratio is approximated from their statistics and maximized, and the
+step repeats until the observed statistics are well within those sampled. When the observed
+statistics are outside the convex hull of the sample, the step aims at a point between them
+and the sample mean (Hummel, Hunter and Handcock, 2012); steps are also kept short enough for
+the sample to approximate the likelihood (effective sample size of the importance weights at
+least 5%). Standard errors come from the inverse information matrix (covariance of
+statistics sampled at the estimate) plus the Monte Carlo error (from batch means), whose share
+is reported as <code class="docutils literal notranslate"><span class="pre">MCMC</span> <span class="pre">%</span></code>.</p></li>
+</ul>
+<p>Networks are sampled by Metropolis-Hastings with R’s tie / no tie proposal, compiled, with
+<code class="docutils literal notranslate"><span class="pre">chains</span></code> chains in parallel threads, each started at the observed network and continued from
+one iteration to the next: in every iteration each chain makes <code class="docutils literal notranslate"><span class="pre">burnin</span></code> steps, then
+<code class="docutils literal notranslate"><span class="pre">samplesize</span> <span class="pre">/</span> <span class="pre">chains</span></code> samples, <code class="docutils literal notranslate"><span class="pre">interval</span></code> steps apart (R’s defaults). Convergence: the
+coefficients are updated until the observed statistics are within <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> standard
+deviations of the mean sampled ones (Mahalanobis distance, which is about the distance of the
+estimate from the MLE in standard errors; at least twice its Monte Carlo noise,
+<span class="math notranslate nohighlight">\(2 \sqrt{p / samplesize}\)</span>); a last sample at the estimate gives the standard errors.
+When the MPLE is infinite or very large (separation), the chains start from a ridge penalized
+MPLE; if the sample cannot move the estimate for two iterations, the coefficients go halfway
+back to a density only model. A model that only produces empty or complete networks
+(degenerate) triggers a warning.</p>
+<p>Terms (as in R; <code class="docutils literal notranslate"><span class="pre">attr</span></code> is a node attribute name, numeric or qualitative, missing values
+matching nothing):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">edges</span></code>: number of ties;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodecov(attr)</span></code>: sum over ties of the sum of the attribute of the two nodes (numeric);
+directed variants <code class="docutils literal notranslate"><span class="pre">nodeicov</span></code>, <code class="docutils literal notranslate"><span class="pre">nodeocov</span></code> (receiver, sender);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodefactor(attr,</span> <span class="pre">levels</span> <span class="pre">=</span> <span class="pre">-1)</span></code>: per category, number of tie ends at nodes of that category,
+the first (in sorted order) being the baseline (<code class="docutils literal notranslate"><span class="pre">levels</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for all); directed
+<code class="docutils literal notranslate"><span class="pre">nodeifactor</span></code>, <code class="docutils literal notranslate"><span class="pre">nodeofactor</span></code>. This is how qualitative attributes enter as dummy variables;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodematch(attr,</span> <span class="pre">diff</span> <span class="pre">=</span> <span class="pre">FALSE,</span> <span class="pre">levels</span> <span class="pre">=</span> <span class="pre">NULL)</span></code>: ties between nodes with the same value
+(homophily), one statistic, or one per category with <code class="docutils literal notranslate"><span class="pre">diff</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodemix(attr,</span> <span class="pre">levels2</span> <span class="pre">=</span> <span class="pre">-1)</span></code>: ties per pair of categories (ordered if directed), the first
+pair being the baseline;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">absdiff(attr,</span> <span class="pre">pow</span> <span class="pre">=</span> <span class="pre">1)</span></code>: sum over ties of <span class="math notranslate nohighlight">\(|x_i - x_j|^{pow}\)</span>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">edgecov(x,</span> <span class="pre">attrname</span> <span class="pre">=</span> <span class="pre">NULL)</span></code>: sum over ties of a dyadic covariate <code class="docutils literal notranslate"><span class="pre">covariates[x]</span></code>: an
+<code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix (network wide node order, <code class="docutils literal notranslate"><span class="pre">np.concatenate(net.node_ids)</span></code>), a table of
+<code class="docutils literal notranslate"><span class="pre">source,</span> <span class="pre">target,</span> <span class="pre">value</span></code> rows, or another <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> on the same nodes (its
+ties, or their edge attribute <code class="docutils literal notranslate"><span class="pre">attrname</span></code>). Edge attributes of the modelled network itself
+cannot be covariates: they exist only on ties, so they would predict ties perfectly; they are
+covariates when they come from another relation (e.g. a past wave, another layer);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mutual</span></code>, <code class="docutils literal notranslate"><span class="pre">asymmetric</span></code>: reciprocated and unreciprocated dyads (directed);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">triangle</span></code>: triangles (directed: transitive plus cyclic triples), <code class="docutils literal notranslate"><span class="pre">ttriple</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ctriple</span></code> (directed);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kstar(k)</span></code>: k-stars (undirected); <code class="docutils literal notranslate"><span class="pre">istar(k)</span></code>, <code class="docutils literal notranslate"><span class="pre">ostar(k)</span></code> (directed); <code class="docutils literal notranslate"><span class="pre">k</span></code> can be a
+vector, e.g. <code class="docutils literal notranslate"><span class="pre">kstar(2:3)</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">degree(d)</span></code>, <code class="docutils literal notranslate"><span class="pre">idegree(d)</span></code>, <code class="docutils literal notranslate"><span class="pre">odegree(d)</span></code>: nodes with degree <code class="docutils literal notranslate"><span class="pre">d</span></code>; <code class="docutils literal notranslate"><span class="pre">concurrent</span></code>: nodes
+with degree at least 2; <code class="docutils literal notranslate"><span class="pre">isolates</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gwdegree(decay)</span></code>, <code class="docutils literal notranslate"><span class="pre">gwidegree</span></code>, <code class="docutils literal notranslate"><span class="pre">gwodegree</span></code>: geometrically weighted degree
+distribution, <span class="math notranslate nohighlight">\(e^\alpha \sum_k (1 - (1 - e^{-\alpha})^k) D_k\)</span>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gwesp(decay)</span></code>, <code class="docutils literal notranslate"><span class="pre">gwdsp(decay)</span></code>: geometrically weighted edgewise and dyadwise shared
+partners (directed: outgoing two-paths, R’s default <code class="docutils literal notranslate"><span class="pre">OTP</span></code>); <code class="docutils literal notranslate"><span class="pre">esp(d)</span></code>, <code class="docutils literal notranslate"><span class="pre">dsp(d)</span></code>: ties and
+dyads with exactly <code class="docutils literal notranslate"><span class="pre">d</span></code> shared partners.</p></li>
+</ul>
+<p>The decay of geometrically weighted terms is fixed: in R, write <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for the same
+model (R’s default <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">FALSE</span></code> estimates it as a curved ERGM, not supported here). Self
+loops are left out, parallel edges count once, and the network is the union of its components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, neither multilayer nor bipartite.</p></li>
+<li><p><strong>formula</strong> – Model formula, as in R, with or without <code class="docutils literal notranslate"><span class="pre">net</span> <span class="pre">~</span></code>:
+<code class="docutils literal notranslate"><span class="pre">&quot;edges</span> <span class="pre">+</span> <span class="pre">nodematch('city',</span> <span class="pre">diff</span> <span class="pre">=</span> <span class="pre">TRUE)</span> <span class="pre">+</span> <span class="pre">gwesp(0.5,</span> <span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">TRUE)&quot;</span></code>.</p></li>
+<li><p><strong>method</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;mcmc&quot;</span></code> (MCMC MLE, or exact MLE for dyad independent models) or <code class="docutils literal notranslate"><span class="pre">&quot;mple&quot;</span></code>.</p></li>
+<li><p><strong>covariates</strong> – Dictionary of dyadic covariates for <code class="docutils literal notranslate"><span class="pre">edgecov</span></code> terms, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>samplesize</strong> – Number of networks sampled per iteration.</p></li>
+<li><p><strong>burnin</strong> – Steps of every chain before sampling, in every iteration.</p></li>
+<li><p><strong>interval</strong> – Steps of every chain between samples.</p></li>
+<li><p><strong>max_iterations</strong> – Maximum number of MCMC MLE iterations.</p></li>
+<li><p><strong>tolerance</strong> – Convergence tolerance, in standard deviations of the statistics.</p></li>
+<li><p><strong>chains</strong> – Number of chains, run in parallel threads; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the number of Numba
+threads (by default, the number of CPU cores).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#graphoskop.ERGMFit" title="graphoskop.ERGMFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERGMFit</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – For unknown terms or arguments, terms that do not apply to the network
+(e.g. <code class="docutils literal notranslate"><span class="pre">mutual</span></code> on an undirected one), attributes with several values for some node, or
+multilayer or bipartite networks.</p></li>
+<li><p><strong>KeyError</strong> – For missing node attributes or dyadic covariates.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                    <span class="c1"># node attributes age, city</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodecov(&#39;age&#39;) + nodematch(&#39;city&#39;)&quot;</span><span class="p">)</span>    <span class="c1"># dyad independent: exact MLE</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">summary</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodematch(&#39;city&#39;) + gwesp(0.5, fixed = TRUE)&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">fit</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="s2">&quot;gwesp.fixed.0.5&quot;</span><span class="p">],</span> <span class="n">fit</span><span class="o">.</span><span class="n">stderr</span><span class="p">[</span><span class="s2">&quot;gwesp.fixed.0.5&quot;</span><span class="p">]</span>
+
+<span class="n">trade</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;trade.tsv&quot;</span><span class="p">)</span>                                <span class="c1"># another relation, same nodes</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + edgecov(&#39;trade&#39;, &#39;weight&#39;)&quot;</span><span class="p">,</span> <span class="n">covariates</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;trade&quot;</span><span class="p">:</span> <span class="n">trade</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="graphoskop.ERGMFit">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">ERGMFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mcmc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loglik</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyads</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ERGMFit" title="Link to this definition"></a></dt>
+<dd><p>A fitted exponential random graph model, as returned by <a class="reference internal" href="#graphoskop.ergm" title="graphoskop.ergm"><code class="xref py py-func docutils literal notranslate"><span class="pre">ergm()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coef</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> of estimated coefficients, by statistic.</p></li>
+<li><p><strong>stderr</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> of standard errors (including the Monte Carlo error).</p></li>
+<li><p><strong>summary</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">Estimate</span></code>, <code class="docutils literal notranslate"><span class="pre">Std.</span> <span class="pre">Error</span></code>,
+<code class="docutils literal notranslate"><span class="pre">MCMC</span> <span class="pre">%</span></code> (share of the variance of the estimate due to the Monte Carlo sample), <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">value</span></code>
+and <code class="docutils literal notranslate"><span class="pre">Pr(&gt;|z|)</span></code>, as R’s <code class="docutils literal notranslate"><span class="pre">summary()</span></code>.</p></li>
+<li><p><strong>observed</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> of the statistics of the network.</p></li>
+<li><p><strong>mple</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> of the maximum pseudo-likelihood estimates.</p></li>
+<li><p><strong>method</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;MLE&quot;</span></code> (exact, dyad independent models), <code class="docutils literal notranslate"><span class="pre">&quot;MCMC</span> <span class="pre">MLE&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;MPLE&quot;</span></code>.</p></li>
+<li><p><strong>iterations</strong> – Number of Monte Carlo MLE iterations.</p></li>
+<li><p><strong>converged</strong> – Whether the Monte Carlo MLE converged.</p></li>
+<li><p><strong>samples</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the statistics sampled at the estimate (MCMC MLE),
+or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>loglik</strong> – Log-likelihood (dyad independent models; pseudo-likelihood for the MPLE of
+dependent ones), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>aic</strong> – Akaike information criterion, from <code class="docutils literal notranslate"><span class="pre">loglik</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>bic</strong> – Bayesian information criterion, with the number of dyads as sample size, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="statistics">
+<h2>Statistics<a class="headerlink" href="#statistics" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.ergm_statistics">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">ergm_statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ergm_statistics" title="Link to this definition"></a></dt>
+<dd><p>Network statistics of an ERGM formula: the values of the statistics <span class="math notranslate nohighlight">\(g(y)\)</span> of the
+network, as R’s <code class="docutils literal notranslate"><span class="pre">summary(net</span> <span class="pre">~</span> <span class="pre">...)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, neither multilayer nor bipartite.</p></li>
+<li><p><strong>formula</strong> – Model formula (see <a class="reference internal" href="#graphoskop.ergm" title="graphoskop.ergm"><code class="xref py py-func docutils literal notranslate"><span class="pre">ergm()</span></code></a>).</p></li>
+<li><p><strong>covariates</strong> – Dyadic covariates for <code class="docutils literal notranslate"><span class="pre">edgecov</span></code> terms (see <a class="reference internal" href="#graphoskop.ergm" title="graphoskop.ergm"><code class="xref py py-func docutils literal notranslate"><span class="pre">ergm()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> of statistics, by name.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – See <a class="reference internal" href="#graphoskop.ergm" title="graphoskop.ergm"><code class="xref py py-func docutils literal notranslate"><span class="pre">ergm()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">ergm_statistics</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + triangle + nodematch(&#39;city&#39;)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="generators.html" class="btn btn-neutral float-left" title="Generators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,11 +1,12 @@
 Metadata-Version: 2.4
 Name: graphoskop
-Version: 0.4.11
+Version: 0.5.1
 Summary: Analysis of networks and of vectors defined on their nodes.
 Project-URL: Documentation, https://graphoskop.readthedocs.io/en/latest/
 Project-URL: Textbook, https://www.networkatlas.eu/
 Requires-Python: >=3.9
 Description-Content-Type: text/markdown
+Requires-Dist: numba
 Requires-Dist: numpy
 Requires-Dist: pandas
 Requires-Dist: scipy

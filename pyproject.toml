@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "graphoskop"
-version = "0.4.11"
+version = "0.5.1"
 description = "Analysis of networks and of vectors defined on their nodes."
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = ["numpy", "pandas", "scipy", "torch", "torch_geometric"]
+dependencies = ["numba", "numpy", "pandas", "scipy", "torch", "torch_geometric"]
 
 [project.urls]
 Documentation = "https://graphoskop.readthedocs.io/en/latest/"

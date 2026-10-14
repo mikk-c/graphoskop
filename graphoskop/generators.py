@@ -1,13 +1,19 @@
 """
-Synthetic network generators, in four families:
+Synthetic network generators, in five families:
 
-* random graphs, wired uniformly at random given a few numbers (edges, density, or the degree of
-  every node): :func:`gnm_random_graph`, :func:`gnp_random_graph`, :func:`configuration_model`;
+* random graphs, wired at random given a few numbers (edges, density, the degree of every node,
+  a small initiator matrix, or positions in space): :func:`gnm_random_graph`,
+  :func:`gnp_random_graph`, :func:`configuration_model`, :func:`edge_swap` (only randomizes a
+  network), :func:`kronecker_graph`, :func:`geometric_graph`;
 * clustered graphs, with many triangles: :func:`caveman_graph`, :func:`watts_strogatz_graph`;
 * broad degree graphs, with hubs: :func:`barabasi_albert_graph`, :func:`link_selection_graph`,
   :func:`copying_graph`, :func:`holme_kim_graph` (with clustering);
 * stochastic blockmodels, with communities: :func:`planted_partition_graph`,
-  :func:`stochastic_block_model`.
+  :func:`stochastic_block_model`, :func:`degree_corrected_block_model`,
+  :func:`mixed_membership_block_model` (overlapping communities);
+* community benchmarks, with planted communities to test community discovery:
+  :func:`girvan_newman_graph`, :func:`lfr_benchmark_graph` (broad degrees and community sizes;
+  directed, weighted, overlapping).
 
 Every generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 ``net``, an existing network, from which it infers them: the result is then a randomization of
@@ -26,6 +32,7 @@ All random numbers are drawn with :mod:`torch` on the device of the network, so 
 on ``seed`` and on the device.
 """
 
+import itertools
 import math
 import warnings
 
@@ -35,7 +42,7 @@ import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import connected_components
 
-from .network import BIPARTITE, _build, _node_codes, _node_types, _subset
+from .network import BIPARTITE, _build, _explode, _membership, _memberships, _node_codes, _node_types, _subset
 
 
 # ------------------------------------------------------------------------------------------------
@@ -251,7 +258,10 @@ def _randomize(net, seed, make):
       ``l`` as two tensors of local ids (positions in ``nodes``), from: ``nodes``, network wide
       positions of the nodes of the layer, type 0 first; ``n0``, number of nodes of type 0
       (``None`` if not bipartite); ``m``, number of intra-layer edges of the layer; ``loops``,
-      whether the network has self loops; ``gen``, the random generator.
+      whether the network has self loops; ``gen``, the random generator. ``make`` can also return
+      a third value: a dictionary from edge attribute name to the values of the new edges, which
+      replace the attributes drawn from the old edges; or a tensor with, for every new edge, the
+      position of the old edge of the layer (in input order) whose attributes it takes.
    :return: The new :class:`~graphoskop.Network`.
    """
    device = net.components[0].edge_index.device
@@ -277,22 +287,34 @@ def _randomize(net, seed, make):
    count = torch.bincount(layer[S[intra]], minlength = L).tolist()
    kind = torch.as_tensor(types if types is not None else np.zeros(N, dtype = np.int8), device = device)
    s, t, rows = [S[~intra]], [T[~intra]], [torch.nonzero(~intra).squeeze(1)]
+   given, start = [], int((~intra).sum())   # attribute values made by the model, and where
    for l in range(L):
       nodes = torch.nonzero(layer == l).squeeze(1)
       nodes = nodes[torch.argsort(kind[nodes], stable = True)]   # type 0 first
       n0 = None if types is None else int((kind[nodes] == 0).sum())
-      a, b = make(l, nodes, n0, count[l], loops, gen)
+      out = make(l, nodes, n0, count[l], loops, gen)
+      a, b = out[0], out[1]
+      own = torch.nonzero(intra & (layer[S] == l)).squeeze(1)   # old edges of the layer, in input order
+      if len(out) > 2 and torch.is_tensor(out[2]):   # positions of the old edges giving their attributes
+         r = own[out[2]]
+      else:
+         if len(out) > 2:
+            given.append((start, out[2]))
+         r = _attribute_rows(own, a.shape[0], gen, device)
+      start += a.shape[0]
       s.append(nodes[a])
       t.append(nodes[b])
-      r = _attribute_rows(torch.nonzero(intra & (layer[S] == l)).squeeze(1), a.shape[0], gen, device)
       rows.append(torch.full((a.shape[0],), -1, dtype = torch.long, device = device) if r is None else r)
    s, t, rows = torch.cat(s), torch.cat(t), torch.cat(rows)
    ea = torch.where((rows >= 0)[:, None], X[rows.clamp(min = 0)], torch.nan) if X.shape[0] else X.new_full((rows.shape[0], X.shape[1]), torch.nan)
+   for start, values in given:
+      for name, v in values.items():
+         ea[start:start + v.shape[0], net.edge_attributes.index(name)] = v.to(ea.dtype)
    return _subset(net, s.cpu().numpy(), t.cpu().numpy(), ea.cpu().numpy().astype(np.float32), np.arange(N))
 
 
 # ------------------------------------------------------------------------------------------------
-# Random graphs: Gnm, Gnp, configuration model
+# Random graphs: Gnm, Gnp, configuration model, edge swaps, Kronecker, geometric
 # ------------------------------------------------------------------------------------------------
 
 
@@ -482,7 +504,7 @@ def gnp_random_graph(n = None, p = None, net = None, directed = None, self_loops
    return _random_graph(n, None, directed, self_loops, seed, device, p)
 
 
-def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen, offset = 0):
+def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen, offset = 0, group = None, forbid = None):
    """
    Edges of a configuration model: stubs matched at random, then a few rounds of repairs.
 
@@ -497,6 +519,10 @@ def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen
    edges, so the edges are sorted once, and each round only looks at the spurious edges left.
    Leftovers are dropped as asked.
 
+   With ``group``, stubs are only matched within groups (e.g. communities), and repairs trade with
+   edges of the same group. With ``forbid``, edges for which it is true are spurious too, are not
+   made by repairs, and are always dropped if left.
+
    :param dout: int64 tensor, degree (out-degree, or degree of type 0) of each node.
    :param din: int64 tensor, in-degree (degree of type 1) of each node; ignored if not oriented.
    :param oriented: Whether sources and targets are matched separately.
@@ -505,12 +531,20 @@ def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen
    :param drop_parallel: Whether to drop the repeated edges left (one copy stays).
    :param gen: Random generator.
    :param offset: Added to the targets (bipartite: number of nodes of type 0).
+   :param group: int64 tensor, group of each node, nondecreasing with the node id, with stub
+      counts that can be matched within every group (even, or equal on the two sides); or
+      ``None``.
+   :param forbid: Function of two id tensors giving a boolean tensor, or ``None``.
    :return: Source and target ids, int64 tensors.
    :raises ValueError: If the stubs cannot all be matched.
    """
    dev = dout.device
    ids = lambda d: torch.repeat_interleave(torch.arange(d.shape[0], device = dev), d)
-   shuffle = lambda x: x[torch.randperm(x.shape[0], generator = gen, device = dev)]
+   if group is None:
+      shuffle = lambda x: x[torch.randperm(x.shape[0], generator = gen, device = dev)]
+   else:   # within groups (stubs come sorted by group)
+      shuffle = lambda x: x[torch.argsort(group[x].double() + torch.rand(x.shape[0], generator = gen, device = dev, dtype = torch.float64))]
+   no = lambda a, b: torch.zeros_like(a, dtype = torch.bool) if forbid is None else forbid(a, b)
    if oriented:
       s, t = ids(dout), shuffle(ids(din)) + offset
       if s.shape[0] != t.shape[0]:
@@ -521,7 +555,7 @@ def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen
          raise ValueError("the sum of the degrees must be even")
       s, t = x[0::2], x[1::2]
    m = s.shape[0]
-   if m == 0 or (rounds == 0 and not drop_self_loops and not drop_parallel):   # plain matching
+   if m == 0 or (rounds == 0 and not drop_self_loops and not drop_parallel and forbid is None):   # plain matching
       return s, t
    n = int(max(s.max(), t.max())) + 1
    key = lambda a, b: a * n + b if oriented else torch.minimum(a, b) * n + torch.maximum(a, b)
@@ -529,21 +563,42 @@ def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen
    sk, cnt = torch.unique(k, return_counts = True)   # sorted once: repairs never make new bad edges
    cnt = cnt[torch.searchsorted(sk, k)]
    first = torch.full((sk.shape[0],), m, device = dev).scatter_reduce(0, torch.searchsorted(sk, k), torch.arange(m, device = dev), "amin")
-   loop = s == t
-   bad = loop | torch.ones(m, dtype = torch.bool, device = dev).index_fill_(0, first, False)   # self loops, copies but the first
-   clean = (cnt == 1) & ~loop   # possible partners: edges whose pair appears once
-   new, gone = k[:0], k[:0]   # keys made by repairs, and keys of the partners moved (no copy left)
-   taken = lambda x: ((sk[torch.searchsorted(sk, x).clamp(max = sk.shape[0] - 1)] == x) & ~torch.isin(x, gone)) | torch.isin(x, new)
+   loop, banned = s == t, no(s, t)
+   bad = loop | banned | torch.ones(m, dtype = torch.bool, device = dev).index_fill_(0, first, False)   # self loops, copies but the first
+   clean = (cnt == 1) & ~loop & ~banned   # possible partners: edges whose pair appears once
+   if group is not None:   # partners in the same group: edges are sorted by group
+      eg = group[s]
+      gstart = torch.searchsorted(eg, eg)
+      gsize = torch.searchsorted(eg, eg, right = True) - gstart
+   sets = [(sk, torch.bincount(torch.searchsorted(sk, k), minlength = sk.shape[0]))]   # sorted keys and copies of each
+
+   def taken(x):   # whether keys are edges now
+      hit = torch.zeros_like(x, dtype = torch.bool)
+      for keys, alive in sets:
+         p = torch.searchsorted(keys, x).clamp(max = keys.shape[0] - 1)
+         hit |= (keys[p] == x) & (alive[p] > 0)
+      return hit
+
+   def drop(x):   # one copy less of each key
+      for keys, alive in sets:
+         p = torch.searchsorted(keys, x).clamp(max = keys.shape[0] - 1)
+         h = (keys[p] == x) & (alive[p] > 0)
+         alive.index_add_(0, p[h], torch.full_like(p[h], -1))
+         x = x[~h]
+
    for _ in range(rounds):
       B = torch.nonzero(bad).squeeze(1)
       if B.shape[0] == 0:
          break
-      P = torch.randint(m, B.shape, generator = gen, device = dev)
+      if group is None:
+         P = torch.randint(m, B.shape, generator = gen, device = dev)
+      else:
+         P = gstart[B] + (torch.rand(B.shape, generator = gen, device = dev, dtype = torch.float64) * gsize[B]).long()
       a, b, c, d = s[B], t[B], s[P], t[P]
       flip = torch.zeros_like(B, dtype = torch.bool) if oriented else torch.rand(B.shape, generator = gen, device = dev) < 0.5
       s1, t1, s2, t2 = a, torch.where(flip, c, d), torch.where(flip, b, c), torch.where(flip, d, b)
       k1, k2 = key(s1, t1), key(s2, t2)
-      ok = clean[P] & (s1 != t1) & (s2 != t2) & (k1 != k2) & ~taken(k1) & ~taken(k2)
+      ok = clean[P] & (s1 != t1) & (s2 != t2) & (k1 != k2) & ~taken(k1) & ~taken(k2) & ~no(s1, t1) & ~no(s2, t2)
       _, inv, used = torch.unique(P, return_inverse = True, return_counts = True)
       ok &= used[inv] == 1   # one trade per partner
       both = torch.cat([k1[ok], k2[ok]])
@@ -551,14 +606,20 @@ def _stub_match(dout, din, oriented, rounds, drop_self_loops, drop_parallel, gen
       h = int(ok.sum())
       ok[ok.clone()] &= (dup[inv[:h]] == 1) & (dup[inv[h:]] == 1)   # no two trades make the same edge
       B, P = B[ok], P[ok]
-      gone = torch.cat([gone, k[P]])
+      if B.shape[0] == 0:
+         continue
+      drop(torch.cat([k[B], k[P]]))
       s[B], t[B], s[P], t[P] = s1[ok], t1[ok], s2[ok], t2[ok]
       k[B], k[P] = k1[ok], k2[ok]
       bad[B] = False
       clean[B] = True
-      new = torch.cat([new, k1[ok], k2[ok]])
+      sets.append((torch.sort(torch.cat([k1[ok], k2[ok]])).values, torch.ones(2 * B.shape[0], dtype = torch.long, device = dev)))
+      if len(sets) > 6:   # merge the keys made by repairs, so that lookups stay few
+         keys, alive = torch.cat([x[0] for x in sets[1:]]), torch.cat([x[1] for x in sets[1:]])
+         o = torch.argsort(keys[alive > 0])
+         sets[1:] = [(keys[alive > 0][o], alive[alive > 0][o])]
    loop = s == t
-   keep = ~(bad & ((loop & drop_self_loops) | (~loop & drop_parallel)))
+   keep = ~(bad & ((loop & drop_self_loops) | (~loop & drop_parallel) | no(s, t)))
    return s[keep], t[keep]
 
 
@@ -686,6 +747,664 @@ def configuration_model(degrees = None, net = None, directed = None, rounds = 10
       return _stub_match(out[nodes], inn[nodes], net.directed, rounds, drop_self_loops, drop_parallel, gen)
 
    return _randomize(net, seed, make)
+
+
+def _swap_edges(s, t, swaps, oriented, gen):
+   """
+   Double edge swaps: see :func:`edge_swap`.
+
+   Rounds of proposals: the edges are paired at random, and each pair ``(a, b), (c, d)``
+   proposes ``(a, c), (b, d)`` or ``(a, d), (b, c)`` (only ``(a, d), (c, b)`` if oriented), valid
+   if it makes no self loop and no edge already there. Applying the proposals one by one, in
+   order, is a Markov chain whose steps are all symmetric, so the uniform distribution over the
+   graphs with these degrees is stationary. Proposals are decided all at once when none of their
+   four node pairs appears in another proposal of the round, since then no other proposal can
+   change their outcome; the others, rare, one by one in order, so the result is the same as
+   that of the sequential chain. The last round stops at the proposal that completes ``swaps``.
+   Proposals count whether they succeed or not: stopping after a number of successful swaps
+   would favor the graphs that allow more swaps.
+
+   :param s: int64 tensor, sources.
+   :param t: int64 tensor, targets.
+   :param swaps: Number of swaps tried.
+   :param oriented: Whether edges keep their sources as sources (directed, or bipartite with
+      sources of type 0).
+   :param gen: Random generator.
+   :return: New sources and targets, edge by edge (an edge keeps its position).
+   """
+   dev, m = s.device, s.shape[0]
+   s, t = s.clone(), t.clone()
+   if m < 2 or swaps <= 0:
+      return s, t
+   n = int(max(s.max(), t.max())) + 1
+   key = lambda a, b: a * n + b if oriented else torch.minimum(a, b) * n + torch.maximum(a, b)
+   done, h = 0, m // 2
+   while done < swaps:
+      k = key(s, t)
+      cur, where = torch.sort(k)   # current edges
+      dup = torch.zeros(m, dtype = torch.bool, device = dev)   # edges with a parallel copy
+      same = cur[1:] == cur[:-1]
+      dup[where[1:][same]] = True
+      dup[where[:-1][same]] = True
+      perm = torch.randperm(m, generator = gen, device = dev)
+      A, B = perm[0:2 * h:2], perm[1:2 * h:2]
+      a, b, c, d = s[A], t[A], s[B], t[B]
+      flip = torch.zeros(h, dtype = torch.bool, device = dev) if oriented else torch.rand(h, generator = gen, device = dev) < 0.5
+      s1, t1 = a, torch.where(flip, c, d)
+      s2, t2 = torch.where(flip, b, c), torch.where(flip, d, b)
+      new = torch.cat([key(s1, t1), key(s2, t2)])
+      shape = (s1 != t1) & (s2 != t2) & (new[:h] != new[h:])
+      new = torch.where(torch.cat([shape, shape]), new, -1 - torch.arange(2 * h, device = dev))   # invalid: distinct, no edge
+      ns, order = torch.sort(new)   # sorted queries: faster lookups, and repeated pairs side by side
+      pos = torch.empty_like(order)
+      pos[order] = torch.searchsorted(cur, ns).clamp(max = m - 1)
+      exists = cur[pos] == new
+      ok = shape & ~exists[:h] & ~exists[h:]
+      # proposals another one can affect: new pairs that are edges (which an earlier swap may
+      # remove), the swaps moving those edges, parallel edges, and new pairs made twice
+      moving = torch.zeros(m, dtype = torch.bool, device = dev)
+      moving[where[pos[exists]]] = True
+      moving |= dup
+      twice = torch.zeros(2 * h, dtype = torch.bool, device = dev)
+      same = ns[1:] == ns[:-1]
+      twice[order[1:][same]] = True
+      twice[order[:-1][same]] = True
+      twice = twice.view(2, h).any(0)
+      tangled = torch.nonzero((shape & (exists[:h] | exists[h:] | twice)) | moving[A] | moving[B]).squeeze(1)
+      if tangled.shape[0]:   # one by one, in order, against the edges as the earlier ones left them
+         keys = torch.stack([k[A[tangled]], k[B[tangled]], new[tangled], new[h + tangled]], 1)
+         flat = keys.flatten()
+         count = dict(zip(flat.tolist(), (torch.searchsorted(cur, flat, right = True) - torch.searchsorted(cur, flat)).tolist()))
+         for j, (k1, k2, k3, k4), v in zip(tangled.tolist(), keys.tolist(), shape[tangled].tolist()):
+            take = v and count[k3] == 0 and count[k4] == 0
+            if take:
+               count[k1] -= 1
+               count[k2] -= 1
+               count[k3], count[k4] = 1, 1
+            ok[j] = take
+      idx = torch.nonzero(ok[:swaps - done]).squeeze(1)   # stop at the attempt completing the swaps
+      s[A[idx]], t[A[idx]], s[B[idx]], t[B[idx]] = s1[idx], t1[idx], s2[idx], t2[idx]
+      done += min(h, swaps - done)
+   return s, t
+
+
+def edge_swap(net, swaps = None, seed = None):
+   """
+   Edge swap randomization (Maslov and Sneppen, 2002): a randomization of ``net`` that keeps the
+   degree of every node exactly (out- and in-degrees if directed, and node types if bipartite),
+   by double edge swaps: two edges ``a - b`` and ``c - d`` become ``a - c`` and ``b - d`` (or
+   ``a - d`` and ``b - c``; ``a -> d`` and ``c -> b`` if directed), when this makes no self loop
+   and no edge already there.
+
+   With many swaps the result is a uniformly random simple graph with the degrees of ``net``,
+   the null model of :func:`configuration_model` without its approximations (no dropped
+   edges, no bias from repairs; for directed graphs swaps alone cannot reach every graph, e.g.
+   the reversal of a directed triangle, so the result is uniform among the graphs they reach).
+   With few swaps, it is a partial randomization: at most ``2 swaps`` edges change (fewer, as
+   some swaps are not valid), the others stay, so the number of swaps controls how much of the structure of ``net`` is destroyed (e.g.
+   to follow how clustering or assortativity decay towards the null model). Every edge keeps its
+   attributes (weight, sign) as it moves. Self loops and parallel edges of ``net`` are kept or
+   swapped away, never created.
+
+   Swaps run in rounds, all at once on the device: every round pairs the edges at random and
+   applies all the valid swaps that touch no node pair of another swap of the round, and the
+   rare others one by one, so that the result is the same as that of the sequential Markov chain.
+   ``swaps`` counts the swaps tried, valid or not: the uniform distribution needs a fixed number
+   of steps of the chain (stopping after a number of successful swaps, as some libraries do,
+   favors the graphs that allow more swaps). In multilayer networks each layer is
+   swapped on its own (``swaps`` can be a dictionary from layer to number); interlayer edges are
+   kept.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param swaps: Number of swaps tried; ``None`` for 10 per edge, enough to randomize most
+      networks (Milo et al., 2003). In multilayer networks, a number per layer or a dictionary.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :return: The randomized network, a new :class:`~graphoskop.Network`.
+   :raises ValueError: For dictionaries as in :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      rnd = gsk.edge_swap(net, seed = 1)                      # degrees kept, everything else random
+      part = gsk.edge_swap(net, swaps = net.number_of_edges() // 4)   # at most half of the edges moved
+      gsk.average_clustering(net), gsk.average_clustering(part), gsk.average_clustering(rnd)
+   """
+   S, T = [], []
+   for c in range(len(net.components)):
+      ei = net._input_edges(c)[0]
+      S.append(ei[0] + int(net.node_offsets[c]))
+      T.append(ei[1] + int(net.node_offsets[c]))
+   S, T = torch.cat(S), torch.cat(T)
+   oriented = net.directed or net.bipartite_labels is not None
+
+   def make(l, nodes, n0, count, loops, gen):
+      pos = torch.full((int(net.node_offsets[-1]),), -1, dtype = torch.long, device = nodes.device)
+      pos[nodes] = torch.arange(nodes.shape[0], device = nodes.device)
+      mine = torch.nonzero(torch.isin(S, nodes) & torch.isin(T, nodes)).squeeze(1)   # this layer's edges, in input order
+      a, b = pos[S[mine]], pos[T[mine]]
+      if n0 is not None and not net.directed:   # bipartite: sources of type 0 (first in nodes)
+         a, b = torch.minimum(a, b), torch.maximum(a, b)
+      q = _layer_value(swaps, 10 * count, net, l, "swaps", True)
+      a, b = _swap_edges(a, b, int(q), oriented, gen)
+      return a, b, torch.arange(a.shape[0], device = a.device)
+
+   return _randomize(net, seed, make)
+
+def _partitions(items):
+   """
+   All set partitions of a list.
+
+   :param items: List.
+   :return: Generator of partitions, as lists of blocks (lists).
+   """
+   if not items:
+      yield []
+      return
+   first, rest = items[0], items[1:]
+   for p in _partitions(rest):
+      for i in range(len(p)):
+         yield p[:i] + [[first] + p[i]] + p[i + 1:]
+      yield [[first]] + p
+
+
+# patterns whose expected counts fit an initiator: positions, edges, automorphisms
+_KRONECKER_PATTERNS = {
+   False: [(2, [(0, 1)], 2), (3, [(0, 1), (0, 2)], 2), (4, [(0, 1), (0, 2), (0, 3)], 6), (3, [(0, 1), (1, 2), (2, 0)], 6)],
+   True: [(2, [(0, 1)], 1), (3, [(0, 1), (0, 2)], 2), (3, [(1, 0), (2, 0)], 2), (3, [(0, 1), (1, 2)], 1), (2, [(0, 1), (1, 0)], 2)],
+}
+
+
+def _kronecker_moments(theta, k, n, directed):
+   """
+   Expected counts of small subgraphs in a stochastic Kronecker graph (Gleich and Owen, 2012):
+   undirected edges, wedges, 3-stars and triangles; directed edges, out- and in-wedges, 2-paths
+   and mutual pairs. A sum over all tuples of nodes factorizes over the ``k`` digits of their
+   ids, so the sum over tuples of distinct nodes follows by Möbius inversion over the set
+   partitions of the positions.
+
+   :param theta: Initiator, ``N1`` by ``N1`` :class:`numpy.ndarray`.
+   :param k: Kronecker power.
+   :param n: Number of nodes kept, at random, among the ``N1 ** k``.
+   :param directed: Whether the edges are directed.
+   :return: :class:`numpy.ndarray` of expected counts.
+   """
+   N1 = theta.shape[0]
+   N = N1 ** k
+   out = []
+   for m, edges, aut in _KRONECKER_PATTERNS[directed]:
+      total = 0.
+      for p in _partitions(list(range(m))):
+         block = {x: b for b, B in enumerate(p) for x in B}
+         s = 0.
+         for idx in itertools.product(range(N1), repeat = len(p)):   # one digit per block
+            s += math.prod(theta[idx[block[a]], idx[block[b]]] for a, b in edges)
+         total += math.prod((-1) ** (len(B) - 1) * math.factorial(len(B) - 1) for B in p) * s ** k
+      kept = math.prod((n - i) / (N - i) for i in range(m))   # nodes kept at random
+      out.append(max(total, 0.) * kept / aut)
+   return np.array(out)
+
+
+def _graph_moments(s, t, n, directed):
+   """
+   Counts of the subgraphs of :func:`_kronecker_moments` in a graph (self loops and parallel
+   edges left out).
+
+   :param s: int64 tensor, sources.
+   :param t: int64 tensor, targets.
+   :param n: Number of nodes.
+   :param directed: Whether the edges are directed.
+   :return: :class:`numpy.ndarray` of counts.
+   """
+   from .network_statistics import _paths, _skeleton
+   keep = s != t
+   s, t = s[keep], t[keep]
+   if directed:
+      key = torch.unique(s * n + t)
+      s, t = key // n, key % n
+      dout, din = torch.bincount(s, minlength = n).double(), torch.bincount(t, minlength = n).double()
+      mutual = int(torch.isin(t * n + s, key).sum()) // 2
+      return np.array([s.shape[0], float((dout * (dout - 1) / 2).sum()), float((din * (din - 1) / 2).sum()), float((din * dout).sum()) - 2 * mutual, mutual])
+   src, dst = _skeleton(s, t, n)[:2]
+   d = torch.bincount(torch.cat([src, dst]), minlength = n).double()
+   triangles = sum(x[0].shape[0] for x in _paths(src, dst, n, 2 ** 22))
+   return np.array([src.shape[0], float((d * (d - 1) / 2).sum()), float((d * (d - 1) * (d - 2) / 6).sum()), triangles])
+
+
+def _fit_initiator(s, t, n, directed, gen):
+   """
+   2 by 2 initiator of a stochastic Kronecker graph whose expected counts of small subgraphs
+   (:func:`_kronecker_moments`) are closest to those of a graph, in relative terms (squared
+   differences of logarithms), by Nelder-Mead from several starting points (Gleich and Owen, 2012).
+
+   :param s: int64 tensor, sources.
+   :param t: int64 tensor, targets.
+   :param n: Number of nodes.
+   :param directed: Whether the edges are directed.
+   :param gen: Random generator (for the starting points).
+   :return: Initiator, 2 by 2 :class:`numpy.ndarray` (symmetric if undirected), with the larger
+      diagonal value first (swapping the two digits gives the same model).
+   """
+   from scipy.optimize import minimize
+   k = max(1, math.ceil(math.log2(max(n, 2))))
+   obs = np.log1p(_graph_moments(s, t, n, directed))
+   make = (lambda x: x.reshape(2, 2)) if directed else (lambda x: np.array([[x[0], x[1]], [x[1], x[2]]]))
+   loss = lambda z: float(((np.log1p(_kronecker_moments(make(1 / (1 + np.exp(-z))), k, n, directed)) - obs) ** 2).sum())
+   starts = torch.rand(10, 4 if directed else 3, generator = gen, dtype = torch.float64, device = s.device).cpu().numpy()
+   best = min((minimize(loss, np.log(x / (1 - x)), method = "Nelder-Mead", options = {"xatol": 1e-6, "fatol": 1e-10, "maxiter": 4000}) for x in 0.05 + 0.9 * starts), key = lambda r: r.fun)
+   theta = make(1 / (1 + np.exp(-best.x)))
+   return theta if theta[0, 0] >= theta[1, 1] else theta[::-1, ::-1].copy()   # same model with the digits swapped
+
+
+def _kronecker(theta, k, n, directed, self_loops, gen, device):
+   """
+   Edges of a Kronecker graph: see :func:`kronecker_graph`.
+
+   A 0/1 initiator gives a deterministic graph, whose edges are all the sequences of ``k``
+   nonzero cells. Otherwise pairs are drawn exactly with their probabilities by ball dropping
+   with thinning: a Poisson number of balls, with mean ``c`` times the expected number of edges,
+   each landing on a pair by choosing one cell per digit with probability proportional to its
+   value, so that every pair gets a Poisson number of balls with mean :math:`c\\, p_{uv}`
+   (half of that in each order if undirected); a pair with balls is kept with probability
+   :math:`p_{uv} / (1 - e^{-c p_{uv}})`, with :math:`c = -\\ln(1 - p_{max}) / p_{max}` making
+   that at most 1. Then ``n`` of the ``N1 ** k`` nodes are kept at random.
+
+   :param theta: float64 tensor, ``N1`` by ``N1`` initiator.
+   :param k: Kronecker power.
+   :param n: Number of nodes kept.
+   :return: Source and target ids (0 to ``n - 1``), int64 tensors.
+   """
+   N1 = theta.shape[0]
+   N = N1 ** k
+   cells = theta.flatten()
+   if bool(((cells == 0) | (cells == 1)).all()):   # deterministic: every sequence of nonzero cells
+      nz = torch.nonzero(cells).squeeze(1)
+      u = torch.zeros(1, dtype = torch.long, device = device)
+      v = u.clone()
+      for _ in range(k):
+         u = (u[:, None] * N1 + nz // N1).flatten()
+         v = (v[:, None] * N1 + nz % N1).flatten()
+      if not directed:
+         u, v = u[u <= v], v[u <= v]
+   else:
+      pmax = min(float(cells.max()) ** k, 1 - 1e-9)
+      c = -math.log1p(-pmax) / pmax
+      f = 1 if directed or self_loops else 0.5
+      balls = int(torch.poisson(torch.tensor([f * c * float(cells.sum()) ** k], dtype = torch.float64, device = device), generator = gen).item())
+      cum = torch.cumsum(cells / cells.sum(), 0)
+      u = torch.zeros(balls, dtype = torch.long, device = device)
+      v = u.clone()
+      for _ in range(k):   # one cell per digit
+         cell = torch.searchsorted(cum, torch.rand(balls, generator = gen, device = device, dtype = torch.float64), right = True).clamp(max = cells.shape[0] - 1)
+         u, v = u * N1 + cell // N1, v * N1 + cell % N1
+      if not directed:
+         u, v = torch.minimum(u, v), torch.maximum(u, v)
+      key = torch.unique(u * N + v)
+      u, v = key // N, key % N
+      p = torch.ones(u.shape[0], dtype = torch.float64, device = device)
+      a, b = u.clone(), v.clone()
+      for _ in range(k):
+         p *= theta[a % N1, b % N1]
+         a, b = a // N1, b // N1
+      rate = f * c * p * torch.where((u != v) & (not directed), 2., 1.)
+      keep = torch.rand(p.shape[0], generator = gen, device = device, dtype = torch.float64) * -torch.expm1(-rate) < p
+      u, v = u[keep], v[keep]
+   if not self_loops:
+      u, v = u[u != v], v[u != v]
+   if n < N:   # n nodes kept at random, renumbered in order
+      kept = torch.randperm(N, generator = gen, device = device)[:n].sort().values
+      pos = lambda x: torch.searchsorted(kept, x).clamp(max = n - 1)
+      ok = (kept[pos(u)] == u) & (kept[pos(v)] == v)
+      u, v = pos(u[ok]), pos(v[ok])
+   return u, v
+
+
+def kronecker_graph(initiator = None, n = None, k = None, net = None, directed = None, self_loops = False, seed = None, device = None):
+   """
+   Kronecker graph (Leskovec, Chakrabarti, Kleinberg, Faloutsos and Ghahramani, 2010): the
+   adjacency matrix is a Kronecker power of a small initiator matrix :math:`\\Theta`, of
+   :math:`N_1` nodes. Repeating the product makes graphs that are self-similar at all scales,
+   with heavy-tailed degrees, small diameter and community-within-community structure, from a
+   handful of parameters.
+
+   With a 0/1 initiator, the graph is the deterministic Kronecker graph. With probabilities, it
+   is a stochastic Kronecker graph: writing nodes ``u`` and ``v`` in base :math:`N_1` with
+   ``k`` digits, the edge ``(u, v)`` is there independently with probability
+   :math:`p_{uv} = \\prod_l \\Theta_{u_l v_l}`. Pairs are drawn exactly with these probabilities by
+   ball dropping (one initiator cell per digit) with a thinning correction, in time about linear in
+   the number of edges, not of pairs; initiator values equal to 1 mixed with others make
+   generation slower (up to 20 candidate pairs per edge). The Kronecker power is ``k``, or the
+   smallest one with at least ``n`` nodes, of which ``n`` are then kept at random. Self loops
+   (pairs ``u = v``, which have a probability too) are dropped unless ``self_loops``; undirected
+   graphs need a symmetric initiator.
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1`` (in the order of their Kronecker
+   ids). With ``net``, the result is a randomization of ``net`` (see the module description) with
+   ``n`` its number of nodes and, unless given, a 2 by 2 initiator fitted to it by the method of
+   moments of Gleich and Owen (2012): the one whose expected numbers of edges, wedges, 3-stars and
+   triangles (if undirected; edges, out- and in-wedges, 2-paths and mutual pairs if directed) are
+   closest to those of ``net``, in relative terms (with three or four parameters for four or five
+   counts, each is matched within a few percent, e.g. edges 5% fewer on average on a 3,000 node
+   Kronecker graph). This is much faster than the maximum
+   likelihood fit (KronFit) of Leskovec et al., but its nodes are not matched to those of ``net``:
+   the nodes of ``net`` take random positions. In multilayer networks each layer is randomized on
+   its own, with its own initiator (``initiator`` can be a dictionary from layer to matrix);
+   interlayer edges are kept.
+
+   :param initiator: ``N1`` by ``N1`` matrix (nested lists, array or tensor) of probabilities, or
+      of 0 and 1; ``None`` with ``net``, for one fitted to it.
+   :param n: Number of nodes; ``None`` with ``net`` or ``k``.
+   :param k: Kronecker power, for ``N1 ** k`` nodes; ``None`` with ``n`` or ``net``.
+   :param net: A :class:`~graphoskop.Network` to randomize, not bipartite, or ``None``.
+   :param directed: Whether the edges are directed; ``None`` for undirected, or for the direction
+      of ``net``.
+   :param self_loops: Whether to keep self loops.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The Kronecker graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If neither ``initiator`` with ``n`` or ``k`` nor ``net`` are given, if
+      ``n`` or ``k`` are given with ``net``, if the initiator is not a square matrix of
+      probabilities, or not symmetric for an undirected graph, if ``n`` is not positive, if
+      ``net`` is bipartite, if ``directed`` or ``device`` differ from those of ``net``, or for
+      dictionaries as in :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      g = gsk.kronecker_graph([[0.9, 0.5], [0.5, 0.1]], n = 10000, seed = 1)   # stochastic, 2^14 nodes thinned to 10,000
+      g = gsk.kronecker_graph([[1, 1, 0], [1, 1, 1], [0, 1, 1]], k = 6)       # deterministic, 729 nodes
+      g = gsk.kronecker_graph([[0.9, 0.6], [0.3, 0.2]], k = 12, directed = True)
+
+      net = gsk.load_network("edges.tsv")
+      rnd = gsk.kronecker_graph(net = net, seed = 1)                          # initiator fitted to net
+   """
+
+   def matrix(x):
+      T = torch.as_tensor(np.asarray(x, dtype = np.float64))
+      if T.ndim != 2 or T.shape[0] != T.shape[1] or T.shape[0] < 1 or not bool(((T >= 0) & (T <= 1)).all()):
+         raise ValueError(f"the initiator must be a square matrix of probabilities, got shape {tuple(T.shape)}")
+      if not directed and not torch.equal(T, T.T):
+         raise ValueError("the initiator must be symmetric for an undirected graph")
+      return T
+
+   if net is None:
+      if initiator is None or (n is None) == (k is None):
+         raise ValueError("give the initiator with n or k, or net")
+      directed, device = bool(directed), torch.device("cpu" if device is None else device)
+      T = matrix(initiator).to(device)
+      if k is None:
+         if n < 1:
+            raise ValueError(f"n must be positive, got {n}")
+         k = max(1, math.ceil(math.log(n) / math.log(T.shape[0]) - 1e-12)) if T.shape[0] > 1 else 1
+         n = int(n) if T.shape[0] > 1 else 1
+      else:
+         n = T.shape[0] ** int(k)
+      s, t = _kronecker(T, int(k), n, directed, self_loops, _generator(seed, device), device)
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(n), np.zeros((s.shape[0], 0), dtype = np.float32), [], None, [], directed, device)
+   if n is not None or k is not None:
+      raise ValueError("with net, the number of nodes is that of net: leave out n and k")
+   if net.bipartite_labels is not None:
+      raise ValueError("bipartite networks are not supported")
+   _check_net(net, None, directed, device)
+   directed = net.directed
+   S, T = [], []
+   for c in range(len(net.components)):
+      ei = net._input_edges(c)[0]
+      S.append(ei[0] + int(net.node_offsets[c]))
+      T.append(ei[1] + int(net.node_offsets[c]))
+   S, T = torch.cat(S), torch.cat(T)
+
+   def make(l, nodes, n0, count, loops, gen):
+      N = nodes.shape[0]
+      given = _layer_value(initiator, None, net, l, "initiator", True)
+      if given is None:
+         pos = torch.full((int(net.node_offsets[-1]),), -1, dtype = torch.long, device = nodes.device)
+         pos[nodes] = torch.arange(N, device = nodes.device)
+         mine = torch.isin(S, nodes) & torch.isin(T, nodes)   # intra-layer edges of this layer
+         given = _fit_initiator(pos[S[mine]], pos[T[mine]], N, directed, gen)
+      Th = matrix(given).to(nodes.device)
+      kk = max(1, math.ceil(math.log(max(N, 2)) / math.log(Th.shape[0]) - 1e-12)) if Th.shape[0] > 1 else 1
+      s, t = _kronecker(Th, kk, N, directed, self_loops, gen, nodes.device)
+      perm = torch.randperm(N, generator = gen, device = nodes.device)   # nodes of net at random positions
+      return perm[s], perm[t]
+
+   return _randomize(net, seed, make)
+
+
+def _close_pairs(pos, r, p, torus, chunk = 1 << 24):
+   """
+   Pairs of points within distance ``r``, by a grid of cells of side at least ``r``: points are
+   sorted by cell, and each is compared only with the points of its cell and of the adjacent
+   ones, all at once, in chunks.
+
+   :param pos: float64 tensor, ``n`` by ``d`` positions (in the unit cube if ``torus``).
+   :param r: Radius.
+   :param p: Minkowski exponent of the distance (``math.inf`` for the largest coordinate
+      difference).
+   :param torus: Whether the unit cube wraps around (periodic boundaries).
+   :param chunk: Pairs compared at once.
+   :return: Endpoints ``i < j`` and distances of the pairs.
+   """
+   n, d = pos.shape
+   dev = pos.device
+   lo = torch.zeros(d, dtype = torch.float64, device = dev) if torus else pos.min(0).values
+   extent = torch.ones(d, dtype = torch.float64, device = dev) if torus else (pos.max(0).values - lo).clamp(min = 1e-300)
+   g = (extent / max(r, 1e-300)).floor().long().clamp(min = 1, max = max(1, int(n ** (1 / d)) + 1))   # cells per dimension
+   if torus:
+      g = torch.where(g < 3, 1, g)   # with fewer than 3 cells, neighbors would repeat
+   if 3 ** d > 729:   # many dimensions: all pairs
+      g = torch.ones_like(g)
+   cell = torch.minimum(((pos - lo) / extent * g).floor().long(), g - 1)
+   weight = torch.cumprod(torch.cat([g.new_ones(1), g[:-1]]), 0)
+   cid = (cell * weight).sum(1)
+   order = torch.argsort(cid)
+   sid = cid[order]
+   offsets = torch.cartesian_prod(*[torch.arange(-1, 2, device = dev) if int(x) > 1 else torch.zeros(1, dtype = torch.long, device = dev) for x in g]).reshape(-1, d)
+
+   def dist(a, b):
+      x = pos[b] - pos[a]
+      if torus:
+         x = x - torch.round(x)
+      x = x.abs()
+      return x.max(1).values if math.isinf(p) else (x ** p).sum(1) ** (1 / p)
+
+   I, J, D = [], [], []
+   for off in offsets:
+      c = cell + off
+      inside = ((c >= 0) & (c < g)).all(1)
+      c = c % g if torus else c
+      nb = (c * weight).sum(1)
+      start = torch.searchsorted(sid, nb)
+      count = torch.where(inside | torus, torch.searchsorted(sid, nb, right = True) - start, 0)
+      end = torch.cumsum(count, 0)
+      lo_i = 0
+      while lo_i < n:   # points in chunks of about `chunk` comparisons
+         base = int(end[lo_i] - count[lo_i])
+         hi_i = max(int(torch.searchsorted(end, base + chunk, right = True)), lo_i + 1)
+         a = torch.repeat_interleave(torch.arange(lo_i, hi_i, device = dev), count[lo_i:hi_i])
+         b = order[_expand(start[lo_i:hi_i], count[lo_i:hi_i])]
+         keep = a < b
+         a, b = a[keep], b[keep]
+         x = dist(a, b)
+         keep = x <= r
+         I.append(a[keep])
+         J.append(b[keep])
+         D.append(x[keep])
+         lo_i = hi_i
+   return torch.cat(I), torch.cat(J), torch.cat(D)
+
+
+def _geometric(pos, r, m, p, torus):
+   """
+   Edges of a random geometric graph: see :func:`geometric_graph`.
+
+   :param pos: float64 tensor, ``n`` by ``d`` positions.
+   :param r: Radius, or ``None`` for the ``m`` closest pairs.
+   :param m: Number of edges, with ``r`` ``None``.
+   :param p: Minkowski exponent.
+   :param torus: Whether the unit cube wraps around.
+   :return: Source and target ids, int64 tensors.
+   """
+   n, d = pos.shape
+   if r is not None:
+      return _close_pairs(pos, r, p, torus)[:2]
+   m = min(int(m), n * (n - 1) // 2)
+   if m == 0:
+      e = torch.zeros(0, dtype = torch.long, device = pos.device)
+      return e, e
+   volume = (2 * math.gamma(1 / p + 1)) ** d / math.gamma(d / p + 1) if not math.isinf(p) else 2. ** d   # unit ball
+   space = 1. if torus else float((pos.max(0).values - pos.min(0).values).prod())
+   r = (1.2 * m * space / (n * (n - 1) / 2 * volume)) ** (1 / d)   # expected m pairs, and some more
+   while True:
+      I, J, D = _close_pairs(pos, r, p, torus)
+      if I.shape[0] >= m:
+         break
+      r *= 1.1 * (m / max(I.shape[0], 1)) ** (1 / d)   # boundaries left fewer pairs: grow the radius
+   keep = torch.argsort(D, stable = True)[:m]   # the m closest pairs
+   return I[keep], J[keep]
+
+
+def geometric_graph(n = None, r = None, m = None, d = 2, positions = None, net = None, p = 2, torus = False, position = "position", seed = None, device = None):
+   """
+   Random geometric graph (Gilbert, 1961; Penrose, 2003): ``n`` nodes at random positions,
+   uniformly in the unit cube of ``d`` dimensions, joined when they are close, within distance
+   ``r``; or, with ``m`` instead, joined by the ``m`` closest pairs, as if the radius grew until
+   ``m`` pairs were within it. Geometric graphs model networks embedded in space (wireless and
+   sensor networks, contacts between nearby individuals, road junctions): they have high
+   clustering and long paths, and are the classic example of networks whose structure comes from
+   a hidden metric space.
+
+   Close pairs are found on a grid of cells with side at least ``r``: points are sorted by cell
+   and each is compared with the points of its cell and of the adjacent ones only, all in parallel
+   on the device, in time about linear in the number of nodes and edges. For ``m`` edges, the
+   radius is first estimated from the expected density of pairs, grown if the boundaries left
+   fewer than ``m`` pairs within it, and the ``m`` closest pairs are kept (ties broken
+   arbitrarily). In more than 6 dimensions all pairs are compared. Distances are Minkowski
+   distances of exponent ``p`` (2 for Euclidean, 1 for Manhattan, ``math.inf`` for the largest
+   coordinate difference); with ``torus = True`` the unit cube wraps around, so that nodes near
+   opposite sides are close (no boundary effects).
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1``, at random positions or at
+   ``positions`` (an ``n`` by ``d`` array, in the unit cube if ``torus``), which are stored as the
+   numeric node attributes ``position_0``, ``position_1``, ... (``position`` is the prefix;
+   ``None`` for no attributes). With ``net``, the result is a randomization of ``net`` (see the
+   module description) with its number of nodes and, unless ``r`` or ``m`` is given, its number
+   of edges (pairs of nodes, self loops left out, at most all pairs): if ``net`` has the node
+   attributes ``position_0``, ``position_1``, ..., they are the positions (e.g. coordinates of
+   real places, whose graph of closest pairs is then built), otherwise nodes get random
+   positions, which are stored. In multilayer networks each layer is randomized on its own, with
+   the positions of its copies; ``r`` and ``m`` can be dictionaries from layer to value.
+   Interlayer edges are kept.
+
+   :param n: Number of nodes; ``None`` with ``positions`` or ``net``.
+   :param r: Radius: pairs at distance at most ``r`` are edges.
+   :param m: Number of edges, the closest pairs, instead of ``r``.
+   :param d: Number of dimensions of random positions.
+   :param positions: ``n`` by ``d`` positions (array, nested lists or tensor), or ``None`` for
+      random ones.
+   :param net: A :class:`~graphoskop.Network` to randomize, undirected and not bipartite, or
+      ``None``.
+   :param p: Minkowski exponent of the distance.
+   :param torus: Whether the unit cube wraps around (periodic boundaries).
+   :param position: Prefix of the names of the node attributes with the coordinates, or ``None``.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The geometric graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If neither ``r`` nor ``m`` is given without ``net``, or both are given, if
+      neither ``n`` nor ``positions`` is given without ``net``, or ``n`` differs from the number of
+      positions, if ``r``, ``m``, ``d`` or ``p`` are not positive, if positions are outside the
+      unit cube with ``torus``, if ``net`` is directed or bipartite, if ``device`` differs from that
+      of ``net``, or for dictionaries as in :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      g = gsk.geometric_graph(1000, r = 0.05, seed = 1)                # pairs closer than 0.05 in the unit square
+      g = gsk.geometric_graph(1000, m = 5000, d = 3, torus = True)     # the 5000 closest pairs in a 3D torus
+      g.get_node_attribute("position_0")                               # first coordinate of every node
+
+      cities = [[12.57, 55.68], [10.20, 56.16], [10.40, 55.40]]        # longitude, latitude
+      g = gsk.geometric_graph(positions = cities, m = 2)               # the two closest pairs of cities
+
+      net = gsk.load_network("edges.tsv")
+      rnd = gsk.geometric_graph(net = net, seed = 1)                   # same n and m, random positions
+   """
+   if r is not None and m is not None:
+      raise ValueError("give r or m, not both")
+   if not p > 0:
+      raise ValueError(f"p must be positive, got {p}")
+   for x in [y for v in (r, m) for y in (v.values() if isinstance(v, dict) else [v])]:
+      if x is not None and not x > 0:
+         raise ValueError(f"r and m must be positive, got {x}")
+
+   def place(count, dims, given, gen, dev):
+      if given is None:
+         if not int(dims) >= 1:
+            raise ValueError(f"d must be a positive integer, got {dims}")
+         return torch.rand(count, int(dims), generator = gen, device = dev, dtype = torch.float64)
+      x = torch.as_tensor(np.asarray(given, dtype = np.float64), device = dev)
+      if x.ndim == 1:
+         x = x[:, None]
+      if torus and not bool(((x >= 0) & (x <= 1)).all()):
+         raise ValueError("with torus, positions must be in the unit cube")
+      return x
+
+   if net is None:
+      if r is None and m is None:
+         raise ValueError("give r or m, or net")
+      if n is None and positions is None:
+         raise ValueError("give n or positions, or net")
+      device = torch.device("cpu" if device is None else device)
+      pos = place(n, d, positions, _generator(seed, device), device)
+      if n is not None and pos.shape[0] != n:
+         raise ValueError(f"n is {n}, but there are {pos.shape[0]} positions")
+      s, t = _geometric(pos, r, m, p, torus)
+      x = pos.cpu().numpy().astype(np.float32)
+      names = [] if position is None else [f"{position}_{i}" for i in range(x.shape[1])]
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(x.shape[0]), np.zeros((s.shape[0], 0), dtype = np.float32), [], (lambda perm: x[perm]) if names else None, names, False, device)
+   if n is not None or positions is not None:
+      raise ValueError("with net, nodes and positions come from net: leave out n and positions")
+   if net.directed or net.bipartite_labels is not None:
+      raise ValueError("geometric graphs of directed or bipartite networks are not supported")
+   _check_net(net, None, None, device)
+   cols = []
+   while position is not None and f"{position}_{len(cols)}" in net.node_attributes:
+      cols.append(f"{position}_{len(cols)}")
+   P = torch.cat([torch.stack([net.get_node_attribute(c, j).double() for c in cols], 1) if cols else torch.zeros(net.number_of_nodes(j), 0, dtype = torch.float64, device = net.components[0].edge_index.device) for j in range(len(net.components))]) if cols else None
+   S, T = [], []
+   for c in range(len(net.components)):
+      ei = net._input_edges(c)[0]
+      S.append(ei[0] + int(net.node_offsets[c]))
+      T.append(ei[1] + int(net.node_offsets[c]))
+   S, T = torch.cat(S), torch.cat(T)
+   placed = []
+
+   def make(l, nodes, n0, count, loops, gen):
+      N = nodes.shape[0]
+      x = P[nodes] if P is not None else place(N, d, None, gen, nodes.device)
+      if P is None:
+         placed.append((nodes, x.cpu().numpy()))
+      rr, mm = _layer_value(r, None, net, l, "r", True), _layer_value(m, None, net, l, "m", True)
+      if rr is None and mm is None:
+         mine = torch.isin(S, nodes) & torch.isin(T, nodes) & (S != T)   # pairs of this layer
+         mm = torch.unique(torch.minimum(S[mine], T[mine]) * int(net.node_offsets[-1]) + torch.maximum(S[mine], T[mine])).shape[0]
+      return _geometric(x, rr, mm, p, torus)
+
+   new = _randomize(net, seed, make)
+   for i in range(d if P is None and position is not None and placed else 0):
+      new = _with_groups(net, new, f"{position}_{i}", [(nodes, x[:, i]) for nodes, x in placed])
+   return new
 
 
 # ------------------------------------------------------------------------------------------------
@@ -828,13 +1547,27 @@ def caveman_graph(l = None, k = None, net = None, connected = False, directed = 
       s, t = _cave_edges(torch.tensor(sizes, dtype = torch.long, device = nodes.device), connected, net.directed)
       return perm[s], perm[t]
 
-   new = _randomize(net, seed, make)
-   if attribute is not None:
-      cave = np.empty(int(net.node_offsets[-1]), dtype = np.float32)
-      for pos, c in caves:
-         cave[pos.cpu().numpy()] = c
-      where = {x: i for i, x in enumerate(np.concatenate(net.node_ids).tolist())}
-      new.set_node_attribute(attribute, [cave[[where[x] for x in ids.tolist()]] for ids in new.node_ids], None)
+   return _with_groups(net, _randomize(net, seed, make), attribute, caves)
+
+
+def _with_groups(net, new, attribute, groups):
+   """
+   Randomization of ``net`` with the groups (caves, communities) its nodes were assigned to.
+
+   :param net: Original network.
+   :param new: Its randomization.
+   :param attribute: Name of the numeric node attribute to write the groups to, or ``None``.
+   :param groups: List of ``(positions, group)`` pairs: network wide positions of nodes of
+      ``net`` (tensor) and their group (array).
+   :return: ``new``, with the attribute set.
+   """
+   if attribute is None:
+      return new
+   g = np.empty(int(net.node_offsets[-1]), dtype = np.float32)
+   for pos, c in groups:
+      g[pos.cpu().numpy()] = c
+   where = {x: i for i, x in enumerate(np.concatenate(net.node_ids).tolist())}
+   new.set_node_attribute(attribute, [g[[where[x] for x in ids.tolist()]] for ids in new.node_ids], None)
    return new
 
 
@@ -1601,7 +2334,7 @@ def holme_kim_graph(n = None, k = None, p = None, net = None, seed = None, devic
 
 
 # ------------------------------------------------------------------------------------------------
-# Stochastic blockmodels: planted partition, general blockmodel
+# Stochastic blockmodels: planted partition, general, degree-corrected and mixed membership
 # ------------------------------------------------------------------------------------------------
 
 
@@ -1758,7 +2491,7 @@ def planted_partition_graph(sizes = None, p_in = None, p_out = None, net = None,
    return _randomize(net, seed, make)
 
 
-def _communities(net, attribute, directed, device):
+def _communities(net, attribute, directed, device, overlap = False):
    """
    Communities of the nodes of a network, for the blockmodels, with its edges.
 
@@ -1766,32 +2499,44 @@ def _communities(net, attribute, directed, device):
    :param attribute: Name of the node attribute with the communities.
    :param directed: ``directed`` as given to the generator, checked against ``net``.
    :param device: ``device`` as given to the generator, checked against ``net``.
+   :param overlap: Whether nodes can be in several communities (a tuple of values).
    :return: Community code of every node (int64 tensor in the network wide node order; codes
       follow the sorted values, or their order of appearance if they cannot be sorted), the
       community values by code, and the sources and targets of the edges that are not self
-      loops, by network wide position.
+      loops, by network wide position. With ``overlap``, the code is replaced by two int64
+      tensors, node position and community code of every membership, sorted by node then code.
    :raises ValueError: If ``net`` is bipartite, has no such attribute or a node without a value,
-      or if ``directed`` or ``device`` differ from those of ``net``.
+      if a node has several communities without ``overlap``, or if ``directed`` or ``device``
+      differ from those of ``net``.
    """
    if net.bipartite_labels is not None:
       raise ValueError("bipartite networks are not supported")
    if attribute not in net.node_attributes and attribute not in net.qualitative_node_attributes:
       raise ValueError(f"net has no node attribute {attribute!r} with the communities")
    _check_net(net, None, directed, device)
-   values = pd.Series(np.concatenate([np.asarray(v.cpu().numpy() if torch.is_tensor(v) else v, dtype = object) for v in net.get_node_attribute(attribute, None)]))
+   values = _memberships(np.concatenate([np.asarray(v.cpu().numpy() if torch.is_tensor(v) else v, dtype = object) for v in net.get_node_attribute(attribute, None)]))
+   cols, flat = _explode({"node": np.arange(len(values))}, values)
+   if len(flat) > len(values) and not overlap:
+      raise ValueError(f"some nodes have several {attribute!r} values (overlapping communities): use mixed_membership_block_model")
+   flat = pd.Series(flat, dtype = object)
    try:
-      code, labels = pd.factorize(values, sort = True)
+      code, labels = pd.factorize(flat, sort = True)
    except TypeError:
-      code, labels = pd.factorize(values)
+      code, labels = pd.factorize(flat)
    if (code < 0).any():
-      raise ValueError(f"node {np.concatenate(net.node_ids)[np.argmax(code < 0)]!r} has no {attribute!r}")
+      raise ValueError(f"node {np.concatenate(net.node_ids)[cols['node'][np.argmax(code < 0)]]!r} has no {attribute!r}")
    S, T = [], []
    for c in range(len(net.components)):
       ei = net._input_edges(c)[0]
       S.append(ei[0] + int(net.node_offsets[c]))
       T.append(ei[1] + int(net.node_offsets[c]))
    S, T = torch.cat(S), torch.cat(T)
-   return torch.as_tensor(code, device = S.device), list(labels), S[S != T], T[S != T]
+   labels = [x.item() if isinstance(x, np.generic) else x for x in labels]
+   if overlap:
+      order = np.lexsort((code, cols["node"]))
+      node = torch.as_tensor(cols["node"][order].astype(np.int64), device = S.device)
+      return (node, torch.as_tensor(code[order].astype(np.int64), device = S.device)), labels, S[S != T], T[S != T]
+   return torch.as_tensor(code, device = S.device), labels, S[S != T], T[S != T]
 
 
 def _blocks(sizes, P, directed, gen, device):
@@ -1957,5 +2702,1064 @@ def stochastic_block_model(sizes = None, probs = None, net = None, attribute = "
          P = torch.where(N > 0, E / N.clamp(min = 1), 0).clamp(max = 1)
       s, t = _blocks(sizes, P, directed, gen, nodes.device)
       return order[s], order[t]
+
+   return _randomize(net, seed, make)
+
+
+def _dc_blocks(sizes, w_out, w_in, omega, directed, exact, rounds, drop_self_loops, drop_parallel, gen, device):
+   """
+   Edges of a degree-corrected blockmodel: see :func:`degree_corrected_block_model`.
+
+   The number of edges of each pair of blocks is Poisson with mean ``omega[r][s]`` (or its rounded
+   value, if ``exact``), all pairs at once; every edge then picks its endpoints in its two blocks,
+   each node with probability proportional to its weight. Weights are normalized within each block,
+   so that block ``r`` spans ``[r, r + 1)`` of their cumulative sum, and an endpoint is one
+   ``searchsorted``. Self loops and repeated edges are drawn again within their pair of blocks, for
+   up to ``rounds`` rounds, every redrawn edge kept only if new; the keys of the edges are sorted
+   once (redrawn edges never take a pair already there). Leftovers are dropped as asked.
+
+   :param sizes: int64 tensor, number of nodes of each block (consecutive nodes).
+   :param w_out: float64 tensor, weight of each node as a source (as an endpoint if undirected).
+   :param w_in: float64 tensor, weight of each node as a target (ignored if undirected).
+   :param omega: float64 tensor, ``k`` by ``k`` expected numbers of edges (from ``r`` to ``s`` if
+      directed; symmetric otherwise, the diagonal counting the edges within each block).
+   :return: Source and target ids, int64 tensors.
+   """
+   k = sizes.shape[0]
+   block = torch.repeat_interleave(torch.arange(k, device = device), sizes)
+
+   def cumulative(w):   # normalized within each block; a block of zero weights is uniform
+      tot = torch.zeros(k, dtype = torch.float64, device = device).index_add_(0, block, w)
+      w = torch.where(tot[block] > 0, w / tot[block].clamp(min = 1e-300), 1 / sizes[block].double())
+      return torch.cumsum(w, 0)
+
+   c_out = cumulative(w_out)
+   c_in = c_out if not directed else cumulative(w_in)
+   n = int(sizes.sum())
+   start = torch.cumsum(sizes, 0) - sizes
+   pick = lambda c, r: torch.minimum(torch.maximum(torch.searchsorted(c, r.double() + torch.rand(r.shape[0], generator = gen, device = device, dtype = torch.float64), right = True), start[r]), start[r] + sizes[r] - 1)   # inside block r despite rounding
+   A, B = torch.triu_indices(k, k, device = device) if not directed else torch.cartesian_prod(torch.arange(k, device = device), torch.arange(k, device = device)).T
+   lam = omega[A, B].clamp(min = 0)
+   M = torch.round(lam).long() if exact else torch.poisson(lam, generator = gen).long()
+   g = torch.repeat_interleave(torch.arange(A.shape[0], device = device), M)
+   a, b = A[g], B[g]
+   s, t = pick(c_out, a), pick(c_in, b)
+   if s.shape[0] == 0 or (rounds == 0 and not drop_self_loops and not drop_parallel):
+      return s, t
+   key = lambda x, y: x * n + y if directed else torch.minimum(x, y) * n + torch.maximum(x, y)
+   kk = key(s, t)
+   sk, inv = torch.unique(kk, return_inverse = True)
+   first = torch.full((sk.shape[0],), kk.shape[0], device = device).scatter_reduce(0, inv, torch.arange(kk.shape[0], device = device), "amin")
+   bad = (s == t) | torch.ones_like(kk, dtype = torch.bool).index_fill_(0, first, False)
+   new = kk[:0]
+   for _ in range(rounds):
+      R = torch.nonzero(bad).squeeze(1)
+      if R.shape[0] == 0:
+         break
+      s1, t1 = pick(c_out, a[R]), pick(c_in, b[R])
+      k1 = key(s1, t1)
+      ok = (s1 != t1) & ~(sk[torch.searchsorted(sk, k1).clamp(max = sk.shape[0] - 1)] == k1) & ~torch.isin(k1, new)
+      _, iv, cnt = torch.unique(k1, return_inverse = True, return_counts = True)
+      ok &= cnt[iv] == 1   # two redraws make the same pair: neither is kept this round
+      R = R[ok]
+      s[R], t[R] = s1[ok], t1[ok]
+      bad[R] = False
+      new = torch.cat([new, k1[ok]])
+   loop = s == t
+   keep = ~(bad & ((loop & drop_self_loops) | (~loop & drop_parallel)))
+   return s[keep], t[keep]
+
+
+def degree_corrected_block_model(sizes = None, degrees = None, edges = None, net = None, attribute = "community", directed = None, exact = False, rounds = 10, drop_self_loops = True, drop_parallel = True, seed = None, device = None):
+   """
+   Degree-corrected stochastic blockmodel (Karrer and Newman, 2011): a stochastic blockmodel in
+   which nodes of the same block can have very different degrees, as in real communities with
+   hubs and peripheral members.
+
+   ``edges[r][s]`` is the expected number of edges between blocks ``r`` and ``s`` (from ``r`` to
+   ``s`` if directed; the diagonal counts the edges within each block), and ``degrees`` gives the
+   expected degree of every node relative to the others of its block: each edge between ``r`` and
+   ``s`` picks its endpoint in ``r`` with probability proportional to its degree within ``r``,
+   :math:`\\theta_i = d_i / \\sum_{j \\in r} d_j`, and likewise in ``s``. A node then expects
+   :math:`\\theta_i \\kappa_r` edges, :math:`\\kappa_r` being the edges of its block (twice those
+   within), so degrees that add up to :math:`\\kappa_r` in each block are kept on average. The number
+   of edges of each pair of blocks is Poisson, as in the original model, or exactly ``edges[r][s]``
+   (rounded) with ``exact = True``. A block whose degrees are all 0 picks its nodes uniformly.
+
+   Drawing endpoints independently makes some self loops and parallel edges, mostly among hubs.
+   As in :func:`configuration_model`, without slowing generation down, each of them is drawn again
+   within its pair of blocks for up to ``rounds`` rounds, in parallel, and those left are dropped,
+   unless ``drop_self_loops`` or ``drop_parallel`` is ``False``; with ``rounds = 0`` and both kept,
+   the graph is the original multigraph model. Redrawing and dropping lower the degrees of hubs a
+   little when they are large compared with the square root of the number of edges of their blocks.
+   Everything runs on the device, in time about linear in the number of edges and of pairs of
+   blocks.
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1``, block by block (``sizes``), with
+   ``degrees`` in that order (a pair ``(out_degrees, in_degrees)`` if directed), and the block of
+   each node is stored as the numeric node attribute ``attribute`` (unless ``None``). With ``net``,
+   the result is a randomization of ``net`` (see the module description): its nodes keep their
+   communities, read from the node attribute ``attribute`` (numeric or qualitative; every node needs
+   a value), which give ``sizes``; ``degrees`` are their degrees (out and in if directed) and
+   ``edges`` the numbers of edges between communities, self loops left out, parallel edges
+   counting, so that the result keeps both on average (exactly the numbers of edges between
+   communities with ``exact = True``, before drops). ``edges`` can be given instead, as a matrix over
+   the communities in sorted order (or order of appearance, if their values cannot be sorted), or a
+   dictionary from layer to matrix. In multilayer networks each layer is randomized on its own, with
+   the degrees and edges of its intra-layer edges; interlayer edges are kept.
+
+   :param sizes: Number of nodes of each block; ``None`` with ``net``.
+   :param degrees: Expected degree of each node, block by block (a pair of out- and in-degrees if
+      directed); ``None`` with ``net``.
+   :param edges: ``k`` by ``k`` matrix of expected numbers of edges between blocks; ``None`` with
+      ``net``, for its own.
+   :param net: A :class:`~graphoskop.Network` to randomize, not bipartite, or ``None``.
+   :param attribute: Name of the node attribute holding the block of each node: read from ``net``,
+      or written to the result without ``net`` (``None`` for no attribute).
+   :param directed: Whether the edges are directed; ``None`` for undirected, or for the direction
+      of ``net``.
+   :param exact: Whether each pair of blocks gets exactly ``edges[r][s]`` edges (rounded) before
+      drops, instead of a Poisson number.
+   :param rounds: Maximum number of rounds of redrawing self loops and parallel edges (0 for none).
+   :param drop_self_loops: Whether to drop the self loops left.
+   :param drop_parallel: Whether to drop the parallel edges left (one edge of each group stays).
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The degree-corrected blockmodel graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If neither ``sizes``, ``degrees`` and ``edges`` nor ``net`` are given, if
+      ``sizes`` or ``degrees`` are given with ``net``, if ``degrees`` does not have one non-negative
+      value per node, if ``edges`` is not a ``k`` by ``k`` non-negative matrix, symmetric for an
+      undirected graph, if ``net`` is bipartite, has no node attribute ``attribute`` or a node
+      without a value, if ``directed`` or ``device`` differ from those of ``net``, or for
+      dictionaries as in :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      degrees = [10, 1, 1, 1, 1, 6, 2, 2, 2]                  # a hub in each block
+      g = gsk.degree_corrected_block_model([5, 4], degrees, [[6, 1], [1, 5]], seed = 1)
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")         # node attribute "community"
+      rnd = gsk.degree_corrected_block_model(net = net, seed = 1)   # degrees and block edges of net, on average
+      rnd = gsk.degree_corrected_block_model(net = net, exact = True)
+   """
+
+   def matrix(x, k):
+      E = torch.as_tensor(np.asarray(x, dtype = np.float64))
+      if E.shape != (k, k) or not bool((E >= 0).all()):
+         raise ValueError(f"edges must be a {k} by {k} matrix of non-negative numbers, got shape {tuple(E.shape)}")
+      if not directed and not torch.equal(E, E.T):
+         raise ValueError("edges must be symmetric for an undirected graph")
+      return E
+
+   if net is None:
+      if sizes is None or degrees is None or edges is None:
+         raise ValueError("give sizes, degrees and edges, or net")
+      directed, device = bool(directed), torch.device("cpu" if device is None else device)
+      sz = torch.as_tensor(list(sizes), dtype = torch.long, device = device)
+      d = [torch.as_tensor(list(x), dtype = torch.float64, device = device) for x in (degrees if directed else [degrees])]
+      if any(x.shape != (int(sz.sum()),) or bool((x < 0).any()) for x in d):
+         raise ValueError(f"degrees must have one non-negative value per node ({int(sz.sum())})")
+      E = matrix(edges, sz.shape[0]).to(device)
+      s, t = _dc_blocks(sz, d[0], d[-1], E, directed, exact, rounds, drop_self_loops, drop_parallel, _generator(seed, device), device)
+      comm = np.repeat(np.arange(len(sz)), sz.cpu().numpy()).astype(np.float32)
+      table = None if attribute is None else lambda perm: comm[perm][:, None]
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(comm.shape[0]), np.zeros((s.shape[0], 0), dtype = np.float32), [], table, [] if attribute is None else [attribute], directed, device)
+   if sizes is not None or degrees is not None:
+      raise ValueError("with net, sizes and degrees come from its communities and edges: leave them out")
+   code, labels, S, T = _communities(net, attribute, directed, device)
+   directed = net.directed
+
+   def make(l, nodes, n0, count, loops, gen):
+      order = torch.argsort(code[nodes], stable = True)   # community by community
+      present, sizes = torch.unique(code[nodes], return_counts = True)
+      sorted_nodes = nodes[order]
+      mine = torch.isin(S, nodes) & torch.isin(T, nodes)   # intra-layer edges of this layer, no self loops
+      pos = torch.full((int(code.shape[0]),), -1, dtype = torch.long, device = nodes.device)
+      pos[sorted_nodes] = torch.arange(nodes.shape[0], device = nodes.device)
+      u, v = pos[S[mine]], pos[T[mine]]
+      w_out = torch.bincount(u, minlength = nodes.shape[0]).double()
+      w_in = torch.bincount(v, minlength = nodes.shape[0]).double()
+      if not directed:
+         w_out = w_in = w_out + w_in
+      given = _layer_value(edges, None, net, l, "edges", True)
+      if given is not None:
+         E = matrix(given, len(labels)).to(nodes.device)[present][:, present]
+      else:
+         local = torch.full((len(labels),), -1, dtype = torch.long, device = nodes.device)
+         local[present] = torch.arange(present.shape[0], device = nodes.device)
+         a, b = local[code[S[mine]]], local[code[T[mine]]]
+         k = present.shape[0]
+         E = torch.bincount(a * k + b, minlength = k * k).view(k, k).double()
+         if not directed:
+            E = E + E.T - torch.diag(torch.diag(E))
+      s, t = _dc_blocks(sizes, w_out, w_in, E, directed, exact, rounds, drop_self_loops, drop_parallel, gen, nodes.device)
+      return order[s], order[t]
+
+   return _randomize(net, seed, make)
+
+
+def _membership_pairs(first, count, s, t, chunk = 1 << 24):
+   """
+   All pairs of memberships of pairs of nodes, in chunks of about ``chunk`` pairs.
+
+   :param first: int64 tensor, position of the first membership of every node (memberships
+      sorted by node).
+   :param count: int64 tensor, number of memberships of every node.
+   :param s: int64 tensor, one node of every pair.
+   :param t: int64 tensor, other node of every pair.
+   :param chunk: Number of pairs of memberships per chunk.
+   :return: Generator of ``(e, i, j)``: pair position, membership of ``s[e]`` and membership of
+      ``t[e]``, int64 tensors.
+   """
+   size = count[s] * count[t]
+   end = torch.cumsum(size, 0)
+   lo = 0
+   while lo < s.shape[0]:
+      base = int(end[lo] - size[lo])
+      hi = max(int(torch.searchsorted(end, base + chunk, right = True)), lo + 1)
+      e = torch.repeat_interleave(torch.arange(lo, hi, device = s.device), size[lo:hi])
+      r = torch.arange(e.shape[0], device = s.device) - (end[e] - size[e] - base)
+      c = count[t[e]]
+      yield e, first[s[e]] + r // c, first[t[e]] + r % c
+      lo = hi
+
+
+def _mixed_blocks(node, block, weight, n, P, directed, gen, device):
+   """
+   Edges of a mixed membership blockmodel: see :func:`mixed_membership_block_model`.
+
+   Candidate pairs come from a Poisson process with rate :math:`c\\, p_{ij}` on every pair, which
+   dominates the edge probabilities :math:`p_{ij} = \\pi_i^T B \\pi_j`: for every pair of blocks
+   ``(a, b)``, a Poisson number of candidates with mean :math:`c B_{ab} S_a S_b` (half of it if
+   undirected, as both orders are drawn), :math:`S_a = \\sum_i \\pi_{ia}`, each joining a node drawn
+   with probability :math:`\\pi_{ia} / S_a` to one drawn with probability :math:`\\pi_{jb} / S_b`.
+   A pair is a candidate with probability :math:`1 - e^{-c p_{ij}}`, and a candidate is kept with
+   probability :math:`p_{ij} / (1 - e^{-c p_{ij}})`, so pairs are edges independently with
+   probability exactly :math:`p_{ij}`, :math:`c = -\\ln(1 - p_{max}) / p_{max}` making that at most
+   1. The work is about linear in the number of edges and of pairs of blocks.
+
+   :param node: int64 tensor, node of every membership, sorted.
+   :param block: int64 tensor, block of every membership.
+   :param weight: float64 tensor, weight of every membership (adding up to 1 for every node).
+   :param n: Number of nodes.
+   :param P: float64 tensor, ``k`` by ``k`` probabilities (symmetric if undirected).
+   :return: Source and target ids, int64 tensors.
+   """
+   k = P.shape[0]
+   pmax = min(float(P.max()) if k else 0., 1 - 1e-9)
+   if pmax <= 0:
+      return node[:0], node[:0]
+   c = -math.log1p(-pmax) / pmax
+   count = torch.bincount(node, minlength = n)
+   first = torch.cumsum(count, 0) - count
+
+   # memberships block by block, with cumulative weights to draw nodes within a block
+   o = torch.argsort(block, stable = True)
+   bnode, W = node[o], torch.cumsum(weight[o], 0)
+   size = torch.bincount(block, minlength = k)
+   end = torch.cumsum(size, 0)
+   start = end - size
+   S = torch.zeros(k, dtype = torch.float64, device = device).index_add_(0, block, weight)
+   before = torch.cat([W.new_zeros(1), W])[start]
+
+   def draw(x):
+      i = torch.searchsorted(W, before[x] + torch.rand(x.shape[0], generator = gen, device = device, dtype = torch.float64) * S[x], right = True)
+      return bnode[torch.minimum(torch.maximum(i, start[x]), end[x] - 1)]   # within the block, despite rounding
+
+   rate = (1 if directed else 0.5) * c * P * torch.outer(S, S)
+   N = torch.poisson(rate.flatten(), generator = gen).long()
+   pair = torch.repeat_interleave(torch.arange(k * k, device = device), N)
+   s, t = draw(pair // k), draw(pair % k)
+   s, t = s[s != t], t[s != t]
+   if not directed:
+      s, t = torch.minimum(s, t), torch.maximum(s, t)
+   key = torch.unique(s * n + t)
+   s, t = key // n, key % n
+
+   # probability of every candidate pair, then thinning
+   p = torch.zeros(s.shape[0], dtype = torch.float64, device = device)
+   if 4 * node.shape[0] >= n * k:   # dense memberships: pi_i^T B once per node, then k terms per pair
+      pi = torch.zeros(n, k, dtype = torch.float64, device = device)
+      pi[node, block] = weight
+      piB, step = pi @ P, max(1, (1 << 24) // k)
+      for lo in range(0, s.shape[0], step):
+         p[lo:lo + step] = (piB[s[lo:lo + step]] * pi[t[lo:lo + step]]).sum(1)
+   else:
+      for e, i, j in _membership_pairs(first, count, s, t):
+         p.index_add_(0, e, weight[i] * P[block[i], block[j]] * weight[j])
+   keep = torch.rand(p.shape[0], generator = gen, device = device, dtype = torch.float64) * -torch.expm1(-c * p) < p
+   return s[keep], t[keep]
+
+
+def _mixed_probs(node, block, weight, n, k, s, t, directed):
+   """
+   Probabilities between blocks of a mixed membership blockmodel that give, in expectation, the
+   observed weight of the edges between every pair of blocks: see
+   :func:`mixed_membership_block_model`.
+
+   :param node: int64 tensor, node of every membership, sorted.
+   :param block: int64 tensor, block of every membership.
+   :param weight: float64 tensor, weight of every membership.
+   :param n: Number of nodes.
+   :param k: Number of blocks.
+   :param s: int64 tensor, sources of the edges (no self loops).
+   :param t: int64 tensor, targets of the edges.
+   :param directed: Whether the edges are directed.
+   :return: ``k`` by ``k`` float64 tensor of probabilities.
+   """
+   device = node.device
+   count = torch.bincount(node, minlength = n)
+   first = torch.cumsum(count, 0) - count
+   E = torch.zeros(k * k, dtype = torch.float64, device = device)
+   for e, i, j in _membership_pairs(first, count, s, t):
+      E.index_add_(0, block[i] * k + block[j], weight[i] * weight[j])
+   E = E.view(k, k)
+   if not directed:
+      E = E + E.T   # both orders, as the pairs below
+   v = torch.arange(n, device = device)
+   e, i, j = (torch.cat(x) for x in zip(*_membership_pairs(first, count, v, v)))
+   ww, bij = weight[i] * weight[j], block[i] * k + block[j]
+   M = torch.zeros(k * k, dtype = torch.float64, device = device).index_add_(0, bij, ww).view(k, k)
+   Mp = torch.linalg.pinv(M)
+   B = Mp @ E @ Mp
+   for _ in range(200):   # E = M B M - (pairs of a node with itself)
+      q = torch.zeros(n, dtype = torch.float64, device = device).index_add_(0, e, ww * B.flatten()[bij])
+      D = torch.zeros(k * k, dtype = torch.float64, device = device).index_add_(0, bij, ww * q[e]).view(k, k)
+      new = Mp @ (E + D) @ Mp
+      done = torch.allclose(new, B, rtol = 1e-12, atol = 1e-15)
+      B = new
+      if done:
+         break
+   if not directed:
+      B = (B + B.T) / 2
+   return B.clamp(0, 1)
+
+
+def mixed_membership_block_model(probs = None, memberships = None, n = None, alpha = None, net = None, attribute = "community", threshold = None, directed = None, seed = None, device = None):
+   """
+   Mixed membership stochastic blockmodel (Airoldi, Blei, Fienberg and Xing, 2008): every node
+   belongs to several blocks (overlapping communities) with a vector of weights
+   :math:`\\pi_i` adding up to 1, and every pair of nodes is an edge independently with probability
+   :math:`p_{ij} = \\pi_i^T B \\pi_j = \\sum_{a, b} \\pi_{ia} B_{ab} \\pi_{jb}`, ``B`` being the matrix
+   ``probs`` of probabilities between blocks (:func:`stochastic_block_model` is the special case of
+   nodes in one block each). This is the version of the model with fixed memberships, as in its
+   inference; in the original generative story every pair of nodes draws a block for each node
+   anew, which gives the same probabilities.
+
+   Pairs are drawn exactly with these probabilities, without going through all pairs of nodes: a
+   Poisson process proposes candidate pairs block pair by block pair, with a rate a bit larger than
+   the probability of every pair, and each candidate is kept with the probability that corrects the
+   difference. Everything runs on the device, in time about linear in the number of edges, of
+   memberships and of pairs of blocks. The graph has no self loops nor parallel edges. In
+   undirected graphs ``probs`` must be symmetric; in directed graphs ``probs[a][b]`` is for edges
+   from block ``a`` to block ``b``.
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1``, with ``memberships``, an ``n`` by
+   ``k`` matrix of non-negative weights (normalized to add up to 1 in every row), or with weights
+   drawn from a Dirichlet distribution of parameter ``alpha`` (a number for all blocks, or one per
+   block; small values give nodes mostly in one block, large values nodes spread over all of them).
+   The blocks of each node, those with weight at least ``threshold`` (by default ``1 / (k + 1)``,
+   so that a node spread evenly over any number of blocks is in all of them), are stored as the qualitative node attribute ``attribute`` (unless ``None``): a tuple of blocks, or
+   just the block for a node in one.
+
+   With ``net``, the result is a randomization of ``net`` (see the module description): its nodes
+   keep their communities, read from the node attribute ``attribute``, in which a node in several
+   communities has a list, tuple or set of them (see :ref:`overlapping-communities`); each node
+   weighs its communities equally. ``probs``, unless given (as a matrix over the communities in
+   sorted order, or order of appearance if their values cannot be sorted), is the method of
+   moments estimate: the matrix with which the expected weight of the edges between every pair of
+   communities, every edge counting :math:`\\pi_{ia} \\pi_{jb}` for communities ``a`` and ``b``,
+   equals the one of ``net`` (self loops left out, parallel edges counting). For communities that
+   do not overlap this is the density of the edges between them, as in
+   :func:`stochastic_block_model`; values outside 0 and 1, possible when overlaps are not explained
+   by the model, are clipped. In multilayer networks each layer is randomized on its own, with the
+   communities of its copies and its own probabilities (or a dictionary from layer to matrix);
+   interlayer edges are kept.
+
+   :param probs: ``k`` by ``k`` matrix of probabilities between blocks (nested lists, array or
+      tensor); ``None`` with ``net``, for its own.
+   :param memberships: ``n`` by ``k`` matrix of membership weights, or ``None`` for ``n`` and
+      ``alpha``.
+   :param n: Number of nodes, with ``alpha``.
+   :param alpha: Parameter of the Dirichlet distribution of the memberships: a positive number, or
+      one per block.
+   :param net: A :class:`~graphoskop.Network` to randomize, not bipartite, or ``None``.
+   :param attribute: Name of the node attribute holding the communities of each node: read from
+      ``net``, or written to the result without ``net`` (``None`` for no attribute).
+   :param threshold: Without ``net``, smallest weight of a block for a node to be listed in it;
+      ``None`` for ``1 / (k + 1)``.
+   :param directed: Whether the edges are directed; ``None`` for undirected, or for the direction
+      of ``net``.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The mixed membership blockmodel graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If neither ``probs`` with ``memberships`` or ``n`` and ``alpha`` nor ``net``
+      are given, if ``memberships``, ``n`` or ``alpha`` are given with ``net``, if ``probs`` is not
+      a ``k`` by ``k`` matrix of probabilities between 0 and 1, or not symmetric for an undirected
+      graph, if ``memberships`` has negative values or a row of zeros, if ``alpha`` is not positive,
+      if ``net`` is bipartite, has no node attribute ``attribute`` or a node without a value, if
+      ``directed`` or ``device`` differ from those of ``net``, or for dictionaries as in
+      :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      B = [[0.3, 0.01], [0.01, 0.3]]
+      g = gsk.mixed_membership_block_model(B, n = 200, alpha = 0.1, seed = 1)    # mostly in one block
+      g = gsk.mixed_membership_block_model(B, memberships = [[1, 0], [0.5, 0.5], [0, 1]])   # "community": 0, (0, 1), 1
+      gsk.modularity(g, "community")                                             # overlapping modularity
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")     # "community": e.g. [0, 1] for a node in both
+      rnd = gsk.mixed_membership_block_model(net = net, seed = 1)
+   """
+
+   def matrix(x, k):
+      P = torch.as_tensor(np.asarray(x, dtype = np.float64))
+      if P.shape != (k, k):
+         raise ValueError(f"probs must be a {k} by {k} matrix, got shape {tuple(P.shape)}")
+      if not bool(((P >= 0) & (P <= 1)).all()):
+         raise ValueError("probabilities must be between 0 and 1")
+      if not directed and not torch.equal(P, P.T):
+         raise ValueError("probs must be symmetric for an undirected graph")
+      return P
+
+   if net is None:
+      if probs is None or (memberships is None and (n is None or alpha is None)):
+         raise ValueError("give probs with memberships, or with n and alpha, or net")
+      directed, device = bool(directed), torch.device("cpu" if device is None else device)
+      gen = _generator(seed, device)
+      k = np.asarray(probs).shape[0]
+      if memberships is None:
+         a = np.broadcast_to(np.asarray(alpha, dtype = np.float64), (k,))
+         if not (a > 0).all():
+            raise ValueError("alpha must be positive")
+         pi = np.random.default_rng(int(torch.randint(2 ** 62, (1,), generator = gen, device = device))).dirichlet(a, int(n))
+      else:
+         pi = np.asarray(memberships, dtype = np.float64)
+         if pi.ndim != 2 or pi.shape[1] != k or (pi < 0).any() or not (pi.sum(1) > 0).all():
+            raise ValueError(f"memberships must be an n by {k} matrix of non-negative weights, with a positive one in every row")
+         pi = pi / pi.sum(1, keepdims = True)
+      P = matrix(probs, k).to(device)
+      node, block = np.nonzero(pi)
+      s, t = _mixed_blocks(torch.as_tensor(node, device = device), torch.as_tensor(block, device = device), torch.as_tensor(pi[node, block], device = device), pi.shape[0], P, directed, gen, device)
+      table = None
+      if attribute is not None:
+         listed = pi >= (1 / (k + 1) if threshold is None else threshold)
+         pattern, which = np.unique(listed, axis = 0, return_inverse = True)   # few distinct sets of blocks
+         comm = np.empty(len(pattern), dtype = object)
+         comm[:] = [_membership(tuple(np.flatnonzero(r).tolist())) for r in pattern]
+         comm = comm[which.ravel()]
+         table = lambda perm: pd.DataFrame({attribute: pd.Categorical(comm[perm])})
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(pi.shape[0]), np.zeros((s.shape[0], 0), dtype = np.float32), [], None, [], directed, device, table, [] if attribute is None else [attribute])
+   if memberships is not None or n is not None or alpha is not None:
+      raise ValueError("with net, memberships come from its communities: leave out memberships, n and alpha")
+   (mnode, mcode), labels, S, T = _communities(net, attribute, directed, device, overlap = True)
+   directed = net.directed
+   O = torch.bincount(mnode, minlength = int(net.node_offsets[-1]))
+
+   def make(l, nodes, n0, count, loops, gen):
+      sel = torch.isin(mnode, nodes)
+      pos = torch.full((O.shape[0],), -1, dtype = torch.long, device = nodes.device)
+      pos[nodes] = torch.arange(nodes.shape[0], device = nodes.device)
+      present, block = torch.unique(mcode[sel], return_inverse = True)
+      node, weight = pos[mnode[sel]], 1 / O[mnode[sel]].double()
+      o = torch.argsort(node, stable = True)
+      node, block, weight = node[o], block[o], weight[o]
+      given = _layer_value(probs, None, net, l, "probs", True)
+      if given is not None:
+         P = matrix(given, len(labels)).to(nodes.device)[present][:, present]
+      else:
+         mine = torch.isin(S, nodes) & torch.isin(T, nodes)   # intra-layer edges of this layer
+         P = _mixed_probs(node, block, weight, nodes.shape[0], present.shape[0], pos[S[mine]], pos[T[mine]], directed)
+      return _mixed_blocks(node, block, weight, nodes.shape[0], P, directed, gen, nodes.device)
+
+   return _randomize(net, seed, make)
+
+
+# ------------------------------------------------------------------------------------------------
+# Community benchmarks: Girvan-Newman, LFR
+# ------------------------------------------------------------------------------------------------
+
+
+def _gn_probs(sizes, d, mu):
+   """
+   Probabilities of a Girvan-Newman benchmark: see :func:`girvan_newman_graph`.
+
+   :param sizes: Community sizes.
+   :param d: Average degree (out-degree if directed).
+   :param mu: Mixing parameter.
+   :return: ``(p_in, p_out)``.
+   :raises ValueError: If ``mu`` is not between 0 and 1, or a probability would exceed 1.
+   """
+   if not 0 <= mu <= 1:
+      raise ValueError(f"mu must be between 0 and 1, got {mu}")
+   sizes = np.asarray(sizes, dtype = np.float64)
+   n = sizes.sum()
+   ratio = lambda a, b: a / b if b else (math.inf if a else 0.)
+   p_in = ratio(n * d * (1 - mu), (sizes * (sizes - 1)).sum())
+   p_out = ratio(n * d * mu, n * n - (sizes ** 2).sum())
+   if p_in > 1 or p_out > 1:
+      raise ValueError(f"average degree {d:g} with mu = {mu:g} needs p_in = {p_in:.3g}, p_out = {p_out:.3g}: communities of {sizes.min():g}{'' if sizes.min() == sizes.max() else f' to {sizes.max():g}'} nodes cannot hold it")
+   return p_in, p_out
+
+
+def girvan_newman_graph(mu = None, l = None, k = None, degree = None, net = None, directed = None, attribute = "community", seed = None, device = None):
+   """
+   Girvan-Newman benchmark (Girvan and Newman, 2002) for community discovery: ``l`` communities
+   of ``k`` nodes, and every node expects ``degree`` edges, a fraction ``mu`` of them (the mixing
+   parameter) to nodes of other communities. Pairs of nodes are edges independently, with
+   probability :math:`p_{in}` within communities and :math:`p_{out}` between them, so this is a
+   :func:`planted_partition_graph` with equal communities, parametrized by how hard they are to
+   find rather than by densities; it is also a caveman graph (see :func:`caveman_graph`) whose
+   caves are thinned and mixed. The classic benchmark is the default: 128 nodes in 4 communities of
+   32, average degree 16 (expected external degree :math:`z_{out} = 16 \\mu`). Communities are
+   found easily for small ``mu``, and become undetectable as ``mu`` approaches
+   :math:`1 - 1 / l`, where nodes have as many edges to each other community as to their own.
+
+   For ``n`` nodes in communities of sizes :math:`s_c` and average degree :math:`d` (out-degree if
+   directed), :math:`p_{in} = n d (1 - \\mu) / \\sum_c s_c (s_c - 1)` and
+   :math:`p_{out} = n d \\mu / (n^2 - \\sum_c s_c^2)`, so that the average degree is ``degree`` and
+   the expected fraction of edges between communities is ``mu``. The graph has no self loops nor
+   parallel edges, and is generated as :func:`planted_partition_graph`, in time about linear in
+   the number of edges.
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1``, community by community. With
+   ``net``, the result is a randomization of ``net`` (see the module description): its nodes are
+   assigned at random to ``l`` communities, whose sizes differ by at most one (``l`` given, or
+   ``n / k`` rounded if ``k`` is given), with the average degree of ``net``. Without ``l`` and
+   ``k``, the number of communities is that of the node attribute ``attribute`` of ``net``, and
+   without ``mu`` the mixing parameter is the fraction of the edges of ``net`` between its
+   communities (self loops left out); for communities of ``net`` that are kept as they are, use
+   :func:`planted_partition_graph`. In multilayer networks each layer is randomized on its own,
+   with its own communities (numbered across layers, so that no two layers share one), average
+   degree and parameters (``mu``, ``l``, ``k`` and ``degree`` can be dictionaries from layer to
+   value); interlayer edges are kept.
+
+   In both cases the community of every node is stored as the numeric node attribute
+   ``attribute`` (overwriting that of ``net``), unless ``None``: the planted partition, the
+   ground truth with which to compare the communities found.
+
+   :param mu: Mixing parameter, between 0 and 1; ``None`` with ``net``, for its own.
+   :param l: Number of communities; ``None`` for 4 without ``net``.
+   :param k: Number of nodes of each community; ``None`` for 32 without ``net``.
+   :param degree: Average degree (out-degree if directed); ``None`` for 16 without ``net``, or
+      for the average degree of ``net``.
+   :param net: A :class:`~graphoskop.Network` to randomize, not bipartite, or ``None``.
+   :param directed: Whether the edges are directed (ordered pairs); ``None`` for undirected, or
+      for the direction of ``net``.
+   :param attribute: Name of the node attribute holding the community of each node: written to
+      the result, and read from ``net`` when ``l``, ``k`` or ``mu`` are missing (``None`` for no
+      attribute).
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The benchmark graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If ``mu`` is missing without ``net``, or with a ``net`` without node
+      attribute ``attribute``, likewise for the number of communities, if ``mu`` is not between 0
+      and 1, if the degree is too high for the communities (a probability above 1), if both ``l``
+      and ``k`` are given with ``net``, if ``net`` is bipartite or a node has no community, if
+      ``directed`` or ``device`` differ from those of ``net``, or for dictionaries as in
+      :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      g = gsk.girvan_newman_graph(0.2, seed = 1)                          # 4 x 32 nodes, z_out = 3.2
+      gsk.modularity(g, "community")                                      # quality of the planted partition
+      g = gsk.girvan_newman_graph(0.4, l = 10, k = 100, degree = 20)      # larger benchmark
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")                    # node attribute "community"
+      rnd = gsk.girvan_newman_graph(net = net, seed = 1)                  # as many communities, same mu and degree
+      rnd = gsk.girvan_newman_graph(0.5, net = net, l = 8)                # harder, with 8 communities
+   """
+   if net is None:
+      if mu is None:
+         raise ValueError("give mu, or net")
+      l, k, degree = 4 if l is None else int(l), 32 if k is None else int(k), 16 if degree is None else degree
+      directed, device = bool(directed), torch.device("cpu" if device is None else device)
+      p_in, p_out = _gn_probs([k] * l, degree, mu)
+      sz = torch.full((l,), k, dtype = torch.long, device = device)
+      s, t = _planted(sz, p_in, p_out, directed, _generator(seed, device), device)
+      comm = np.repeat(np.arange(l), k).astype(np.float32)
+      table = None if attribute is None else lambda perm: comm[perm][:, None]
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(l * k), np.zeros((s.shape[0], 0), dtype = np.float32), [], table, [] if attribute is None else [attribute], directed, device)
+   if l is not None and k is not None:
+      raise ValueError("with net, give l or k, not both: the number of nodes fixes the other")
+   _check_net(net, None, directed, device)
+   known = attribute is not None and (attribute in net.node_attributes or attribute in net.qualitative_node_attributes)
+   code, S, T = None, None, None
+   if known and (mu is None or (l is None and k is None)):
+      code, _, S, T = _communities(net, attribute, directed, device)
+   elif net.bipartite_labels is not None:
+      raise ValueError("bipartite networks are not supported")
+   groups = []
+
+   def make(j, nodes, n0, count, loops, gen):
+      n = nodes.shape[0]
+      if code is not None:
+         mine = torch.isin(S, nodes) & torch.isin(T, nodes)   # intra-layer edges of this layer
+      q = _layer_value(mu, None, net, j, "mu", True)
+      if q is None:
+         if code is None:
+            raise ValueError(f"give mu, or a net with node attribute {attribute!r}")
+         q = float((code[S[mine]] != code[T[mine]]).double().mean()) if bool(mine.any()) else 0.
+      c, size = _layer_value(l, None, net, j, "l", False), _layer_value(k, None, net, j, "k", True)
+      if c is None and size is None:
+         if code is None:
+            raise ValueError(f"give l or k, or a net with node attribute {attribute!r}")
+         c = int(torch.unique(code[nodes]).shape[0])
+      sizes = _cave_sizes(n, 0, c, size)
+      d = _layer_value(degree, count * (1 if net.directed else 2) / max(n, 1), net, j, "degree", True)
+      p_in, p_out = _gn_probs(sizes, d, q)
+      perm = torch.randperm(n, generator = gen, device = nodes.device)   # random communities
+      off = max((int(g[-1]) + 1 for _, g in groups if len(g)), default = 0)   # numbered across layers
+      groups.append((nodes[perm], np.repeat(np.arange(off, off + len(sizes)), sizes)))
+      s, t = _planted(torch.tensor(sizes, dtype = torch.long, device = nodes.device), p_in, p_out, net.directed, gen, nodes.device)
+      return perm[s], perm[t]
+
+   return _with_groups(net, _randomize(net, seed, make), attribute, groups)
+
+
+
+def _power_law(count, t, lo, hi, gen, device):
+   """
+   Integers from a power law: values of a continuous power law of exponent ``t`` on
+   ``[lo, hi + 1)``, rounded down (so between ``floor(lo)`` and ``hi``).
+
+   :param count: Number of values.
+   :param t: Exponent (:math:`p(x) \\propto x^{-t}`).
+   :param lo: Lower bound, a positive real number.
+   :param hi: Largest value.
+   :param gen: Random generator.
+   :param device: Device.
+   :return: int64 tensor.
+   """
+   u = torch.rand(count, generator = gen, device = device, dtype = torch.float64)
+   a, b = float(lo), float(hi) + 1
+   if abs(t - 1) < 1e-12:
+      x = a * (b / a) ** u
+   else:
+      e = 1 - t
+      x = (a ** e + u * (b ** e - a ** e)) ** (1 / e)
+   return x.floor().long().clamp(max = int(hi))
+
+
+def _power_law_bound(mean, t, hi, name):
+   """
+   Lower bound of the power law of :func:`_power_law` whose values have a given mean.
+
+   :param mean: Mean of the values.
+   :param t: Exponent.
+   :param hi: Largest value.
+   :param name: Name of the mean, for error messages.
+   :return: The lower bound.
+   :raises ValueError: If no lower bound of at least 1 gives that mean.
+   """
+   F = np.log if abs(t - 1) < 1e-12 else (lambda x: x ** (1 - t))
+
+   def avg(a):
+      j = np.arange(math.floor(a), hi + 1, dtype = np.float64)
+      w = F(j + 1) - F(np.maximum(j, a))   # mass of each value, up to a common factor
+      return (j * w).sum() / w.sum()
+
+   if not avg(1) <= mean <= hi:
+      raise ValueError(f"{name} must be between {avg(1):.3g} (exponent {t:g}, values from 1) and {hi}, got {mean}")
+   a, b = 1., float(hi)
+   for _ in range(60):   # bisection: the mean grows with the lower bound
+      a, b = ((a + b) / 2, b) if avg((a + b) / 2) < mean else (a, (a + b) / 2)
+   return a
+
+
+def _decrement(d, group, excess, gen):
+   """
+   Lower by one, in place, the values of ``excess[g]`` random elements of each group ``g`` (an
+   element can be lowered several times), among positive values.
+
+   :param d: int64 tensor of values.
+   :param group: int64 tensor, group of every element.
+   :param excess: int64 tensor, how much to remove from every group.
+   :param gen: Random generator.
+   """
+   excess = excess.clone()
+   while bool((excess > 0).any()):
+      idx = torch.nonzero((d > 0) & (excess[group] > 0)).squeeze(1)
+      if idx.shape[0] == 0:
+         return
+      idx = idx[torch.argsort(group[idx].double() + torch.rand(idx.shape[0], generator = gen, device = d.device, dtype = torch.float64))]
+      g = group[idx]
+      dec = idx[torch.arange(idx.shape[0], device = d.device) - torch.searchsorted(g, g) < excess[g]]
+      d[dec] -= 1
+      excess -= torch.bincount(group[dec], minlength = excess.shape[0])
+
+
+def _sharing(node, comm, n, C):
+   """
+   Test of whether pairs of nodes share a community.
+
+   :param node: int64 tensor, node of every membership.
+   :param comm: int64 tensor, community of every membership.
+   :param n: Number of nodes.
+   :param C: Number of communities.
+   :return: Function of two node tensors giving a boolean tensor.
+   """
+   keys = torch.sort(node * C + comm).values   # by node, then community
+   count = torch.bincount(node, minlength = n)
+   first = torch.cumsum(count, 0) - count
+
+   def share(a, b):
+      e = torch.repeat_interleave(torch.arange(a.shape[0], device = a.device), count[a])
+      q = b[e] * C + keys[_expand(first[a], count[a])] % C
+      hit = keys[torch.searchsorted(keys, q).clamp(max = keys.shape[0] - 1)] == q
+      return torch.zeros(a.shape[0], dtype = torch.bool, device = a.device).index_fill_(0, e[hit], True)
+
+   return share
+
+
+def _lfr_assign(node, need, sizes, gen, rounds = 200):
+   """
+   Communities of the memberships of an LFR benchmark: a random matching of memberships and
+   places in communities (a bipartite configuration model), then rounds of swaps of the
+   memberships that do not fit, i.e. that need more neighbors than their community has, or put a
+   node twice in a community, with random memberships of communities large enough for them.
+
+   :param node: int64 tensor, node of every membership.
+   :param need: int64 tensor, internal degree of every membership.
+   :param sizes: int64 tensor, size of every community, in increasing order, adding up to the
+      number of memberships.
+   :param gen: Random generator.
+   :param rounds: Maximum number of rounds.
+   :return: int64 tensor, community of every membership (some may still not fit).
+   """
+   dev, M, C = node.device, node.shape[0], sizes.shape[0]
+   comm = torch.repeat_interleave(torch.arange(C, device = dev), sizes)[torch.randperm(M, generator = gen, device = dev)]
+   idle = 0
+   for _ in range(rounds):
+      key = node * C + comm
+      sk, inv = torch.unique(key, return_inverse = True)
+      first = torch.full((sk.shape[0],), M, device = dev).scatter_reduce(0, inv, torch.arange(M, device = dev), "amin")
+      wrong = (need > sizes[comm] - 1) | torch.ones(M, dtype = torch.bool, device = dev).index_fill_(0, first, False)
+      V = torch.nonzero(wrong).squeeze(1)
+      if V.shape[0] == 0 or idle >= 10:
+         break
+      o = torch.argsort(comm)   # memberships by community, so by community size
+      lo = torch.searchsorted(sizes[comm[o]], need[V] + 1)   # first one in a large enough community
+      V, lo = V[lo < M], lo[lo < M]
+      P = o[lo + (torch.rand(V.shape[0], generator = gen, device = dev, dtype = torch.float64) * (M - lo)).long().clamp(max = M - 1)]
+      a, b = comm[V], comm[P]
+      k1, k2 = node[V] * C + b, node[P] * C + a
+      ok = (a != b) & ~wrong[P] & (need[P] <= sizes[a] - 1) & ~torch.isin(k1, sk) & ~torch.isin(k2, sk)
+      _, i, used = torch.unique(P, return_inverse = True, return_counts = True)
+      ok &= used[i] == 1
+      both = torch.cat([k1, k2])
+      _, i, dup = torch.unique(both, return_inverse = True, return_counts = True)
+      ok &= (dup[i[:V.shape[0]]] == 1) & (dup[i[V.shape[0]:]] == 1)
+      comm[V[ok]], comm[P[ok]] = b[ok], a[ok]
+      idle = 0 if bool(ok.any()) else idle + 1
+   return comm
+
+
+def _lfr_edges(kin, kout, node, comm, C, mu, directed, gen):
+   """
+   Edges of an LFR benchmark with given degrees and communities: each node keeps a fraction
+   ``1 - mu`` of its degree (in- and out-degree if directed) inside its communities, split evenly
+   among them and at most the size of the community minus one, wired by a configuration model
+   within every community; the rest is wired by a configuration model between nodes that share no
+   community. Stubs are moved from inside to outside where needed for the counts to match (even in
+   every community), or between inside and outside (as many in- as out-stubs in every community,
+   if directed: half of the gap by moving stubs of the larger side outside, the rest by moving
+   stubs of the other side inside, or outside if there is no room). Self loops, parallel edges
+   and edges within a community left by the repairs are dropped, as are edges made in two
+   communities by nodes that share both.
+
+   :param kin: int64 tensor, in-degree of every node (the degree if undirected).
+   :param kout: int64 tensor, out-degree of every node (the degree if undirected).
+   :param node: int64 tensor, node of every membership.
+   :param comm: int64 tensor, community of every membership.
+   :param C: Number of communities.
+   :param mu: Mixing parameter.
+   :param directed: Whether the edges are directed.
+   :param gen: Random generator.
+   :return: Sources, targets, and whether each edge is internal (within a community).
+   """
+   dev, n = kin.device, kin.shape[0]
+   o = torch.argsort(comm * n + node)   # memberships by community, then node
+   node, comm = node[o], comm[o]
+   M = node.shape[0]
+   size, O = torch.bincount(comm, minlength = C), torch.bincount(node, minlength = n)
+   by_node = torch.argsort(node, stable = True)
+   rank = torch.empty(M, dtype = torch.long, device = dev)
+   rank[by_node] = torch.arange(M, device = dev) - (torch.cumsum(O, 0) - O)[node[by_node]]
+
+   def split(k):   # internal degree of every membership
+      kint = torch.round((1 - mu) * k.double()).long()
+      d = kint[node] // O[node] + (rank < kint[node] % O[node]).long()
+      return torch.minimum(d, size[comm] - 1)
+
+   total = lambda d: torch.zeros(C, dtype = torch.long, device = dev).index_add_(0, comm, d)
+   if directed:   # as many in- as out-stubs in every community: half of the gap closed on each side
+      di, do = split(kin), split(kout)
+      for x, y, ky in ((do, di, kin), (di, do, kout)):
+         gap = (total(x) - total(y)).clamp(min = 0)
+         cap = torch.maximum(y, torch.minimum(size[comm] - 1, ky[node] // O[node]))
+         room = cap - y
+         _decrement(room, comm, gap - gap // 2, gen)   # y up, where it has external stubs left
+         y.copy_(cap - room)
+         _decrement(x, comm, (total(x) - total(y)).clamp(min = 0), gen)   # x down for the rest
+   else:
+      di = do = split(kin)
+      _decrement(di, comm, torch.zeros(C, dtype = torch.long, device = dev).index_add_(0, comm, di) % 2, gen)
+   s, t = _stub_match(do, di, directed, 100, True, True, gen, group = comm)   # within communities
+   s, t = node[s], node[t]
+   key = torch.unique(s * n + t if directed else torch.minimum(s, t) * n + torch.maximum(s, t))   # one edge per pair
+   s, t = key // n, key % n
+   eo = kout - torch.zeros(n, dtype = torch.long, device = dev).index_add_(0, node, do)
+   ei = kin - torch.zeros(n, dtype = torch.long, device = dev).index_add_(0, node, di)
+   x, y = _stub_match(eo, ei if directed else eo, directed, 100, True, True, gen, forbid = _sharing(node, comm, n, C))   # between
+   internal = torch.cat([torch.ones_like(s, dtype = torch.bool), torch.zeros_like(x, dtype = torch.bool)])
+   return torch.cat([s, x]), torch.cat([t, y]), internal
+
+
+def _lfr_weights(s, t, internal, target_in, target_out, tol = 1e-4, iterations = 2000):
+   """
+   Weights of an LFR benchmark: ``w_ij = x_i x_j`` separately on internal and external edges,
+   with the factors ``x`` that give every node its target internal and external strength (sum of
+   the weights of its edges, in either direction), found by iterating
+   :math:`x_i \\leftarrow \\sqrt{x_i T_i / \\sum_j x_j}`; when the targets cannot all be met, the
+   iteration settles close to them.
+
+   :param s: int64 tensor, sources.
+   :param t: int64 tensor, targets.
+   :param internal: Boolean tensor, whether each edge is internal.
+   :param target_in: float64 tensor, target internal strength of every node.
+   :param target_out: float64 tensor, target external strength of every node.
+   :param tol: Relative change of the factors at which to stop.
+   :param iterations: Maximum number of iterations.
+   :return: float64 tensor of weights.
+   """
+   w = torch.zeros(s.shape[0], dtype = torch.float64, device = s.device)
+   for mask, target in ((internal, target_in), (~internal, target_out)):
+      a, b = s[mask], t[mask]
+      x = torch.ones_like(target)
+      for _ in range(iterations):
+         tot = torch.zeros_like(x).index_add_(0, a, x[b]).index_add_(0, b, x[a])
+         new = torch.where(tot > 0, torch.sqrt(x * target / tot.clamp(min = 1e-300)), 0)
+         done = bool(((new - x).abs() <= tol * new.abs().clamp(min = 1e-12)).all())
+         x = new
+         if done:
+            break
+      w[mask] = x[a] * x[b]
+   return w
+
+
+def lfr_benchmark_graph(n = None, k = None, maxk = None, mu = None, t1 = 2, t2 = 1, minc = None, maxc = None, on = 0, om = 2, muw = None, beta = None, net = None, attribute = "community", weight = "weight", directed = None, seed = None, device = None):
+   """
+   LFR benchmark (Lancichinetti, Fortunato and Radicchi, 2008) for community discovery, with the
+   variants of Lancichinetti and Fortunato (2009): directed, weighted, and with overlapping
+   communities. Unlike :func:`girvan_newman_graph`, degrees and community sizes are broad, as in
+   real networks: degrees follow a power law of exponent ``t1`` with average ``k`` and maximum
+   ``maxk``, community sizes a power law of exponent ``t2`` between ``minc`` and ``maxc``, and every
+   node has a fraction ``mu`` (the mixing parameter) of its edges to nodes outside its communities.
+
+   The graph is built as in the original: nodes are placed in communities by a random matching,
+   then swaps until every node fits, i.e. its internal degree :math:`(1 - \\mu) k_i` is smaller
+   than the size of its community; each community is wired as a configuration model of the
+   internal degrees, and the external degrees as a configuration model between nodes that share no
+   community. A few hundred rounds of parallel repairs (see :func:`configuration_model`) remove
+   self loops, parallel edges and external edges within communities; the few left are dropped, so
+   some degrees can be a little lower than drawn, and, when small communities are almost cliques,
+   ``mu`` a little higher (e.g. 0.303 for 0.3 with communities of 20 nodes and average degree
+   20). Internal degrees larger than the community
+   allows (a hub that fits in no community) are cut to fit, the rest going outside. Everything
+   runs on the device, in time about linear in the number of edges.
+
+   Variants:
+
+   * directed (``directed = True``): in-degrees follow the power law and out-degrees are as equal
+     as possible, as in the tests of Lancichinetti and Fortunato (2009); ``mu`` applies to both,
+     and ``k`` and ``maxk`` are the average and largest in-degree;
+   * weighted (``muw`` given): node ``i`` has strength :math:`s_i = k_i^\\beta` (total degree if
+     directed; ``beta`` 1.5 by default), a fraction ``muw`` of it on external edges, and weights
+     are set to give every node its internal and external strengths as closely as possible (by
+     iterative scaling, instead of the greedy minimization of the original). They are stored as the
+     edge attribute ``weight``;
+   * overlapping communities (``on`` above 0): ``on`` random nodes belong to ``om`` communities each,
+     their internal degree split evenly among them; sizes add up to ``n + on (om - 1)``
+     memberships. Communities are then a qualitative node attribute of tuples (see
+     :ref:`overlapping-communities`) and :func:`~graphoskop.modularity` is the overlapping one.
+
+   Without ``net``, nodes are the integers ``0`` to ``n - 1``, and the community of each node is
+   stored as the node attribute ``attribute`` (unless ``None``): numeric, communities numbered
+   from the smallest, or tuples of them with overlaps. ``minc`` and ``maxc`` default to the smallest
+   and largest degree, as in the original program.
+
+   With ``net``, the result is a randomization of ``net`` (see the module description) with its
+   degrees (in and out if directed) and its communities, read from the node attribute
+   ``attribute`` (a list, tuple or set of communities for nodes in several), which it keeps:
+   instead of drawing them from power laws, the benchmark uses those of ``net``, and ``mu`` is
+   the fraction of its edges (self loops left out) between nodes that share no community, unless
+   given. If ``net`` has the edge attribute ``weight``, the result is weighted: strengths are
+   those of ``net`` (or :math:`k_i^\\beta` if ``beta`` is given) and ``muw`` the fraction of its
+   weight on external edges, unless given; otherwise edge attributes are drawn from the old edges,
+   as in the other generators. In multilayer networks each layer is randomized on its own (``mu``,
+   ``muw`` and ``beta`` can be dictionaries from layer to value); interlayer edges are kept.
+
+   :param n: Number of nodes; ``None`` with ``net``.
+   :param k: Average degree (in-degree if directed); ``None`` with ``net``.
+   :param maxk: Largest degree (in-degree if directed); ``None`` with ``net``.
+   :param mu: Mixing parameter, between 0 and 1; ``None`` with ``net``, for its own.
+   :param t1: Exponent of the degree power law.
+   :param t2: Exponent of the community size power law.
+   :param minc: Smallest community size; ``None`` for the smallest degree.
+   :param maxc: Largest community size; ``None`` for ``maxk``.
+   :param on: Number of nodes in several communities.
+   :param om: Number of communities of each of them.
+   :param muw: Mixing parameter of the weights, between 0 and 1, for a weighted graph; ``None``
+      for an unweighted one, or, with ``net``, for its own.
+   :param beta: Exponent of the strengths, :math:`s_i = k_i^\\beta`; ``None`` for 1.5, or, with
+      ``net``, for its strengths.
+   :param net: A :class:`~graphoskop.Network` to randomize, not bipartite, or ``None``.
+   :param attribute: Name of the node attribute holding the communities: written to the result
+      without ``net`` (``None`` for none), read from ``net``.
+   :param weight: Name of the edge attribute of the weights: written to the result if weighted,
+      and read from ``net`` (``None``: unweighted with ``net``).
+   :param directed: Whether the edges are directed; ``None`` for undirected, or for the direction
+      of ``net``.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU, or for the device
+      of ``net``.
+   :return: The benchmark graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If ``n``, ``k``, ``maxk`` and ``mu`` are missing without ``net``, or the
+      first three are given with it, if ``k`` cannot be the average of the power law up to
+      ``maxk``, if the community sizes cannot hold the memberships (``minc`` above ``maxc`` or above
+      the number of memberships, ``om`` above the number of communities, ``on`` above ``n``), if
+      ``mu`` or ``muw`` are not between 0 and 1, if ``net`` is bipartite, has no node attribute
+      ``attribute`` or a node without a value, if ``directed`` or ``device`` differ from those of
+      ``net``, or for dictionaries as in :func:`gnm_random_graph`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      g = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, minc = 20, maxc = 100, seed = 1)
+      gsk.modularity(g, "community")                                   # quality of the planted communities
+      g = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, directed = True)   # power law in-degrees
+      g = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, muw = 0.2)         # weighted, beta = 1.5
+      g = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, on = 100, om = 3)  # 100 nodes in 3 communities each
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")                 # node attribute "community"
+      rnd = gsk.lfr_benchmark_graph(net = net, seed = 1)               # degrees, communities and mu of net
+      rnd = gsk.lfr_benchmark_graph(net = net, mu = 0.6)               # same, with mixed communities
+   """
+   for q in [x for v in (mu, muw) for x in (v.values() if isinstance(v, dict) else [v])]:
+      if q is not None and not 0 <= q <= 1:
+         raise ValueError(f"mixing parameters must be between 0 and 1, got {q}")
+   if net is None:
+      if n is None or k is None or maxk is None or mu is None:
+         raise ValueError("give n, k, maxk and mu, or net")
+      directed, device = bool(directed), torch.device("cpu" if device is None else device)
+      gen = _generator(seed, device)
+      n, maxk = int(n), int(maxk)
+      kin = _power_law(n, t1, _power_law_bound(k, t1, maxk, "k"), maxk, gen, device)
+      if directed:   # out-degrees as equal as possible
+         m = int(kin.sum())
+         kout = (m // n + (torch.arange(n, device = device) < m % n).long())[torch.randperm(n, generator = gen, device = device)]
+      else:
+         if int(kin.sum()) % 2:   # even sum: one more edge end at a node below the maximum
+            kin[torch.nonzero(kin < maxk).squeeze(1)[0]] += 1
+         kout = kin
+      minc = int(kin.min()) if minc is None else int(minc)
+      maxc = maxk if maxc is None else int(maxc)
+      on = int(on)
+      if not 0 <= on <= n:
+         raise ValueError(f"on must be between 0 and n = {n}, got {on}")
+      O = torch.ones(n, dtype = torch.long, device = device)
+      O[torch.randperm(n, generator = gen, device = device)[:on]] = om
+      M = int(O.sum())
+      if not 1 <= minc <= min(maxc, M):
+         raise ValueError(f"community sizes must be at least 1, minc at most maxc and at most the {M} memberships: got minc = {minc}, maxc = {maxc}")
+      sizes = kin[:0]
+      while int(sizes.sum()) < M:
+         sizes = torch.cat([sizes, _power_law(max(16, 2 * M // minc), t2, minc, maxc, gen, device)])
+      sizes = sizes[:int(torch.searchsorted(torch.cumsum(sizes, 0), M)) + 1]
+      d = sizes - minc   # remove the excess from random communities, keeping them at least minc
+      _decrement(d, torch.zeros_like(d), torch.tensor([int(sizes.sum()) - M], device = device), gen)
+      sizes = d + minc
+      _decrement(sizes, torch.zeros_like(d), torch.tensor([int(sizes.sum()) - M], device = device), gen)   # if all are at minc
+      sizes = torch.sort(sizes).values
+      sizes = sizes[sizes > 0]
+      if om > sizes.shape[0] and on:
+         raise ValueError(f"om = {om} is more than the {sizes.shape[0]} communities")
+      node = torch.repeat_interleave(torch.arange(n, device = device), O)
+      need = torch.round((1 - mu) * torch.maximum(kin, kout).double()).long()
+      need = need[node] // O[node] + (need[node] % O[node] > 0).long()
+      comm = _lfr_assign(node, need, sizes, gen)
+      s, t, internal = _lfr_edges(kin, kout, node, comm, sizes.shape[0], mu, directed, gen)
+      ea, enames = np.zeros((s.shape[0], 0), dtype = np.float32), []
+      if muw is not None:
+         st = (kin + kout if directed else kin).double() ** (1.5 if beta is None else beta)
+         w = _lfr_weights(s, t, internal, (1 - muw) * st, muw * st)
+         ea, enames = w.cpu().numpy().astype(np.float32)[:, None], [weight]
+      table, qtable = None, None
+      if attribute is not None:
+         o = torch.argsort(node * sizes.shape[0] + comm)
+         if on == 0:
+            cm = comm[o].cpu().numpy().astype(np.float32)
+            table = lambda perm: cm[perm][:, None]
+         else:
+            cs = np.split(comm[o].cpu().numpy(), np.cumsum(O.cpu().numpy())[:-1])
+            cm = np.empty(n, dtype = object)
+            cm[:] = [_membership(tuple(x.tolist())) for x in cs]
+            qtable = lambda perm: pd.DataFrame({attribute: pd.Categorical(cm[perm])})
+      return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(n), ea, enames, table, [] if attribute is None or on else [attribute], directed, device, qtable, [attribute] if qtable else [])
+   if n is not None or k is not None or maxk is not None:
+      raise ValueError("with net, n, k and maxk come from its degrees: leave them out")
+   (mnode, mcode), labels, S, T = _communities(net, attribute, directed, device, overlap = True)
+   directed = net.directed
+   out, inn = _degrees(net)
+   wcol = weight if weight is not None and weight in net.edge_attributes else None
+   if wcol is not None:   # weights of the loop-free input edges, aligned with S and T
+      j = net.edge_attributes.index(wcol)
+      W = []
+      for c in range(len(net.components)):
+         ei, x = net._input_edges(c)
+         W.append(x[ei[0] != ei[1], j].double())
+      W = torch.nan_to_num(torch.cat(W))
+
+   def make(l, nodes, n0, count, loops, gen):
+      N = nodes.shape[0]
+      pos = torch.full((out.shape[0],), -1, dtype = torch.long, device = nodes.device)
+      pos[nodes] = torch.arange(N, device = nodes.device)
+      sel = torch.isin(mnode, nodes)
+      present, comm = torch.unique(mcode[sel], return_inverse = True)
+      node = pos[mnode[sel]]
+      mine = torch.isin(S, nodes) & torch.isin(T, nodes)   # intra-layer edges of this layer
+      a, b = pos[S[mine]], pos[T[mine]]
+      ext = ~_sharing(node, comm, N, present.shape[0])(a, b)
+      q = _layer_value(mu, None, net, l, "mu", True)
+      q = (float(ext.double().mean()) if a.shape[0] else 0.) if q is None else q
+      kin, kout = (inn[nodes], out[nodes]) if directed else (out[nodes], out[nodes])
+      s, t, internal = _lfr_edges(kin, kout, node, comm, present.shape[0], q, directed, gen)
+      if wcol is None:
+         return s, t
+      w = W[mine]
+      e = _layer_value(beta, None, net, l, "beta", True)
+      st = torch.zeros(N, dtype = torch.float64, device = w.device).index_add_(0, a, w).index_add_(0, b, w) if e is None else (kin + kout if directed else kin).double() ** e
+      qw = _layer_value(muw, None, net, l, "muw", True)
+      qw = (float(w[ext].sum() / w.sum()) if float(w.sum()) > 0 else 0.) if qw is None else qw
+      return s, t, {wcol: _lfr_weights(s, t, internal, (1 - qw) * st, qw * st)}
 
    return _randomize(net, seed, make)

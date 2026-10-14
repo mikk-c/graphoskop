@@ -37,6 +37,34 @@ and are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.span
    net.qualitative_node_attributes   # ["city"]: in CPU memory
    net.get_node_attribute("city")    # NumPy object array over the nodes of component 0
 
+.. _overlapping-communities:
+
+Several values per node: overlapping communities
+------------------------------------------------
+
+A qualitative node attribute can give a node several values, e.g. the communities of a node in
+more than one. In Python, the value of such a node is a list, tuple, set or array of values; it is
+stored as a tuple of its distinct values (in order, sorted for sets), and a collection of one value
+as that value, so that nodes in one community keep a plain label. Strings are single values. A
+numeric attribute cannot take several values: use a new attribute name.
+
+In files, several values are several rows of a long node table (``node_format = "long"``), one per
+value: the rows of a node and attribute are merged into a tuple on loading, and tuples are written
+back as several rows by :func:`~graphoskop.save_network`. A wide table, with one cell per node and
+attribute, cannot hold them: saving them in wide format raises an error (save in long format, or
+pickle the network). Numeric labels read from a long table stay integers when they all are.
+
+:func:`~graphoskop.modularity` switches to overlapping modularity for such partitions, and
+:func:`~graphoskop.mixed_membership_block_model` generates and randomizes networks with
+overlapping communities. Functions that need one value per node, e.g. categorical
+:func:`~graphoskop.assortativity` or the other blockmodels, raise :class:`ValueError`.
+
+.. code-block:: python
+
+   net.set_node_attribute("community", [[0, 1], 1, {1, 2}, (2,)])   # stored as (0, 1), 1, (1, 2), 2
+   gsk.modularity(net, "community")                                  # overlapping (Shen et al.)
+   gsk.save_network(net, "out", node_format = "long")                # node 0: two "community" rows
+
 Bipartite networks
 ------------------
 

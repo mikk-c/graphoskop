@@ -65,6 +65,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnm_random_graph"><code class="docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnp_random_graph"><code class="docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.configuration_model"><code class="docutils literal notranslate"><span class="pre">configuration_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.edge_swap"><code class="docutils literal notranslate"><span class="pre">edge_swap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.kronecker_graph"><code class="docutils literal notranslate"><span class="pre">kronecker_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.geometric_graph"><code class="docutils literal notranslate"><span class="pre">geometric_graph()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#clustered-graphs">Clustered graphs</a><ul>
@@ -82,6 +85,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#stochastic-blockmodels">Stochastic blockmodels</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.planted_partition_graph"><code class="docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.stochastic_block_model"><code class="docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_corrected_block_model"><code class="docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.mixed_membership_block_model"><code class="docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#community-benchmarks">Community benchmarks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.girvan_newman_graph"><code class="docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.lfr_benchmark_graph"><code class="docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -114,15 +124,21 @@
              
   <section id="module-graphoskop.generators">
 <span id="generators"></span><h1>Generators<a class="headerlink" href="#module-graphoskop.generators" title="Link to this heading"></a></h1>
-<p>Synthetic network generators, in four families:</p>
+<p>Synthetic network generators, in five families:</p>
 <ul class="simple">
-<li><p>random graphs, wired uniformly at random given a few numbers (edges, density, or the degree of
-every node): <code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code>;</p></li>
+<li><p>random graphs, wired at random given a few numbers (edges, density, the degree of every node,
+a small initiator matrix, or positions in space): <code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code> (only randomizes a
+network), <code class="xref py py-func docutils literal notranslate"><span class="pre">kronecker_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">geometric_graph()</span></code>;</p></li>
 <li><p>clustered graphs, with many triangles: <code class="xref py py-func docutils literal notranslate"><span class="pre">caveman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">watts_strogatz_graph()</span></code>;</p></li>
 <li><p>broad degree graphs, with hubs: <code class="xref py py-func docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">link_selection_graph()</span></code>,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">copying_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">holme_kim_graph()</span></code> (with clustering);</p></li>
 <li><p>stochastic blockmodels, with communities: <code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code>,
-<code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code>.</p></li>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code> (overlapping communities);</p></li>
+<li><p>community benchmarks, with planted communities to test community discovery:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code> (broad degrees and community sizes;
+directed, weighted, overlapping).</p></li>
 </ul>
 <p>Every generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 <code class="docutils literal notranslate"><span class="pre">net</span></code>, an existing network, from which it infers them: the result is then a randomization of
@@ -150,13 +166,21 @@ on <code class="docutils literal notranslate"><span class="pre">seed</span></cod
 <section id="random-graphs">
 <h2>Random graphs<a class="headerlink" href="#random-graphs" title="Link to this heading"></a></h2>
 <p>Edges placed uniformly at random, given their number or density (Erdős–Rényi), or the degree of
-every node (configuration model).</p>
+every node (configuration model, or edge swaps, which only randomize an existing network, fully
+or partially); or with probabilities given by Kronecker powers of a small initiator matrix
+(Kronecker graphs); or between nodes close in space (geometric graphs).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># nodes 0 to 999, 5000 random edges</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">300</span><span class="p">),</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>     <span class="c1"># bipartite, edges in either direction</span>
 <span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># each pair with probability 0.01</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnp_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                           <span class="c1"># p = density of net</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>      <span class="c1"># given degrees</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                        <span class="c1"># degrees of net, random wiring</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_swap</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                        <span class="c1"># degrees of net exactly, 10 swaps per edge</span>
+<span class="n">part</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_swap</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">swaps</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>                          <span class="c1"># only a few edges moved</span>
+<span class="n">kg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">([[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]],</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">)</span>   <span class="c1"># stochastic Kronecker graph</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                            <span class="c1"># 2 x 2 initiator fitted to net</span>
+<span class="n">geo</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>                       <span class="c1"># pairs closer than 0.05 in the unit square</span>
+<span class="n">geo</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">torus</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># the 5000 closest pairs in a 3D torus</span>
 </pre></div>
 </div>
 <dl class="py function">
@@ -355,6 +379,204 @@ differ from those of <code class="docutils literal notranslate"><span class="pre
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                     <span class="c1"># degrees of net, random wiring</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">rnd</span><span class="p">)</span>                         <span class="c1"># observed vs random, same degrees</span>
 <span class="n">multi</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">rounds</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">drop_self_loops</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">drop_parallel</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.edge_swap">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_swap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_swap" title="Link to this definition"></a></dt>
+<dd><p>Edge swap randomization (Maslov and Sneppen, 2002): a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> that keeps the
+degree of every node exactly (out- and in-degrees if directed, and node types if bipartite),
+by double edge swaps: two edges <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">-</span> <span class="pre">d</span></code> become <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">c</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">-</span> <span class="pre">d</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">d</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">-</span> <span class="pre">c</span></code>; <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-&gt;</span> <span class="pre">d</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">-&gt;</span> <span class="pre">b</span></code> if directed), when this makes no self loop
+and no edge already there.</p>
+<p>With many swaps the result is a uniformly random simple graph with the degrees of <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the null model of <a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a> without its approximations (no dropped
+edges, no bias from repairs; for directed graphs swaps alone cannot reach every graph, e.g.
+the reversal of a directed triangle, so the result is uniform among the graphs they reach).
+With few swaps, it is a partial randomization: at most <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">swaps</span></code> edges change (fewer, as
+some swaps are not valid), the others stay, so the number of swaps controls how much of the structure of <code class="docutils literal notranslate"><span class="pre">net</span></code> is destroyed (e.g.
+to follow how clustering or assortativity decay towards the null model). Every edge keeps its
+attributes (weight, sign) as it moves. Self loops and parallel edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> are kept or
+swapped away, never created.</p>
+<p>Swaps run in rounds, all at once on the device: every round pairs the edges at random and
+applies all the valid swaps that touch no node pair of another swap of the round, and the
+rare others one by one, so that the result is the same as that of the sequential Markov chain.
+<code class="docutils literal notranslate"><span class="pre">swaps</span></code> counts the swaps tried, valid or not: the uniform distribution needs a fixed number
+of steps of the chain (stopping after a number of successful swaps, as some libraries do,
+favors the graphs that allow more swaps). In multilayer networks each layer is
+swapped on its own (<code class="docutils literal notranslate"><span class="pre">swaps</span></code> can be a dictionary from layer to number); interlayer edges are
+kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>swaps</strong> – Number of swaps tried; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 10 per edge, enough to randomize most
+networks (Milo et al., 2003). In multilayer networks, a number per layer or a dictionary.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The randomized network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – For dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_swap</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                      <span class="c1"># degrees kept, everything else random</span>
+<span class="n">part</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_swap</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">swaps</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>   <span class="c1"># at most half of the edges moved</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">part</span><span class="p">),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">rnd</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.kronecker_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">kronecker_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initiator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.kronecker_graph" title="Link to this definition"></a></dt>
+<dd><p>Kronecker graph (Leskovec, Chakrabarti, Kleinberg, Faloutsos and Ghahramani, 2010): the
+adjacency matrix is a Kronecker power of a small initiator matrix <span class="math notranslate nohighlight">\(\Theta\)</span>, of
+<span class="math notranslate nohighlight">\(N_1\)</span> nodes. Repeating the product makes graphs that are self-similar at all scales,
+with heavy-tailed degrees, small diameter and community-within-community structure, from a
+handful of parameters.</p>
+<p>With a 0/1 initiator, the graph is the deterministic Kronecker graph. With probabilities, it
+is a stochastic Kronecker graph: writing nodes <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> in base <span class="math notranslate nohighlight">\(N_1\)</span> with
+<code class="docutils literal notranslate"><span class="pre">k</span></code> digits, the edge <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> is there independently with probability
+<span class="math notranslate nohighlight">\(p_{uv} = \prod_l \Theta_{u_l v_l}\)</span>. Pairs are drawn exactly with these probabilities by
+ball dropping (one initiator cell per digit) with a thinning correction, in time about linear in
+the number of edges, not of pairs; initiator values equal to 1 mixed with others make
+generation slower (up to 20 candidate pairs per edge). The Kronecker power is <code class="docutils literal notranslate"><span class="pre">k</span></code>, or the
+smallest one with at least <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes, of which <code class="docutils literal notranslate"><span class="pre">n</span></code> are then kept at random. Self loops
+(pairs <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">v</span></code>, which have a probability too) are dropped unless <code class="docutils literal notranslate"><span class="pre">self_loops</span></code>; undirected
+graphs need a symmetric initiator.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> (in the order of their Kronecker
+ids). With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description) with
+<code class="docutils literal notranslate"><span class="pre">n</span></code> its number of nodes and, unless given, a 2 by 2 initiator fitted to it by the method of
+moments of Gleich and Owen (2012): the one whose expected numbers of edges, wedges, 3-stars and
+triangles (if undirected; edges, out- and in-wedges, 2-paths and mutual pairs if directed) are
+closest to those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, in relative terms (with three or four parameters for four or five
+counts, each is matched within a few percent, e.g. edges 5% fewer on average on a 3,000 node
+Kronecker graph). This is much faster than the maximum
+likelihood fit (KronFit) of Leskovec et al., but its nodes are not matched to those of <code class="docutils literal notranslate"><span class="pre">net</span></code>:
+the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code> take random positions. In multilayer networks each layer is randomized on
+its own, with its own initiator (<code class="docutils literal notranslate"><span class="pre">initiator</span></code> can be a dictionary from layer to matrix);
+interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initiator</strong> – <code class="docutils literal notranslate"><span class="pre">N1</span></code> by <code class="docutils literal notranslate"><span class="pre">N1</span></code> matrix (nested lists, array or tensor) of probabilities, or
+of 0 and 1; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for one fitted to it.</p></li>
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code> or <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p></li>
+<li><p><strong>k</strong> – Kronecker power, for <code class="docutils literal notranslate"><span class="pre">N1</span> <span class="pre">**</span> <span class="pre">k</span></code> nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, not bipartite, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the direction
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>self_loops</strong> – Whether to keep self loops.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Kronecker graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">initiator</span></code> with <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">k</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if
+<code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">k</span></code> are given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, if the initiator is not a square matrix of
+probabilities, or not symmetric for an undirected graph, if <code class="docutils literal notranslate"><span class="pre">n</span></code> is not positive, if
+<code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite, if <code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, or for
+dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">([[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]],</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># stochastic, 2^14 nodes thinned to 10,000</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span>       <span class="c1"># deterministic, 729 nodes</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">([[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]],</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kronecker_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                          <span class="c1"># initiator fitted to net</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.geometric_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">geometric_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'position'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.geometric_graph" title="Link to this definition"></a></dt>
+<dd><p>Random geometric graph (Gilbert, 1961; Penrose, 2003): <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes at random positions,
+uniformly in the unit cube of <code class="docutils literal notranslate"><span class="pre">d</span></code> dimensions, joined when they are close, within distance
+<code class="docutils literal notranslate"><span class="pre">r</span></code>; or, with <code class="docutils literal notranslate"><span class="pre">m</span></code> instead, joined by the <code class="docutils literal notranslate"><span class="pre">m</span></code> closest pairs, as if the radius grew until
+<code class="docutils literal notranslate"><span class="pre">m</span></code> pairs were within it. Geometric graphs model networks embedded in space (wireless and
+sensor networks, contacts between nearby individuals, road junctions): they have high
+clustering and long paths, and are the classic example of networks whose structure comes from
+a hidden metric space.</p>
+<p>Close pairs are found on a grid of cells with side at least <code class="docutils literal notranslate"><span class="pre">r</span></code>: points are sorted by cell
+and each is compared with the points of its cell and of the adjacent ones only, all in parallel
+on the device, in time about linear in the number of nodes and edges. For <code class="docutils literal notranslate"><span class="pre">m</span></code> edges, the
+radius is first estimated from the expected density of pairs, grown if the boundaries left
+fewer than <code class="docutils literal notranslate"><span class="pre">m</span></code> pairs within it, and the <code class="docutils literal notranslate"><span class="pre">m</span></code> closest pairs are kept (ties broken
+arbitrarily). In more than 6 dimensions all pairs are compared. Distances are Minkowski
+distances of exponent <code class="docutils literal notranslate"><span class="pre">p</span></code> (2 for Euclidean, 1 for Manhattan, <code class="docutils literal notranslate"><span class="pre">math.inf</span></code> for the largest
+coordinate difference); with <code class="docutils literal notranslate"><span class="pre">torus</span> <span class="pre">=</span> <span class="pre">True</span></code> the unit cube wraps around, so that nodes near
+opposite sides are close (no boundary effects).</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, at random positions or at
+<code class="docutils literal notranslate"><span class="pre">positions</span></code> (an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">d</span></code> array, in the unit cube if <code class="docutils literal notranslate"><span class="pre">torus</span></code>), which are stored as the
+numeric node attributes <code class="docutils literal notranslate"><span class="pre">position_0</span></code>, <code class="docutils literal notranslate"><span class="pre">position_1</span></code>, … (<code class="docutils literal notranslate"><span class="pre">position</span></code> is the prefix;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for no attributes). With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the
+module description) with its number of nodes and, unless <code class="docutils literal notranslate"><span class="pre">r</span></code> or <code class="docutils literal notranslate"><span class="pre">m</span></code> is given, its number
+of edges (pairs of nodes, self loops left out, at most all pairs): if <code class="docutils literal notranslate"><span class="pre">net</span></code> has the node
+attributes <code class="docutils literal notranslate"><span class="pre">position_0</span></code>, <code class="docutils literal notranslate"><span class="pre">position_1</span></code>, …, they are the positions (e.g. coordinates of
+real places, whose graph of closest pairs is then built), otherwise nodes get random
+positions, which are stored. In multilayer networks each layer is randomized on its own, with
+the positions of its copies; <code class="docutils literal notranslate"><span class="pre">r</span></code> and <code class="docutils literal notranslate"><span class="pre">m</span></code> can be dictionaries from layer to value.
+Interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">positions</span></code> or <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>r</strong> – Radius: pairs at distance at most <code class="docutils literal notranslate"><span class="pre">r</span></code> are edges.</p></li>
+<li><p><strong>m</strong> – Number of edges, the closest pairs, instead of <code class="docutils literal notranslate"><span class="pre">r</span></code>.</p></li>
+<li><p><strong>d</strong> – Number of dimensions of random positions.</p></li>
+<li><p><strong>positions</strong> – <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">d</span></code> positions (array, nested lists or tensor), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for
+random ones.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, undirected and not bipartite, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>p</strong> – Minkowski exponent of the distance.</p></li>
+<li><p><strong>torus</strong> – Whether the unit cube wraps around (periodic boundaries).</p></li>
+<li><p><strong>position</strong> – Prefix of the names of the node attributes with the coordinates, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The geometric graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">r</span></code> nor <code class="docutils literal notranslate"><span class="pre">m</span></code> is given without <code class="docutils literal notranslate"><span class="pre">net</span></code>, or both are given, if
+neither <code class="docutils literal notranslate"><span class="pre">n</span></code> nor <code class="docutils literal notranslate"><span class="pre">positions</span></code> is given without <code class="docutils literal notranslate"><span class="pre">net</span></code>, or <code class="docutils literal notranslate"><span class="pre">n</span></code> differs from the number of
+positions, if <code class="docutils literal notranslate"><span class="pre">r</span></code>, <code class="docutils literal notranslate"><span class="pre">m</span></code>, <code class="docutils literal notranslate"><span class="pre">d</span></code> or <code class="docutils literal notranslate"><span class="pre">p</span></code> are not positive, if positions are outside the
+unit cube with <code class="docutils literal notranslate"><span class="pre">torus</span></code>, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or bipartite, if <code class="docutils literal notranslate"><span class="pre">device</span></code> differs from that
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                <span class="c1"># pairs closer than 0.05 in the unit square</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">torus</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>     <span class="c1"># the 5000 closest pairs in a 3D torus</span>
+<span class="n">g</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;position_0&quot;</span><span class="p">)</span>                               <span class="c1"># first coordinate of every node</span>
+
+<span class="n">cities</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">12.57</span><span class="p">,</span> <span class="mf">55.68</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.20</span><span class="p">,</span> <span class="mf">56.16</span><span class="p">],</span> <span class="p">[</span><span class="mf">10.40</span><span class="p">,</span> <span class="mf">55.40</span><span class="p">]]</span>        <span class="c1"># longitude, latitude</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="n">positions</span> <span class="o">=</span> <span class="n">cities</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>               <span class="c1"># the two closest pairs of cities</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">geometric_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                   <span class="c1"># same n and m, random positions</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -762,7 +984,9 @@ those of <code class="docutils literal notranslate"><span class="pre">net</span>
 </section>
 <section id="stochastic-blockmodels">
 <h2>Stochastic blockmodels<a class="headerlink" href="#stochastic-blockmodels" title="Link to this heading"></a></h2>
-<p>Nodes in communities, with edge probabilities depending on the communities of the two nodes.</p>
+<p>Nodes in communities, with edge probabilities depending on the communities of the two nodes;
+in mixed membership blockmodels, nodes can be in several communities (see
+<a class="reference internal" href="network.html#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pp</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># p_in and p_out</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                     <span class="c1"># planted partition, node attribute</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                        <span class="c1"># communities of net (&quot;community&quot;)</span>
@@ -770,6 +994,15 @@ those of <code class="docutils literal notranslate"><span class="pre">net</span>
 
 <span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">stochastic_block_model</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mi">450</span><span class="p">],</span> <span class="p">[[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">]])</span>   <span class="c1"># core-periphery</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">stochastic_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                         <span class="c1"># density between every pair of communities</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_corrected_block_model</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]])</span>   <span class="c1"># hubs in blocks</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_corrected_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                   <span class="c1"># degrees and block edges of net, on average</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">]]</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>      <span class="c1"># memberships from a Dirichlet</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">memberships</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                      <span class="c1"># overlapping modularity</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                   <span class="c1"># &quot;community&quot; can list several per node</span>
 </pre></div>
 </div>
 <dl class="py function">
@@ -900,6 +1133,377 @@ from those of <code class="docutils literal notranslate"><span class="pre">net</
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                 <span class="c1"># node attribute &quot;community&quot;</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">stochastic_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>            <span class="c1"># same densities between every pair of communities</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.degree_corrected_block_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">degree_corrected_block_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.degree_corrected_block_model" title="Link to this definition"></a></dt>
+<dd><p>Degree-corrected stochastic blockmodel (Karrer and Newman, 2011): a stochastic blockmodel in
+which nodes of the same block can have very different degrees, as in real communities with
+hubs and peripheral members.</p>
+<p><code class="docutils literal notranslate"><span class="pre">edges[r][s]</span></code> is the expected number of edges between blocks <code class="docutils literal notranslate"><span class="pre">r</span></code> and <code class="docutils literal notranslate"><span class="pre">s</span></code> (from <code class="docutils literal notranslate"><span class="pre">r</span></code> to
+<code class="docutils literal notranslate"><span class="pre">s</span></code> if directed; the diagonal counts the edges within each block), and <code class="docutils literal notranslate"><span class="pre">degrees</span></code> gives the
+expected degree of every node relative to the others of its block: each edge between <code class="docutils literal notranslate"><span class="pre">r</span></code> and
+<code class="docutils literal notranslate"><span class="pre">s</span></code> picks its endpoint in <code class="docutils literal notranslate"><span class="pre">r</span></code> with probability proportional to its degree within <code class="docutils literal notranslate"><span class="pre">r</span></code>,
+<span class="math notranslate nohighlight">\(\theta_i = d_i / \sum_{j \in r} d_j\)</span>, and likewise in <code class="docutils literal notranslate"><span class="pre">s</span></code>. A node then expects
+<span class="math notranslate nohighlight">\(\theta_i \kappa_r\)</span> edges, <span class="math notranslate nohighlight">\(\kappa_r\)</span> being the edges of its block (twice those
+within), so degrees that add up to <span class="math notranslate nohighlight">\(\kappa_r\)</span> in each block are kept on average. The number
+of edges of each pair of blocks is Poisson, as in the original model, or exactly <code class="docutils literal notranslate"><span class="pre">edges[r][s]</span></code>
+(rounded) with <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code>. A block whose degrees are all 0 picks its nodes uniformly.</p>
+<p>Drawing endpoints independently makes some self loops and parallel edges, mostly among hubs.
+As in <a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>, without slowing generation down, each of them is drawn again
+within its pair of blocks for up to <code class="docutils literal notranslate"><span class="pre">rounds</span></code> rounds, in parallel, and those left are dropped,
+unless <code class="docutils literal notranslate"><span class="pre">drop_self_loops</span></code> or <code class="docutils literal notranslate"><span class="pre">drop_parallel</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>; with <code class="docutils literal notranslate"><span class="pre">rounds</span> <span class="pre">=</span> <span class="pre">0</span></code> and both kept,
+the graph is the original multigraph model. Redrawing and dropping lower the degrees of hubs a
+little when they are large compared with the square root of the number of edges of their blocks.
+Everything runs on the device, in time about linear in the number of edges and of pairs of
+blocks.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, block by block (<code class="docutils literal notranslate"><span class="pre">sizes</span></code>), with
+<code class="docutils literal notranslate"><span class="pre">degrees</span></code> in that order (a pair <code class="docutils literal notranslate"><span class="pre">(out_degrees,</span> <span class="pre">in_degrees)</span></code> if directed), and the block of
+each node is stored as the numeric node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (unless <code class="docutils literal notranslate"><span class="pre">None</span></code>). With <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes keep their
+communities, read from the node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (numeric or qualitative; every node needs
+a value), which give <code class="docutils literal notranslate"><span class="pre">sizes</span></code>; <code class="docutils literal notranslate"><span class="pre">degrees</span></code> are their degrees (out and in if directed) and
+<code class="docutils literal notranslate"><span class="pre">edges</span></code> the numbers of edges between communities, self loops left out, parallel edges
+counting, so that the result keeps both on average (exactly the numbers of edges between
+communities with <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code>, before drops). <code class="docutils literal notranslate"><span class="pre">edges</span></code> can be given instead, as a matrix over
+the communities in sorted order (or order of appearance, if their values cannot be sorted), or a
+dictionary from layer to matrix. In multilayer networks each layer is randomized on its own, with
+the degrees and edges of its intra-layer edges; interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sizes</strong> – Number of nodes of each block; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>degrees</strong> – Expected degree of each node, block by block (a pair of out- and in-degrees if
+directed); <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>edges</strong> – <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix of expected numbers of edges between blocks; <code class="docutils literal notranslate"><span class="pre">None</span></code> with
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, not bipartite, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the block of each node: read from <code class="docutils literal notranslate"><span class="pre">net</span></code>,
+or written to the result without <code class="docutils literal notranslate"><span class="pre">net</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> for no attribute).</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the direction
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>exact</strong> – Whether each pair of blocks gets exactly <code class="docutils literal notranslate"><span class="pre">edges[r][s]</span></code> edges (rounded) before
+drops, instead of a Poisson number.</p></li>
+<li><p><strong>rounds</strong> – Maximum number of rounds of redrawing self loops and parallel edges (0 for none).</p></li>
+<li><p><strong>drop_self_loops</strong> – Whether to drop the self loops left.</p></li>
+<li><p><strong>drop_parallel</strong> – Whether to drop the parallel edges left (one edge of each group stays).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The degree-corrected blockmodel graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">sizes</span></code>, <code class="docutils literal notranslate"><span class="pre">degrees</span></code> and <code class="docutils literal notranslate"><span class="pre">edges</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if
+<code class="docutils literal notranslate"><span class="pre">sizes</span></code> or <code class="docutils literal notranslate"><span class="pre">degrees</span></code> are given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, if <code class="docutils literal notranslate"><span class="pre">degrees</span></code> does not have one non-negative
+value per node, if <code class="docutils literal notranslate"><span class="pre">edges</span></code> is not a <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> non-negative matrix, symmetric for an
+undirected graph, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite, has no node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> or a node
+without a value, if <code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, or for
+dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">degrees</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>                  <span class="c1"># a hub in each block</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_corrected_block_model</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">degrees</span><span class="p">,</span> <span class="p">[[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>         <span class="c1"># node attribute &quot;community&quot;</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_corrected_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># degrees and block edges of net, on average</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree_corrected_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">exact</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.mixed_membership_block_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">mixed_membership_block_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memberships</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.mixed_membership_block_model" title="Link to this definition"></a></dt>
+<dd><p>Mixed membership stochastic blockmodel (Airoldi, Blei, Fienberg and Xing, 2008): every node
+belongs to several blocks (overlapping communities) with a vector of weights
+<span class="math notranslate nohighlight">\(\pi_i\)</span> adding up to 1, and every pair of nodes is an edge independently with probability
+<span class="math notranslate nohighlight">\(p_{ij} = \pi_i^T B \pi_j = \sum_{a, b} \pi_{ia} B_{ab} \pi_{jb}\)</span>, <code class="docutils literal notranslate"><span class="pre">B</span></code> being the matrix
+<code class="docutils literal notranslate"><span class="pre">probs</span></code> of probabilities between blocks (<a class="reference internal" href="#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a> is the special case of
+nodes in one block each). This is the version of the model with fixed memberships, as in its
+inference; in the original generative story every pair of nodes draws a block for each node
+anew, which gives the same probabilities.</p>
+<p>Pairs are drawn exactly with these probabilities, without going through all pairs of nodes: a
+Poisson process proposes candidate pairs block pair by block pair, with a rate a bit larger than
+the probability of every pair, and each candidate is kept with the probability that corrects the
+difference. Everything runs on the device, in time about linear in the number of edges, of
+memberships and of pairs of blocks. The graph has no self loops nor parallel edges. In
+undirected graphs <code class="docutils literal notranslate"><span class="pre">probs</span></code> must be symmetric; in directed graphs <code class="docutils literal notranslate"><span class="pre">probs[a][b]</span></code> is for edges
+from block <code class="docutils literal notranslate"><span class="pre">a</span></code> to block <code class="docutils literal notranslate"><span class="pre">b</span></code>.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, with <code class="docutils literal notranslate"><span class="pre">memberships</span></code>, an <code class="docutils literal notranslate"><span class="pre">n</span></code> by
+<code class="docutils literal notranslate"><span class="pre">k</span></code> matrix of non-negative weights (normalized to add up to 1 in every row), or with weights
+drawn from a Dirichlet distribution of parameter <code class="docutils literal notranslate"><span class="pre">alpha</span></code> (a number for all blocks, or one per
+block; small values give nodes mostly in one block, large values nodes spread over all of them).
+The blocks of each node, those with weight at least <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (by default <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(k</span> <span class="pre">+</span> <span class="pre">1)</span></code>,
+so that a node spread evenly over any number of blocks is in all of them), are stored as the qualitative node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (unless <code class="docutils literal notranslate"><span class="pre">None</span></code>): a tuple of blocks, or
+just the block for a node in one.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes
+keep their communities, read from the node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code>, in which a node in several
+communities has a list, tuple or set of them (see <a class="reference internal" href="network.html#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>); each node
+weighs its communities equally. <code class="docutils literal notranslate"><span class="pre">probs</span></code>, unless given (as a matrix over the communities in
+sorted order, or order of appearance if their values cannot be sorted), is the method of
+moments estimate: the matrix with which the expected weight of the edges between every pair of
+communities, every edge counting <span class="math notranslate nohighlight">\(\pi_{ia} \pi_{jb}\)</span> for communities <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>,
+equals the one of <code class="docutils literal notranslate"><span class="pre">net</span></code> (self loops left out, parallel edges counting). For communities that
+do not overlap this is the density of the edges between them, as in
+<a class="reference internal" href="#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>; values outside 0 and 1, possible when overlaps are not explained
+by the model, are clipped. In multilayer networks each layer is randomized on its own, with the
+communities of its copies and its own probabilities (or a dictionary from layer to matrix);
+interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>probs</strong> – <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix of probabilities between blocks (nested lists, array or
+tensor); <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>memberships</strong> – <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix of membership weights, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="docutils literal notranslate"><span class="pre">n</span></code> and
+<code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p></li>
+<li><p><strong>n</strong> – Number of nodes, with <code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p></li>
+<li><p><strong>alpha</strong> – Parameter of the Dirichlet distribution of the memberships: a positive number, or
+one per block.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, not bipartite, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the communities of each node: read from
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, or written to the result without <code class="docutils literal notranslate"><span class="pre">net</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> for no attribute).</p></li>
+<li><p><strong>threshold</strong> – Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, smallest weight of a block for a node to be listed in it;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">(k</span> <span class="pre">+</span> <span class="pre">1)</span></code>.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the direction
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The mixed membership blockmodel graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">probs</span></code> with <code class="docutils literal notranslate"><span class="pre">memberships</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> and <code class="docutils literal notranslate"><span class="pre">alpha</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code>
+are given, if <code class="docutils literal notranslate"><span class="pre">memberships</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">alpha</span></code> are given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, if <code class="docutils literal notranslate"><span class="pre">probs</span></code> is not
+a <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix of probabilities between 0 and 1, or not symmetric for an undirected
+graph, if <code class="docutils literal notranslate"><span class="pre">memberships</span></code> has negative values or a row of zeros, if <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is not positive,
+if <code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite, has no node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> or a node without a value, if
+<code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, or for dictionaries as in
+<a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">]]</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>    <span class="c1"># mostly in one block</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">memberships</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>   <span class="c1"># &quot;community&quot;: 0, (0, 1), 1</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                             <span class="c1"># overlapping modularity</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>     <span class="c1"># &quot;community&quot;: e.g. [0, 1] for a node in both</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="community-benchmarks">
+<h2>Community benchmarks<a class="headerlink" href="#community-benchmarks" title="Link to this heading"></a></h2>
+<p>Graphs with planted communities, the ground truth against which community discovery algorithms
+are tested: equal communities and degrees (Girvan-Newman), or broad degrees and community sizes,
+with directed, weighted and overlapping variants (LFR). The mixing parameter <code class="docutils literal notranslate"><span class="pre">mu</span></code>, the fraction
+of the edges of a node leaving its communities, sets how hard the communities are to find.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gn</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                         <span class="c1"># 4 x 32 nodes, degree 16, mu 0.3</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                            <span class="c1"># random equal communities, mu and degree of net</span>
+
+<span class="n">lfr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">minc</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">maxc</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">lfr</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                    <span class="c1"># quality of the planted communities</span>
+<span class="n">lfr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">muw</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">on</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">om</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">mu</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>                  <span class="c1"># degrees and communities of net, more mixed</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.girvan_newman_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">girvan_newman_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.girvan_newman_graph" title="Link to this definition"></a></dt>
+<dd><p>Girvan-Newman benchmark (Girvan and Newman, 2002) for community discovery: <code class="docutils literal notranslate"><span class="pre">l</span></code> communities
+of <code class="docutils literal notranslate"><span class="pre">k</span></code> nodes, and every node expects <code class="docutils literal notranslate"><span class="pre">degree</span></code> edges, a fraction <code class="docutils literal notranslate"><span class="pre">mu</span></code> of them (the mixing
+parameter) to nodes of other communities. Pairs of nodes are edges independently, with
+probability <span class="math notranslate nohighlight">\(p_{in}\)</span> within communities and <span class="math notranslate nohighlight">\(p_{out}\)</span> between them, so this is a
+<a class="reference internal" href="#graphoskop.planted_partition_graph" title="graphoskop.planted_partition_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a> with equal communities, parametrized by how hard they are to
+find rather than by densities; it is also a caveman graph (see <a class="reference internal" href="#graphoskop.caveman_graph" title="graphoskop.caveman_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">caveman_graph()</span></code></a>) whose
+caves are thinned and mixed. The classic benchmark is the default: 128 nodes in 4 communities of
+32, average degree 16 (expected external degree <span class="math notranslate nohighlight">\(z_{out} = 16 \mu\)</span>). Communities are
+found easily for small <code class="docutils literal notranslate"><span class="pre">mu</span></code>, and become undetectable as <code class="docutils literal notranslate"><span class="pre">mu</span></code> approaches
+<span class="math notranslate nohighlight">\(1 - 1 / l\)</span>, where nodes have as many edges to each other community as to their own.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes in communities of sizes <span class="math notranslate nohighlight">\(s_c\)</span> and average degree <span class="math notranslate nohighlight">\(d\)</span> (out-degree if
+directed), <span class="math notranslate nohighlight">\(p_{in} = n d (1 - \mu) / \sum_c s_c (s_c - 1)\)</span> and
+<span class="math notranslate nohighlight">\(p_{out} = n d \mu / (n^2 - \sum_c s_c^2)\)</span>, so that the average degree is <code class="docutils literal notranslate"><span class="pre">degree</span></code> and
+the expected fraction of edges between communities is <code class="docutils literal notranslate"><span class="pre">mu</span></code>. The graph has no self loops nor
+parallel edges, and is generated as <a class="reference internal" href="#graphoskop.planted_partition_graph" title="graphoskop.planted_partition_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a>, in time about linear in
+the number of edges.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, community by community. With
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description): its nodes are
+assigned at random to <code class="docutils literal notranslate"><span class="pre">l</span></code> communities, whose sizes differ by at most one (<code class="docutils literal notranslate"><span class="pre">l</span></code> given, or
+<code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">/</span> <span class="pre">k</span></code> rounded if <code class="docutils literal notranslate"><span class="pre">k</span></code> is given), with the average degree of <code class="docutils literal notranslate"><span class="pre">net</span></code>. Without <code class="docutils literal notranslate"><span class="pre">l</span></code> and
+<code class="docutils literal notranslate"><span class="pre">k</span></code>, the number of communities is that of the node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> of <code class="docutils literal notranslate"><span class="pre">net</span></code>, and
+without <code class="docutils literal notranslate"><span class="pre">mu</span></code> the mixing parameter is the fraction of the edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> between its
+communities (self loops left out); for communities of <code class="docutils literal notranslate"><span class="pre">net</span></code> that are kept as they are, use
+<a class="reference internal" href="#graphoskop.planted_partition_graph" title="graphoskop.planted_partition_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a>. In multilayer networks each layer is randomized on its own,
+with its own communities (numbered across layers, so that no two layers share one), average
+degree and parameters (<code class="docutils literal notranslate"><span class="pre">mu</span></code>, <code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">degree</span></code> can be dictionaries from layer to
+value); interlayer edges are kept.</p>
+<p>In both cases the community of every node is stored as the numeric node attribute
+<code class="docutils literal notranslate"><span class="pre">attribute</span></code> (overwriting that of <code class="docutils literal notranslate"><span class="pre">net</span></code>), unless <code class="docutils literal notranslate"><span class="pre">None</span></code>: the planted partition, the
+ground truth with which to compare the communities found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mu</strong> – Mixing parameter, between 0 and 1; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>l</strong> – Number of communities; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 4 without <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Number of nodes of each community; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 32 without <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>degree</strong> – Average degree (out-degree if directed); <code class="docutils literal notranslate"><span class="pre">None</span></code> for 16 without <code class="docutils literal notranslate"><span class="pre">net</span></code>, or
+for the average degree of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, not bipartite, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed (ordered pairs); <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or
+for the direction of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the community of each node: written to
+the result, and read from <code class="docutils literal notranslate"><span class="pre">net</span></code> when <code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code> or <code class="docutils literal notranslate"><span class="pre">mu</span></code> are missing (<code class="docutils literal notranslate"><span class="pre">None</span></code> for no
+attribute).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mu</span></code> is missing without <code class="docutils literal notranslate"><span class="pre">net</span></code>, or with a <code class="docutils literal notranslate"><span class="pre">net</span></code> without node
+attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code>, likewise for the number of communities, if <code class="docutils literal notranslate"><span class="pre">mu</span></code> is not between 0
+and 1, if the degree is too high for the communities (a probability above 1), if both <code class="docutils literal notranslate"><span class="pre">l</span></code>
+and <code class="docutils literal notranslate"><span class="pre">k</span></code> are given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite or a node has no community, if
+<code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, or for dictionaries as in
+<a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                          <span class="c1"># 4 x 32 nodes, z_out = 3.2</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                      <span class="c1"># quality of the planted partition</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">degree</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>      <span class="c1"># larger benchmark</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                    <span class="c1"># node attribute &quot;community&quot;</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                  <span class="c1"># as many communities, same mu and degree</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">girvan_newman_graph</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">8</span><span class="p">)</span>                <span class="c1"># harder, with 8 communities</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.lfr_benchmark_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">lfr_benchmark_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">om</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">muw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.lfr_benchmark_graph" title="Link to this definition"></a></dt>
+<dd><p>LFR benchmark (Lancichinetti, Fortunato and Radicchi, 2008) for community discovery, with the
+variants of Lancichinetti and Fortunato (2009): directed, weighted, and with overlapping
+communities. Unlike <a class="reference internal" href="#graphoskop.girvan_newman_graph" title="graphoskop.girvan_newman_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code></a>, degrees and community sizes are broad, as in
+real networks: degrees follow a power law of exponent <code class="docutils literal notranslate"><span class="pre">t1</span></code> with average <code class="docutils literal notranslate"><span class="pre">k</span></code> and maximum
+<code class="docutils literal notranslate"><span class="pre">maxk</span></code>, community sizes a power law of exponent <code class="docutils literal notranslate"><span class="pre">t2</span></code> between <code class="docutils literal notranslate"><span class="pre">minc</span></code> and <code class="docutils literal notranslate"><span class="pre">maxc</span></code>, and every
+node has a fraction <code class="docutils literal notranslate"><span class="pre">mu</span></code> (the mixing parameter) of its edges to nodes outside its communities.</p>
+<p>The graph is built as in the original: nodes are placed in communities by a random matching,
+then swaps until every node fits, i.e. its internal degree <span class="math notranslate nohighlight">\((1 - \mu) k_i\)</span> is smaller
+than the size of its community; each community is wired as a configuration model of the
+internal degrees, and the external degrees as a configuration model between nodes that share no
+community. A few hundred rounds of parallel repairs (see <a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>) remove
+self loops, parallel edges and external edges within communities; the few left are dropped, so
+some degrees can be a little lower than drawn, and, when small communities are almost cliques,
+<code class="docutils literal notranslate"><span class="pre">mu</span></code> a little higher (e.g. 0.303 for 0.3 with communities of 20 nodes and average degree
+20). Internal degrees larger than the community
+allows (a hub that fits in no community) are cut to fit, the rest going outside. Everything
+runs on the device, in time about linear in the number of edges.</p>
+<p>Variants:</p>
+<ul class="simple">
+<li><p>directed (<code class="docutils literal notranslate"><span class="pre">directed</span> <span class="pre">=</span> <span class="pre">True</span></code>): in-degrees follow the power law and out-degrees are as equal
+as possible, as in the tests of Lancichinetti and Fortunato (2009); <code class="docutils literal notranslate"><span class="pre">mu</span></code> applies to both,
+and <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">maxk</span></code> are the average and largest in-degree;</p></li>
+<li><p>weighted (<code class="docutils literal notranslate"><span class="pre">muw</span></code> given): node <code class="docutils literal notranslate"><span class="pre">i</span></code> has strength <span class="math notranslate nohighlight">\(s_i = k_i^\beta\)</span> (total degree if
+directed; <code class="docutils literal notranslate"><span class="pre">beta</span></code> 1.5 by default), a fraction <code class="docutils literal notranslate"><span class="pre">muw</span></code> of it on external edges, and weights
+are set to give every node its internal and external strengths as closely as possible (by
+iterative scaling, instead of the greedy minimization of the original). They are stored as the
+edge attribute <code class="docutils literal notranslate"><span class="pre">weight</span></code>;</p></li>
+<li><p>overlapping communities (<code class="docutils literal notranslate"><span class="pre">on</span></code> above 0): <code class="docutils literal notranslate"><span class="pre">on</span></code> random nodes belong to <code class="docutils literal notranslate"><span class="pre">om</span></code> communities each,
+their internal degree split evenly among them; sizes add up to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">+</span> <span class="pre">on</span> <span class="pre">(om</span> <span class="pre">-</span> <span class="pre">1)</span></code>
+memberships. Communities are then a qualitative node attribute of tuples (see
+<a class="reference internal" href="network.html#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>) and <a class="reference internal" href="communities.html#graphoskop.modularity" title="graphoskop.modularity"><code class="xref py py-func docutils literal notranslate"><span class="pre">modularity()</span></code></a> is the overlapping one.</p></li>
+</ul>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, and the community of each node is
+stored as the node attribute <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (unless <code class="docutils literal notranslate"><span class="pre">None</span></code>): numeric, communities numbered
+from the smallest, or tuples of them with overlaps. <code class="docutils literal notranslate"><span class="pre">minc</span></code> and <code class="docutils literal notranslate"><span class="pre">maxc</span></code> default to the smallest
+and largest degree, as in the original program.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> (see the module description) with its
+degrees (in and out if directed) and its communities, read from the node attribute
+<code class="docutils literal notranslate"><span class="pre">attribute</span></code> (a list, tuple or set of communities for nodes in several), which it keeps:
+instead of drawing them from power laws, the benchmark uses those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, and <code class="docutils literal notranslate"><span class="pre">mu</span></code> is
+the fraction of its edges (self loops left out) between nodes that share no community, unless
+given. If <code class="docutils literal notranslate"><span class="pre">net</span></code> has the edge attribute <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the result is weighted: strengths are
+those of <code class="docutils literal notranslate"><span class="pre">net</span></code> (or <span class="math notranslate nohighlight">\(k_i^\beta\)</span> if <code class="docutils literal notranslate"><span class="pre">beta</span></code> is given) and <code class="docutils literal notranslate"><span class="pre">muw</span></code> the fraction of its
+weight on external edges, unless given; otherwise edge attributes are drawn from the old edges,
+as in the other generators. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">mu</span></code>,
+<code class="docutils literal notranslate"><span class="pre">muw</span></code> and <code class="docutils literal notranslate"><span class="pre">beta</span></code> can be dictionaries from layer to value); interlayer edges are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>k</strong> – Average degree (in-degree if directed); <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>maxk</strong> – Largest degree (in-degree if directed); <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>mu</strong> – Mixing parameter, between 0 and 1; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>t1</strong> – Exponent of the degree power law.</p></li>
+<li><p><strong>t2</strong> – Exponent of the community size power law.</p></li>
+<li><p><strong>minc</strong> – Smallest community size; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the smallest degree.</p></li>
+<li><p><strong>maxc</strong> – Largest community size; <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="docutils literal notranslate"><span class="pre">maxk</span></code>.</p></li>
+<li><p><strong>on</strong> – Number of nodes in several communities.</p></li>
+<li><p><strong>om</strong> – Number of communities of each of them.</p></li>
+<li><p><strong>muw</strong> – Mixing parameter of the weights, between 0 and 1, for a weighted graph; <code class="docutils literal notranslate"><span class="pre">None</span></code>
+for an unweighted one, or, with <code class="docutils literal notranslate"><span class="pre">net</span></code>, for its own.</p></li>
+<li><p><strong>beta</strong> – Exponent of the strengths, <span class="math notranslate nohighlight">\(s_i = k_i^\beta\)</span>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 1.5, or, with
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, for its strengths.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to randomize, not bipartite, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the communities: written to the result
+without <code class="docutils literal notranslate"><span class="pre">net</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> for none), read from <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute of the weights: written to the result if weighted,
+and read from <code class="docutils literal notranslate"><span class="pre">net</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code>: unweighted with <code class="docutils literal notranslate"><span class="pre">net</span></code>).</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected, or for the direction
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code>, <code class="docutils literal notranslate"><span class="pre">maxk</span></code> and <code class="docutils literal notranslate"><span class="pre">mu</span></code> are missing without <code class="docutils literal notranslate"><span class="pre">net</span></code>, or the
+first three are given with it, if <code class="docutils literal notranslate"><span class="pre">k</span></code> cannot be the average of the power law up to
+<code class="docutils literal notranslate"><span class="pre">maxk</span></code>, if the community sizes cannot hold the memberships (<code class="docutils literal notranslate"><span class="pre">minc</span></code> above <code class="docutils literal notranslate"><span class="pre">maxc</span></code> or above
+the number of memberships, <code class="docutils literal notranslate"><span class="pre">om</span></code> above the number of communities, <code class="docutils literal notranslate"><span class="pre">on</span></code> above <code class="docutils literal notranslate"><span class="pre">n</span></code>), if
+<code class="docutils literal notranslate"><span class="pre">mu</span></code> or <code class="docutils literal notranslate"><span class="pre">muw</span></code> are not between 0 and 1, if <code class="docutils literal notranslate"><span class="pre">net</span></code> is bipartite, has no node attribute
+<code class="docutils literal notranslate"><span class="pre">attribute</span></code> or a node without a value, if <code class="docutils literal notranslate"><span class="pre">directed</span></code> or <code class="docutils literal notranslate"><span class="pre">device</span></code> differ from those of
+<code class="docutils literal notranslate"><span class="pre">net</span></code>, or for dictionaries as in <a class="reference internal" href="#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">minc</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">maxc</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                   <span class="c1"># quality of the planted communities</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># power law in-degrees</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">muw</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span>         <span class="c1"># weighted, beta = 1.5</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">on</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">om</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># 100 nodes in 3 communities each</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                 <span class="c1"># node attribute &quot;community&quot;</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>               <span class="c1"># degrees, communities and mu of net</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">mu</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">)</span>               <span class="c1"># same, with mixed communities</span>
 </pre></div>
 </div>
 </dd></dl>

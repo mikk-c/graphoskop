@@ -7,6 +7,7 @@ graphoskop/centrality.py
 graphoskop/coloring.py
 graphoskop/communities.py
 graphoskop/equivalence.py
+graphoskop/ergms.py
 graphoskop/exploration.py
 graphoskop/generators.py
 graphoskop/hierarchy.py

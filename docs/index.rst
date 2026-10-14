@@ -24,3 +24,4 @@ Graphoskop
    node_vector_analysis
    backboning
    generators
+   ergm

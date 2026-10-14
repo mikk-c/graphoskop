@@ -63,6 +63,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.BIPARTITE"><code class="docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#numeric-and-qualitative-node-attributes">Numeric and qualitative node attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#several-values-per-node-overlapping-communities">Several values per node: overlapping communities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bipartite-networks">Bipartite networks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#multilayer-networks">Multilayer networks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#node-ids">Node ids</a></li>
@@ -84,6 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
 </ul>
 
         </div>
@@ -143,6 +145,11 @@ edge attributes are stored.</p>
 <code class="docutils literal notranslate"><span class="pre">node_attr</span></code> on <code class="docutils literal notranslate"><span class="pre">device</span></code>. The others are qualitative, and are stored in
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">Network.qualitative_node_attr</span></code>, always in CPU memory. In long format, this is decided
 for each attribute name: one non-numeric value makes the attribute qualitative.</p>
+<p>A node can have several values of a qualitative attribute, e.g. overlapping communities (see
+<a class="reference internal" href="#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>): in long format, as several rows with the same node and
+attribute (which makes the attribute qualitative, even with numeric values; integer values stay
+integers); in a wide DataFrame, as a list, tuple or set in the cell. They are stored as a tuple
+of the distinct values.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">bipartite</span> <span class="pre">=</span> <span class="pre">True</span></code>, the node table must give every node, isolated ones included, a value
 of the <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> attribute (<code class="docutils literal notranslate"><span class="pre">&quot;bipartite_type&quot;</span></code>), with at most two distinct values
 overall. The smaller value (in sort order) is type 0, the other type 1, as recorded in
@@ -281,6 +288,9 @@ Ids and qualitative values that look like numbers are read back as numbers.</p>
 <p>The node table can be written in either format, whatever the format of <code class="docutils literal notranslate"><span class="pre">net</span></code>. In long format,
 a numeric value that is missing (NaN) in a wide table is left out, and so reads back as 0. In
 wide format, numeric values absent from a long table are written as 0.</p>
+<p>A node with several values of an attribute (see <a class="reference internal" href="#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>) gets one row per
+value in a long table, which loads back as several values. A wide table cannot hold them: the
+long format is then the default, and asking for the wide one raises <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
 <p>A multilayer network also writes its interlayer edges (couplings included) to
 <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_interlayer.tsv&quot;</span></code>, and always writes the node table (one row per copy, with the
 entity and the layer). The files load back with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code>,
@@ -301,7 +311,8 @@ with <code class="xref py py-func docutils literal notranslate"><span class="pre
 <li><p><strong>net</strong> – A <a class="reference internal" href="#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>prefix</strong> – Path and file name prefix, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;data/flights&quot;</span></code>.</p></li>
 <li><p><strong>sep</strong> – Column separator, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;\t&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;</span> <span class="pre">&quot;</span></code>.</p></li>
-<li><p><strong>node_format</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;wide&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;long&quot;</span></code> node table, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the format of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>node_format</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;wide&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;long&quot;</span></code> node table, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the format of <code class="docutils literal notranslate"><span class="pre">net</span></code>
+(long if some node has several values of an attribute).</p></li>
 <li><p><strong>pickle</strong> – Write the Python object instead of tables.</p></li>
 <li><p><strong>warn_size</strong> – Expected size in bytes of the node table above which a warning is issued.</p></li>
 <li><p><strong>max_size</strong> – Expected size in bytes of the node table, in the larger of the two formats,
@@ -309,8 +320,9 @@ above which nothing is written.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">node_format</span></code> is not valid, or if the node table would be larger than
-<code class="docutils literal notranslate"><span class="pre">max_size</span></code> in the chosen format and smaller in the other one.</p>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">node_format</span></code> is not valid, if it is <code class="docutils literal notranslate"><span class="pre">&quot;wide&quot;</span></code> and some node has
+several values of an attribute, or if the node table would be larger than <code class="docutils literal notranslate"><span class="pre">max_size</span></code> in the
+chosen format and smaller in the other one.</p>
 </dd>
 </dl>
 <p>Example:</p>
@@ -462,7 +474,9 @@ numbers or booleans), qualitative otherwise. A new numeric attribute is appended
 (wide, dense tables) or no value, read as 0 (long, sparse tables). In sparse tables, zero
 values are not stored. Values are cast to the dtype of <code class="docutils literal notranslate"><span class="pre">node_attr</span></code>. A new qualitative
 attribute is appended to <code class="xref py py-attr docutils literal notranslate"><span class="pre">qualitative_node_attributes</span></code>; components not set get NaN
-(missing).</p>
+(missing).
+A node can have several values of a qualitative attribute, given as a list, tuple or set
+(see <a class="reference internal" href="#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -696,6 +710,28 @@ and are kept by <a class="reference internal" href="backboning.html#graphoskop.e
 <span class="n">net</span><span class="o">.</span><span class="n">node_attributes</span>               <span class="c1"># [&quot;age&quot;, &quot;height&quot;]: on the GPU</span>
 <span class="n">net</span><span class="o">.</span><span class="n">qualitative_node_attributes</span>   <span class="c1"># [&quot;city&quot;]: in CPU memory</span>
 <span class="n">net</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span>    <span class="c1"># NumPy object array over the nodes of component 0</span>
+</pre></div>
+</div>
+</section>
+<section id="several-values-per-node-overlapping-communities">
+<span id="overlapping-communities"></span><h2>Several values per node: overlapping communities<a class="headerlink" href="#several-values-per-node-overlapping-communities" title="Link to this heading"></a></h2>
+<p>A qualitative node attribute can give a node several values, e.g. the communities of a node in
+more than one. In Python, the value of such a node is a list, tuple, set or array of values; it is
+stored as a tuple of its distinct values (in order, sorted for sets), and a collection of one value
+as that value, so that nodes in one community keep a plain label. Strings are single values. A
+numeric attribute cannot take several values: use a new attribute name.</p>
+<p>In files, several values are several rows of a long node table (<code class="docutils literal notranslate"><span class="pre">node_format</span> <span class="pre">=</span> <span class="pre">&quot;long&quot;</span></code>), one per
+value: the rows of a node and attribute are merged into a tuple on loading, and tuples are written
+back as several rows by <a class="reference internal" href="#graphoskop.save_network" title="graphoskop.save_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_network()</span></code></a>. A wide table, with one cell per node and
+attribute, cannot hold them: saving them in wide format raises an error (save in long format, or
+pickle the network). Numeric labels read from a long table stay integers when they all are.</p>
+<p><a class="reference internal" href="communities.html#graphoskop.modularity" title="graphoskop.modularity"><code class="xref py py-func docutils literal notranslate"><span class="pre">modularity()</span></code></a> switches to overlapping modularity for such partitions, and
+<a class="reference internal" href="generators.html#graphoskop.mixed_membership_block_model" title="graphoskop.mixed_membership_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code></a> generates and randomizes networks with
+overlapping communities. Functions that need one value per node, e.g. categorical
+<a class="reference internal" href="network_statistics.html#graphoskop.assortativity" title="graphoskop.assortativity"><code class="xref py py-func docutils literal notranslate"><span class="pre">assortativity()</span></code></a> or the other blockmodels, raise <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;community&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">},</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)])</span>   <span class="c1"># stored as (0, 1), 1, (1, 2), 2</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                  <span class="c1"># overlapping (Shen et al.)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">save_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">,</span> <span class="n">node_format</span> <span class="o">=</span> <span class="s2">&quot;long&quot;</span><span class="p">)</span>                <span class="c1"># node 0: two &quot;community&quot; rows</span>
 </pre></div>
 </div>
 </section>

@@ -7,25 +7,30 @@ A partition assigns every node to a community, given either as the name of a nod
 :class:`pandas.Series`) indexed by input node id, or in a sequence ordered as the nodes of the
 network (component by component, by internal index: ``np.concatenate(net.node_ids)``). Labels
 can be of any type; only equality matters. In multilayer networks every copy ``(entity, layer)``
-has its own label, so a community can span several layers.
+has its own label, so a community can span several layers. A node in several communities has a
+list, tuple or set of labels (see :ref:`overlapping-communities`): the partition is then a cover,
+for which :func:`modularity` is the overlapping modularity.
 """
 
 import numpy as np
 import pandas as pd
 import torch
 
+from .network import _explode, _memberships
 from .network_statistics import _skeleton, _paths
 
 
 def _labels(net, partition, comps):
    """
-   Community of every node of some components, as integer codes.
+   Communities of the nodes of some components, as integer codes, one row per membership: a node
+   in several communities (a list, tuple or set of labels) has several rows.
 
    :param net: Network.
    :param partition: Node attribute name, dictionary or Series by node id, or sequence in network
       wide node order.
    :param comps: Component indices.
-   :return: List of int64 arrays, one per component.
+   :return: Node (position among the nodes of ``comps``, in order) and community code of every
+      membership, both int64 arrays sorted by node, and the number of nodes.
    :raises ValueError: If a node has no label, or a sequence has the wrong length.
    :raises KeyError: If there is no such attribute.
    """
@@ -39,17 +44,21 @@ def _labels(net, partition, comps):
       ids = np.concatenate([net.node_ids[c] for c in comps])
       values = pd.Series(ids).map(partition).to_numpy()
    else:
-      values = np.asarray(partition, dtype = object)
+      values = _memberships(partition)
       if len(values) != net.number_of_nodes():
          raise ValueError(f"the partition has {len(values)} labels, the network {net.number_of_nodes()} nodes")
       values = np.concatenate([values[net.node_offsets[c]:net.node_offsets[c + 1]] for c in comps])
-   codes = pd.factorize(pd.Series(values, dtype = object))[0]
+   values = _memberships(values)
+   cols, flat = _explode({"node": np.arange(len(values))}, values)
+   codes = pd.factorize(pd.Series(flat, dtype = object))[0]
    if (codes < 0).any():
-      raise ValueError(f"{int((codes < 0).sum())} nodes have no community label")
-   return np.split(codes, np.cumsum([net.components[c].num_nodes for c in comps])[:-1])
+      raise ValueError(f"{len(np.unique(cols['node'][codes < 0]))} nodes have no community label")
+   node = cols["node"].astype(np.int64)
+   order = np.lexsort((codes, node))
+   return node[order], codes[order].astype(np.int64), len(values)
 
 
-def modularity(net, partition, weight = None, resolution = 1, component = None):
+def modularity(net, partition, weight = None, resolution = 1, component = None, overlap = "shen"):
    """
    Modularity of a partition of the nodes into communities: the weight of the edges within
    communities minus its expected value in a null model that keeps the degrees.
@@ -72,6 +81,23 @@ def modularity(net, partition, weight = None, resolution = 1, component = None):
      directed networks use the directed null model in each layer. With one layer and no
      interlayer edges this is the ordinary modularity.
 
+   Communities can overlap: a node in several communities has a list, tuple or set of labels
+   (see :doc:`network`). Overlapping modularity then weighs every pair of nodes by their
+   belonging to each community they share, in the same variants (directed, bipartite,
+   multilayer), following ``overlap``:
+
+   * ``"shen"`` (Shen et al., 2009): a node in :math:`O_i` communities belongs to each with
+     :math:`a_{ic} = 1 / O_i`, and :math:`Q = \\frac{1}{2m} \\sum_c \\sum_{ij} \\left[ A_{ij} -
+     \\gamma \\frac{k_i k_j}{2m} \\right] a_{ic} a_{jc}`. Without overlaps this is the modularity
+     above;
+   * ``"nicosia"`` (Nicosia et al., 2009): belonging :math:`\\alpha_{ic} = 1 / O_i` (0 outside the
+     community) enters through :math:`g(\\alpha) = 1 / (1 + e^{-(2 p \\alpha - p)})`, with
+     :math:`p = 30` as in the paper, and :math:`Q = \\frac{1}{2m} \\sum_c \\sum_{ij} \\left[ g_{ic}
+     g_{jc} A_{ij} - \\gamma G_c^2 \\frac{g_{ic} k_i g_{jc} k_j}{2m} \\right]`, with :math:`G_c` the
+     mean of :math:`g_{jc}` over all nodes (of the layer). It is sharper than Shen's (a node in 3
+     communities barely belongs to any) and, unlike it, it differs from the classic modularity
+     even without overlaps (its null model shrinks by :math:`G_c^2`); it is used whenever asked.
+
    A self loop counts once in :math:`L_c` and twice in the degree of its node (in undirected
    networks), and parallel edges add up, as in NetworkX and igraph. ``resolution``
    (:math:`\\gamma`) above 1 favors smaller communities. Modularity is at most 1; it is 0 for a
@@ -84,8 +110,11 @@ def modularity(net, partition, weight = None, resolution = 1, component = None):
    :param weight: Edge attribute used as weight, or ``None`` for unit weights.
    :param resolution: Resolution :math:`\\gamma`.
    :param component: Index of the component (0 is the largest), or ``None`` for the whole network.
+   :param overlap: Overlapping modularity: ``"shen"`` (used only if some node is in several
+      communities; otherwise it is the classic modularity) or ``"nicosia"``.
    :return: The modularity, a float.
-   :raises ValueError: If a node has no label, or a sequence has the wrong length.
+   :raises ValueError: If a node has no label, a sequence has the wrong length, or ``overlap`` is
+      not valid.
    :raises KeyError: If there is no such node or edge attribute.
 
    Example:
@@ -98,39 +127,86 @@ def modularity(net, partition, weight = None, resolution = 1, component = None):
       gsk.modularity(net, "party")
       gsk.modularity(net, {"alice": 0, "bob": 0, "carol": 1, ...})
       gsk.modularity(net, labels, weight = "weight", resolution = 0.5)
+      gsk.modularity(net, {"alice": [0, 1], "bob": 0, "carol": 1, ...})   # alice in both communities
+      gsk.modularity(net, "community", overlap = "nicosia")
    """
+   if overlap not in ("shen", "nicosia"):
+      raise ValueError(f"unknown overlap: {overlap}")
    comps = list(range(len(net.components)) if component is None else [component])
-   codes = _labels(net, partition, comps)
-   K = int(max((c.max() for c in codes if len(c)), default = -1)) + 1
+   node, code, n = _labels(net, partition, comps)
+   K = int(code.max()) + 1 if len(code) else 0
+   O = np.bincount(node, minlength = n)
+   if overlap == "shen":   # belonging 1 / O; 0 outside
+      a, a0 = 1 / O[node], 0.
+   else:
+      g = lambda x: 1 / (1 + np.exp(-(60 * x - 30)))
+      a, a0 = g(1 / O[node]), float(g(0.))
+   A = np.bincount(node, a, minlength = n)   # belonging of each node summed over its communities
    ml = net.layer_labels is not None
    barber = net.bipartite_split is not None and not net.directed
    L = len(net.layer_labels) if ml else 1
    inside, total = 0., 0.
-   m = np.zeros(L)
-   ka, kb = np.zeros((L, K)), np.zeros((L, K))   # per layer and community: degrees at the two ends
-   for c, g in zip(comps, codes):
+   m, nl = np.zeros(L), np.zeros(L)
+   ka, kb, G = np.zeros((L, K)), np.zeros((L, K)), np.zeros((L, K))
+   da, db = np.zeros((L, K)), np.zeros((L, K))   # degrees of the members (Nicosia: the others count with a0)
+   off = np.cumsum([0] + [net.components[c].num_nodes for c in comps])
+   for j, c in enumerate(comps):
       data = net.components[c]
       s, t = data.edge_index
       dev = s.device
       w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
       if not net.directed:   # other edges are stored in both directions, self loops once
          w = torch.where(s == t, 2 * w, w)
-      g = torch.as_tensor(g, device = dev)
-      same = g[s] == g[t]
-      inside += float(w[same].sum())
+      mine = (node >= off[j]) & (node < off[j + 1])   # memberships of this component, by node
+      mn, mc = torch.as_tensor(node[mine] - off[j], device = dev), torch.as_tensor(code[mine], device = dev)
+      ma = torch.as_tensor(a[mine], device = dev)
+      first = torch.as_tensor(np.searchsorted(node[mine] - off[j], np.arange(data.num_nodes)), device = dev)
+      cnt = torch.as_tensor(O[off[j]:off[j + 1]], device = dev)
+      # edge term: sum over the communities of s of a_sc a_tc (a0 for a non-member)
+      e = torch.repeat_interleave(torch.arange(s.shape[0], device = dev), cnt[s])
+      r = torch.arange(e.shape[0], device = dev) - torch.repeat_interleave(torch.cumsum(cnt[s], 0) - cnt[s], cnt[s])
+      ms = first[s][e] + r   # memberships of the source of each edge
+      keys = mn * K + mc   # sorted by node, then code
+      want = t[e] * K + mc[ms]
+      hit = torch.searchsorted(keys, want).clamp(max = max(keys.shape[0] - 1, 0))
+      found = keys[hit] == want
+      at = torch.where(found, ma[hit], a0)
+      pair = torch.zeros(s.shape[0], dtype = torch.float64, device = dev).index_add_(0, e, ma[ms] * at)
+      if a0:   # communities of t only, and of neither
+         common = torch.zeros(s.shape[0], dtype = torch.float64, device = dev).index_add_(0, e, torch.where(found, ma[hit], 0.).double())
+         shared = torch.zeros(s.shape[0], dtype = torch.float64, device = dev).index_add_(0, e, found.double())
+         At = torch.as_tensor(A[off[j]:off[j + 1]], device = dev)
+         pair += a0 * (At[t] - common) + a0 * a0 * (K - cnt[s] - cnt[t] + shared)
+      inside += float((w * pair).sum())
       total += float(w.sum())
       lay = data.layer if ml else torch.zeros(data.num_nodes, dtype = torch.long, device = dev)
       intra = ~net.interlayer_mask(c)   # null model: intra-layer edges only
       if barber:   # only the direction from type 0 to type 1
          intra &= s < net.bipartite_split[c]
-      s, t, w = s[intra], t[intra], w[intra]
-      m += torch.bincount(lay[s], w, minlength = L).cpu().numpy()
-      ka += torch.bincount(lay[s] * K + g[s], w, minlength = L * K).view(L, K).cpu().numpy()
-      kb += torch.bincount(lay[t] * K + g[t], w, minlength = L * K).view(L, K).cpu().numpy()
+      si, ti, wi = s[intra], t[intra], w[intra]
+      m += torch.bincount(lay[si], wi, minlength = L).cpu().numpy()
+      kout = torch.bincount(si, wi, minlength = data.num_nodes)
+      kin_ = torch.bincount(ti, wi, minlength = data.num_nodes)
+      lm = lay[mn] * K + mc
+      ka += torch.bincount(lm, ma * kout[mn], minlength = L * K).view(L, K).cpu().numpy()
+      kb += torch.bincount(lm, ma * kin_[mn], minlength = L * K).view(L, K).cpu().numpy()
+      if a0:   # non-members add a0 times their degrees, and count in the mean belonging
+         da += torch.bincount(lm, kout[mn], minlength = L * K).view(L, K).cpu().numpy()
+         db += torch.bincount(lm, kin_[mn], minlength = L * K).view(L, K).cpu().numpy()
+         G += torch.bincount(lm, ma - a0, minlength = L * K).view(L, K).cpu().numpy()
+         nl += torch.bincount(lay, minlength = L).cpu().numpy()
+         tot_out = torch.bincount(lay, kout, minlength = L).cpu().numpy()
+         tot_in = torch.bincount(lay, kin_, minlength = L).cpu().numpy()
+         ka += a0 * tot_out[:, None]
+         kb += a0 * tot_in[:, None]
    if total == 0:
       return float("nan")
+   if a0:
+      ka -= a0 * da
+      kb -= a0 * db
+      G = np.where(nl[:, None] > 0, G / np.maximum(nl[:, None], 1) + a0, 0)
    with np.errstate(invalid = "ignore", divide = "ignore"):
-      null = np.where(m > 0, (ka * kb).sum(1) / m, 0).sum()
+      null = np.where(m > 0, ((G ** 2 if a0 else 1) * ka * kb).sum(1) / m, 0).sum()
    if barber:   # one direction kept, so the null model counts each edge once
       null = 2 * null
    return (inside - resolution * null) / total

@@ -19,7 +19,9 @@ Random graphs
 -------------
 
 Edges placed uniformly at random, given their number or density (Erdős–Rényi), or the degree of
-every node (configuration model).
+every node (configuration model, or edge swaps, which only randomize an existing network, fully
+or partially); or with probabilities given by Kronecker powers of a small initiator matrix
+(Kronecker graphs); or between nodes close in space (geometric graphs).
 
 .. code-block:: python
 
@@ -29,12 +31,24 @@ every node (configuration model).
    rnd = gsk.gnp_random_graph(net = net)                           # p = density of net
    cm = gsk.configuration_model([3, 3, 2, 2, 1, 1], seed = 1)      # given degrees
    rnd = gsk.configuration_model(net = net)                        # degrees of net, random wiring
+   rnd = gsk.edge_swap(net)                                        # degrees of net exactly, 10 swaps per edge
+   part = gsk.edge_swap(net, swaps = 100)                          # only a few edges moved
+   kg = gsk.kronecker_graph([[0.9, 0.5], [0.5, 0.1]], n = 10000)   # stochastic Kronecker graph
+   rnd = gsk.kronecker_graph(net = net)                            # 2 x 2 initiator fitted to net
+   geo = gsk.geometric_graph(1000, r = 0.05)                       # pairs closer than 0.05 in the unit square
+   geo = gsk.geometric_graph(1000, m = 5000, d = 3, torus = True)  # the 5000 closest pairs in a 3D torus
 
 .. autofunction:: graphoskop.gnm_random_graph
 
 .. autofunction:: graphoskop.gnp_random_graph
 
 .. autofunction:: graphoskop.configuration_model
+
+.. autofunction:: graphoskop.edge_swap
+
+.. autofunction:: graphoskop.kronecker_graph
+
+.. autofunction:: graphoskop.geometric_graph
 
 Clustered graphs
 ----------------
@@ -85,7 +99,9 @@ closed by new nodes, degrees stay broad and clustering stays high (Holme-Kim).
 Stochastic blockmodels
 ----------------------
 
-Nodes in communities, with edge probabilities depending on the communities of the two nodes.
+Nodes in communities, with edge probabilities depending on the communities of the two nodes;
+in mixed membership blockmodels, nodes can be in several communities (see
+:ref:`overlapping-communities`).
 
 .. code-block:: python
 
@@ -97,6 +113,41 @@ Nodes in communities, with edge probabilities depending on the communities of th
    g = gsk.stochastic_block_model([50, 450], [[0.5, 0.1], [0.1, 0.01]])   # core-periphery
    rnd = gsk.stochastic_block_model(net = net)                         # density between every pair of communities
 
+   g = gsk.degree_corrected_block_model([5, 4], [10, 1, 1, 1, 1, 6, 2, 2, 2], [[6, 1], [1, 5]])   # hubs in blocks
+   rnd = gsk.degree_corrected_block_model(net = net)                   # degrees and block edges of net, on average
+
+   B = [[0.3, 0.01], [0.01, 0.3]]
+   g = gsk.mixed_membership_block_model(B, n = 200, alpha = 0.1)      # memberships from a Dirichlet
+   g = gsk.mixed_membership_block_model(B, memberships = [[1, 0], [0.5, 0.5], [0, 1]])
+   gsk.modularity(g, "community")                                      # overlapping modularity
+   rnd = gsk.mixed_membership_block_model(net = net)                   # "community" can list several per node
+
 .. autofunction:: graphoskop.planted_partition_graph
 
 .. autofunction:: graphoskop.stochastic_block_model
+
+.. autofunction:: graphoskop.degree_corrected_block_model
+
+.. autofunction:: graphoskop.mixed_membership_block_model
+
+Community benchmarks
+--------------------
+
+Graphs with planted communities, the ground truth against which community discovery algorithms
+are tested: equal communities and degrees (Girvan-Newman), or broad degrees and community sizes,
+with directed, weighted and overlapping variants (LFR). The mixing parameter ``mu``, the fraction
+of the edges of a node leaving its communities, sets how hard the communities are to find.
+
+.. code-block:: python
+
+   gn = gsk.girvan_newman_graph(0.3, seed = 1)                         # 4 x 32 nodes, degree 16, mu 0.3
+   rnd = gsk.girvan_newman_graph(net = net)                            # random equal communities, mu and degree of net
+
+   lfr = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, minc = 20, maxc = 100, seed = 1)
+   gsk.modularity(lfr, "community")                                    # quality of the planted communities
+   lfr = gsk.lfr_benchmark_graph(1000, 20, 50, 0.3, directed = True, muw = 0.2, on = 100, om = 2)
+   rnd = gsk.lfr_benchmark_graph(net = net, mu = 0.5)                  # degrees and communities of net, more mixed
+
+.. autofunction:: graphoskop.girvan_newman_graph
+
+.. autofunction:: graphoskop.lfr_benchmark_graph

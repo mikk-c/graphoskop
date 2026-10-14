@@ -4,18 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "graphoskop"
-version = "0.4.8"
+version = "0.4.11"
 description = "Analysis of networks and of vectors defined on their nodes."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["numpy", "pandas", "scipy", "torch", "torch_geometric"]
+
+[project.urls]
+Documentation = "https://graphoskop.readthedocs.io/en/latest/"
+Textbook = "https://www.networkatlas.eu/"
 
 [project.optional-dependencies]
 docs = ["sphinx", "sphinx_rtd_theme"]
 
 [tool.setuptools.packages.find]
 include = ["graphoskop*"]
-
-[project.urls]
-Homepage = "https://github.com/mikk-c/graphoskop"
-Issues = "https://github.com/mikk-c/graphoskop/issues"

@@ -18,7 +18,8 @@ Generators
 Random graphs
 -------------
 
-Every pair of nodes is equally likely to be an edge (Erdős–Rényi).
+Edges placed uniformly at random, given their number or density (Erdős–Rényi), or the degree of
+every node (configuration model).
 
 .. code-block:: python
 
@@ -26,10 +27,14 @@ Every pair of nodes is equally likely to be an edge (Erdős–Rényi).
    b = gsk.gnm_random_graph((100, 300), 1000, directed = True)     # bipartite, edges in either direction
    g = gsk.gnp_random_graph(1000, 0.01, seed = 1)                  # each pair with probability 0.01
    rnd = gsk.gnp_random_graph(net = net)                           # p = density of net
+   cm = gsk.configuration_model([3, 3, 2, 2, 1, 1], seed = 1)      # given degrees
+   rnd = gsk.configuration_model(net = net)                        # degrees of net, random wiring
 
 .. autofunction:: graphoskop.gnm_random_graph
 
 .. autofunction:: graphoskop.gnp_random_graph
+
+.. autofunction:: graphoskop.configuration_model
 
 Clustered graphs
 ----------------
@@ -76,3 +81,22 @@ closed by new nodes, degrees stay broad and clustering stays high (Holme-Kim).
 .. autofunction:: graphoskop.copying_graph
 
 .. autofunction:: graphoskop.holme_kim_graph
+
+Stochastic blockmodels
+----------------------
+
+Nodes in communities, with edge probabilities depending on the communities of the two nodes.
+
+.. code-block:: python
+
+   pp = gsk.planted_partition_graph([100, 100, 50], 0.2, 0.01, seed = 1)   # p_in and p_out
+   gsk.modularity(pp, "community")                                     # planted partition, node attribute
+   rnd = gsk.planted_partition_graph(net = net)                        # communities of net ("community")
+   rnd = gsk.planted_partition_graph(net = net, attribute = "party")   # densities within and between parties
+
+   g = gsk.stochastic_block_model([50, 450], [[0.5, 0.1], [0.1, 0.01]])   # core-periphery
+   rnd = gsk.stochastic_block_model(net = net)                         # density between every pair of communities
+
+.. autofunction:: graphoskop.planted_partition_graph
+
+.. autofunction:: graphoskop.stochastic_block_model

@@ -98,6 +98,8 @@
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simple_contagion.html">Simple contagion</a></li>
 </ul>
 
         </div>
@@ -240,6 +242,11 @@ given) and <code class="docutils literal notranslate"><span class="pre">degree</
 <code class="docutils literal notranslate"><span class="pre">degree</span></code> (the values that occur, increasing) and a column named as <code class="docutils literal notranslate"><span class="pre">distribution</span></code>:
 <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code> (number of nodes with that degree), <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code> (fraction of nodes with that
 degree) or <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code> (fraction of nodes with that degree or higher).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">distribution</span> <span class="pre">=</span> <span class="pre">None</span></code>: the degree of every node, as a vector over the
+nodes of the component (int64, float with <code class="docutils literal notranslate"><span class="pre">weight</span></code>), on the device of the network, or a
+list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, as the centralities (e.g. to rank the nodes, see
+<a class="reference internal" href="simple_contagion.html#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>). In multilayer networks, the degree of each copy, counting
+intra-layer edges only.</p></li>
 </ul>
 <p>In multilayer networks (see the module description), <code class="docutils literal notranslate"><span class="pre">by</span></code> chooses the distribution:
 <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> gives the distribution of each layer, over its copies, in one table with a first
@@ -253,11 +260,12 @@ layer.</p>
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>node</strong> – Node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> or, in multilayer networks,
 entity), list of nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code>; used when <code class="docutils literal notranslate"><span class="pre">node</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the degree of every
+node; used when <code class="docutils literal notranslate"><span class="pre">node</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
 <li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code> (in plus out)
 degree; ignored in undirected networks.</p></li>
-<li><p><strong>component</strong> – For the distribution, index of the component (0 is the largest), or
-<code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given. With <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;entity&quot;</span></code>,
+<li><p><strong>component</strong> – For the distribution or the vector of degrees, index of the component (0
+is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given. With <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;entity&quot;</span></code>,
 only the copies in that component are summed.</p></li>
 <li><p><strong>by</strong> – In multilayer networks, <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code>; ignored otherwise.</p></li>
 <li><p><strong>weight</strong> – Name of a numeric edge attribute for the weighted degree, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the
@@ -265,7 +273,7 @@ number of edges.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Degree, or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<dd class="field-even"><p>Degree, <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, or vector (list of vectors) of degrees.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -283,6 +291,7 @@ both an input id and an internal id.</p></li>
 <span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;in&quot;</span><span class="p">)</span>               <span class="c1"># by internal id</span>
 <span class="n">table</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">])</span>                   <span class="c1"># several nodes</span>
 <span class="n">ccdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;ccdf&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;total&quot;</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>     <span class="c1"># vector over component 0</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>             <span class="c1"># weighted out-degree (strength)</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;multiplex.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>

@@ -1,0 +1,72 @@
+Simple contagion
+================
+
+.. automodule:: graphoskop.simple_contagion
+   :no-members:
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("contacts.tsv")
+   si = gsk.si_model(net, beta = 0.1, seeds = 5, runs = 1000, seed = 1)   # random seeds, component 0
+   si.loc[10]                                                       # S, I and their intervals at step 10
+   sis = gsk.sis_model(net, beta = 0.1, mu = 0.05, seeds = 5)
+   sir = gsk.sir_model(net, beta = 0.2, mu = 0.1, seeds = 5)
+   sir[["S", "I", "R"]].plot()
+
+   k = gsk.degree(net, distribution = None, component = 0)
+   sir = gsk.sir_model(net, 0.2, 0.1, 5, ranking = k)               # the 5 hubs
+   sir = gsk.sir_model(net, 0.2, 0.1, 5, ranking = k, selection = "weighted")   # drawn proportionally
+   sir = gsk.sir_model(net, 0.2, 0.1, 0.01, ranking = "age")        # 1% of the nodes: the oldest
+
+   # one step at a time: the states are stored in the node attribute "state"
+   gsk.sir_model(net, 0.2, 0.1, 5, runs = 1, max_steps = 0)         # seeds infected, step 0
+   for step in range(20):
+      gsk.sir_model(net, 0.2, 0.1, runs = 1, max_steps = 1, resume = True)
+      states = net.get_node_attribute("state")                     # "S", "I" or "R" for each node
+
+   net = gsk.load_network("contacts.tsv", device = "cuda")
+   sir = gsk.sir_model(net, 0.2, 0.1, 5)                           # runs batched on the GPU
+
+Performance
+-----------
+
+With ``engine = "numba"``, each CPU thread simulates whole runs and only touches the nodes that
+can change and the edges of the nodes that changed, and runs scale linearly with the number of
+threads. With ``engine = "torch"``, the runs of a batch are simulated together on the device of
+the network; it is the default on a GPU, where it is the faster engine. Times for 100 runs on
+random graphs with ten times as many edges as nodes, ``beta = 0.1`` (SIR and SIS: ``mu = 0.05``
+and ``mu = 0.2``):
+
+=================  =====  =========  ====================  ==========
+Network            Model  Steps      Numba, 2 CPU threads  Torch, CPU
+=================  =====  =========  ====================  ==========
+100,000 nodes      SI     171        1.5 s                 17 s
+100,000 nodes      SIR    378        4.2 s
+100,000 nodes      SIS    300 (cap)  50 s
+1,000,000 nodes    SI     192        26 s
+1,000,000 nodes    SIR    379        93 s
+=================  =====  =========  ====================  ==========
+
+On a workstation with a GPU (version 0.6.0), 100 SI runs on 1,000,000 nodes took 3.0 s with the Numba engine on
+its CPU, 1.4 s with the torch engine on the GPU, and 26 s with the torch engine on the CPU.
+
+Endemic SIS is the most expensive case: a large fraction of the nodes is infected at every step,
+and each of them draws its recovery at every step, so runs above the epidemic threshold cost time
+proportional to ``max_steps`` times the number of infected nodes.
+
+SI model
+--------
+
+.. autofunction:: graphoskop.si_model
+
+SIS model
+---------
+
+.. autofunction:: graphoskop.sis_model
+
+SIR model
+---------
+
+.. autofunction:: graphoskop.sir_model

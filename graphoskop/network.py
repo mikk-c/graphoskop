@@ -334,16 +334,18 @@ class Network:
       :param component: Component index, or ``None`` for all components.
       :raises ValueError: If a vector does not have one value per node.
       """
-      if component is None:
-         for c, v in enumerate(values):
-            self._set_qualitative(key, v, c)
-         return
-      a, b = self.node_offsets[component], self.node_offsets[component + 1]
-      if isinstance(values, torch.Tensor):
-         values = values.cpu().numpy()
-      v = _memberships(values)
-      if v.shape != (b - a,):
-         raise ValueError(f"expected a vector of length {b - a}, got shape {v.shape}")
+      vectors = values if component is None else [values]
+      comps = range(len(self.components)) if component is None else [component]
+      if len(vectors) != len(comps):
+         raise ValueError(f"expected one vector per component ({len(comps)}), got {len(vectors)}")
+      parts = []
+      for c, x in zip(comps, vectors):   # all components at once: one update of the table
+         x = _memberships(x.cpu().numpy() if isinstance(x, torch.Tensor) else x)
+         if x.shape != (self.components[c].num_nodes,):
+            raise ValueError(f"expected a vector of length {self.components[c].num_nodes}, got shape {x.shape}")
+         parts.append(x)
+      a, b = self.node_offsets[comps[0]], self.node_offsets[comps[-1] + 1]
+      v = np.concatenate(parts)
       Q = self.qualitative_node_attr
       if self.node_format == "wide":
          col = np.asarray(Q[key], dtype = object)

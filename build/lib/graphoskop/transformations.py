@@ -6,7 +6,8 @@ direction, become one undirected edge, whose attributes combine theirs. :func:`r
 drops the nodes without edges, :func:`remove_self_loops` the edges from a node to itself,
 :func:`remove_parallel_edges` merges the edges between the same two nodes. :func:`subgraph` keeps a
 set of nodes and the edges between them, :func:`to_strongly_connected` the edges within strongly
-connected components.
+connected components. :func:`add_nodes`, :func:`add_edges`, :func:`remove_nodes` and
+:func:`remove_edges` add or remove nodes and edges, one or many at once.
 """
 
 import numpy as np
@@ -125,11 +126,9 @@ def to_undirected(net, combine = "sum", sign = SIGN, disagree = "zero"):
       edges = _merge(edges, ["source", LAYER], ["target", LAYER], combine, sign, d)
       inter = _merge(inter, ["source", "source_layer"], ["target", "target_layer"], combine, sign, d)
    else:
-      edges, nodes = _flat_tables(net)
+      edges, _, nodes = _tables(net)
       edges = _merge(edges, ["source"], ["target"], combine, sign, d)
-   new = _load(edges, nodes, source = "source", target = "target", directed = False, node_format = net.node_format, bipartite = net.bipartite_labels is not None, device = net.components[0].edge_index.device, multilayer = ml, interlayer_edges = inter, layers = list(net.layer_labels) if ml else None)
-   _release_memory()
-   return new
+   return _reload(net, edges, inter, nodes, directed = False)
 
 
 def remove_isolates(net):
@@ -290,6 +289,45 @@ def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
    return _with_edges(net, edges)
 
 
+def _tables(net):
+   """
+   Edge and node tables of a network, which :func:`_reload` turns back into a network. The node
+   table declares every node, so that nodes without edges and without values are kept.
+
+   :param net: Network.
+   :return: ``(edges, interlayer, nodes)``, with ``interlayer`` ``None`` if the network is not
+      multilayer.
+   """
+   if net.layer_labels is not None:
+      return net.to_pandas_dataframes()
+   E, N = _flat_tables(net)
+   if net.node_format == "long":   # nodes without values are not in the long table
+      N = pd.concat([N, pd.DataFrame({"node": np.concatenate(net.node_ids), "attribute": np.nan, "value": np.nan})], ignore_index = True)
+   return E, None, N
+
+
+def _reload(net, edges, inter, nodes, directed = None):
+   """
+   Network from tables as given by :func:`_tables`, with the settings of another network. Layers
+   not in the layer order of ``net`` are appended to it, in order of appearance.
+
+   :param net: Network whose settings are kept.
+   :param edges: Edge table.
+   :param inter: Interlayer edge table, or ``None``.
+   :param nodes: Node table.
+   :param directed: Whether the new network is directed, ``None`` for the same as ``net``.
+   :return: New :class:`~graphoskop.Network`.
+   """
+   ml = net.layer_labels is not None
+   layers = None
+   if ml:
+      seen = pd.concat([edges[LAYER], inter["source_layer"], inter["target_layer"], nodes[LAYER]], ignore_index = True)
+      layers = list(net.layer_labels) + [x for x in pd.unique(seen.dropna()) if x not in net.layer_labels]
+   new = _load(edges, nodes, source = "source", target = "target", directed = net.directed if directed is None else directed, node_format = net.node_format, bipartite = net.bipartite_labels is not None, device = net.components[0].edge_index.device, multilayer = ml, interlayer_edges = inter, layers = layers)
+   _release_memory()
+   return new
+
+
 def _restrict(net, nodes, edges):
    """
    Network with some nodes and edges of another, attributes kept, components recomputed.
@@ -311,12 +349,9 @@ def _restrict(net, nodes, edges):
          keep_inter.append(k[inter])
       else:
          keep.append(k)
-   inter = None
+   E, inter, N = _tables(net)
    if ml:
-      E, inter, N = net.to_pandas_dataframes()
       inter = inter[np.concatenate(keep_inter)]
-   else:
-      E, N = _flat_tables(net)
    E = E[np.concatenate(keep)]
    if net.node_format == "wide":   # one row per node, in network wide order
       N = N[np.concatenate(nodes)]
@@ -324,9 +359,7 @@ def _restrict(net, nodes, edges):
       ids = np.concatenate([net.node_ids[c][nodes[c]] for c in range(len(net.components))])
       key = list(zip(N["node"], N[LAYER])) if ml else N["node"]
       N = N[pd.Series(key).isin(set(ids.tolist()) if ml else ids).to_numpy()]
-   new = _load(E, N, source = "source", target = "target", directed = net.directed, node_format = net.node_format, bipartite = net.bipartite_labels is not None, device = net.components[0].edge_index.device, multilayer = ml, interlayer_edges = inter, layers = list(net.layer_labels) if ml else None)
-   _release_memory()
-   return new
+   return _reload(net, E, inter, N)
 
 
 def subgraph(net, nodes):
@@ -399,3 +432,318 @@ def to_strongly_connected(net):
       nodes.append(np.ones(d.num_nodes, dtype = bool))
       edges.append(labels[s] == labels[t])
    return _restrict(net, nodes, edges)
+
+
+def _items(x):
+   """
+   Items given one at a time or as a collection. A string or a tuple is always one item (a node
+   id, a copy ``(entity, layer)`` or an edge); lists, sets, arrays, :class:`pandas.Series` and
+   other iterables are collections.
+
+   :param x: One item, or an iterable of items.
+   :return: List of items.
+   """
+   if isinstance(x, (str, bytes, tuple)) or not np.iterable(x):
+      return [x.item() if isinstance(x, np.generic) else x]
+   x = x.tolist() if isinstance(x, (np.ndarray, pd.Series, pd.Index)) else x   # NumPy values to Python values
+   return [tuple(e) if isinstance(e, list) else e for e in x]   # rows of a 2D array: edges
+
+
+def _id(net, x):
+   """
+   Node id as stored in a network: ids read from files are strings, so an id that is not in the
+   network is replaced by its string if that is (the entity only, for copies ``(entity, layer)``).
+
+   :param net: Network.
+   :param x: Node id, or copy ``(entity, layer)`` in multilayer networks.
+   :return: The id.
+   """
+   if net.layer_labels is None:
+      return str(x) if x not in net.node_map and str(x) in net.node_map else x
+   e, l = x
+   return (str(e) if e not in net.entity_map and str(e) in net.entity_map else e, l)
+
+
+def _endpoints(net, edges):
+   """
+   Endpoints and attributes of edges given one at a time, as an iterable or as a table.
+
+   :param net: Network.
+   :param edges: An edge ``(u, v)``, an iterable of them, or a :class:`pandas.DataFrame` (see
+      :func:`add_edges`).
+   :return: List of the endpoint pairs ``(u, v)``, and table of the edge attributes, one row per
+      edge (no columns if there are none).
+   :raises ValueError: If an edge is not a pair, or if a multilayer table has neither layer
+      columns nor two endpoint columns.
+   """
+   if not isinstance(edges, pd.DataFrame):
+      pairs = [tuple(e) for e in _items(edges)]
+      if any(len(e) != 2 for e in pairs):
+         raise ValueError("an edge is a pair (u, v)")
+      return pairs, pd.DataFrame(index = pd.RangeIndex(len(pairs)))
+   cols = list(edges.columns)
+   col = lambda c: edges[c].tolist()
+   if net.layer_labels is None:
+      ids = cols[:2]
+      pairs = list(zip(col(cols[0]), col(cols[1])))
+   elif "source_layer" in cols and "target_layer" in cols:   # interlayer table: source, source_layer, target, target_layer
+      ids = cols[:4]
+      pairs = list(zip(zip(col(cols[0]), col(cols[1])), zip(col(cols[2]), col(cols[3]))))
+   elif LAYER in cols:   # edge table: source, target, layer
+      ids = cols[:2] + [LAYER]
+      pairs = list(zip(zip(col(cols[0]), col(LAYER)), zip(col(cols[1]), col(LAYER))))
+   else:   # entities
+      ids = cols[:2]
+      pairs = list(zip(col(cols[0]), col(cols[1])))
+   return pairs, edges.drop(columns = ids).reset_index(drop = True)
+
+
+def add_nodes(net, nodes):
+   """
+   Network with new nodes, without edges (use :func:`add_edges` to connect them).
+
+   ``nodes`` is one node id, an iterable of node ids, or a :class:`pandas.DataFrame` node table in
+   the format of the network's (``net.node_format``), as taken by :func:`load_network`: wide (node
+   id, then one column per attribute) or long (node id, attribute name, value). A string or a
+   tuple is always one node. New nodes get NaN (missing) for every attribute they are not given;
+   in long (sparse) node tables, a numeric attribute without a value reads as 0. Columns that are
+   not attributes of the network become new attributes, NaN for the existing nodes.
+
+   In multilayer networks every new node is a copy ``(entity, layer)``: tuples, or a table with
+   the entity in the first column and the layer in the second. Layers not in
+   :attr:`~graphoskop.Network.layer_labels` are appended to the layer order. In bipartite networks
+   new nodes must have a value of :data:`~graphoskop.BIPARTITE`, so they are given as a table.
+
+   Every new node is a component of its own; the existing components, node and edge attributes,
+   node types, node table format and device are kept.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param nodes: A node id, an iterable of node ids, or a :class:`pandas.DataFrame`.
+   :return: The network with the new nodes, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If a node is already in the network, if a node of a multilayer network is
+      not a copy ``(entity, layer)``, or if a new node of a bipartite network has no node type.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")            # attributes age, city
+      net = gsk.add_nodes(net, "dave")                              # age NaN, city NaN
+      net = gsk.add_nodes(net, ["erin", "frank"])
+      net = gsk.add_nodes(net, pd.DataFrame({"id": ["gina"], "age": [41]}))   # city NaN
+   """
+   ml = net.layer_labels is not None
+   k = 2 if ml else 1
+   ids_names = ["node", LAYER][:k]
+   if isinstance(nodes, pd.DataFrame):
+      new = nodes.reset_index(drop = True)
+      names = ids_names + (["attribute", "value"] if net.node_format == "long" else list(new.columns[k:]))
+      new = new.set_axis(names, axis = 1)
+      new = new.astype({c: float for c in new.columns[k:] if new[c].dtype == bool})   # stays numeric next to NaN
+      keys = list(zip(new["node"].tolist(), new[LAYER].tolist())) if ml else new["node"].tolist()
+   else:
+      keys = _items(nodes)
+      new = None
+   if ml and any(not isinstance(x, tuple) or len(x) != 2 or pd.isna(x[1]) for x in keys):
+      raise ValueError("the nodes of a multilayer network are copies (entity, layer)")
+   keys = [_id(net, x) for x in keys]
+   old = [x for x in keys if x in net.node_map]
+   if old:
+      raise ValueError(f"node {old[0]!r} is already in the network")
+   cols = {"node": [x[0] for x in keys], LAYER: [x[1] for x in keys]} if ml else {"node": keys}
+   if new is None:
+      new = pd.DataFrame(cols)
+      if net.node_format == "long":
+         new["attribute"], new["value"] = np.nan, np.nan
+   else:
+      for c, v in cols.items():
+         new[c] = v
+   E, inter, N = _tables(net)
+   return _reload(net, E, inter, pd.concat([N, new], ignore_index = True))
+
+
+def add_edges(net, edges, weight = "weight"):
+   """
+   Network with new edges.
+
+   ``edges`` is one edge ``(u, v)``, an iterable of them (e.g. a list of pairs, or a two column
+   array), or a :class:`pandas.DataFrame` edge table: source and target in the first two columns,
+   then one column per edge attribute (non-numeric columns are ignored, as in
+   :func:`load_network`). A tuple is always one edge. New edges get NaN for every attribute they
+   are not given, except ``weight``, which defaults to 1: if the network or the new edges have an
+   attribute named ``weight``, new edges without a value get 1, and so do the existing edges if
+   the attribute is new (they were unweighted). Columns that are not attributes of the network
+   become new attributes, NaN for the existing edges.
+
+   Endpoints not in the network are added as new nodes, with NaN (missing) for every node
+   attribute, as in :func:`add_nodes`. Adding an edge that already exists adds a parallel edge
+   (see :func:`remove_parallel_edges`). In undirected networks ``(u, v)`` and ``(v, u)`` are the
+   same edge.
+
+   In multilayer networks the endpoints are copies ``(entity, layer)``: an edge between copies in
+   the same layer is an intra-layer edge, otherwise an interlayer edge (a coupling if they are
+   copies of the same entity). A table is given as an edge table (source, target, a ``layer``
+   column, then attributes) or as an interlayer table (source, ``source_layer``, target,
+   ``target_layer``, then attributes), as written by
+   :meth:`~graphoskop.Network.to_pandas_dataframes`. Layers not in
+   :attr:`~graphoskop.Network.layer_labels` are appended to the layer order. In bipartite networks
+   new edges must join nodes of different types, and new endpoints need a type, so they must be
+   added first with :func:`add_nodes`.
+
+   Components are recomputed, since new edges can join them; node and edge attributes, node types,
+   node table format and device are kept.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param edges: An edge ``(u, v)``, an iterable of edges, or a :class:`pandas.DataFrame`.
+   :param weight: Name of the edge attribute holding the weights, or ``None`` to give no default
+      weight.
+   :return: The network with the new edges, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If an edge is not a pair, if an endpoint of a multilayer network is not a
+      copy ``(entity, layer)``, or, in bipartite networks, if an edge joins two nodes of the same
+      type or a new endpoint has no node type.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      net = gsk.load_network("edges.tsv")                           # attribute weight
+      net = gsk.add_edges(net, ("alice", "dave"))                    # weight 1, dave is a new node
+      net = gsk.add_edges(net, [("bob", "carol"), ("carol", "dave")])
+      net = gsk.add_edges(net, pd.DataFrame({"source": ["alice"], "target": ["erin"], "weight": [2.5]}))
+   """
+   ml = net.layer_labels is not None
+   pairs, new = _endpoints(net, edges)
+   if ml and any(not isinstance(x, tuple) or len(x) != 2 for e in pairs for x in e):
+      raise ValueError("the edges of a multilayer network join copies (entity, layer)")
+   u = [_id(net, x) for x, _ in pairs]
+   v = [_id(net, y) for _, y in pairs]
+   E, inter, N = _tables(net)
+   if weight is not None and (weight in net.edge_attributes or weight in new.columns):
+      new[weight] = pd.to_numeric(new[weight]).fillna(1.) if weight in new.columns else 1.
+      if weight not in net.edge_attributes:
+         for T in (E, inter):
+            if T is not None:
+               T[weight] = 1.
+   if not ml:
+      new.insert(0, "target", v)
+      new.insert(0, "source", u)
+      return _reload(net, pd.concat([E, new], ignore_index = True), None, N)
+   same = np.array([a[1] == b[1] for a, b in zip(u, v)], dtype = bool)
+   intra, cross = new[same].copy(), new[~same].copy()
+   for T, m in ((intra, same), (cross, ~same)):
+      a = [x for x, k in zip(u, m) if k]
+      b = [y for y, k in zip(v, m) if k]
+      T.insert(0, "source", [x[0] for x in a])
+      if T is intra:
+         T.insert(1, "target", [y[0] for y in b])
+         T.insert(2, LAYER, [x[1] for x in a])
+      else:
+         T.insert(1, "source_layer", [x[1] for x in a])
+         T.insert(2, "target", [y[0] for y in b])
+         T.insert(3, "target_layer", [y[1] for y in b])
+   return _reload(net, pd.concat([E, intra], ignore_index = True), pd.concat([inter, cross], ignore_index = True), N)
+
+
+def remove_nodes(net, nodes):
+   """
+   Network without some nodes and their edges: the subgraph induced by all the other nodes (see
+   :func:`subgraph`).
+
+   ``nodes`` is one node, an iterable of nodes, or a :class:`pandas.DataFrame` whose first column
+   gives the nodes (e.g. a node table); a string or a tuple is always one node. Nodes are input
+   ids or internal ids ``(component, index)``; in multilayer networks, copies ``(entity, layer)``
+   or entities, which stand for all their copies (in a table, the entity is in the first column
+   and the layer in the second, missing for all the copies).
+
+   Components are recomputed, since removing a node can split one; the attributes of the other
+   nodes and edges, node types, node table format and device are kept.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param nodes: A node, an iterable of nodes, or a :class:`pandas.DataFrame`.
+   :return: The network without the nodes, a new :class:`~graphoskop.Network`.
+   :raises KeyError: If a node is not in the network.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      net = gsk.remove_nodes(net, "alice")
+      net = gsk.remove_nodes(net, ["bob", "carol"])
+   """
+   if isinstance(nodes, pd.DataFrame):
+      ids = nodes.iloc[:, 0].tolist()
+      if net.layer_labels is not None and nodes.shape[1] > 1:
+         ids = [e if pd.isna(l) else (e, l) for e, l in zip(ids, nodes.iloc[:, 1].tolist())]
+      nodes = ids
+   keep = [np.ones(d.num_nodes, dtype = bool) for d in net.components]
+   for x in _items(nodes):
+      for c, i in net._nodes(x):
+         keep[c][i] = False
+   edges = []
+   for c, d in enumerate(net.components):
+      s, t = d.edge_index.cpu().numpy()
+      edges.append(keep[c][s] & keep[c][t])
+   return _restrict(net, keep, edges)
+
+
+def remove_edges(net, edges):
+   """
+   Network without some edges.
+
+   ``edges`` is one edge ``(u, v)``, an iterable of them, or a :class:`pandas.DataFrame` with the
+   endpoints in the first two columns (e.g. an edge table; other columns are ignored). A tuple is
+   always one edge. All the edges from ``u`` to ``v`` are removed, parallel edges included; in
+   undirected networks, also those from ``v`` to ``u``. Endpoints are given as in
+   :func:`remove_nodes`. In multilayer networks, an entity stands for all its copies, so
+   ``(u, v)`` between two entities removes the edges between their copies in every layer and
+   across layers; a table with a ``layer`` column, or with ``source_layer`` and ``target_layer``
+   columns, gives copies, as written by :meth:`~graphoskop.Network.to_pandas_dataframes`.
+
+   All nodes are kept, so a node can become isolated (follow with :func:`remove_isolates` to drop
+   it). Components are recomputed, since removing an edge can split one; the attributes of the
+   nodes and of the other edges, node types, node table format and device are kept.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param edges: An edge ``(u, v)``, an iterable of edges, or a :class:`pandas.DataFrame`.
+   :return: The network without the edges, a new :class:`~graphoskop.Network`.
+   :raises KeyError: If a node or an edge is not in the network.
+   :raises ValueError: If an edge is not a pair.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv")
+      net = gsk.remove_edges(net, ("alice", "bob"))
+      net = gsk.remove_edges(net, [("bob", "carol"), ("carol", "dave")])
+   """
+   pairs = _endpoints(net, edges)[0]
+   req = [(r, c, i, j) for r, (u, v) in enumerate(pairs) for c, i in net._nodes(u) for c2, j in net._nodes(v) if c == c2]
+   req = np.array(req, dtype = np.int64).reshape(-1, 4)
+   found = np.zeros(len(pairs), dtype = bool)
+   nodes, keep = [], []
+   for c, d in enumerate(net.components):
+      s, t = d.edge_index.cpu().numpy()
+      n = d.num_nodes
+      q = req[req[:, 1] == c]
+      key = q[:, 2] * n + q[:, 3]
+      drop = np.isin(s * n + t, key)
+      if not net.directed:   # both directions are stored
+         drop |= np.isin(t * n + s, key)
+      found[q[np.isin(key, s * n + t), 0]] = True
+      nodes.append(np.ones(n, dtype = bool))
+      keep.append(~drop)
+   if not found.all():
+      raise KeyError(f"no edge {pairs[np.argmin(found)]!r}")
+   return _restrict(net, nodes, keep)

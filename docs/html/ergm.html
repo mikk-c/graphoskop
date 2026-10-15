@@ -64,9 +64,15 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Exponential random graph models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#fitting">Fitting</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.ergm"><code class="docutils literal notranslate"><span class="pre">ergm()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ERGMFit"><code class="docutils literal notranslate"><span class="pre">ERGMFit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ERGMFit"><code class="docutils literal notranslate"><span class="pre">ERGMFit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.ERGMFit.simulate"><code class="docutils literal notranslate"><span class="pre">ERGMFit.simulate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.ERGMFit.gof"><code class="docutils literal notranslate"><span class="pre">ERGMFit.gof()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.ERGMFit.pseudo_r2"><code class="docutils literal notranslate"><span class="pre">ERGMFit.pseudo_r2()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-and-goodness-of-fit">Simulation and goodness of fit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#statistics">Statistics</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.ergm_statistics"><code class="docutils literal notranslate"><span class="pre">ergm_statistics()</span></code></a></li>
 </ul>
@@ -283,8 +289,110 @@ dependent ones), or <code class="docutils literal notranslate"><span class="pre"
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.ERGMFit.simulate">
+<span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ERGMFit.simulate" title="Link to this definition"></a></dt>
+<dd><p>Networks drawn from the fitted model, as R’s <code class="docutils literal notranslate"><span class="pre">simulate()</span></code>: Markov chains at the estimated
+coefficients, started at the observed network, give a network after <code class="docutils literal notranslate"><span class="pre">burnin</span></code> steps and
+then one every <code class="docutils literal notranslate"><span class="pre">interval</span></code> steps (several chains run in parallel threads). Simulated
+networks keep the nodes of the observed one, with their ids and attributes (see
+<a class="reference internal" href="generators.html"><span class="doc">Generators</span></a>); their edges take the attributes of observed edges, drawn at random.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – Number of networks.</p></li>
+<li><p><strong>burnin</strong> – Steps of every chain before its first network.</p></li>
+<li><p><strong>interval</strong> – Steps of every chain between networks.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + nodematch(&#39;city&#39;) + gwesp(0.5, fixed = TRUE)&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sims</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">[</span><span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">sims</span><span class="p">]</span>
+</pre></div>
+</div>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.ERGMFit.gof">
+<span class="sig-name descname"><span class="pre">gof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16384</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ERGMFit.gof" title="Link to this definition"></a></dt>
+<dd><p>Goodness of fit, as R’s <code class="docutils literal notranslate"><span class="pre">gof()</span></code>: distributions of statistics of the observed network
+compared with those of <code class="docutils literal notranslate"><span class="pre">count</span></code> networks simulated from the fitted model (see
+<a class="reference internal" href="#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a>): the degree distribution (in- and out-degrees if directed), edgewise shared
+partners (outgoing two-paths if directed), geodesic distances (number of dyads at each
+distance, <code class="docutils literal notranslate"><span class="pre">inf</span></code> for unreachable ones) and the statistics of the model. For every value
+the table gives the observed count, the minimum, mean and maximum of the simulated ones and
+the Monte Carlo p-value, <span class="math notranslate nohighlight">\(\min(1, 2 \min(P(sim \leq obs), P(sim \geq obs)))\)</span>: small
+values flag features of the network the model does not reproduce.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – Number of simulated networks.</p></li>
+<li><p><strong>burnin</strong> – Steps of every chain before its first network.</p></li>
+<li><p><strong>interval</strong> – Steps of every chain between networks.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary from <code class="docutils literal notranslate"><span class="pre">&quot;model&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;idegree&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;odegree&quot;</span></code> if
+directed), <code class="docutils literal notranslate"><span class="pre">&quot;espartners&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;distance&quot;</span></code> to <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns
+<code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">mean</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code> and <code class="docutils literal notranslate"><span class="pre">MC</span> <span class="pre">p-value</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.ERGMFit.pseudo_r2">
+<span class="sig-name descname"><span class="pre">pseudo_r2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ERGMFit.pseudo_r2" title="Link to this definition"></a></dt>
+<dd><p>McFadden’s pseudo-<span class="math notranslate nohighlight">\(R^2\)</span> of the model, <span class="math notranslate nohighlight">\(1 - \ell / \ell_0\)</span>, with <span class="math notranslate nohighlight">\(\ell\)</span>
+the log pseudo-likelihood of the model (logistic regression of the dyads on their change
+statistics; the log-likelihood for dyad independent models) and <span class="math notranslate nohighlight">\(\ell_0\)</span> that of the
+density only model (<code class="docutils literal notranslate"><span class="pre">edges</span></code>), and its decomposition among the statistics other than
+<code class="docutils literal notranslate"><span class="pre">edges</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pmvd</span></code>: proportional marginal variance decomposition (Feldman, 2005), as in R’s
+<code class="docutils literal notranslate"><span class="pre">relaimpo</span></code>: the average over all orders of the statistics of the increase of
+<span class="math notranslate nohighlight">\(R^2\)</span> when each is added, each order weighted proportionally to
+<span class="math notranslate nohighlight">\(\prod_{i &lt; p} 1 / (R^2 - R^2_{(i)})\)</span>, <span class="math notranslate nohighlight">\(R^2_{(i)}\)</span> that of the first <code class="docutils literal notranslate"><span class="pre">i</span></code>
+statistics of the order: a statistic that adds nothing given the others gets no share;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lmg</span></code>: the same with equal weights (Lindeman, Merenda and Gold, 1980; relaimpo’s default).</p></li>
+</ul>
+<p>Both add up to the pseudo-<span class="math notranslate nohighlight">\(R^2\)</span>. They need the model refitted on all <span class="math notranslate nohighlight">\(2^p\)</span>
+subsets of the <code class="docutils literal notranslate"><span class="pre">p</span></code> statistics, computed once over subsets rather than over the <span class="math notranslate nohighlight">\(p!\)</span>
+orders, so they are given for up to 16 statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(r2,</span> <span class="pre">table)</span></code>: the pseudo-<span class="math notranslate nohighlight">\(R^2\)</span> and a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns
+<code class="docutils literal notranslate"><span class="pre">pmvd</span></code> and <code class="docutils literal notranslate"><span class="pre">lmg</span></code>, by statistic.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If there are more than 16 statistics besides <code class="docutils literal notranslate"><span class="pre">edges</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span><span class="p">,</span> <span class="n">parts</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">pseudo_r2</span><span class="p">()</span>
+<span class="n">parts</span><span class="p">[</span><span class="s2">&quot;pmvd&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">r2</span>                                    <span class="c1"># shares of the explained pseudo-likelihood</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="simulation-and-goodness-of-fit">
+<h2>Simulation and goodness of fit<a class="headerlink" href="#simulation-and-goodness-of-fit" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sims</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>                                  <span class="c1"># networks from the fitted model, with the nodes of net</span>
+<span class="n">gof</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">gof</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>                                        <span class="c1"># as R&#39;s gof(): model, degree, espartners, distance</span>
+<span class="n">gof</span><span class="p">[</span><span class="s2">&quot;degree&quot;</span><span class="p">]</span>                                                       <span class="c1"># obs, min, mean, max, MC p-value per degree</span>
+<span class="n">r2</span><span class="p">,</span> <span class="n">parts</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">pseudo_r2</span><span class="p">()</span>                                         <span class="c1"># McFadden pseudo-R2 and its PMVD / LMG decomposition</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">fit</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>   <span class="c1"># clustering of net against the model</span>
+</pre></div>
+</div>
 </section>
 <section id="statistics">
 <h2>Statistics<a class="headerlink" href="#statistics" title="Link to this heading"></a></h2>

@@ -264,6 +264,11 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
      ``degree`` (the values that occur, increasing) and a column named as ``distribution``:
      ``"count"`` (number of nodes with that degree), ``"pdf"`` (fraction of nodes with that
      degree) or ``"ccdf"`` (fraction of nodes with that degree or higher).
+   * ``node = None`` and ``distribution = None``: the degree of every node, as a vector over the
+     nodes of the component (int64, float with ``weight``), on the device of the network, or a
+     list of them if ``component`` is ``None``, as the centralities (e.g. to rank the nodes, see
+     :func:`~graphoskop.si_model`). In multilayer networks, the degree of each copy, counting
+     intra-layer edges only.
 
    In multilayer networks (see the module description), ``by`` chooses the distribution:
    ``"layer"`` gives the distribution of each layer, over its copies, in one table with a first
@@ -275,16 +280,17 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
    :param net: A :class:`~graphoskop.Network`.
    :param node: Node (input id, internal id ``(component, index)`` or, in multilayer networks,
       entity), list of nodes, or ``None``.
-   :param distribution: ``"count"``, ``"pdf"`` or ``"ccdf"``; used when ``node`` is ``None``.
+   :param distribution: ``"count"``, ``"pdf"``, ``"ccdf"``, or ``None`` for the degree of every
+      node; used when ``node`` is ``None``.
    :param direction: In directed networks, ``"out"``, ``"in"`` or ``"total"`` (in plus out)
       degree; ignored in undirected networks.
-   :param component: For the distribution, index of the component (0 is the largest), or
-      ``None`` for the whole network; ignored when ``node`` is given. With ``by = "entity"``,
+   :param component: For the distribution or the vector of degrees, index of the component (0
+      is the largest), or ``None`` for the whole network; ignored when ``node`` is given. With ``by = "entity"``,
       only the copies in that component are summed.
    :param by: In multilayer networks, ``"layer"`` or ``"entity"``; ignored otherwise.
    :param weight: Name of a numeric edge attribute for the weighted degree, or ``None`` for the
       number of edges.
-   :return: Degree, or :class:`pandas.DataFrame`.
+   :return: Degree, :class:`pandas.DataFrame`, or vector (list of vectors) of degrees.
    :raises KeyError: If a node or the edge attribute does not exist.
    :raises ValueError: If ``distribution``, ``direction`` or ``by`` is not valid, or if a node is
       both an input id and an internal id.
@@ -300,6 +306,7 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
       k = gsk.degree(net, (0, 5), direction = "in")               # by internal id
       table = gsk.degree(net, ["alice", "bob"])                   # several nodes
       ccdf = gsk.degree(net, distribution = "ccdf", direction = "total")
+      k = gsk.degree(net, distribution = None, component = 0)     # vector over component 0
       s = gsk.degree(net, "alice", weight = "weight")             # weighted out-degree (strength)
 
       net = gsk.load_network("multiplex.tsv", multilayer = True, coupling = "all")
@@ -317,11 +324,14 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
       deg = {c: _degrees(net, c, direction, weight).cpu().numpy() for c in set(c for x in ids for c, _ in x)}
       cast = int if weight is None else float
       return pd.DataFrame({"node": list(node), "degree": [cast(sum(deg[c][i] for c, i in x)) for x in ids]})
+   comps = range(len(net.components)) if component is None else [component]
+   if distribution is None:
+      out = [_degrees(net, c, direction, weight) for c in comps]
+      return out if component is None else out[0]
    if distribution not in ("count", "pdf", "ccdf"):
       raise ValueError(f"unknown distribution: {distribution}")
    if ml and by not in ("layer", "entity"):
       raise ValueError(f"unknown by: {by}")
-   comps = range(len(net.components)) if component is None else [component]
    values = np.concatenate([_degrees(net, c, direction, weight).cpu().numpy() for c in comps])
    if not ml:
       return _table(values, distribution)

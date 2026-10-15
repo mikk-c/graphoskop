@@ -61,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 </ul>
 
         </div>
@@ -122,6 +123,8 @@ weight (see <a class="reference internal" href="signed.html"><span class="doc">S
 its nodes and their attributes (see <a class="reference internal" href="generators.html"><span class="doc">Generators</span></a>).</p>
 <p>Exponential random graph models, with node attributes and dyadic covariates, are written and
 fitted as in R’s <code class="docutils literal notranslate"><span class="pre">ergm</span></code> package (see <a class="reference internal" href="ergm.html"><span class="doc">Exponential random graph models</span></a>).</p>
+<p>Epidemics spread on networks with compartmental models (SI, SIS, SIR), by simple or complex
+contagion, simulated in parallel runs (see <a class="reference internal" href="epidemics.html"><span class="doc">Epidemics</span></a>).</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
@@ -145,6 +148,7 @@ fitted as in R’s <code class="docutils literal notranslate"><span class="pre">
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.subgraph"><code class="docutils literal notranslate"><span class="pre">subgraph()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.to_strongly_connected"><code class="docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#adding-and-removing-nodes-and-edges">Adding and removing nodes and edges</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a><ul>
@@ -269,16 +273,24 @@ fitted as in R’s <code class="docutils literal notranslate"><span class="pre">
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#simple-graphs">Simple graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#random-graphs">Random graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#clustered-graphs">Clustered graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#broad-degree-graphs">Broad degree graphs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#stochastic-blockmodels">Stochastic blockmodels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generators.html#community-benchmarks">Community benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#testing-against-null-models">Testing against null models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ergm.html#fitting">Fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ergm.html#simulation-and-goodness-of-fit">Simulation and goodness of fit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ergm.html#statistics">Statistics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.simple_contagion">Simple contagion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.complex_contagion">Complex contagion</a></li>
 </ul>
 </li>
 </ul>

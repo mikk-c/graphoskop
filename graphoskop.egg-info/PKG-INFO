@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: graphoskop
-Version: 0.5.1
+Version: 0.6.7
 Summary: Analysis of networks and of vectors defined on their nodes.
 Project-URL: Documentation, https://graphoskop.readthedocs.io/en/latest/
 Project-URL: Textbook, https://www.networkatlas.eu/
@@ -44,6 +44,7 @@ Graphoskop requires Python 3.9 or later. Install it with pip:
 
 This also installs its dependencies:
 
+* [Numba](https://numba.pydata.org/)
 * [NumPy](https://numpy.org/)
 * [pandas](https://pandas.pydata.org/)
 * [SciPy](https://scipy.org/)

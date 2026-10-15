@@ -25,3 +25,4 @@ Graphoskop
    backboning
    generators
    ergm
+   epidemics

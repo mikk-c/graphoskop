@@ -53,6 +53,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.subgraph"><code class="docutils literal notranslate"><span class="pre">subgraph()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.to_strongly_connected"><code class="docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-and-removing-nodes-and-edges">Adding and removing nodes and edges</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.add_nodes"><code class="docutils literal notranslate"><span class="pre">add_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.add_edges"><code class="docutils literal notranslate"><span class="pre">add_edges()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.remove_nodes"><code class="docutils literal notranslate"><span class="pre">remove_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.remove_edges"><code class="docutils literal notranslate"><span class="pre">remove_edges()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
@@ -60,11 +67,17 @@
 <li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
 </ul>
 
         </div>
@@ -99,7 +112,8 @@ direction, become one undirected edge, whose attributes combine theirs. <code cl
 drops the nodes without edges, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_self_loops()</span></code> the edges from a node to itself,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code> merges the edges between the same two nodes. <code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code> keeps a
 set of nodes and the edges between them, <code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code> the edges within strongly
-connected components.</p>
+connected components. <code class="xref py py-func docutils literal notranslate"><span class="pre">add_nodes()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">add_edges()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_nodes()</span></code> and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">remove_edges()</span></code> add or remove nodes and edges, one or many at once.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;trust.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>          <span class="c1"># columns weight, sign</span>
@@ -110,6 +124,18 @@ connected components.</p>
 <span class="n">simple</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_parallel_edges</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                         <span class="c1"># one edge per pair (per direction)</span>
 <span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>              <span class="c1"># induced subgraph</span>
 <span class="n">scc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_strongly_connected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                            <span class="c1"># one component per strongly connected component</span>
+</pre></div>
+</div>
+<p>Nodes and edges are added or removed one at a time, from any iterable, or from a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> table. Missing attributes are NaN, except edge weights, which default to 1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">)</span>                                <span class="c1"># node attributes NaN</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;erin&quot;</span><span class="p">],</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">41</span><span class="p">]}))</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;dave&quot;</span><span class="p">,</span> <span class="s2">&quot;frank&quot;</span><span class="p">)])</span>   <span class="c1"># weight 1, frank added</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">],</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;erin&quot;</span><span class="p">],</span> <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">]}))</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>                   <span class="c1"># all edges between them</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;carol&quot;</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">])</span>                  <span class="c1"># with their edges</span>
 </pre></div>
 </div>
 <p>See also <a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a> and <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a> for multilayer
@@ -326,6 +352,187 @@ multilayer networks the strongly connected components are those of the supra-gra
 </div>
 </dd></dl>
 
+<section id="adding-and-removing-nodes-and-edges">
+<h2>Adding and removing nodes and edges<a class="headerlink" href="#adding-and-removing-nodes-and-edges" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.add_nodes">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">add_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.add_nodes" title="Link to this definition"></a></dt>
+<dd><p>Network with new nodes, without edges (use <a class="reference internal" href="#graphoskop.add_edges" title="graphoskop.add_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_edges()</span></code></a> to connect them).</p>
+<p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> is one node id, an iterable of node ids, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> node table in
+the format of the network’s (<code class="docutils literal notranslate"><span class="pre">net.node_format</span></code>), as taken by <a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>: wide (node
+id, then one column per attribute) or long (node id, attribute name, value). A string or a
+tuple is always one node. New nodes get NaN (missing) for every attribute they are not given;
+in long (sparse) node tables, a numeric attribute without a value reads as 0. Columns that are
+not attributes of the network become new attributes, NaN for the existing nodes.</p>
+<p>In multilayer networks every new node is a copy <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>: tuples, or a table with
+the entity in the first column and the layer in the second. Layers not in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_labels</span></code> are appended to the layer order. In bipartite networks
+new nodes must have a value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a>, so they are given as a table.</p>
+<p>Every new node is a component of its own; the existing components, node and edge attributes,
+node types, node table format and device are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>nodes</strong> – A node id, an iterable of node ids, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network with the new nodes, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a node is already in the network, if a node of a multilayer network is
+not a copy <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, or if a new node of a bipartite network has no node type.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>            <span class="c1"># attributes age, city</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">)</span>                              <span class="c1"># age NaN, city NaN</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;erin&quot;</span><span class="p">,</span> <span class="s2">&quot;frank&quot;</span><span class="p">])</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;gina&quot;</span><span class="p">],</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">41</span><span class="p">]}))</span>   <span class="c1"># city NaN</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.add_edges">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">add_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.add_edges" title="Link to this definition"></a></dt>
+<dd><p>Network with new edges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">edges</span></code> is one edge <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code>, an iterable of them (e.g. a list of pairs, or a two column
+array), or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> edge table: source and target in the first two columns,
+then one column per edge attribute (non-numeric columns are ignored, as in
+<a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>). A tuple is always one edge. New edges get NaN for every attribute they
+are not given, except <code class="docutils literal notranslate"><span class="pre">weight</span></code>, which defaults to 1: if the network or the new edges have an
+attribute named <code class="docutils literal notranslate"><span class="pre">weight</span></code>, new edges without a value get 1, and so do the existing edges if
+the attribute is new (they were unweighted). Columns that are not attributes of the network
+become new attributes, NaN for the existing edges.</p>
+<p>Endpoints not in the network are added as new nodes, with NaN (missing) for every node
+attribute, as in <a class="reference internal" href="#graphoskop.add_nodes" title="graphoskop.add_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_nodes()</span></code></a>. Adding an edge that already exists adds a parallel edge
+(see <a class="reference internal" href="#graphoskop.remove_parallel_edges" title="graphoskop.remove_parallel_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a>). In undirected networks <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> and <code class="docutils literal notranslate"><span class="pre">(v,</span> <span class="pre">u)</span></code> are the
+same edge.</p>
+<p>In multilayer networks the endpoints are copies <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>: an edge between copies in
+the same layer is an intra-layer edge, otherwise an interlayer edge (a coupling if they are
+copies of the same entity). A table is given as an edge table (source, target, a <code class="docutils literal notranslate"><span class="pre">layer</span></code>
+column, then attributes) or as an interlayer table (source, <code class="docutils literal notranslate"><span class="pre">source_layer</span></code>, target,
+<code class="docutils literal notranslate"><span class="pre">target_layer</span></code>, then attributes), as written by
+<a class="reference internal" href="network.html#graphoskop.Network.to_pandas_dataframes" title="graphoskop.Network.to_pandas_dataframes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_pandas_dataframes()</span></code></a>. Layers not in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">layer_labels</span></code> are appended to the layer order. In bipartite networks
+new edges must join nodes of different types, and new endpoints need a type, so they must be
+added first with <a class="reference internal" href="#graphoskop.add_nodes" title="graphoskop.add_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_nodes()</span></code></a>.</p>
+<p>Components are recomputed, since new edges can join them; node and edge attributes, node types,
+node table format and device are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>edges</strong> – An edge <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code>, an iterable of edges, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute holding the weights, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to give no default
+weight.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network with the new edges, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If an edge is not a pair, if an endpoint of a multilayer network is not a
+copy <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, or, in bipartite networks, if an edge joins two nodes of the same
+type or a new endpoint has no node type.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>                           <span class="c1"># attribute weight</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">))</span>                    <span class="c1"># weight 1, dave is a new node</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;carol&quot;</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">)])</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">],</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;erin&quot;</span><span class="p">],</span> <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">]}))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_nodes">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_nodes" title="Link to this definition"></a></dt>
+<dd><p>Network without some nodes and their edges: the subgraph induced by all the other nodes (see
+<a class="reference internal" href="#graphoskop.subgraph" title="graphoskop.subgraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code></a>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> is one node, an iterable of nodes, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> whose first column
+gives the nodes (e.g. a node table); a string or a tuple is always one node. Nodes are input
+ids or internal ids <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>; in multilayer networks, copies <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>
+or entities, which stand for all their copies (in a table, the entity is in the first column
+and the layer in the second, missing for all the copies).</p>
+<p>Components are recomputed, since removing a node can split one; the attributes of the other
+nodes and edges, node types, node table format and device are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>nodes</strong> – A node, an iterable of nodes, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network without the nodes, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>KeyError</strong> – If a node is not in the network.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_edges">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_edges" title="Link to this definition"></a></dt>
+<dd><p>Network without some edges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">edges</span></code> is one edge <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code>, an iterable of them, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the
+endpoints in the first two columns (e.g. an edge table; other columns are ignored). A tuple is
+always one edge. All the edges from <code class="docutils literal notranslate"><span class="pre">u</span></code> to <code class="docutils literal notranslate"><span class="pre">v</span></code> are removed, parallel edges included; in
+undirected networks, also those from <code class="docutils literal notranslate"><span class="pre">v</span></code> to <code class="docutils literal notranslate"><span class="pre">u</span></code>. Endpoints are given as in
+<a class="reference internal" href="#graphoskop.remove_nodes" title="graphoskop.remove_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_nodes()</span></code></a>. In multilayer networks, an entity stands for all its copies, so
+<code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> between two entities removes the edges between their copies in every layer and
+across layers; a table with a <code class="docutils literal notranslate"><span class="pre">layer</span></code> column, or with <code class="docutils literal notranslate"><span class="pre">source_layer</span></code> and <code class="docutils literal notranslate"><span class="pre">target_layer</span></code>
+columns, gives copies, as written by <a class="reference internal" href="network.html#graphoskop.Network.to_pandas_dataframes" title="graphoskop.Network.to_pandas_dataframes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_pandas_dataframes()</span></code></a>.</p>
+<p>All nodes are kept, so a node can become isolated (follow with <a class="reference internal" href="#graphoskop.remove_isolates" title="graphoskop.remove_isolates"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a> to drop
+it). Components are recomputed, since removing an edge can split one; the attributes of the
+nodes and of the other edges, node types, node table format and device are kept.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>edges</strong> – An edge <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code>, an iterable of edges, or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The network without the edges, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or an edge is not in the network.</p></li>
+<li><p><strong>ValueError</strong> – If an edge is not a pair.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;carol&quot;</span><span class="p">,</span> <span class="s2">&quot;dave&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 

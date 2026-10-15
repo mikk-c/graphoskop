@@ -25,3 +25,6 @@ graphoskop.egg-info/SOURCES.txt
 graphoskop.egg-info/dependency_links.txt
 graphoskop.egg-info/requires.txt
 graphoskop.egg-info/top_level.txt
+graphoskop/epidemics/__init__.py
+graphoskop/epidemics/complex_contagion.py
+graphoskop/epidemics/simple_contagion.py

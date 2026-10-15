@@ -25,7 +25,18 @@ Fitting
 .. autofunction:: graphoskop.ergm
 
 .. autoclass:: graphoskop.ERGMFit
-   :no-members:
+   :members: simulate, gof, pseudo_r2
+
+Simulation and goodness of fit
+------------------------------
+
+.. code-block:: python
+
+   sims = fit.simulate(100, seed = 2)                                  # networks from the fitted model, with the nodes of net
+   gof = fit.gof(100, seed = 3)                                        # as R's gof(): model, degree, espartners, distance
+   gof["degree"]                                                       # obs, min, mean, max, MC p-value per degree
+   r2, parts = fit.pseudo_r2()                                         # McFadden pseudo-R2 and its PMVD / LMG decomposition
+   gsk.randomization_test(net, gsk.average_clustering, fit, n = 100)   # clustering of net against the model
 
 Statistics
 ----------

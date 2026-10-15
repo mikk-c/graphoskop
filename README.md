@@ -26,6 +26,7 @@ Graphoskop requires Python 3.9 or later. Install it with pip:
 
 This also installs its dependencies:
 
+* [Numba](https://numba.pydata.org/)
 * [NumPy](https://numpy.org/)
 * [pandas](https://pandas.pydata.org/)
 * [SciPy](https://scipy.org/)

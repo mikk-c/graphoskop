@@ -17,6 +17,20 @@ Transformations
    ego = gsk.subgraph(net, ["alice", "bob", "carol"])              # induced subgraph
    scc = gsk.to_strongly_connected(net)                            # one component per strongly connected component
 
+Nodes and edges are added or removed one at a time, from any iterable, or from a
+:class:`pandas.DataFrame` table. Missing attributes are NaN, except edge weights, which default to 1.
+
+.. code-block:: python
+
+   import pandas as pd
+
+   net = gsk.add_nodes(net, "dave")                                # node attributes NaN
+   net = gsk.add_nodes(net, pd.DataFrame({"id": ["erin"], "age": [41]}))
+   net = gsk.add_edges(net, [("alice", "dave"), ("dave", "frank")])   # weight 1, frank added
+   net = gsk.add_edges(net, pd.DataFrame({"source": ["bob"], "target": ["erin"], "weight": [2.5]}))
+   net = gsk.remove_edges(net, ("alice", "bob"))                   # all edges between them
+   net = gsk.remove_nodes(net, ["carol", "dave"])                  # with their edges
+
 See also :func:`~graphoskop.layer_network` and :func:`~graphoskop.aggregate_network` for multilayer
 networks, and :func:`~graphoskop.signed_network`.
 
@@ -31,3 +45,14 @@ networks, and :func:`~graphoskop.signed_network`.
 .. autofunction:: graphoskop.subgraph
 
 .. autofunction:: graphoskop.to_strongly_connected
+
+Adding and removing nodes and edges
+-----------------------------------
+
+.. autofunction:: graphoskop.add_nodes
+
+.. autofunction:: graphoskop.add_edges
+
+.. autofunction:: graphoskop.remove_nodes
+
+.. autofunction:: graphoskop.remove_edges

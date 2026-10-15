@@ -1,6 +1,7 @@
 """
-Synthetic network generators, in five families:
+Synthetic network generators, in six families:
 
+* simple graphs, with simple fixed topologies: :func:`chain_graph`;
 * random graphs, wired at random given a few numbers (edges, density, the degree of every node,
   a small initiator matrix, or positions in space): :func:`gnm_random_graph`,
   :func:`gnp_random_graph`, :func:`configuration_model`, :func:`edge_swap` (only randomizes a
@@ -15,7 +16,7 @@ Synthetic network generators, in five families:
   :func:`girvan_newman_graph`, :func:`lfr_benchmark_graph` (broad degrees and community sizes;
   directed, weighted, overlapping).
 
-Every generator takes its natural parameters (e.g. the number of nodes and edges) or, with
+Every random generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 ``net``, an existing network, from which it infers them: the result is then a randomization of
 ``net``. A randomization keeps the nodes of ``net``, with their ids, numeric and qualitative
 attributes, node types (bipartite networks) and layers (multilayer networks), and the device; only
@@ -30,6 +31,9 @@ distribution.
 
 All random numbers are drawn with :mod:`torch` on the device of the network, so results depend
 on ``seed`` and on the device.
+
+:func:`randomization_test` compares a statistic of a network with its distribution over the
+randomizations of any of these generators (or networks drawn from a fitted ERGM).
 """
 
 import itertools
@@ -311,6 +315,65 @@ def _randomize(net, seed, make):
       for name, v in values.items():
          ea[start:start + v.shape[0], net.edge_attributes.index(name)] = v.to(ea.dtype)
    return _subset(net, s.cpu().numpy(), t.cpu().numpy(), ea.cpu().numpy().astype(np.float32), np.arange(N))
+
+
+# ------------------------------------------------------------------------------------------------
+# Simple graphs
+# ------------------------------------------------------------------------------------------------
+
+
+def chain_graph(n, directed = None, seed = None, device = None):
+   """
+   Chain graph (path): ``n`` nodes, the integers ``0`` to ``n - 1``, each linked to the next, so
+   that there are ``n - 1`` edges and the two ends have degree 1.
+
+   Directed chains orient each edge ``(i, i + 1)`` as given by ``directed``:
+
+   * ``True`` or ``"sequential"``: from ``i`` to ``i + 1``, all in one direction, from node 0 to
+     node ``n - 1``;
+   * ``"random"``: in a direction drawn at random, with probability 1/2 each, independently for
+     every edge;
+   * ``"converging"``: towards the middle node ``n // 2``, which only receives edges;
+   * ``"diverging"``: away from the middle node ``n // 2``, which only sends edges.
+
+   :param n: Number of nodes, at least 1.
+   :param directed: ``None`` or ``False`` for an undirected chain, or the orientation of the
+      edges: ``True``, ``"sequential"``, ``"random"``, ``"converging"`` or ``"diverging"``.
+   :param seed: Seed of the random numbers (``"random"`` only), or ``None`` for a random seed.
+   :param device: Device of the result, e.g. ``"cuda"``; ``None`` for the CPU.
+   :return: The chain graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If ``n`` is not positive or ``directed`` is not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      g = gsk.chain_graph(10)                                        # 0 - 1 - ... - 9
+      g = gsk.chain_graph(10, directed = True)                       # 0 -> 1 -> ... -> 9
+      g = gsk.chain_graph(10, directed = "converging")               # 0 -> ... -> 5 <- ... <- 9
+      g = gsk.chain_graph(10, directed = "random", seed = 1)
+   """
+   if directed is True:
+      directed = "sequential"
+   if directed not in (None, False, "sequential", "random", "converging", "diverging"):
+      raise ValueError(f"unknown direction: {directed!r}")
+   if int(n) < 1:
+      raise ValueError(f"a chain needs at least one node, got {n}")
+   n, device = int(n), torch.device("cpu" if device is None else device)
+   s = torch.arange(n - 1, device = device)
+   t = s + 1
+   flip = None   # edges pointing from i + 1 to i
+   if directed == "random":
+      flip = torch.rand(n - 1, generator = _generator(seed, device), device = device) < 0.5
+   elif directed == "converging":
+      flip = s >= n // 2
+   elif directed == "diverging":
+      flip = s < n // 2
+   if flip is not None:
+      s, t = torch.where(flip, t, s), torch.where(flip, s, t)
+   return _build(s.cpu().numpy(), t.cpu().numpy(), np.arange(n), np.zeros((n - 1, 0), dtype = np.float32), [], None, [], bool(directed), device)
 
 
 # ------------------------------------------------------------------------------------------------
@@ -3763,3 +3826,104 @@ def lfr_benchmark_graph(n = None, k = None, maxk = None, mu = None, t1 = 2, t2 =
       return s, t, {wcol: _lfr_weights(s, t, internal, (1 - qw) * st, qw * st)}
 
    return _randomize(net, seed, make)
+
+
+# ------------------------------------------------------------------------------------------------
+# Testing statistics against null models
+# ------------------------------------------------------------------------------------------------
+
+
+def _bins(values, target = 20):
+   """
+   Values rounded so that their distribution has about ``target`` distinct values: integers are
+   kept when they are few, otherwise values are rounded to the power of ten that splits their
+   range into about ``target`` bins.
+
+   :param values: :class:`numpy.ndarray` of floats.
+   :return: Rounded values.
+   """
+   finite = values[np.isfinite(values)]
+   if len(finite) == 0 or (np.all(finite == np.round(finite)) and len(np.unique(finite)) <= 3 * target):
+      return values
+   spread = finite.max() - finite.min()
+   if spread == 0:
+      return values
+   step = 10. ** math.floor(math.log10(spread / target))
+   for s in (step, 2 * step, 5 * step, 10 * step):   # widest of 1, 2, 5 steps with enough bins
+      if spread / s <= 2 * target:
+         step = s
+         break
+   digits = max(0, -math.floor(math.log10(step)))   # removes float noise of the rounding
+   return np.round(np.round(values / step) * step, digits)
+
+
+def randomization_test(net, statistic, model, n = 100, seed = None, **parameters):
+   """
+   Test a statistic of a network against a null model: the statistic is computed on ``net`` and
+   on ``n`` randomizations of it made by ``model``, and the observed value is compared with their
+   distribution.
+
+   ``model`` is any generator of this module that takes ``net`` (e.g.
+   :func:`configuration_model`, :func:`edge_swap`, :func:`stochastic_block_model`), called as
+   ``model(net = net, seed = ..., **parameters)``, or a fitted ERGM (:class:`~graphoskop.ERGMFit`),
+   whose networks are drawn with :meth:`~graphoskop.ERGMFit.simulate`. ``statistic`` is any function
+   of a network returning a number, such as :func:`~graphoskop.average_clustering` or
+   ``lambda g: gsk.assortativity(g, "age")``.
+
+   The pseudo p-values are the shares of randomizations scoring above, below or equal to the
+   observed value; ``p_value`` is the two sided one,
+   :math:`\\min(1, 2 \\min(P(x \\geq obs), P(x \\leq obs)))`. The distribution is tabulated on
+   values rounded to a scale that gives about 20 bins (integers are kept as they are when they are
+   few).
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param statistic: Function of a network returning a number.
+   :param model: Generator function, or fitted :class:`~graphoskop.ERGMFit`.
+   :param n: Number of randomizations.
+   :param seed: Seed of the random numbers (randomization ``k`` gets ``seed + k``), or ``None``.
+   :param parameters: Other arguments of the generator (e.g. ``swaps``, ``p``), or of
+      :meth:`~graphoskop.ERGMFit.simulate` (``burnin``, ``interval``).
+   :return: Dictionary with ``observed`` (the value on ``net``), ``samples``
+      (:class:`pandas.DataFrame` with the value of every randomization), ``distribution``
+      (:class:`pandas.DataFrame` with columns ``value`` and ``count``, the rounded values),
+      ``mean`` and ``std`` of the randomizations, ``z`` (standardized observed value), ``above``,
+      ``below`` and ``equal`` (shares of randomizations) and ``p_value``.
+   :raises ValueError: If ``statistic`` does not return a number.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv")
+      test = gsk.randomization_test(net, gsk.average_clustering, gsk.configuration_model, n = 200, seed = 1)
+      test["observed"], test["mean"], test["above"], test["p_value"]
+      test["distribution"]                                         # rounded values and their counts
+
+      fit = gsk.ergm(net, "edges + gwesp(0.5, fixed = TRUE)", seed = 1)
+      test = gsk.randomization_test(net, gsk.average_clustering, fit, n = 200)   # networks from the ERGM
+   """
+
+   def value(g):
+      x = statistic(g)
+      try:
+         return float(x.item() if hasattr(x, "item") else x)
+      except (TypeError, ValueError):
+         raise ValueError(f"the statistic must return a number, got {type(x).__name__}") from None
+
+   observed = value(net)
+   if hasattr(model, "simulate"):
+      nets = model.simulate(n, seed = seed, **parameters)
+   else:
+      nets = (model(net = net, seed = None if seed is None else seed + k, **parameters) for k in range(n))
+   x = np.array([value(g) for g in nets])
+   rounded = _bins(x)
+   values, counts = np.unique(rounded, return_counts = True)
+   ok = np.isfinite(x)
+   std = float(x[ok].std(ddof = 1)) if ok.sum() > 1 else math.nan
+   mean = float(x[ok].mean()) if ok.any() else math.nan
+   above, below, equal = float((x > observed).mean()), float((x < observed).mean()), float((x == observed).mean())
+   return {"observed": observed, "samples": pd.DataFrame({"value": x}), "distribution": pd.DataFrame({"value": values, "count": counts}),
+           "mean": mean, "std": std, "z": (observed - mean) / std if std > 0 else math.nan,
+           "above": above, "below": below, "equal": equal, "p_value": min(1., 2 * min(above + equal, below + equal))}

@@ -20,6 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Exponential random graph models" href="ergm.html" />
     <link rel="prev" title="Backboning" href="backboning.html" /> 
 </head>
 
@@ -61,6 +62,10 @@
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Generators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simple-graphs">Simple graphs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.chain_graph"><code class="docutils literal notranslate"><span class="pre">chain_graph()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#random-graphs">Random graphs</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnm_random_graph"><code class="docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.gnp_random_graph"><code class="docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code></a></li>
@@ -94,8 +99,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.lfr_benchmark_graph"><code class="docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-against-null-models">Testing against null models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.randomization_test"><code class="docutils literal notranslate"><span class="pre">randomization_test()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 </ul>
 
         </div>
@@ -124,8 +135,9 @@
              
   <section id="module-graphoskop.generators">
 <span id="generators"></span><h1>Generators<a class="headerlink" href="#module-graphoskop.generators" title="Link to this heading"></a></h1>
-<p>Synthetic network generators, in five families:</p>
+<p>Synthetic network generators, in six families:</p>
 <ul class="simple">
+<li><p>simple graphs, with simple fixed topologies: <code class="xref py py-func docutils literal notranslate"><span class="pre">chain_graph()</span></code>;</p></li>
 <li><p>random graphs, wired at random given a few numbers (edges, density, the degree of every node,
 a small initiator matrix, or positions in space): <code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code>,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code> (only randomizes a
@@ -140,7 +152,7 @@ network), <code class="xref py py-func docutils literal notranslate"><span class
 <code class="xref py py-func docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code> (broad degrees and community sizes;
 directed, weighted, overlapping).</p></li>
 </ul>
-<p>Every generator takes its natural parameters (e.g. the number of nodes and edges) or, with
+<p>Every random generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 <code class="docutils literal notranslate"><span class="pre">net</span></code>, an existing network, from which it infers them: the result is then a randomization of
 <code class="docutils literal notranslate"><span class="pre">net</span></code>. A randomization keeps the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code>, with their ids, numeric and qualitative
 attributes, node types (bipartite networks) and layers (multilayer networks), and the device; only
@@ -153,6 +165,8 @@ Weights and signs (see <a class="reference internal" href="signed.html"><span cl
 distribution.</p>
 <p>All random numbers are drawn with <code class="xref py py-mod docutils literal notranslate"><span class="pre">torch</span></code> on the device of the network, so results depend
 on <code class="docutils literal notranslate"><span class="pre">seed</span></code> and on the device.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code> compares a statistic of a network with its distribution over the
+randomizations of any of these generators (or networks drawn from a fitted ERGM).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>                <span class="c1"># column weight; age, city</span>
@@ -163,6 +177,60 @@ on <code class="docutils literal notranslate"><span class="pre">seed</span></cod
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">ml</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})</span>         <span class="c1"># each layer on its own; couplings kept</span>
 </pre></div>
 </div>
+<section id="simple-graphs">
+<h2>Simple graphs<a class="headerlink" href="#simple-graphs" title="Link to this heading"></a></h2>
+<p>Simple fixed topologies, with nodes <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>: a chain (path), undirected or with its
+edges in one direction, at random, towards or away from its middle node.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>                                        <span class="c1"># 0 - 1 - ... - 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                       <span class="c1"># sequential: 0 -&gt; 1 -&gt; ... -&gt; 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="s2">&quot;random&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>         <span class="c1"># each edge in a random direction</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="s2">&quot;converging&quot;</span><span class="p">)</span>               <span class="c1"># 0 -&gt; ... -&gt; 5 &lt;- ... &lt;- 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="s2">&quot;diverging&quot;</span><span class="p">)</span>                <span class="c1"># 0 &lt;- ... &lt;- 5 -&gt; ... -&gt; 9</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.chain_graph">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">chain_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.chain_graph" title="Link to this definition"></a></dt>
+<dd><p>Chain graph (path): <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes, the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, each linked to the next, so
+that there are <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> edges and the two ends have degree 1.</p>
+<p>Directed chains orient each edge <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">i</span> <span class="pre">+</span> <span class="pre">1)</span></code> as given by <code class="docutils literal notranslate"><span class="pre">directed</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sequential&quot;</span></code>: from <code class="docutils literal notranslate"><span class="pre">i</span></code> to <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">+</span> <span class="pre">1</span></code>, all in one direction, from node 0 to
+node <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>: in a direction drawn at random, with probability 1/2 each, independently for
+every edge;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;converging&quot;</span></code>: towards the middle node <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">2</span></code>, which only receives edges;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;diverging&quot;</span></code>: away from the middle node <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">//</span> <span class="pre">2</span></code>, which only sends edges.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes, at least 1.</p></li>
+<li><p><strong>directed</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> for an undirected chain, or the orientation of the
+edges: <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sequential&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;converging&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;diverging&quot;</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers (<code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code> only), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The chain graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">n</span></code> is not positive or <code class="docutils literal notranslate"><span class="pre">directed</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>                                        <span class="c1"># 0 - 1 - ... - 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                       <span class="c1"># 0 -&gt; 1 -&gt; ... -&gt; 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="s2">&quot;converging&quot;</span><span class="p">)</span>               <span class="c1"># 0 -&gt; ... -&gt; 5 &lt;- ... &lt;- 9</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="s2">&quot;random&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="random-graphs">
 <h2>Random graphs<a class="headerlink" href="#random-graphs" title="Link to this heading"></a></h2>
 <p>Edges placed uniformly at random, given their number or density (Erdős–Rényi), or the degree of
@@ -1509,6 +1577,71 @@ the number of memberships, <code class="docutils literal notranslate"><span clas
 </dd></dl>
 
 </section>
+<section id="testing-against-null-models">
+<h2>Testing against null models<a class="headerlink" href="#testing-against-null-models" title="Link to this heading"></a></h2>
+<p>Any generator (or a fitted ERGM) is a null model for a statistic: the statistic of the network is
+compared with its distribution over randomizations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">test</span><span class="p">[</span><span class="s2">&quot;observed&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;above&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;below&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span>
+<span class="n">test</span><span class="p">[</span><span class="s2">&quot;distribution&quot;</span><span class="p">]</span>                                                <span class="c1"># rounded values and their counts</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_swap</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span> <span class="n">swaps</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.randomization_test">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">randomization_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.randomization_test" title="Link to this definition"></a></dt>
+<dd><p>Test a statistic of a network against a null model: the statistic is computed on <code class="docutils literal notranslate"><span class="pre">net</span></code> and
+on <code class="docutils literal notranslate"><span class="pre">n</span></code> randomizations of it made by <code class="docutils literal notranslate"><span class="pre">model</span></code>, and the observed value is compared with their
+distribution.</p>
+<p><code class="docutils literal notranslate"><span class="pre">model</span></code> is any generator of this module that takes <code class="docutils literal notranslate"><span class="pre">net</span></code> (e.g.
+<a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>, <a class="reference internal" href="#graphoskop.edge_swap" title="graphoskop.edge_swap"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code></a>, <a class="reference internal" href="#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>), called as
+<code class="docutils literal notranslate"><span class="pre">model(net</span> <span class="pre">=</span> <span class="pre">net,</span> <span class="pre">seed</span> <span class="pre">=</span> <span class="pre">...,</span> <span class="pre">**parameters)</span></code>, or a fitted ERGM (<a class="reference internal" href="ergm.html#graphoskop.ERGMFit" title="graphoskop.ERGMFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERGMFit</span></code></a>),
+whose networks are drawn with <a class="reference internal" href="ergm.html#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">statistic</span></code> is any function
+of a network returning a number, such as <a class="reference internal" href="network_statistics.html#graphoskop.average_clustering" title="graphoskop.average_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_clustering()</span></code></a> or
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.assortativity(g,</span> <span class="pre">&quot;age&quot;)</span></code>.</p>
+<p>The pseudo p-values are the shares of randomizations scoring above, below or equal to the
+observed value; <code class="docutils literal notranslate"><span class="pre">p_value</span></code> is the two sided one,
+<span class="math notranslate nohighlight">\(\min(1, 2 \min(P(x \geq obs), P(x \leq obs)))\)</span>. The distribution is tabulated on
+values rounded to a scale that gives about 20 bins (integers are kept as they are when they are
+few).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>statistic</strong> – Function of a network returning a number.</p></li>
+<li><p><strong>model</strong> – Generator function, or fitted <a class="reference internal" href="ergm.html#graphoskop.ERGMFit" title="graphoskop.ERGMFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERGMFit</span></code></a>.</p></li>
+<li><p><strong>n</strong> – Number of randomizations.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers (randomization <code class="docutils literal notranslate"><span class="pre">k</span></code> gets <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">+</span> <span class="pre">k</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>parameters</strong> – Other arguments of the generator (e.g. <code class="docutils literal notranslate"><span class="pre">swaps</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code>), or of
+<a class="reference internal" href="ergm.html#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">burnin</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">observed</span></code> (the value on <code class="docutils literal notranslate"><span class="pre">net</span></code>), <code class="docutils literal notranslate"><span class="pre">samples</span></code>
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the value of every randomization), <code class="docutils literal notranslate"><span class="pre">distribution</span></code>
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">count</span></code>, the rounded values),
+<code class="docutils literal notranslate"><span class="pre">mean</span></code> and <code class="docutils literal notranslate"><span class="pre">std</span></code> of the randomizations, <code class="docutils literal notranslate"><span class="pre">z</span></code> (standardized observed value), <code class="docutils literal notranslate"><span class="pre">above</span></code>,
+<code class="docutils literal notranslate"><span class="pre">below</span></code> and <code class="docutils literal notranslate"><span class="pre">equal</span></code> (shares of randomizations) and <code class="docutils literal notranslate"><span class="pre">p_value</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">statistic</span></code> does not return a number.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">test</span><span class="p">[</span><span class="s2">&quot;observed&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;above&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span>
+<span class="n">test</span><span class="p">[</span><span class="s2">&quot;distribution&quot;</span><span class="p">]</span>                                         <span class="c1"># rounded values and their counts</span>
+
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ergm</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;edges + gwesp(0.5, fixed = TRUE)&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">fit</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>   <span class="c1"># networks from the ERGM</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -1516,6 +1649,7 @@ the number of memberships, <code class="docutils literal notranslate"><span clas
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="backboning.html" class="btn btn-neutral float-left" title="Backboning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ergm.html" class="btn btn-neutral float-right" title="Exponential random graph models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

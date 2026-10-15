@@ -59,6 +59,7 @@
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 </ul>
 
         </div>
@@ -111,16 +112,20 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transformations.html#graphoskop.add_edges">add_edges() (in module graphoskop)</a>
+</li>
+      <li><a href="transformations.html#graphoskop.add_nodes">add_nodes() (in module graphoskop)</a>
+</li>
       <li><a href="multilayer.html#graphoskop.aggregate_network">aggregate_network() (in module graphoskop)</a>
 </li>
       <li><a href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths">all_pairs_shortest_path_lengths() (in module graphoskop)</a>
 </li>
       <li><a href="shortest_paths.html#graphoskop.all_pairs_shortest_paths">all_pairs_shortest_paths() (in module graphoskop)</a>
 </li>
-      <li><a href="centrality.html#graphoskop.alpha_centrality">alpha_centrality() (in module graphoskop)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="centrality.html#graphoskop.alpha_centrality">alpha_centrality() (in module graphoskop)</a>
+</li>
       <li><a href="network_statistics.html#graphoskop.assortativity">assortativity() (in module graphoskop)</a>
 </li>
       <li><a href="equivalence.html#graphoskop.automorphic_equivalence">automorphic_equivalence() (in module graphoskop)</a>
@@ -157,10 +162,18 @@
 </li>
       <li><a href="centrality.html#graphoskop.centralization">centralization() (in module graphoskop)</a>
 </li>
+      <li><a href="generators.html#graphoskop.chain_graph">chain_graph() (in module graphoskop)</a>
+</li>
       <li><a href="centrality.html#graphoskop.closeness_centrality">closeness_centrality() (in module graphoskop)</a>
+</li>
+      <li><a href="epidemics.html#graphoskop.complex_si_model">complex_si_model() (in module graphoskop)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="epidemics.html#graphoskop.complex_sir_model">complex_sir_model() (in module graphoskop)</a>
+</li>
+      <li><a href="epidemics.html#graphoskop.complex_sis_model">complex_sis_model() (in module graphoskop)</a>
+</li>
       <li><a href="generators.html#graphoskop.configuration_model">configuration_model() (in module graphoskop)</a>
 </li>
       <li><a href="network_statistics.html#graphoskop.connected_components_count">connected_components_count() (in module graphoskop)</a>
@@ -255,6 +268,8 @@
 </li>
       <li><a href="generators.html#graphoskop.gnp_random_graph">gnp_random_graph() (in module graphoskop)</a>
 </li>
+      <li><a href="ergm.html#graphoskop.ERGMFit.gof">gof() (graphoskop.ERGMFit method)</a>
+</li>
       <li><a href="coloring.html#graphoskop.graph_coloring">graph_coloring() (in module graphoskop)</a>
 </li>
       <li>
@@ -300,14 +315,35 @@
 </li>
       </ul></li>
       <li>
+    graphoskop.epidemics
+
+      <ul>
+        <li><a href="epidemics.html#module-graphoskop.epidemics">module</a>
+</li>
+      </ul></li>
+      <li>
+    graphoskop.epidemics.complex_contagion
+
+      <ul>
+        <li><a href="epidemics.html#module-graphoskop.epidemics.complex_contagion">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    graphoskop.epidemics.simple_contagion
+
+      <ul>
+        <li><a href="epidemics.html#module-graphoskop.epidemics.simple_contagion">module</a>
+</li>
+      </ul></li>
+      <li>
     graphoskop.equivalence
 
       <ul>
         <li><a href="equivalence.html#module-graphoskop.equivalence">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     graphoskop.ergms
 
@@ -500,6 +536,12 @@
 </li>
         <li><a href="communities.html#module-graphoskop.communities">graphoskop.communities</a>
 </li>
+        <li><a href="epidemics.html#module-graphoskop.epidemics">graphoskop.epidemics</a>
+</li>
+        <li><a href="epidemics.html#module-graphoskop.epidemics.complex_contagion">graphoskop.epidemics.complex_contagion</a>
+</li>
+        <li><a href="epidemics.html#module-graphoskop.epidemics.simple_contagion">graphoskop.epidemics.simple_contagion</a>
+</li>
         <li><a href="equivalence.html#module-graphoskop.equivalence">graphoskop.equivalence</a>
 </li>
         <li><a href="ergm.html#module-graphoskop.ergms">graphoskop.ergms</a>
@@ -565,10 +607,10 @@
 </li>
       <li><a href="node_vector_analysis.html#graphoskop.pairwise_network_correlation">pairwise_network_correlation() (in module graphoskop)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="equivalence.html#graphoskop.pairwise_path_regular_equivalence">pairwise_path_regular_equivalence() (in module graphoskop)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="equivalence.html#graphoskop.pairwise_regular_equivalence">pairwise_regular_equivalence() (in module graphoskop)</a>
 </li>
       <li><a href="equivalence.html#graphoskop.pairwise_structural_equivalence">pairwise_structural_equivalence() (in module graphoskop)</a>
@@ -576,6 +618,8 @@
       <li><a href="equivalence.html#graphoskop.path_regular_equivalence">path_regular_equivalence() (in module graphoskop)</a>
 </li>
       <li><a href="generators.html#graphoskop.planted_partition_graph">planted_partition_graph() (in module graphoskop)</a>
+</li>
+      <li><a href="ergm.html#graphoskop.ERGMFit.pseudo_r2">pseudo_r2() (graphoskop.ERGMFit method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -585,6 +629,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bipartite_projections.html#graphoskop.random_walk_projection">random_walk_projection() (in module graphoskop)</a>
 </li>
+      <li><a href="generators.html#graphoskop.randomization_test">randomization_test() (in module graphoskop)</a>
+</li>
       <li><a href="centrality.html#graphoskop.reach_centrality">reach_centrality() (in module graphoskop)</a>
 </li>
       <li><a href="network_statistics.html#graphoskop.reciprocity">reciprocity() (in module graphoskop)</a>
@@ -593,7 +639,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transformations.html#graphoskop.remove_edges">remove_edges() (in module graphoskop)</a>
+</li>
       <li><a href="transformations.html#graphoskop.remove_isolates">remove_isolates() (in module graphoskop)</a>
+</li>
+      <li><a href="transformations.html#graphoskop.remove_nodes">remove_nodes() (in module graphoskop)</a>
 </li>
       <li><a href="transformations.html#graphoskop.remove_parallel_edges">remove_parallel_edges() (in module graphoskop)</a>
 </li>
@@ -619,21 +669,29 @@
 </li>
       <li><a href="shortest_paths.html#graphoskop.shortest_path_length_distribution">shortest_path_length_distribution() (in module graphoskop)</a>
 </li>
+      <li><a href="epidemics.html#graphoskop.si_model">si_model() (in module graphoskop)</a>
+</li>
       <li><a href="signed.html#graphoskop.SIGN">SIGN (in module graphoskop)</a>
 </li>
       <li><a href="signed.html#graphoskop.signed_adjacency">signed_adjacency() (in module graphoskop)</a>
 </li>
       <li><a href="signed.html#graphoskop.signed_network">signed_network() (in module graphoskop)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="signed.html#graphoskop.signed_triangle_counts">signed_triangle_counts() (in module graphoskop)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bipartite_projections.html#graphoskop.simple_count_projection">simple_count_projection() (in module graphoskop)</a>
+</li>
+      <li><a href="ergm.html#graphoskop.ERGMFit.simulate">simulate() (graphoskop.ERGMFit method)</a>
 </li>
       <li><a href="shortest_paths.html#graphoskop.single_source_shortest_path_lengths">single_source_shortest_path_lengths() (in module graphoskop)</a>
 </li>
       <li><a href="shortest_paths.html#graphoskop.single_source_shortest_paths">single_source_shortest_paths() (in module graphoskop)</a>
+</li>
+      <li><a href="epidemics.html#graphoskop.sir_model">sir_model() (in module graphoskop)</a>
+</li>
+      <li><a href="epidemics.html#graphoskop.sis_model">sis_model() (in module graphoskop)</a>
 </li>
       <li><a href="backboning.html#graphoskop.spanning_tree">spanning_tree() (in module graphoskop)</a>
 </li>

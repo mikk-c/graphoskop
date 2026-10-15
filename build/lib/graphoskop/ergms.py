@@ -974,6 +974,183 @@ class ERGMFit:
       self.aic = None if loglik is None else -2 * loglik + 2 * len(names)
       self.bic = None if loglik is None else -2 * loglik + math.log(dyads) * len(names)
 
+   def _keep(self, net, model, X, y, w):
+      """Keep the network, the model and the change statistic rows, for simulation and fit measures."""
+      self._net, self._model, self._rows = net, model, (X, y, w)
+      return self
+
+   def _draw(self, count, burnin, interval, seed):
+      """
+      Networks drawn from the model at the estimate: chains in parallel threads, started at the
+      observed network, each giving a network after ``burnin`` steps and then every ``interval``
+      steps.
+
+      :return: List of ``(i, j)`` tie arrays (network wide node positions), and their statistics.
+      """
+      B = min(count, numba.get_num_threads())
+      chain = _Chains(self._model, B, seed)
+      ties, stats = [], []
+      for r in range(math.ceil(count / B)):
+         S, _ = chain.sample(self.coef.to_numpy(), burnin if r == 0 else 0, interval, 1)
+         for b in range(B):
+            e = chain.edges[b, :chain.count[b]]
+            ties.append((e[:, 0].copy(), e[:, 1].copy()))
+            stats.append(S[b])
+      return ties[:count], np.array(stats[:count])
+
+   def simulate(self, count = 1, burnin = 16384, interval = 1024, seed = None):
+      """
+      Networks drawn from the fitted model, as R's ``simulate()``: Markov chains at the estimated
+      coefficients, started at the observed network, give a network after ``burnin`` steps and
+      then one every ``interval`` steps (several chains run in parallel threads). Simulated
+      networks keep the nodes of the observed one, with their ids and attributes (see
+      :doc:`generators`); their edges take the attributes of observed edges, drawn at random.
+
+      :param count: Number of networks.
+      :param burnin: Steps of every chain before its first network.
+      :param interval: Steps of every chain between networks.
+      :param seed: Seed of the random numbers, or ``None`` for a random seed.
+      :return: List of :class:`~graphoskop.Network`.
+
+      Example:
+
+      .. code-block:: python
+
+         fit = gsk.ergm(net, "edges + nodematch('city') + gwesp(0.5, fixed = TRUE)", seed = 1)
+         sims = fit.simulate(100, seed = 2)
+         [gsk.average_clustering(g) for g in sims]
+      """
+      from .generators import _randomize
+      ties, _ = self._draw(count, burnin, interval, seed)
+      out = []
+      for k, (i, j) in enumerate(ties):
+         make = lambda l, nodes, n0, m, loops, gen, i = i, j = j: (torch.as_tensor(i, device = nodes.device), torch.as_tensor(j, device = nodes.device))
+         out.append(_randomize(self._net, None if seed is None else seed + k, make))
+      return out
+
+   def gof(self, count = 100, burnin = 16384, interval = 1024, seed = None):
+      """
+      Goodness of fit, as R's ``gof()``: distributions of statistics of the observed network
+      compared with those of ``count`` networks simulated from the fitted model (see
+      :meth:`simulate`): the degree distribution (in- and out-degrees if directed), edgewise shared
+      partners (outgoing two-paths if directed), geodesic distances (number of dyads at each
+      distance, ``inf`` for unreachable ones) and the statistics of the model. For every value
+      the table gives the observed count, the minimum, mean and maximum of the simulated ones and
+      the Monte Carlo p-value, :math:`\\min(1, 2 \\min(P(sim \\leq obs), P(sim \\geq obs)))`: small
+      values flag features of the network the model does not reproduce.
+
+      :param count: Number of simulated networks.
+      :param burnin: Steps of every chain before its first network.
+      :param interval: Steps of every chain between networks.
+      :param seed: Seed of the random numbers, or ``None``.
+      :return: Dictionary from ``"model"``, ``"degree"`` (``"idegree"`` and ``"odegree"`` if
+         directed), ``"espartners"`` and ``"distance"`` to :class:`pandas.DataFrame` with columns
+         ``obs``, ``min``, ``mean``, ``max`` and ``MC p-value``.
+      """
+      from scipy.sparse.csgraph import shortest_path
+      d = self._model.d
+      n, directed = d.n, d.directed
+      ties, stats = self._draw(count, burnin, interval, seed)
+
+      def features(A):
+         if directed:
+            out = {"idegree": np.bincount(A.sum(0), minlength = n), "odegree": np.bincount(A.sum(1), minlength = n)}
+         else:
+            out = {"degree": np.bincount(A.sum(1), minlength = n)}
+         SP = A.astype(np.int64) @ A.astype(np.int64)
+         i, j = np.nonzero(np.triu(A, 1) if not directed else A)
+         out["espartners"] = np.bincount(SP[i, j], minlength = n - 1)[:n - 1]
+         G = shortest_path(A.astype(float), unweighted = True, directed = directed)
+         G = G[np.triu_indices(n, 1)] if not directed else G[~np.eye(n, dtype = bool)]
+         G = np.where(np.isinf(G), n, G).astype(np.int64)   # unreachable last
+         out["distance"] = np.bincount(G, minlength = n + 1)[1:]
+         return out
+
+      obs = features(d.A)
+      sims = []
+      for i, j in ties:
+         A = np.zeros((n, n), dtype = np.uint8)
+         A[i, j] = 1
+         if not directed:
+            A |= A.T
+         sims.append(features(A))
+
+      def table(o, S, index, trim = True):
+         S = np.asarray(S, dtype = float)
+         p = np.minimum(1, 2 * np.minimum((S <= o).mean(0), (S >= o).mean(0)))
+         t = pd.DataFrame({"obs": o, "min": S.min(0), "mean": S.mean(0), "max": S.max(0), "MC p-value": p}, index = index)
+         seen = np.nonzero((t[["obs", "max"]] > 0).any(axis = 1).to_numpy())[0]
+         return t.iloc[:seen.max() + 1 if len(seen) else 1] if trim else t   # up to the last value seen
+
+      out = {"model": table(self.observed.to_numpy(), stats, self.coef.index, trim = False)}
+      for key in obs:
+         S = [x[key] for x in sims]
+         if key == "distance":   # finite distances seen, and the unreachable dyads
+            t = table(obs[key], S, list(range(1, n)) + [math.inf], trim = False)
+            out[key] = pd.concat([table(obs[key][:-1], [x[:-1] for x in S], list(range(1, n))), t.iloc[[-1]]])
+         else:
+            out[key] = table(obs[key], S, list(range(len(obs[key]))))
+      return out
+
+   def pseudo_r2(self):
+      """
+      McFadden's pseudo-:math:`R^2` of the model, :math:`1 - \\ell / \\ell_0`, with :math:`\\ell`
+      the log pseudo-likelihood of the model (logistic regression of the dyads on their change
+      statistics; the log-likelihood for dyad independent models) and :math:`\\ell_0` that of the
+      density only model (``edges``), and its decomposition among the statistics other than
+      ``edges``:
+
+      * ``pmvd``: proportional marginal variance decomposition (Feldman, 2005), as in R's
+        ``relaimpo``: the average over all orders of the statistics of the increase of
+        :math:`R^2` when each is added, each order weighted proportionally to
+        :math:`\\prod_{i < p} 1 / (R^2 - R^2_{(i)})`, :math:`R^2_{(i)}` that of the first ``i``
+        statistics of the order: a statistic that adds nothing given the others gets no share;
+      * ``lmg``: the same with equal weights (Lindeman, Merenda and Gold, 1980; relaimpo's default).
+
+      Both add up to the pseudo-:math:`R^2`. They need the model refitted on all :math:`2^p`
+      subsets of the ``p`` statistics, computed once over subsets rather than over the :math:`p!`
+      orders, so they are given for up to 16 statistics.
+
+      :return: ``(r2, table)``: the pseudo-:math:`R^2` and a :class:`pandas.DataFrame` with columns
+         ``pmvd`` and ``lmg``, by statistic.
+      :raises ValueError: If there are more than 16 statistics besides ``edges``.
+
+      Example:
+
+      .. code-block:: python
+
+         r2, parts = fit.pseudo_r2()
+         parts["pmvd"] / r2                                    # shares of the explained pseudo-likelihood
+      """
+      X, y, w = self._rows
+      names = list(self.coef.index)
+      cols = [k for k, nm in enumerate(names) if nm != "edges"]
+      p = len(cols)
+      if p > 16:
+         raise ValueError(f"the decomposition needs 2^{p} fits: at most 16 statistics besides edges")
+      one = np.ones((X.shape[0], 1))
+      ll0 = _logistic(one, y, w)[2]
+      R = np.zeros(2 ** p)   # pseudo-R2 of every subset of statistics (bit k: statistic cols[k])
+      for mask in range(1, 2 ** p):
+         sel = [cols[k] for k in range(p) if mask >> k & 1]
+         R[mask] = 1 - _logistic(np.column_stack([one, X[:, sel]]), y, w)[2] / ll0
+      full = 2 ** p - 1
+      out = pd.DataFrame(0., index = [names[c] for c in cols], columns = ["pmvd", "lmg"])
+      for col, gap in (("pmvd", lambda U: 1 / max(R[full] - R[U], 1e-12 * max(R[full], 1e-300)) if U != full else 1.), ("lmg", lambda U: 1.)):
+         g = np.array([gap(U) for U in range(2 ** p)])
+         f = np.zeros(2 ** p)   # weight of the orders of every prefix set
+         f[0] = 1.
+         for U in range(1, 2 ** p):
+            f[U] = g[U] * sum(f[U ^ (1 << k)] for k in range(p) if U >> k & 1)
+         b = np.zeros(2 ** p)   # weight of the completions of every prefix set
+         b[full] = 1.
+         for U in range(full - 1, -1, -1):
+            b[U] = sum(g[U | (1 << k)] * b[U | (1 << k)] for k in range(p) if not U >> k & 1)
+         for k in range(p):
+            total = sum(f[T] * g[T | (1 << k)] * b[T | (1 << k)] * (R[T | (1 << k)] - R[T]) for T in range(2 ** p) if not T >> k & 1)
+            out.iloc[k, out.columns.get_loc(col)] = total / b[0]
+      return float(R[full]), out
+
    def __repr__(self):
       text = f"{self.method} results:\n\n{self.summary.to_string(float_format = lambda x: f'{x:.5g}')}"
       if self.loglik is not None:
@@ -1107,7 +1284,7 @@ def ergm(net, formula, method = "mcmc", covariates = None, samplesize = 1024, bu
       warnings.warn("the MPLE has very large coefficients: the observed statistics may be at their extreme (infinite estimates)")
    obs = pd.Series(observed, index = names)
    if method == "mple" or model.independent:
-      return ERGMFit(names, theta, cov, np.zeros((p, p)), obs, mple, "MLE" if model.independent else "MPLE", 0, True, None, ll, d.dyads)
+      return ERGMFit(names, theta, cov, np.zeros((p, p)), obs, mple, "MLE" if model.independent else "MPLE", 0, True, None, ll, d.dyads)._keep(net, model, X, y, w)
 
    # Monte Carlo maximum likelihood
    B = chains or numba.get_num_threads()
@@ -1153,7 +1330,7 @@ def ergm(net, formula, method = "mcmc", covariates = None, samplesize = 1024, bu
       warnings.warn("the model looks degenerate: most sampled networks are empty or complete")
    I, V = _covariances(S, unit())
    Iinv = _pinv(I)
-   return ERGMFit(names, theta, Iinv, Iinv @ V @ Iinv, obs, mple, "MCMC MLE", it, converged, pd.DataFrame(S, columns = names), None, d.dyads)
+   return ERGMFit(names, theta, Iinv, Iinv @ V @ Iinv, obs, mple, "MCMC MLE", it, converged, pd.DataFrame(S, columns = names), None, d.dyads)._keep(net, model, X, y, w)
 
 
 def ergm_statistics(net, formula, covariates = None):

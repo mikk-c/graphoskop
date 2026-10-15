@@ -15,6 +15,22 @@ Generators
    ml = gsk.load_network("multiplex.tsv", multilayer = True, coupling = "all")
    rnd = gsk.gnm_random_graph(net = ml, m = {"work": 100})         # each layer on its own; couplings kept
 
+Simple graphs
+-------------
+
+Simple fixed topologies, with nodes ``0`` to ``n - 1``: a chain (path), undirected or with its
+edges in one direction, at random, towards or away from its middle node.
+
+.. code-block:: python
+
+   g = gsk.chain_graph(10)                                        # 0 - 1 - ... - 9
+   g = gsk.chain_graph(10, directed = True)                       # sequential: 0 -> 1 -> ... -> 9
+   g = gsk.chain_graph(10, directed = "random", seed = 1)         # each edge in a random direction
+   g = gsk.chain_graph(10, directed = "converging")               # 0 -> ... -> 5 <- ... <- 9
+   g = gsk.chain_graph(10, directed = "diverging")                # 0 <- ... <- 5 -> ... -> 9
+
+.. autofunction:: graphoskop.chain_graph
+
 Random graphs
 -------------
 
@@ -151,3 +167,18 @@ of the edges of a node leaving its communities, sets how hard the communities ar
 .. autofunction:: graphoskop.girvan_newman_graph
 
 .. autofunction:: graphoskop.lfr_benchmark_graph
+
+Testing against null models
+---------------------------
+
+Any generator (or a fitted ERGM) is a null model for a statistic: the statistic of the network is
+compared with its distribution over randomizations.
+
+.. code-block:: python
+
+   test = gsk.randomization_test(net, gsk.average_clustering, gsk.configuration_model, n = 200, seed = 1)
+   test["observed"], test["mean"], test["z"], test["above"], test["below"], test["p_value"]
+   test["distribution"]                                                # rounded values and their counts
+   gsk.randomization_test(net, gsk.average_clustering, gsk.edge_swap, n = 50, swaps = 1000)
+
+.. autofunction:: graphoskop.randomization_test

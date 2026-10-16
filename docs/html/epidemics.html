@@ -20,7 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Exponential random graph models" href="ergm.html" /> 
+    <link rel="next" title="Equivalence" href="equivalence.html" />
+    <link rel="prev" title="Communities" href="communities.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,56 +47,58 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Epidemics</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion">Simple contagion</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#performance">Performance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#si-model">SI model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#graphoskop.si_model"><code class="docutils literal notranslate"><span class="pre">si_model()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#sis-model">SIS model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#graphoskop.sis_model"><code class="docutils literal notranslate"><span class="pre">sis_model()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#sir-model">SIR model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#graphoskop.sir_model"><code class="docutils literal notranslate"><span class="pre">sir_model()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.epidemics.complex_contagion">Complex contagion</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#complex-si-model">Complex SI model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_si_model"><code class="docutils literal notranslate"><span class="pre">complex_si_model()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#complex-sis-model">Complex SIS model</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_sis_model"><code class="docutils literal notranslate"><span class="pre">complex_sis_model()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#complex-sir-model">Complex SIR model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_sir_model"><code class="docutils literal notranslate"><span class="pre">complex_sir_model()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#complex-sis-model">Complex SIS model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_sis_model"><code class="docutils literal notranslate"><span class="pre">complex_sis_model()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion">Simple contagion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#performance">Performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#si-model">SI model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.si_model"><code class="docutils literal notranslate"><span class="pre">si_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#sir-model">SIR model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.sir_model"><code class="docutils literal notranslate"><span class="pre">sir_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#sis-model">SIS model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.sis_model"><code class="docutils literal notranslate"><span class="pre">sis_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -131,6 +134,325 @@ spontaneously. In simple contagion (<a class="reference internal" href="#module-
 neighbor is enough to infect a node: SI, SIS and SIR models. In complex contagion
 (<a class="reference internal" href="#module-graphoskop.epidemics.complex_contagion" title="graphoskop.epidemics.complex_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">graphoskop.epidemics.complex_contagion</span></code></a>), the number of infected neighbors matters: one
 chance of infection per infected neighbor, or a threshold on their count or share.</p>
+<section id="module-graphoskop.epidemics.complex_contagion">
+<span id="complex-contagion"></span><h2>Complex contagion<a class="headerlink" href="#module-graphoskop.epidemics.complex_contagion" title="Link to this heading"></a></h2>
+<p>Complex contagion: compartmental models of epidemics where the number of infected neighbors of a
+susceptible node matters for its infection (reinforcement), as for behaviors and ideas that people
+adopt only after seeing several of their contacts adopt them. Recoveries are as in simple
+contagion: in the SIS and SIR models every infected node recovers with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> per
+step, whatever its neighbors.</p>
+<p>Five kinds of reinforcement decide the infection of a susceptible node with <span class="math notranslate nohighlight">\(c\)</span> infected
+neighbors (in-neighbors in directed networks):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>: every infected neighbor tries to infect the node independently, with
+probability <code class="docutils literal notranslate"><span class="pre">beta</span></code>, so the node is infected with probability <span class="math notranslate nohighlight">\(1 - (1 - \beta)^c\)</span>
+(one coin flip per infected neighbor, instead of one in simple contagion, so a small <code class="docutils literal notranslate"><span class="pre">beta</span></code>
+spreads much more where nodes have many infected neighbors);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>: the node can be infected only if <span class="math notranslate nohighlight">\(c \ge k\)</span>, an absolute threshold, as in
+the threshold model of Granovetter (1978) in the form used for complex contagion by Centola and
+Macy (2007): hubs, with many neighbors, reach the threshold easily;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>: the node can be infected only if <span class="math notranslate nohighlight">\(c \ge \phi d\)</span>, a fraction of its
+in-degree <span class="math notranslate nohighlight">\(d\)</span>, as in the cascade model of Watts (2002): hubs, with a large denominator,
+rarely reach the threshold;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code>: the independent cascade model of Kempe, Kleinberg and Tardos (2003). When a
+node <span class="math notranslate nohighlight">\(u\)</span> is infected, it makes one attempt to infect each of its susceptible
+out-neighbors <span class="math notranslate nohighlight">\(v\)</span>, at the next step, which succeeds with probability <span class="math notranslate nohighlight">\(p_{uv}\)</span>; if it
+fails, <span class="math notranslate nohighlight">\(u\)</span> never tries <span class="math notranslate nohighlight">\(v\)</span> again (until <span class="math notranslate nohighlight">\(u\)</span> is infected anew, in SIS). The
+probability depends on both the origin and the target of the attempt, through a table of
+probabilities per pair of nodes, given as <code class="docutils literal notranslate"><span class="pre">beta</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, where infected
+neighbors try again at every step, each edge carries one attempt per infection;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>: the decreasing cascade model of Kempe, Kleinberg and Tardos (2005), with one
+attempt per edge as in the independent cascade, but every failed attempt on <span class="math notranslate nohighlight">\(v\)</span> makes the
+next ones less likely: an attempt after <span class="math notranslate nohighlight">\(f\)</span> failed ones succeeds with probability
+<span class="math notranslate nohighlight">\(p_{uv} \delta^f\)</span>, with <code class="docutils literal notranslate"><span class="pre">decay</span></code> <span class="math notranslate nohighlight">\(\delta \in (0, 1]\)</span> (<span class="math notranslate nohighlight">\(\delta = 1\)</span> is the
+independent cascade). Simultaneous attempts on a node count as made one after the other (in an
+arbitrary order, as in the original model); the count of failures restarts when the node is
+infected.</p></li>
+</ul>
+<p>With the thresholds met, the node is infected with probability <code class="docutils literal notranslate"><span class="pre">beta</span></code> (<code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">1</span></code> gives the
+deterministic models of Granovetter and Watts). In the cascades, <code class="docutils literal notranslate"><span class="pre">beta</span></code> is the table of
+probabilities <span class="math notranslate nohighlight">\(p_{uv}\)</span> of the attempts from origin <span class="math notranslate nohighlight">\(u\)</span> to target <span class="math notranslate nohighlight">\(v\)</span>: one
+probability for all edges, the name of a numeric edge attribute, a matrix (NumPy array, tensor or
+SciPy sparse matrix, rows for origins and columns for targets, indexed in the node order of the
+nodes considered, e.g. <code class="docutils literal notranslate"><span class="pre">net.node_ids[0]</span></code> for component 0), or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with
+origin, target and probability in its first three columns (pairs not listed get 0). Only the
+pairs joined by an edge matter, and in undirected networks the two directions of an edge can have
+different probabilities. Independent cascades on SI are exactly the original model, in which
+infected (active) nodes stay infected; with SIR the spread is the same, and the infected nodes
+are removed at rate <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p>
+<p>In the cascades every infection has one origin, the node whose attempt succeeded, so with
+<code class="docutils literal notranslate"><span class="pre">forest</span> <span class="pre">=</span> <span class="pre">True</span></code> the models also return who infected whom in the last run, as a directed
+<a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>: an edge from origin to target for every infection, with the step of
+the infection as edge attribute <code class="docutils literal notranslate"><span class="pre">step</span></code>, and the infected nodes (seeds included, even those that
+infected nobody) with their node attributes. In SI and SIR every node is infected at most once,
+so this is a forest: one tree per seed, rooted at it, and each tree is a weakly connected
+component (<code class="docutils literal notranslate"><span class="pre">forest.components</span></code>, <a class="reference internal" href="network_statistics.html#graphoskop.connected_components_nodes" title="graphoskop.connected_components_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_nodes()</span></code></a>). In SIS a node
+can be infected again after recovering, and every infection is an edge, so the network can have
+parallel edges and cycles. When several attempts on a node succeed at the same step, its origin
+is the first of them in the order of the attempts. Thresholds are one value for all nodes, or one per
+node (a vector, a dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> from node id to value, or the name of a
+numeric node attribute), so that, e.g., heterogeneous thresholds can be drawn from a
+distribution. Degrees count edges: parallel edges count several times, and a self loop counts in
+the in-degree (but never as an infected neighbor of a susceptible node).</p>
+<p>Everything else (time steps, seeds, runs, engines, stored states, resuming, the plateau of SIS) is
+as in <a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>. A seed node of a threshold model is infected
+whatever its neighbors; a node whose threshold is above its in-degree can only be infected as a
+seed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># one coin flip per infected neighbor</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>    <span class="c1"># Granovetter: at least 2 infected neighbors</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>      <span class="c1"># Watts: at least 18% of the neighbors</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># heterogeneous thresholds, one per node, from a numeric node attribute</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># independent and decreasing cascades (Kempe, Kleinberg and Tardos): one attempt per edge</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>      <span class="c1"># the same probability on every edge</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">net</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">edge_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>      <span class="c1"># one probability per edge (and direction)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">0</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>   <span class="c1"># table: origins by targets</span>
+
+<span class="c1"># who infected whom in the last run: a forest, one tree per seed</span>
+<span class="n">si</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()</span>                     <span class="c1"># source infected target at step; node attributes</span>
+<span class="n">trees</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">forest</span><span class="p">)</span>                   <span class="c1"># the nodes reached from each seed</span>
+</pre></div>
+</div>
+<p>On 100,000 nodes and 500,000 edges, 100 runs on two CPU threads with the Numba engine take
+about as long as simple contagion: 3.6 s for the classical SI model with <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.02</span></code>
+(486 steps), 1.7 s for the threshold model with <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span></code> and 1% of seeds, 1.2 s for the cascade
+model with <code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">0.1</span></code>, 3.0 s for the classical SIR model with <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.05</span></code>, <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">0.1</span></code>,
+1.8 s for the independent cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.2</span></code> (2.2 s with probabilities from an edge
+attribute), 1.3 s for the decreasing cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.3</span></code> and <code class="docutils literal notranslate"><span class="pre">decay</span> <span class="pre">=</span> <span class="pre">0.5</span></code> (10 seeds).</p>
+<section id="complex-si-model">
+<h3>Complex SI model<a class="headerlink" href="#complex-si-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.complex_si_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_si_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_si_model" title="Link to this definition"></a></dt>
+<dd><p>Simulate the SI model with complex contagion, and return the fraction of nodes in each state
+at every time step, averaged over independent runs.</p>
+<p>As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, but a susceptible node is infected according to
+<code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A run stops when no susceptible node can be
+infected any more (in threshold models, the cascade may stop well before reaching all the
+nodes), or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
+the threshold is met (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>), or per attempt (<code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>: one value, or a table of probabilities per pair of nodes, see the module
+description).</p></li>
+<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
+<li><p><strong>threshold</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, the number of infected neighbors needed (at least 1);
+with <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, the share of the in-neighbors, in (0, 1]; one value, or one per node.
+Ignored by the other kinds.</p></li>
+<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability of an attempt for every
+earlier failed attempt on the same node, in (0, 1].</p></li>
+<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
+<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
+whom in the last run (see the module description).</p></li>
+<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
+below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
+<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
+node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
+attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>; with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table, forest
+<a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> is not valid, if
+thresholds are missing or out of range, if probabilities per pair are out of [0, 1] or given
+for another kind of reinforcement, if <code class="docutils literal notranslate"><span class="pre">decay</span></code> is not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for
+another kind of reinforcement.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>        <span class="c1"># one coin flip per infected neighbor</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>     <span class="c1"># Granovetter: 2 infected neighbors</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># Watts: 18% of the neighbors</span>
+<span class="n">si</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                     <span class="c1"># final size of the cascade</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>   <span class="c1"># thresholds from a node attribute</span>
+
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># Kempe et al.: one attempt per edge</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># probabilities from edge attribute &quot;p&quot;</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>        <span class="c1"># P: matrix, origins by targets</span>
+
+<span class="n">si</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()</span>                               <span class="c1"># source infected target at step</span>
+<span class="n">trees</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">forest</span><span class="p">)</span>                      <span class="c1"># one tree per seed</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="complex-sir-model">
+<h3>Complex SIR model<a class="headerlink" href="#complex-sir-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.complex_sir_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_sir_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_sir_model" title="Link to this definition"></a></dt>
+<dd><p>Simulate the SIR model with complex contagion, and return the fraction of nodes in each state
+at every time step, averaged over independent runs.</p>
+<p>As <a class="reference internal" href="#graphoskop.sir_model" title="graphoskop.sir_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sir_model()</span></code></a>, but a susceptible node is infected according to
+<code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). Removed nodes no longer count as infected
+neighbors, so in threshold models a node can miss its threshold when its infected neighbors
+recover before enough of them are infected at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
+the threshold is met, or per attempt (cascades: one value, or a table per pair of nodes).</p></li>
+<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
+<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
+<li><p><strong>threshold</strong> – Count (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>) or share (<code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>) of infected neighbors
+needed; one value, or one per node.</p></li>
+<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability for every earlier failed
+attempt on the same node, in (0, 1].</p></li>
+<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;R&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
+<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
+whom in the last run (see the module description).</p></li>
+<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
+below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
+<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
+node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
+attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span></code> and
+their confidence intervals (<code class="docutils literal notranslate"><span class="pre">S_low</span></code>, <code class="docutils literal notranslate"><span class="pre">S_high</span></code>, …); with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table,
+forest <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.sir_model" title="graphoskop.sir_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sir_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code>, the thresholds,
+the probabilities per pair or <code class="docutils literal notranslate"><span class="pre">decay</span></code> are not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for another
+kind of reinforcement.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">)</span>
+<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                    <span class="c1"># final size</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="complex-sis-model">
+<h3>Complex SIS model<a class="headerlink" href="#complex-sis-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.complex_sis_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_sis_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_sis_model" title="Link to this definition"></a></dt>
+<dd><p>Simulate the SIS model with complex contagion, and return the fraction of nodes in each state
+at every time step, averaged over independent runs.</p>
+<p>As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a> (recoveries, plateau test), but a susceptible node is infected
+according to <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A node can lose the infected
+neighbors that let it pass its threshold, and wait until it has enough again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
+the threshold is met, or per attempt (cascades: one value, or a table per pair of nodes).</p></li>
+<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
+<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
+<li><p><strong>threshold</strong> – Count (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>) or share (<code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>) of infected neighbors
+needed; one value, or one per node.</p></li>
+<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability for every earlier failed
+attempt on the same node, in (0, 1].</p></li>
+<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
+<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
+whom in the last run (see the module description).</p></li>
+<li><p><strong>window</strong> – Steps of each window of the plateau test, or <code class="docutils literal notranslate"><span class="pre">None</span></code> not to stop at the
+plateau.</p></li>
+<li><p><strong>tolerance</strong> – Largest relative difference between the two windows at the plateau.</p></li>
+<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
+below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
+<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
+node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
+attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>; with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table, network of the
+infections).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code>, the thresholds,
+the probabilities per pair or <code class="docutils literal notranslate"><span class="pre">decay</span></code> are not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for another
+kind of reinforcement.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
 <section id="module-graphoskop.epidemics.simple_contagion">
 <span id="simple-contagion"></span><h2>Simple contagion<a class="headerlink" href="#module-graphoskop.epidemics.simple_contagion" title="Link to this heading"></a></h2>
 <p>Simple contagion: compartmental models of epidemics where one infected neighbor is enough to
@@ -392,6 +714,63 @@ node attribute or has a value that is not a state of the model.</p>
 </dd></dl>
 
 </section>
+<section id="sir-model">
+<h3>SIR model<a class="headerlink" href="#sir-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.sir_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">sir_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.sir_model" title="Link to this definition"></a></dt>
+<dd><p>Simulate the SIR (Susceptible-Infected-Removed) model, and return the fraction of nodes in
+each state at every time step, averaged over independent runs.</p>
+<p>As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a> (seeds, engines, stored states and resuming work the same way), but at
+every step each node infected at the start of the step recovers with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> and is
+removed (it can no longer infect nor be infected), at the same time as the infections. A run
+stops when no node is infected, or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>beta</strong> – Infection probability per step, in (0, 1].</p></li>
+<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
+<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;R&quot;</span></code>),
+or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
+<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
+below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
+<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
+node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
+attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span></code> and
+their confidence intervals (<code class="docutils literal notranslate"><span class="pre">S_low</span></code>, <code class="docutils literal notranslate"><span class="pre">S_high</span></code>, …).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, or if <code class="docutils literal notranslate"><span class="pre">mu</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">mu</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                               <span class="c1"># final size of the epidemic</span>
+<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>                                               <span class="c1"># step of the peak</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="sis-model">
 <h3>SIS model<a class="headerlink" href="#sis-model" title="Link to this heading"></a></h3>
 <dl class="py function">
@@ -463,382 +842,6 @@ valid.</p>
 </dd></dl>
 
 </section>
-<section id="sir-model">
-<h3>SIR model<a class="headerlink" href="#sir-model" title="Link to this heading"></a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.sir_model">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">sir_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.sir_model" title="Link to this definition"></a></dt>
-<dd><p>Simulate the SIR (Susceptible-Infected-Removed) model, and return the fraction of nodes in
-each state at every time step, averaged over independent runs.</p>
-<p>As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a> (seeds, engines, stored states and resuming work the same way), but at
-every step each node infected at the start of the step recovers with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> and is
-removed (it can no longer infect nor be infected), at the same time as the infections. A run
-stops when no node is infected, or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>beta</strong> – Infection probability per step, in (0, 1].</p></li>
-<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
-<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
-<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
-<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
-<li><p><strong>runs</strong> – Number of independent runs.</p></li>
-<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
-<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>attribute</strong> – Name of the node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;R&quot;</span></code>),
-or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
-<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
-<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
-below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
-<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
-node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
-attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span></code> and
-their confidence intervals (<code class="docutils literal notranslate"><span class="pre">S_low</span></code>, <code class="docutils literal notranslate"><span class="pre">S_high</span></code>, …).</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, or if <code class="docutils literal notranslate"><span class="pre">mu</span></code> is not valid.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
-<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">mu</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span>
-<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                               <span class="c1"># final size of the epidemic</span>
-<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>                                               <span class="c1"># step of the peak</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
-</section>
-<section id="module-graphoskop.epidemics.complex_contagion">
-<span id="complex-contagion"></span><h2>Complex contagion<a class="headerlink" href="#module-graphoskop.epidemics.complex_contagion" title="Link to this heading"></a></h2>
-<p>Complex contagion: compartmental models of epidemics where the number of infected neighbors of a
-susceptible node matters for its infection (reinforcement), as for behaviors and ideas that people
-adopt only after seeing several of their contacts adopt them. Recoveries are as in simple
-contagion: in the SIS and SIR models every infected node recovers with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> per
-step, whatever its neighbors.</p>
-<p>Five kinds of reinforcement decide the infection of a susceptible node with <span class="math notranslate nohighlight">\(c\)</span> infected
-neighbors (in-neighbors in directed networks):</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>: every infected neighbor tries to infect the node independently, with
-probability <code class="docutils literal notranslate"><span class="pre">beta</span></code>, so the node is infected with probability <span class="math notranslate nohighlight">\(1 - (1 - \beta)^c\)</span>
-(one coin flip per infected neighbor, instead of one in simple contagion, so a small <code class="docutils literal notranslate"><span class="pre">beta</span></code>
-spreads much more where nodes have many infected neighbors);</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>: the node can be infected only if <span class="math notranslate nohighlight">\(c \ge k\)</span>, an absolute threshold, as in
-the threshold model of Granovetter (1978) in the form used for complex contagion by Centola and
-Macy (2007): hubs, with many neighbors, reach the threshold easily;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>: the node can be infected only if <span class="math notranslate nohighlight">\(c \ge \phi d\)</span>, a fraction of its
-in-degree <span class="math notranslate nohighlight">\(d\)</span>, as in the cascade model of Watts (2002): hubs, with a large denominator,
-rarely reach the threshold;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code>: the independent cascade model of Kempe, Kleinberg and Tardos (2003). When a
-node <span class="math notranslate nohighlight">\(u\)</span> is infected, it makes one attempt to infect each of its susceptible
-out-neighbors <span class="math notranslate nohighlight">\(v\)</span>, at the next step, which succeeds with probability <span class="math notranslate nohighlight">\(p_{uv}\)</span>; if it
-fails, <span class="math notranslate nohighlight">\(u\)</span> never tries <span class="math notranslate nohighlight">\(v\)</span> again (until <span class="math notranslate nohighlight">\(u\)</span> is infected anew, in SIS). The
-probability depends on both the origin and the target of the attempt, through a table of
-probabilities per pair of nodes, given as <code class="docutils literal notranslate"><span class="pre">beta</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, where infected
-neighbors try again at every step, each edge carries one attempt per infection;</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>: the decreasing cascade model of Kempe, Kleinberg and Tardos (2005), with one
-attempt per edge as in the independent cascade, but every failed attempt on <span class="math notranslate nohighlight">\(v\)</span> makes the
-next ones less likely: an attempt after <span class="math notranslate nohighlight">\(f\)</span> failed ones succeeds with probability
-<span class="math notranslate nohighlight">\(p_{uv} \delta^f\)</span>, with <code class="docutils literal notranslate"><span class="pre">decay</span></code> <span class="math notranslate nohighlight">\(\delta \in (0, 1]\)</span> (<span class="math notranslate nohighlight">\(\delta = 1\)</span> is the
-independent cascade). Simultaneous attempts on a node count as made one after the other (in an
-arbitrary order, as in the original model); the count of failures restarts when the node is
-infected.</p></li>
-</ul>
-<p>With the thresholds met, the node is infected with probability <code class="docutils literal notranslate"><span class="pre">beta</span></code> (<code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">1</span></code> gives the
-deterministic models of Granovetter and Watts). In the cascades, <code class="docutils literal notranslate"><span class="pre">beta</span></code> is the table of
-probabilities <span class="math notranslate nohighlight">\(p_{uv}\)</span> of the attempts from origin <span class="math notranslate nohighlight">\(u\)</span> to target <span class="math notranslate nohighlight">\(v\)</span>: one
-probability for all edges, the name of a numeric edge attribute, a matrix (NumPy array, tensor or
-SciPy sparse matrix, rows for origins and columns for targets, indexed in the node order of the
-nodes considered, e.g. <code class="docutils literal notranslate"><span class="pre">net.node_ids[0]</span></code> for component 0), or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with
-origin, target and probability in its first three columns (pairs not listed get 0). Only the
-pairs joined by an edge matter, and in undirected networks the two directions of an edge can have
-different probabilities. Independent cascades on SI are exactly the original model, in which
-infected (active) nodes stay infected; with SIR the spread is the same, and the infected nodes
-are removed at rate <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p>
-<p>In the cascades every infection has one origin, the node whose attempt succeeded, so with
-<code class="docutils literal notranslate"><span class="pre">forest</span> <span class="pre">=</span> <span class="pre">True</span></code> the models also return who infected whom in the last run, as a directed
-<a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>: an edge from origin to target for every infection, with the step of
-the infection as edge attribute <code class="docutils literal notranslate"><span class="pre">step</span></code>, and the infected nodes (seeds included, even those that
-infected nobody) with their node attributes. In SI and SIR every node is infected at most once,
-so this is a forest: one tree per seed, rooted at it, and each tree is a weakly connected
-component (<code class="docutils literal notranslate"><span class="pre">forest.components</span></code>, <a class="reference internal" href="network_statistics.html#graphoskop.connected_components_nodes" title="graphoskop.connected_components_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_nodes()</span></code></a>). In SIS a node
-can be infected again after recovering, and every infection is an edge, so the network can have
-parallel edges and cycles. When several attempts on a node succeed at the same step, its origin
-is the first of them in the order of the attempts. Thresholds are one value for all nodes, or one per
-node (a vector, a dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> from node id to value, or the name of a
-numeric node attribute), so that, e.g., heterogeneous thresholds can be drawn from a
-distribution. Degrees count edges: parallel edges count several times, and a self loop counts in
-the in-degree (but never as an infected neighbor of a susceptible node).</p>
-<p>Everything else (time steps, seeds, runs, engines, stored states, resuming, the plateau of SIS) is
-as in <a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>. A seed node of a threshold model is infected
-whatever its neighbors; a node whose threshold is above its in-degree can only be infected as a
-seed.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># one coin flip per infected neighbor</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>    <span class="c1"># Granovetter: at least 2 infected neighbors</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>      <span class="c1"># Watts: at least 18% of the neighbors</span>
-<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
-
-<span class="c1"># heterogeneous thresholds, one per node, from a numeric node attribute</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
-
-<span class="c1"># independent and decreasing cascades (Kempe, Kleinberg and Tardos): one attempt per edge</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>      <span class="c1"># the same probability on every edge</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">net</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">edge_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>      <span class="c1"># one probability per edge (and direction)</span>
-<span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">0</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>   <span class="c1"># table: origins by targets</span>
-
-<span class="c1"># who infected whom in the last run: a forest, one tree per seed</span>
-<span class="n">si</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()</span>                     <span class="c1"># source infected target at step; node attributes</span>
-<span class="n">trees</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">forest</span><span class="p">)</span>                   <span class="c1"># the nodes reached from each seed</span>
-</pre></div>
-</div>
-<p>On 100,000 nodes and 500,000 edges, 100 runs on two CPU threads with the Numba engine take
-about as long as simple contagion: 3.6 s for the classical SI model with <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.02</span></code>
-(486 steps), 1.7 s for the threshold model with <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span></code> and 1% of seeds, 1.2 s for the cascade
-model with <code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">0.1</span></code>, 3.0 s for the classical SIR model with <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.05</span></code>, <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">0.1</span></code>,
-1.8 s for the independent cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.2</span></code> (2.2 s with probabilities from an edge
-attribute), 1.3 s for the decreasing cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.3</span></code> and <code class="docutils literal notranslate"><span class="pre">decay</span> <span class="pre">=</span> <span class="pre">0.5</span></code> (10 seeds).</p>
-<section id="complex-si-model">
-<h3>Complex SI model<a class="headerlink" href="#complex-si-model" title="Link to this heading"></a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.complex_si_model">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_si_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_si_model" title="Link to this definition"></a></dt>
-<dd><p>Simulate the SI model with complex contagion, and return the fraction of nodes in each state
-at every time step, averaged over independent runs.</p>
-<p>As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, but a susceptible node is infected according to
-<code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A run stops when no susceptible node can be
-infected any more (in threshold models, the cascade may stop well before reaching all the
-nodes), or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
-the threshold is met (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>), or per attempt (<code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>: one value, or a table of probabilities per pair of nodes, see the module
-description).</p></li>
-<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
-<li><p><strong>threshold</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, the number of infected neighbors needed (at least 1);
-with <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, the share of the in-neighbors, in (0, 1]; one value, or one per node.
-Ignored by the other kinds.</p></li>
-<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability of an attempt for every
-earlier failed attempt on the same node, in (0, 1].</p></li>
-<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
-<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
-<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
-<li><p><strong>runs</strong> – Number of independent runs.</p></li>
-<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
-<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
-<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
-whom in the last run (see the module description).</p></li>
-<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
-<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
-below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
-<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
-node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
-attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
-<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>; with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table, forest
-<a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>).</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> is not valid, if
-thresholds are missing or out of range, if probabilities per pair are out of [0, 1] or given
-for another kind of reinforcement, if <code class="docutils literal notranslate"><span class="pre">decay</span></code> is not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for
-another kind of reinforcement.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>        <span class="c1"># one coin flip per infected neighbor</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>     <span class="c1"># Granovetter: 2 infected neighbors</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># Watts: 18% of the neighbors</span>
-<span class="n">si</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                     <span class="c1"># final size of the cascade</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>   <span class="c1"># thresholds from a node attribute</span>
-
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># Kempe et al.: one attempt per edge</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># probabilities from edge attribute &quot;p&quot;</span>
-<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>        <span class="c1"># P: matrix, origins by targets</span>
-
-<span class="n">si</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;independent&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">edges</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()</span>                               <span class="c1"># source infected target at step</span>
-<span class="n">trees</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">forest</span><span class="p">)</span>                      <span class="c1"># one tree per seed</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
-<section id="complex-sis-model">
-<h3>Complex SIS model<a class="headerlink" href="#complex-sis-model" title="Link to this heading"></a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.complex_sis_model">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_sis_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_sis_model" title="Link to this definition"></a></dt>
-<dd><p>Simulate the SIS model with complex contagion, and return the fraction of nodes in each state
-at every time step, averaged over independent runs.</p>
-<p>As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a> (recoveries, plateau test), but a susceptible node is infected
-according to <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A node can lose the infected
-neighbors that let it pass its threshold, and wait until it has enough again.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
-the threshold is met, or per attempt (cascades: one value, or a table per pair of nodes).</p></li>
-<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
-<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
-<li><p><strong>threshold</strong> – Count (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>) or share (<code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>) of infected neighbors
-needed; one value, or one per node.</p></li>
-<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability for every earlier failed
-attempt on the same node, in (0, 1].</p></li>
-<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
-<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
-<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
-<li><p><strong>runs</strong> – Number of independent runs.</p></li>
-<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
-<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
-<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
-whom in the last run (see the module description).</p></li>
-<li><p><strong>window</strong> – Steps of each window of the plateau test, or <code class="docutils literal notranslate"><span class="pre">None</span></code> not to stop at the
-plateau.</p></li>
-<li><p><strong>tolerance</strong> – Largest relative difference between the two windows at the plateau.</p></li>
-<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
-<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
-below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
-<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
-node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
-attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
-<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>; with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table, network of the
-infections).</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code>, the thresholds,
-the probabilities per pair or <code class="docutils literal notranslate"><span class="pre">decay</span></code> are not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for another
-kind of reinforcement.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
-<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
-<section id="complex-sir-model">
-<h3>Complex SIR model<a class="headerlink" href="#complex-sir-model" title="Link to this heading"></a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.complex_sir_model">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_sir_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'classical'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_sir_model" title="Link to this definition"></a></dt>
-<dd><p>Simulate the SIR model with complex contagion, and return the fraction of nodes in each state
-at every time step, averaged over independent runs.</p>
-<p>As <a class="reference internal" href="#graphoskop.sir_model" title="graphoskop.sir_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sir_model()</span></code></a>, but a susceptible node is infected according to
-<code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). Removed nodes no longer count as infected
-neighbors, so in threshold models a node can miss its threshold when its infected neighbors
-recover before enough of them are infected at the same time.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>beta</strong> – Infection probability, in (0, 1]: per infected neighbor (<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>), once
-the threshold is met, or per attempt (cascades: one value, or a table per pair of nodes).</p></li>
-<li><p><strong>mu</strong> – Recovery probability per step, in (0, 1].</p></li>
-<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>.</p></li>
-<li><p><strong>threshold</strong> – Count (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>) or share (<code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>) of infected neighbors
-needed; one value, or one per node.</p></li>
-<li><p><strong>decay</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, the factor of the probability for every earlier failed
-attempt on the same node, in (0, 1].</p></li>
-<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
-<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
-<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
-<li><p><strong>runs</strong> – Number of independent runs.</p></li>
-<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
-<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;R&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
-<li><p><strong>forest</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;independent&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;decreasing&quot;</span></code>, whether to return also who infected
-whom in the last run (see the module description).</p></li>
-<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
-<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
-below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
-<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
-node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
-attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span></code> and
-their confidence intervals (<code class="docutils literal notranslate"><span class="pre">S_low</span></code>, <code class="docutils literal notranslate"><span class="pre">S_high</span></code>, …); with <code class="docutils literal notranslate"><span class="pre">forest</span></code>, a pair (table,
-forest <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>).</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.sir_model" title="graphoskop.sir_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sir_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code>, the thresholds,
-the probabilities per pair or <code class="docutils literal notranslate"><span class="pre">decay</span></code> are not valid, or if <code class="docutils literal notranslate"><span class="pre">forest</span></code> is asked for another
-kind of reinforcement.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
-<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
-<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">)</span>
-<span class="n">sir</span><span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                    <span class="c1"># final size</span>
-<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;decreasing&quot;</span><span class="p">,</span> <span class="n">decay</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
 </section>
 </section>
 
@@ -846,7 +849,8 @@ kind of reinforcement.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="ergm.html" class="btn btn-neutral float-left" title="Exponential random graph models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="communities.html" class="btn btn-neutral float-left" title="Communities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="equivalence.html" class="btn btn-neutral float-right" title="Equivalence" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

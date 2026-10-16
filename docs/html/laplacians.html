@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Exploration" href="exploration.html" />
-    <link rel="prev" title="Coloring and independent sets" href="coloring.html" /> 
+    <link rel="next" title="Link prediction" href="link_prediction.html" />
+    <link rel="prev" title="Hierarchy" href="hierarchy.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,27 +47,33 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Laplacians</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.effective_resistance"><code class="docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hitting_time"><code class="docutils literal notranslate"><span class="pre">hitting_time()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.laplacian"><code class="docutils literal notranslate"><span class="pre">laplacian()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.laplacian_pinv"><code class="docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.laplacian_solver"><code class="docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.stationary_distribution"><code class="docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.effective_resistance"><code class="docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hitting_time"><code class="docutils literal notranslate"><span class="pre">hitting_time()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -123,6 +129,109 @@ a component is connected through them; infinitely strong couplings give the Lapl
 <a class="reference internal" href="#graphoskop.laplacian_solver" title="graphoskop.laplacian_solver"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a>. The random walks of <code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code> and of
 the Chung Laplacian move along couplings like along any edge, with probability proportional to
 their weight.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.effective_resistance">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">effective_resistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.effective_resistance" title="Link to this definition"></a></dt>
+<dd><p>Effective resistance between all pairs of nodes,
+<span class="math notranslate nohighlight">\(R_{uv} = (e_u - e_v)^H L^+ (e_u - e_v) = L^+_{uu} + L^+_{vv} - L^+_{uv} - L^+_{vu}\)</span>,
+with <span class="math notranslate nohighlight">\(L^+\)</span> the pseudoinverse of the Laplacian (see
+<a class="reference internal" href="#graphoskop.laplacian" title="graphoskop.laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian()</span></code></a>). For complex Laplacians the real part is taken.</p>
+<p><span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (a dense tensor from
+<a class="reference internal" href="#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>, left unchanged), or computed if <code class="docutils literal notranslate"><span class="pre">None</span></code>. A
+computed real symmetric <span class="math notranslate nohighlight">\(L^+\)</span> is turned into <span class="math notranslate nohighlight">\(R\)</span> in place, so no further <code class="docutils literal notranslate"><span class="pre">n</span></code> by
+<code class="docutils literal notranslate"><span class="pre">n</span></code> matrix is allocated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is given as a list with one entry per component.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Real <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, rows and columns ordered by internal node index, or a list
+of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">effective_resistance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                     <span class="c1"># if both are in component 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hitting_time">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hitting_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hitting_time" title="Link to this definition"></a></dt>
+<dd><p>Hitting times between all pairs of nodes: <span class="math notranslate nohighlight">\(H_{ij}\)</span> is the expected number of steps a
+random walk starting at <span class="math notranslate nohighlight">\(i\)</span> takes to reach <span class="math notranslate nohighlight">\(j\)</span> for the first time
+(<span class="math notranslate nohighlight">\(H_{ii} = 0\)</span>). The walk is the one of <a class="reference internal" href="#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>: it follows an out
+edge with probability proportional to its weight (self loops included: the walk may stay), or,
+with probability <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, jumps to a uniformly random node; dangling nodes always jump. Hitting
+times are not symmetric, even in undirected networks; <span class="math notranslate nohighlight">\(H_{ij} + H_{ji}\)</span> is the commute
+time, <span class="math notranslate nohighlight">\(\mathrm{vol} \cdot R_{ij}\)</span> in undirected networks (<a class="reference internal" href="#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a>).</p>
+<ul class="simple">
+<li><p>Undirected networks with <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code>: from the Laplacian pseudoinverse,
+<span class="math notranslate nohighlight">\(H_{ij} = \sum_k d_k (L^+_{ik} - L^+_{ij} - L^+_{jk} + L^+_{jj})\)</span>, with <span class="math notranslate nohighlight">\(d\)</span> the
+(weighted) degrees. <span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (from
+<a class="reference internal" href="#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a> with the same <code class="docutils literal notranslate"><span class="pre">weight</span></code>) or computed.</p></li>
+<li><p>Otherwise (directed networks, or <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>), from the fundamental matrix of the walk
+(Kemeny and Snell): <span class="math notranslate nohighlight">\(H_{ij} = (Z_{jj} - Z_{ij}) / \pi_j\)</span>, with
+<span class="math notranslate nohighlight">\(Z = (I - P + \mathbf{1} \pi^T)^{-1}\)</span>, <span class="math notranslate nohighlight">\(P\)</span> the transition matrix and <span class="math notranslate nohighlight">\(\pi\)</span>
+its stationary distribution, found exactly (not by power iteration), so periodic walks are
+fine. <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is ignored. With <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> the walk must be able to reach every node from
+every node (dangling nodes jump anywhere, so this fails when a set of nodes has edges only
+among themselves; restrict to a strongly connected component, see
+<a class="reference internal" href="transformations.html#graphoskop.to_strongly_connected" title="graphoskop.to_strongly_connected"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a>, or use <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>), otherwise some hitting
+times are infinite.</p></li>
+</ul>
+<p>Both are dense <span class="math notranslate nohighlight">\(O(n^3)\)</span> computations in float64 on the device of the component, with a few
+<code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrices. In multilayer networks the walk moves along couplings like along any
+edge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is given as a list with one entry per component.</p></li>
+<li><p><strong>lpinv</strong> – Cached dense pseudoinverse (undirected networks, <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Float64 <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, rows (origins) and columns (targets) ordered by internal
+node index, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> and some node cannot reach some other.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hitting_time</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
+<span class="n">H</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">H</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>                         <span class="c1"># alice to bob, bob to alice (if in component 0)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hitting_time</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">)</span>  <span class="c1"># PageRank walk</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.laplacian">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.laplacian" title="Link to this definition"></a></dt>
@@ -279,117 +388,14 @@ of them if <code class="docutils literal notranslate"><span class="pre">componen
 </div>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.effective_resistance">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">effective_resistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.effective_resistance" title="Link to this definition"></a></dt>
-<dd><p>Effective resistance between all pairs of nodes,
-<span class="math notranslate nohighlight">\(R_{uv} = (e_u - e_v)^H L^+ (e_u - e_v) = L^+_{uu} + L^+_{vv} - L^+_{uv} - L^+_{vu}\)</span>,
-with <span class="math notranslate nohighlight">\(L^+\)</span> the pseudoinverse of the Laplacian (see
-<a class="reference internal" href="#graphoskop.laplacian" title="graphoskop.laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian()</span></code></a>). For complex Laplacians the real part is taken.</p>
-<p><span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (a dense tensor from
-<a class="reference internal" href="#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>, left unchanged), or computed if <code class="docutils literal notranslate"><span class="pre">None</span></code>. A
-computed real symmetric <span class="math notranslate nohighlight">\(L^+\)</span> is turned into <span class="math notranslate nohighlight">\(R\)</span> in place, so no further <code class="docutils literal notranslate"><span class="pre">n</span></code> by
-<code class="docutils literal notranslate"><span class="pre">n</span></code> matrix is allocated.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
-With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is given as a list with one entry per component.</p></li>
-<li><p><strong>lpinv</strong> – Cached dense pseudoinverse, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
-<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
-<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Real <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, rows and columns ordered by internal node index, or a list
-of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">R</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">effective_resistance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
-<span class="n">r</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                     <span class="c1"># if both are in component 0</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.hitting_time">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hitting_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hitting_time" title="Link to this definition"></a></dt>
-<dd><p>Hitting times between all pairs of nodes: <span class="math notranslate nohighlight">\(H_{ij}\)</span> is the expected number of steps a
-random walk starting at <span class="math notranslate nohighlight">\(i\)</span> takes to reach <span class="math notranslate nohighlight">\(j\)</span> for the first time
-(<span class="math notranslate nohighlight">\(H_{ii} = 0\)</span>). The walk is the one of <a class="reference internal" href="#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>: it follows an out
-edge with probability proportional to its weight (self loops included: the walk may stay), or,
-with probability <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, jumps to a uniformly random node; dangling nodes always jump. Hitting
-times are not symmetric, even in undirected networks; <span class="math notranslate nohighlight">\(H_{ij} + H_{ji}\)</span> is the commute
-time, <span class="math notranslate nohighlight">\(\mathrm{vol} \cdot R_{ij}\)</span> in undirected networks (<a class="reference internal" href="#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a>).</p>
-<ul class="simple">
-<li><p>Undirected networks with <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code>: from the Laplacian pseudoinverse,
-<span class="math notranslate nohighlight">\(H_{ij} = \sum_k d_k (L^+_{ik} - L^+_{ij} - L^+_{jk} + L^+_{jj})\)</span>, with <span class="math notranslate nohighlight">\(d\)</span> the
-(weighted) degrees. <span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (from
-<a class="reference internal" href="#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a> with the same <code class="docutils literal notranslate"><span class="pre">weight</span></code>) or computed.</p></li>
-<li><p>Otherwise (directed networks, or <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>), from the fundamental matrix of the walk
-(Kemeny and Snell): <span class="math notranslate nohighlight">\(H_{ij} = (Z_{jj} - Z_{ij}) / \pi_j\)</span>, with
-<span class="math notranslate nohighlight">\(Z = (I - P + \mathbf{1} \pi^T)^{-1}\)</span>, <span class="math notranslate nohighlight">\(P\)</span> the transition matrix and <span class="math notranslate nohighlight">\(\pi\)</span>
-its stationary distribution, found exactly (not by power iteration), so periodic walks are
-fine. <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is ignored. With <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> the walk must be able to reach every node from
-every node (dangling nodes jump anywhere, so this fails when a set of nodes has edges only
-among themselves; restrict to a strongly connected component, see
-<a class="reference internal" href="transformations.html#graphoskop.to_strongly_connected" title="graphoskop.to_strongly_connected"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a>, or use <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>), otherwise some hitting
-times are infinite.</p></li>
-</ul>
-<p>Both are dense <span class="math notranslate nohighlight">\(O(n^3)\)</span> computations in float64 on the device of the component, with a few
-<code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrices. In multilayer networks the walk moves along couplings like along any
-edge.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
-With <code class="docutils literal notranslate"><span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is given as a list with one entry per component.</p></li>
-<li><p><strong>lpinv</strong> – Cached dense pseudoinverse (undirected networks, <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>alpha</strong> – Teleportation probability.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Float64 <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, rows (origins) and columns (targets) ordered by internal
-node index, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> and some node cannot reach some other.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hitting_time</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
-<span class="n">H</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">],</span> <span class="n">H</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>                         <span class="c1"># alice to bob, bob to alice (if in component 0)</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">H</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hitting_time</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">)</span>  <span class="c1"># PageRank walk</span>
-</pre></div>
-</div>
-</dd></dl>
-
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="coloring.html" class="btn btn-neutral float-left" title="Coloring and independent sets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="exploration.html" class="btn btn-neutral float-right" title="Exploration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="hierarchy.html" class="btn btn-neutral float-left" title="Hierarchy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="link_prediction.html" class="btn btn-neutral float-right" title="Link prediction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

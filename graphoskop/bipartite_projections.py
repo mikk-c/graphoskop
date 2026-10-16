@@ -14,6 +14,12 @@ directed network, through every directed path :math:`a \\to c \\to b` of length 
 the projection is then directed, and its components can split even if the bipartite ones do
 not. Each function combines the two weights of every path differently.
 
+The similarity projections (:func:`cosine_similarity_projection`,
+:func:`pearson_correlation_projection`, :func:`inverse_euclidean_projection`) compare instead the
+whole rows of :math:`B` of two kept nodes, as vectors over all the nodes of the other type. They
+take the dot products from the paths and the rest from the sums and sums of squares of each row,
+so they too only connect (and only compute) the pairs of kept nodes sharing a neighbor.
+
 All functions generate the paths of length two explicitly, :math:`\\sum_c d_c (d_c - 1) / 2` of
 them (:math:`\\sum_c d^{in}_c d^{out}_c` if directed), in batches of about ``batch_size`` paths,
 each reduced to the sums of its distinct node pairs on the device of the network. Batches cover
@@ -532,3 +538,185 @@ def random_walk_projection(net, node_type, directed = False, weight = "weight", 
    else:
       v = v * (_ratio(ks[j], ks[i]) + _ratio(ks[i], ks[j])) / 2
    return _projection(net, rows, i, j, v, directed, weight)
+
+
+def _similarity_projection(net, node_type, weight, batch_size, similarity):
+   """
+   Projection weighting every pair of kept nodes sharing a neighbor by a similarity of their rows
+   of the biadjacency matrix (out-vector of the first node and in-vector of the second in directed
+   networks), computed from their dot product and the moments of the two vectors.
+
+   :param net: Bipartite network.
+   :param node_type: Value of :data:`~graphoskop.BIPARTITE` of the kept nodes.
+   :param weight: Edge attribute name, or ``"weight"`` with fallback to unit weights.
+   :param batch_size: Target number of paths per batch.
+   :param similarity: Function of ``(dot, sa, qa, sb, qb, m)``: dot product, sum and sum of squares
+      of the two vectors and their length, as float64 tensors, one value per pair.
+   :return: The projection.
+   """
+   weight = _weight(net, weight)
+   rows, _, i, j, dot = _paths(net, node_type, weight, lambda wa, wb, c, strength: wa.double() * wb.double(), batch_size)
+   _, B_out, B_in = _biadjacency(net, node_type, weight)
+   k = len(rows)
+   a, wa = B_out.indices()[0], B_out.values().double()
+   b, wb = B_in.indices()[1], B_in.values().double()
+   del B_out, B_in
+   sa, qa = torch.bincount(a, wa, minlength = k), torch.bincount(a, wa ** 2, minlength = k)
+   sb, qb = torch.bincount(b, wb, minlength = k), torch.bincount(b, wb ** 2, minlength = k)
+   # length of the vectors: number of nodes of the other type (in the layer of each kept node)
+   other = _node_types(net) != net.bipartite_labels.index(node_type)
+   if net.layer_labels is None:
+      m = np.full(k, other.sum())
+   else:
+      lay = _node_codes(net)[0]
+      m = np.bincount(lay[other], minlength = len(net.layer_labels))[lay[rows]]
+   m = torch.as_tensor(m, dtype = torch.float64, device = dot.device)
+   v = similarity(dot.double(), sa[i], qa[i], sb[j], qb[j], m[i])
+   return _projection(net, rows, i, j, v, weight = weight)
+
+
+def cosine_similarity_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
+   """
+   Cosine similarity projection: two kept nodes :math:`a` and :math:`b` sharing at least one
+   neighbor are connected with the cosine of the angle between their rows :math:`B_a` and
+   :math:`B_b` of the biadjacency matrix:
+
+   .. math::
+
+      w_{ab} = \\frac{\\sum_c B_{ac} B_{bc}}{\\sqrt{\\sum_c B_{ac}^2} \\sqrt{\\sum_c B_{bc}^2}}
+
+   The numerator is :func:`simple_count_projection`. With unit weights (``weight = None``) this is
+   the number of shared neighbors over :math:`\\sqrt{k_a k_b}` (Salton index). Weights are between
+   0 and 1 for non-negative edge weights. Kept nodes sharing no neighbor (similarity 0) stay as
+   isolated nodes.
+
+   Vectors use the edge weights with parallel edges summed. In directed networks the weight of
+   :math:`a \\to b` compares the out-vector of :math:`a` (weights of :math:`a \\to c`) with the
+   in-vector of :math:`b` (weights of :math:`c \\to b`), and the projection is directed. The dot
+   products are sums over the paths of length two (see the module description), accumulated in
+   float64.
+
+   :param net: A bipartite :class:`~graphoskop.Network`.
+   :param node_type: Value of :data:`~graphoskop.BIPARTITE` of the nodes to keep, one of
+      ``net.bipartite_labels``.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+      The default ``"weight"`` falls back to unit weights, with a warning, if there is no such
+      attribute.
+   :param batch_size: Target number of paths of length two per batch (see the module
+      description).
+   :return: The projection, a new unipartite :class:`~graphoskop.Network`, directed if ``net`` is,
+      with the edge attribute ``"weight"``.
+   :raises ValueError: If ``net`` is not bipartite, or has no node of type ``node_type``.
+   :raises KeyError: If ``weight`` is another name and there is no edge attribute with it.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("purchases.tsv", "nodes.tsv", bipartite = True)
+      users = gsk.cosine_similarity_projection(net, "user", weight = "quantity")
+   """
+   return _similarity_projection(net, node_type, weight, batch_size, lambda dot, sa, qa, sb, qb, m: _ratio(dot, torch.sqrt(qa * qb)))
+
+
+def pearson_correlation_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
+   """
+   Pearson correlation projection: two kept nodes :math:`a` and :math:`b` sharing at least one
+   neighbor are connected with the Pearson correlation of their rows :math:`B_a` and :math:`B_b`
+   of the biadjacency matrix, over all the :math:`m` nodes of the other type (zeros included):
+
+   .. math::
+
+      w_{ab} = \\frac{\\sum_c B_{ac} B_{bc} - m \\bar{B}_a \\bar{B}_b}
+      {\\sqrt{\\sum_c B_{ac}^2 - m \\bar{B}_a^2} \\sqrt{\\sum_c B_{bc}^2 - m \\bar{B}_b^2}}
+
+   with :math:`\\bar{B}_a = \\sum_c B_{ac} / m`. Weights are between -1 and 1: two nodes sharing
+   a neighbor can still be negatively correlated, e.g. if each has many neighbors the other lacks.
+   A node whose vector is constant (connected to every other node with the same weight) has zero
+   variance, and its correlations are 0. Kept nodes sharing no neighbor stay as isolated nodes,
+   even though their correlation is not 0 (it is negative): only pairs joined by a path of length
+   two are computed.
+
+   Vectors use the edge weights with parallel edges summed. :math:`m` counts all the nodes of the
+   other type in the network, isolated ones and other components included; in multilayer
+   networks, those of the layer. In directed networks the weight of :math:`a \\to b` compares the
+   out-vector of :math:`a` with the in-vector of :math:`b`, and the projection is directed. The
+   dot products are sums over the paths of length two (see the module description), accumulated
+   in float64 to limit cancellation.
+
+   :param net: A bipartite :class:`~graphoskop.Network`.
+   :param node_type: Value of :data:`~graphoskop.BIPARTITE` of the nodes to keep, one of
+      ``net.bipartite_labels``.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+      The default ``"weight"`` falls back to unit weights, with a warning, if there is no such
+      attribute.
+   :param batch_size: Target number of paths of length two per batch (see the module
+      description).
+   :return: The projection, a new unipartite :class:`~graphoskop.Network`, directed if ``net`` is,
+      with the edge attribute ``"weight"``.
+   :raises ValueError: If ``net`` is not bipartite, or has no node of type ``node_type``.
+   :raises KeyError: If ``weight`` is another name and there is no edge attribute with it.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("purchases.tsv", "nodes.tsv", bipartite = True)
+      users = gsk.pearson_correlation_projection(net, "user", weight = None)
+   """
+   def pearson(dot, sa, qa, sb, qb, m):
+      va, vb = torch.clamp(qa - sa ** 2 / m, min = 0), torch.clamp(qb - sb ** 2 / m, min = 0)
+      return _ratio(dot - sa * sb / m, torch.sqrt(va * vb))
+
+   return _similarity_projection(net, node_type, weight, batch_size, pearson)
+
+
+def inverse_euclidean_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
+   """
+   Inverse Euclidean distance projection: two kept nodes :math:`a` and :math:`b` sharing at least
+   one neighbor are connected with
+
+   .. math::
+
+      w_{ab} = \\frac{1}{1 + d_{ab}}, \\qquad
+      d_{ab} = \\sqrt{\\sum_c (B_{ac} - B_{bc})^2}
+      = \\sqrt{\\sum_c B_{ac}^2 + \\sum_c B_{bc}^2 - 2 \\sum_c B_{ac} B_{bc}}
+
+   the Euclidean distance between their rows of the biadjacency matrix. Adding 1 keeps the weight
+   finite, between 0 and 1, with 1 for identical vectors. With unit weights (``weight = None``),
+   :math:`d_{ab}^2` is the number of neighbors of exactly one of the two nodes. Kept nodes sharing
+   no neighbor stay as isolated nodes, even though their similarity is not 0: only pairs joined
+   by a path of length two are computed.
+
+   Vectors use the edge weights with parallel edges summed. In directed networks the weight of
+   :math:`a \\to b` compares the out-vector of :math:`a` with the in-vector of :math:`b`, and the
+   projection is directed. The dot products are sums over the paths of length two (see the module
+   description), accumulated in float64 to limit cancellation.
+
+   :param net: A bipartite :class:`~graphoskop.Network`.
+   :param node_type: Value of :data:`~graphoskop.BIPARTITE` of the nodes to keep, one of
+      ``net.bipartite_labels``.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+      The default ``"weight"`` falls back to unit weights, with a warning, if there is no such
+      attribute.
+   :param batch_size: Target number of paths of length two per batch (see the module
+      description).
+   :return: The projection, a new unipartite :class:`~graphoskop.Network`, directed if ``net`` is,
+      with the edge attribute ``"weight"``.
+   :raises ValueError: If ``net`` is not bipartite, or has no node of type ``node_type``.
+   :raises KeyError: If ``weight`` is another name and there is no edge attribute with it.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("purchases.tsv", "nodes.tsv", bipartite = True)
+      users = gsk.inverse_euclidean_projection(net, "user", weight = "quantity")
+   """
+   return _similarity_projection(net, node_type, weight, batch_size, lambda dot, sa, qa, sb, qb, m: 1 / (1 + torch.sqrt(torch.clamp(qa + qb - 2 * dot, min = 0))))

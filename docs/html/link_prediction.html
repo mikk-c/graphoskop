@@ -1,0 +1,1247 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link prediction &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Multilayer networks" href="multilayer.html" />
+    <link rel="prev" title="Laplacians" href="laplacians.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Link prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ensembles">Ensembles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.ensemble_link_prediction"><code class="docutils literal notranslate"><span class="pre">ensemble_link_prediction()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#evaluation">Evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.link_prediction_evaluation"><code class="docutils literal notranslate"><span class="pre">link_prediction_evaluation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.link_prediction_sign_evaluation"><code class="docutils literal notranslate"><span class="pre">link_prediction_sign_evaluation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scores">Scores</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-neighbors">Common neighbors</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.adamic_adar_lp"><code class="docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.car_index_lp"><code class="docutils literal notranslate"><span class="pre">car_index_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.common_neighbors_lp"><code class="docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.common_neighbors_jaccard_lp"><code class="docutils literal notranslate"><span class="pre">common_neighbors_jaccard_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.mutual_information_index_lp"><code class="docutils literal notranslate"><span class="pre">mutual_information_index_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.resource_allocation_lp"><code class="docutils literal notranslate"><span class="pre">resource_allocation_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarchical-random-graphs">Hierarchical random graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.hierarchical_random_graph_lp"><code class="docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#preferential-attachment">Preferential attachment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.preferential_attachment_lp"><code class="docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#random-walks">Random walks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.local_random_walk_lp"><code class="docutils literal notranslate"><span class="pre">local_random_walk_lp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.simrank_lp"><code class="docutils literal notranslate"><span class="pre">simrank_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#stochastic-block-models">Stochastic block models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.block_model_reliability_lp"><code class="docutils literal notranslate"><span class="pre">block_model_reliability_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#vertex-similarity">Vertex similarity</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.vertex_similarity_lp"><code class="docutils literal notranslate"><span class="pre">vertex_similarity_lp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#training-and-validation-sets">Training and validation sets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.link_prediction_split"><code class="docutils literal notranslate"><span class="pre">link_prediction_split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Link prediction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/link_prediction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.link_prediction">
+<span id="link-prediction"></span><h1>Link prediction<a class="headerlink" href="#module-graphoskop.link_prediction" title="Link to this heading"></a></h1>
+<p>Link prediction: scoring the node pairs of a network by how likely they are to be connected.</p>
+<p>Scoring every pair is unfeasible on large networks, since their number grows quadratically with
+the number of nodes. A link prediction is therefore tested on a sample of pairs:
+<code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_split()</span></code> hides some edges of a network, the positives, and draws as many pairs
+of unconnected nodes, the negatives (or a multiple of them). It returns the training network,
+without the hidden edges, and the validation set, a table of the positive and negative pairs. A
+score, such as <code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code>, is then computed only for the pairs of the
+validation set, from the training network, and <code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_evaluation()</span></code> tells how well
+it separates the positives from the negatives (area under the ROC and precision-recall curves,
+and the curves themselves).</p>
+<p>Scores:</p>
+<ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code>: the product of the degrees of the two nodes;</p></li>
+<li><p>common neighbors: the more neighbors the two nodes share, the higher the score, counted as</p>
+<ul>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code>: the number of neighbors the two nodes share;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_jaccard_lp()</span></code>: the common neighbors as a fraction of the neighbors of either
+node;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code>: each common neighbor weighted by one over the log of its degree;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_allocation_lp()</span></code>: each common neighbor weighted by one over its degree;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">car_index_lp()</span></code>: the common neighbors times the links among them;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">mutual_information_index_lp()</span></code>: the information the common neighbors carry about an edge;</p></li>
+</ul>
+</li>
+<li><p>random walks: <code class="xref py py-func docutils literal notranslate"><span class="pre">local_random_walk_lp()</span></code>, the probability that a short random walk goes from one
+node to the other, and <code class="xref py py-func docutils literal notranslate"><span class="pre">simrank_lp()</span></code>, the chance that two walks started at the two nodes
+meet soon;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">vertex_similarity_lp()</span></code>: the paths of all lengths between the two nodes, relative to the
+number expected from their degrees;</p></li>
+<li><p>models fitted to the network by Markov chain Monte Carlo, which learn any pattern of
+connection, assortative or not: <code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code>, the edge probability of the
+pair in hierarchical random graphs, and <code class="xref py py-func docutils literal notranslate"><span class="pre">block_model_reliability_lp()</span></code>, in stochastic block
+models.</p></li>
+</ul>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">ensemble_link_prediction()</span></code> aggregates the rankings of several scores into one (Borda count
+or Kendall tau). In signed networks, <code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_sign_evaluation()</span></code> tests how well social
+balance and social status predict the signs of the hidden edges.</p>
+<p>All take the network to compute the scores in, the pairs, and the name of the score column; the
+scores that have a weighted version take an optional edge attribute as weight, and the others
+their own parameters. Degree and common neighbor scores are computed on the device of the
+network, as is vertex similarity; local random walks use SciPy, and SimRank and the fitted
+models run on the CPU threads, compiled with Numba (Markov chains are sequential). All scores are float64, so products and sums
+of degrees are exact up to <span class="math notranslate nohighlight">\(2^{53}\)</span>, and never overflow; scores only matter through their
+order, so they are not normalized.</p>
+<p>Pairs are always given by node ids, never by internal ids, since removing edges can split a
+component and change the internal ids. Node attributes can therefore be joined to the validation
+set by id, e.g. with <code class="xref py py-meth docutils literal notranslate"><span class="pre">pandas.DataFrame.merge()</span></code>.</p>
+<p>Self loops are neither hidden nor drawn as negatives. In undirected networks a pair is unordered,
+in directed networks a pair <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> stands for an edge from <code class="docutils literal notranslate"><span class="pre">u</span></code> to <code class="docutils literal notranslate"><span class="pre">v</span></code>. In bipartite
+networks, only pairs of nodes of different types are drawn, and in undirected bipartite networks
+the source is the node of type 0. Multilayer networks are not supported yet.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">negatives</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>              <span class="c1"># {&quot;auc&quot;: ..., &quot;average_precision&quot;: ...}</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">negatives</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>            <span class="c1"># adds a &quot;score&quot; column</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>                 <span class="c1"># {&quot;auc&quot;: ..., &quot;average_precision&quot;: ...}</span>
+
+<span class="c1"># several scores side by side, one column each</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_jaccard_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">adamic_adar_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_lp</span><span class="p">,</span>
+          <span class="n">gsk</span><span class="o">.</span><span class="n">car_index_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mutual_information_index_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_random_walk_lp</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">vertex_similarity_lp</span><span class="p">):</span>
+   <span class="n">validation</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simrank_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;simrank_lp&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_random_graph_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;hrg&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">block_model_reliability_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sbm&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;hrg&quot;</span><span class="p">,</span> <span class="n">curves</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;roc_curve&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;fpr&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;tpr&quot;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;HRG&quot;</span><span class="p">)</span>
+<span class="n">result</span><span class="p">[</span><span class="s2">&quot;precision_recall_curve&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;recall&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;precision&quot;</span><span class="p">)</span>
+
+<span class="c1"># ensembles: aggregate the rankings of several scores</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ensemble_link_prediction</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;common_neighbors_lp&quot;</span><span class="p">,</span> <span class="s2">&quot;local_random_walk_lp&quot;</span><span class="p">],</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;borda&quot;</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ensemble_link_prediction</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">aggregation</span> <span class="o">=</span> <span class="s2">&quot;kendall&quot;</span><span class="p">,</span>
+                                          <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;common_neighbors_lp&quot;</span><span class="p">,</span> <span class="s2">&quot;local_random_walk_lp&quot;</span><span class="p">,</span> <span class="s2">&quot;sbm&quot;</span><span class="p">],</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;kemeny&quot;</span><span class="p">)</span>
+
+<span class="c1"># signed networks: can social balance and social status predict the signs of the hidden edges?</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;signed_edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># edge attribute &quot;sign&quot;</span>
+<span class="n">s_train</span><span class="p">,</span> <span class="n">s_validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">signed</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># s_validation gets a &quot;sign&quot; column</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_sign_evaluation</span><span class="p">(</span><span class="n">s_train</span><span class="p">,</span> <span class="n">s_validation</span><span class="p">)</span>         <span class="c1"># balance_accuracy, status_accuracy, ...</span>
+
+<span class="c1"># weighted scores, one pair or a list of pairs</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ra_weighted&quot;</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_random_walk_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">steps</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">superposed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;srw&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_lp</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_jaccard_lp</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<section id="ensembles">
+<h2>Ensembles<a class="headerlink" href="#ensembles" title="Link to this heading"></a></h2>
+<p>Scores that capture different patterns can be combined by aggregating their rankings, with the
+Borda count or a locally Kemeny optimal ranking (Kendall tau). On the benchmark networks below, an
+ensemble of common neighbors, resource allocation, CAR, local random walks and preferential
+attachment scores between its members (AUC 0.75 with Borda and 0.72 with Kendall on the karate
+club, where local random walks alone reach 0.89; 0.90 on the communities, where the best member
+reaches 0.92): aggregation helps when the scores are good and make different mistakes, and is
+dragged down by weak ones.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.ensemble_link_prediction">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">ensemble_link_prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'borda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ensemble_link_prediction" title="Link to this definition"></a></dt>
+<dd><p>Ensemble of link prediction scores: several scores rank the pairs, and their rankings are
+aggregated into one.</p>
+<p>The scores are either computed, by giving <code class="docutils literal notranslate"><span class="pre">methods</span></code>, a list of score functions of this
+module (e.g. <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a>), their names (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;adamic_adar_lp&quot;</span></code>), or pairs
+<code class="docutils literal notranslate"><span class="pre">(function,</span> <span class="pre">keyword</span> <span class="pre">arguments)</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">(gsk.simrank_lp,</span> <span class="pre">{&quot;seed&quot;:</span> <span class="pre">1})</span></code>), each run on <code class="docutils literal notranslate"><span class="pre">net</span></code>
+and stored in a column named after the function (with <code class="docutils literal notranslate"><span class="pre">_2</span></code>, <code class="docutils literal notranslate"><span class="pre">_3</span></code>… for repeated
+functions); or taken from <code class="docutils literal notranslate"><span class="pre">pairs</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the endpoints in its
+first two columns (as <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code>) and scores in others: the columns named in
+<code class="docutils literal notranslate"><span class="pre">columns</span></code>, or all the other numeric columns except <code class="docutils literal notranslate"><span class="pre">label</span></code>. <code class="docutils literal notranslate"><span class="pre">net</span></code> is then not needed
+(<code class="docutils literal notranslate"><span class="pre">None</span></code>). Both can be combined: computed scores and the given <code class="docutils literal notranslate"><span class="pre">columns</span></code>.</p>
+<p>Only the order of each score matters, so scores on different scales combine. Each score ranks
+the pairs from the lowest to the highest, ties sharing their average rank, NaN ranked lowest.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">aggregation</span> <span class="pre">=</span> <span class="pre">&quot;borda&quot;</span></code>: the Borda count, the sum over the scores of the number of pairs
+ranked below the pair (ties counting one half).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aggregation</span> <span class="pre">=</span> <span class="pre">&quot;kendall&quot;</span></code>: the ranking that minimizes the total Kendall tau distance to the
+rankings of the scores (the number of pairs of pairs they order differently), the Kemeny
+ranking. Finding it is NP-hard, so it is approximated by local Kemenization (Dwork, Kumar,
+Naor and Sivakumar, 2001): from the Borda ranking, each pair moves up past the pairs above it
+as long as a strict majority of the scores ranks it higher. The result is locally Kemeny
+optimal (no two consecutive pairs are ordered against the majority), and every move brings it
+closer to the scores, so it is at least as close as the Borda order it starts from (Borda
+ties broken by the order of the pairs). Unlike the Borda count it leaves no ties, except
+between pairs that all the scores rank the same, so where the scores disagree evenly it can
+be farther from them than the Borda count with its ties. The score is the position from the
+bottom (the best pair scores the number of pairs), averaged over pairs that all the scores
+rank the same. Compiled with Numba; the time grows with the number of moves, small when the scores
+mostly agree.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to compute <code class="docutils literal notranslate"><span class="pre">methods</span></code> in, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>; a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of
+scores without <code class="docutils literal notranslate"><span class="pre">methods</span></code>.</p></li>
+<li><p><strong>methods</strong> – Scores to compute, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>aggregation</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;borda&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;kendall&quot;</span></code>.</p></li>
+<li><p><strong>columns</strong> – Names of score columns of <code class="docutils literal notranslate"><span class="pre">pairs</span></code> to aggregate as well, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the ensemble score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float for one pair; otherwise a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>: the pairs (a copy of the
+table, or columns <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code>), the computed scores, and the column <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">aggregation</span></code> is not valid, if there are no scores to aggregate, if a
+method is not a score of this module, or if <code class="docutils literal notranslate"><span class="pre">methods</span></code> are given without <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If a column does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_lp</span><span class="p">,</span> <span class="s2">&quot;resource_allocation_lp&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">local_random_walk_lp</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;steps&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">})]</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ensemble_link_prediction</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">methods</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;borda&quot;</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ensemble_link_prediction</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">aggregation</span> <span class="o">=</span> <span class="s2">&quot;kendall&quot;</span><span class="p">,</span>
+                                          <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;common_neighbors_lp&quot;</span><span class="p">,</span> <span class="s2">&quot;resource_allocation_lp&quot;</span><span class="p">,</span> <span class="s2">&quot;local_random_walk_lp&quot;</span><span class="p">],</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;kemeny&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;kemeny&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="evaluation">
+<h2>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading"></a></h2>
+<p>A score is evaluated by how well it ranks the positives of the validation set above the
+negatives. In signed networks, the signs of the positives can also be predicted from the signs
+of the training network, by social balance or social status.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.link_prediction_evaluation">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">link_prediction_evaluation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">validation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'label'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curves</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">101</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.link_prediction_evaluation" title="Link to this definition"></a></dt>
+<dd><p>How well a score separates the positives from the negatives of a validation set.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">auc</span></code>: area under the ROC curve, the probability that a random positive has a higher score
+than a random negative (ties count one half); 0.5 for a random score, 1 for a perfect one.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">average_precision</span></code>: area under the precision-recall curve, the precision averaged over the
+positives, each at the threshold of its score (pairs with equal scores enter together, as in
+scikit-learn); the fraction of positives for a random score, 1 for a perfect one.</p></li>
+</ul>
+<p>With <code class="docutils literal notranslate"><span class="pre">curves</span> <span class="pre">=</span> <span class="pre">True</span></code>, also the two curves, at <code class="docutils literal notranslate"><span class="pre">points</span></code> evenly spaced values of their x
+between 0 and 1, as tables ready to plot:</p>
+<ul class="simple">
+<li><p>ROC curve: columns <code class="docutils literal notranslate"><span class="pre">fpr</span></code> (false positive rate, the fraction of the negatives scored at or
+above a threshold) and <code class="docutils literal notranslate"><span class="pre">tpr</span></code> (true positive rate, the same fraction of the positives),
+linearly interpolated between the thresholds (ties give a diagonal segment), with the
+highest <code class="docutils literal notranslate"><span class="pre">tpr</span></code> where the curve rises vertically;</p></li>
+<li><p>precision-recall curve: columns <code class="docutils literal notranslate"><span class="pre">recall</span></code> (the true positive rate) and <code class="docutils literal notranslate"><span class="pre">precision</span></code> (the
+fraction of positives among the pairs at or above a threshold), at each recall the precision
+of the first threshold reaching it: a step function, whose area is <code class="docutils literal notranslate"><span class="pre">average_precision</span></code>
+(linear interpolation would overestimate precision between thresholds, see Davis and
+Goadrich, 2006).</p></li>
+</ul>
+<p>Pairs with a NaN score are left out.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>validation</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with a score column and a label column (1 for the
+positives, 0 for the negatives), e.g. from <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>score</strong> – Name of the score column.</p></li>
+<li><p><strong>label</strong> – Name of the label column.</p></li>
+<li><p><strong>curves</strong> – Whether to also return the ROC and precision-recall curves.</p></li>
+<li><p><strong>points</strong> – Number of points of the curves, the first at 0 and the last at 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with keys <code class="docutils literal notranslate"><span class="pre">&quot;auc&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;average_precision&quot;</span></code> (floats) and, with
+<code class="docutils literal notranslate"><span class="pre">curves</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;roc_curve&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;precision_recall_curve&quot;</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If there are no positives or no negatives, or fewer than 2 points.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">))</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">adamic_adar_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;aa&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;aa&quot;</span><span class="p">,</span> <span class="n">curves</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">result</span><span class="p">[</span><span class="s2">&quot;auc&quot;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;average_precision&quot;</span><span class="p">]</span>
+<span class="n">result</span><span class="p">[</span><span class="s2">&quot;roc_curve&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;fpr&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;tpr&quot;</span><span class="p">)</span>
+<span class="n">result</span><span class="p">[</span><span class="s2">&quot;precision_recall_curve&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;recall&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;precision&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.link_prediction_sign_evaluation">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">link_prediction_sign_evaluation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.link_prediction_sign_evaluation" title="Link to this definition"></a></dt>
+<dd><p>How well social balance and social status predict the signs of the hidden edges of a signed
+network (Leskovec, Huttenlocher and Kleinberg, 2010): only the positives of the validation set
+(pairs that are connected in the full network) are evaluated, against their sign, from the
+two-step paths <span class="math notranslate nohighlight">\(u - z - v\)</span> through their common neighbors in the training network.</p>
+<ul class="simple">
+<li><p>Social balance (“the friend of my enemy is my enemy”): a path predicts the product of the
+signs of its two edges, which would close a balanced triangle; directions are ignored. The
+vote of a pair is the sum of these products over all the paths, all the edges between
+<span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(z\)</span> times all those between <span class="math notranslate nohighlight">\(z\)</span> and <span class="math notranslate nohighlight">\(v\)</span>.</p></li>
+<li><p>Social status (directed networks): a positive edge <span class="math notranslate nohighlight">\(a \to b\)</span> means that <span class="math notranslate nohighlight">\(a\)</span>
+regards <span class="math notranslate nohighlight">\(b\)</span> as higher in status, a negative one as lower, so it says
+<span class="math notranslate nohighlight">\(\sigma_b - \sigma_a = \pm 1\)</span>. Each path gives <span class="math notranslate nohighlight">\(\sigma_v - \sigma_u\)</span>, the sum
+of the differences along its two edges (followed in either direction), and the vote of a
+pair is the sum over the paths: the edge <span class="math notranslate nohighlight">\(u \to v\)</span> is predicted positive if
+<span class="math notranslate nohighlight">\(v\)</span> ranks higher.</p></li>
+</ul>
+<p>A pair is predicted by the sign of its vote, and not predicted if the vote is 0 (no common
+neighbor, or a tie). Signs 0 or NaN in the training network count as absent edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – The training network, a signed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>),
+not multilayer.</p></li>
+<li><p><strong>validation</strong> – Validation set from <a class="reference internal" href="#graphoskop.link_prediction_split" title="graphoskop.link_prediction_split"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_split()</span></code></a> of the signed network:
+columns <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code> and the sign of the positives.</p></li>
+<li><p><strong>sign</strong> – Name of the sign edge attribute and of the sign column of <code class="docutils literal notranslate"><span class="pre">validation</span></code>.</p></li>
+<li><p><strong>predictions</strong> – Whether to also return the votes of every evaluated pair.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">&quot;edges&quot;</span></code> (number of evaluated edges), <code class="docutils literal notranslate"><span class="pre">&quot;balance_accuracy&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;balance_coverage&quot;</span></code> (fraction of correct signs among the predicted edges, and fraction
+of the edges predicted), <code class="docutils literal notranslate"><span class="pre">&quot;status_accuracy&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;status_coverage&quot;</span></code> (NaN in undirected
+networks), and <code class="docutils literal notranslate"><span class="pre">&quot;majority_accuracy&quot;</span></code>, the accuracy of predicting every edge with the
+most common sign of the training network, as a baseline. With <code class="docutils literal notranslate"><span class="pre">predictions</span></code>, also
+<code class="docutils literal notranslate"><span class="pre">&quot;predictions&quot;</span></code>: the evaluated rows of <code class="docutils literal notranslate"><span class="pre">validation</span></code> with columns <code class="docutils literal notranslate"><span class="pre">balance</span></code> and
+<code class="docutils literal notranslate"><span class="pre">status</span></code> (the votes).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the network is multilayer, or not signed.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">validation</span></code> has no <code class="docutils literal notranslate"><span class="pre">sign</span></code> column, or a node does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;signed_edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># edge attribute &quot;sign&quot;</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_sign_evaluation</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<p>On two CPU threads, splitting a random network with 1,000,000 nodes and 5,000,000 edges (10% of
+the edges hidden, as many negatives) takes 2.8 s, most of it rebuilding the training network.
+Scoring the 1,000,000 pairs of the validation set takes 0.6 s by preferential attachment, 5-6 s
+by each of the common neighbor scores (2 s to sort the edges, 3 s to look up the 9,000,000
+candidate common neighbors), 19 s by mutual information (most of it counting the triangles of
+every node), 4.6 s by local random walks of 2 steps, 11.5 s of 3 steps, 17 s of 4 steps, and
+66 s by SimRank (100 walks of at most 10 steps per pair, random accesses to memory). Evaluating
+them takes 0.2 s, curves included. With 100,000 nodes and 500,000 edges, the split takes 0.2 s,
+the common neighbor scores 0.3 s, mutual information 1.3 s, local random walks 0.3-1 s, SimRank
+2.2 s, the evaluation 0.01 s.</p>
+<p>Vertex similarity solves a linear system per distinct node on one side of the pairs, so its time
+grows with the number of distinct nodes times the number of edges: on random networks with 5
+edges per node and validation sets as above, 0.9 s with 2,000 nodes, 10 s with 5,000, 41 s with
+10,000 (on the CPU; sparse products on a GPU are much faster).</p>
+<p>Hierarchical random graphs and the block model reliability need thousands of sweeps of
+<span class="math notranslate nohighlight">\(n\)</span> moves of a sequential Markov chain, two chains in parallel on two threads (the first
+call also compiles them, a few seconds). A hierarchical random graph move takes about 0.3
+microseconds, almost independently of the size of the network. With the default 5,000 sweeps of
+burn-in and 100 samples: under 0.1 s on the karate club (34 nodes), 0.1 s on 120 nodes and 541
+edges, 0.9 s on 500 nodes and 4,158 edges, 1.8 s on 1,000 nodes and 9,323 edges, 3.9 s on 2,000
+nodes and 18,489 edges; with 20,000 sweeps, which larger networks need (see
+<a class="reference internal" href="#graphoskop.hierarchical_random_graph_lp" title="graphoskop.hierarchical_random_graph_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code></a>), 3.5 s, 7 s and 16 s. A block model move costs the
+number of groups, so with the default 2,000 sweeps the reliability takes 0.1 s on the karate
+club, 0.5 s on 120 nodes, 5 s on 500 nodes and 13 s on 1,000.</p>
+<p>For comparison, on the same networks and number of moves, the C++ implementation of
+hierarchical random graphs in igraph (Clauset’s original code, version 0.10.15, compiled with
+<code class="docutils literal notranslate"><span class="pre">-O2</span></code>, one thread) takes 1.2 microseconds per move on the karate club, 4.6 on 500 nodes, 6.5 on
+1,000 and 12.5 on 2,000, and PyHRG (pure Python on networkx) 120 microseconds on the karate club
+and 520 on 500 nodes. igraph counts the edges between two subtrees by inserting the leaves of
+both into balanced search trees, a cost that grows with the subtrees; here every subtree is a
+range of positions in a leaf order, so the count only lists the neighbors of the smaller
+subtree. Both chains make the same moves and reach the same likelihoods after the same number of
+moves, with large differences between seeds in both.</p>
+<p>How the scores compare (AUC, 10% of the edges hidden, as many negatives, default parameters,
+seed 1). The two groups have 60 nodes each, with edges only between groups (the best possible
+AUC is 0.78); the communities have 50 nodes each, with dense links within and few between (500
+and 1,000 nodes).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Score</p></th>
+<th class="head"><p>Karate club</p></th>
+<th class="head"><p>Two groups</p></th>
+<th class="head"><p>10 communities</p></th>
+<th class="head"><p>20 communities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a></p></td>
+<td><p>0.63</p></td>
+<td><p>0.44</p></td>
+<td><p>0.50</p></td>
+<td><p>0.48</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a></p></td>
+<td><p>0.58</p></td>
+<td><p>0.32</p></td>
+<td><p>0.91</p></td>
+<td><p>0.87</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.common_neighbors_jaccard_lp" title="graphoskop.common_neighbors_jaccard_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_jaccard_lp()</span></code></a></p></td>
+<td><p>0.47</p></td>
+<td><p>0.32</p></td>
+<td><p>0.91</p></td>
+<td><p>0.87</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.adamic_adar_lp" title="graphoskop.adamic_adar_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a></p></td>
+<td><p>0.60</p></td>
+<td><p>0.32</p></td>
+<td><p>0.91</p></td>
+<td><p>0.87</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.resource_allocation_lp" title="graphoskop.resource_allocation_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_allocation_lp()</span></code></a></p></td>
+<td><p>0.62</p></td>
+<td><p>0.32</p></td>
+<td><p>0.91</p></td>
+<td><p>0.87</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.car_index_lp" title="graphoskop.car_index_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">car_index_lp()</span></code></a></p></td>
+<td><p>0.70</p></td>
+<td><p>0.50</p></td>
+<td><p>0.76</p></td>
+<td><p>0.74</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.mutual_information_index_lp" title="graphoskop.mutual_information_index_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">mutual_information_index_lp()</span></code></a></p></td>
+<td><p>0.52</p></td>
+<td><p>0.65</p></td>
+<td><p>0.90</p></td>
+<td><p>0.86</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.local_random_walk_lp" title="graphoskop.local_random_walk_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">local_random_walk_lp()</span></code></a></p></td>
+<td><p>0.89</p></td>
+<td><p>0.74</p></td>
+<td><p>0.92</p></td>
+<td><p>0.89</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.simrank_lp" title="graphoskop.simrank_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">simrank_lp()</span></code></a></p></td>
+<td><p>0.52</p></td>
+<td><p>0.22</p></td>
+<td><p>0.93</p></td>
+<td><p>0.86</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.vertex_similarity_lp" title="graphoskop.vertex_similarity_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">vertex_similarity_lp()</span></code></a></p></td>
+<td><p>0.39</p></td>
+<td><p>0.35</p></td>
+<td><p>0.93</p></td>
+<td><p>0.89</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#graphoskop.hierarchical_random_graph_lp" title="graphoskop.hierarchical_random_graph_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code></a></p></td>
+<td><p>0.86</p></td>
+<td><p>0.77</p></td>
+<td><p>0.89</p></td>
+<td><p>0.86</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#graphoskop.block_model_reliability_lp" title="graphoskop.block_model_reliability_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">block_model_reliability_lp()</span></code></a></p></td>
+<td><p>0.89</p></td>
+<td><p>0.78</p></td>
+<td><p>0.92</p></td>
+<td><p>0.89</p></td>
+</tr>
+</tbody>
+</table>
+<p>Common neighbors only see triangles, so they fail where edges are between groups rather than
+within them. Local random walks of 3 steps reach the nodes at distance 3, which, in the two
+groups, are in the other group; hierarchical random graphs and block models learn either pattern.
+Between seeds, the scores of the Markov chain models vary by a few hundredths.</p>
+</section>
+<section id="scores">
+<h2>Scores<a class="headerlink" href="#scores" title="Link to this heading"></a></h2>
+<section id="common-neighbors">
+<h3>Common neighbors<a class="headerlink" href="#common-neighbors" title="Link to this heading"></a></h3>
+<p>Two nodes with many neighbors in common are likely to become neighbors themselves (triadic
+closure). The scores of this family count the common neighbors of the two nodes, each with a
+weight, or as a fraction of all their neighbors, or with the links among them. Neighborhoods are
+sets (self loops and parallel edges ignored); in directed networks, the score of <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code>
+counts the paths <span class="math notranslate nohighlight">\(u \to z \to v\)</span>. They work best in assortative networks with many
+triangles, and give 0 to any pair at distance more than 2 (except
+<a class="reference internal" href="#graphoskop.mutual_information_index_lp" title="graphoskop.mutual_information_index_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">mutual_information_index_lp()</span></code></a>, which ranks those pairs by degree).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.adamic_adar_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">adamic_adar_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.adamic_adar_lp" title="Link to this definition"></a></dt>
+<dd><p>Adamic-Adar score of node pairs: the common neighbors, each counting
+<span class="math notranslate nohighlight">\(1 / \log k_z\)</span>, so that common neighbors with few neighbors count more,
+<span class="math notranslate nohighlight">\(\sum_{z \in \Gamma(u) \cap \Gamma(v)} 1 / \log k_z\)</span> (Adamic and Adar, 2003). A common
+neighbor has at least the two neighbors <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code>, so <span class="math notranslate nohighlight">\(\log k_z &gt; 0\)</span>.</p>
+<p>Neighborhoods are as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a>; <span class="math notranslate nohighlight">\(k_z\)</span> is the number of neighbors of
+<span class="math notranslate nohighlight">\(z\)</span>, in directed networks its in-neighbors plus its out-neighbors. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, each
+common neighbor counts <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) / 2\)</span> divided by <span class="math notranslate nohighlight">\(\log(1 + s_z)\)</span>, with
+<span class="math notranslate nohighlight">\(s_z\)</span> its strength (Lü and Zhou, 2009, up to the factor 1/2); unlike the other scores,
+this does not reduce to the unweighted score when all weights are 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute (positive values), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">adamic_adar_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.car_index_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">car_index_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.car_index_lp" title="Link to this definition"></a></dt>
+<dd><p>CAR index of node pairs (Cannistraci, Alanis-Lobato and Ravasi, 2013): the number of common
+neighbors times the number of links among them, <span class="math notranslate nohighlight">\(CN(u, v) \cdot LCL(u, v)\)</span>. Under the
+local community paradigm, two nodes are likely to connect if their common neighbors form a
+local community, i.e. are connected to one another, rather than being unrelated nodes that
+happen to be adjacent to both. Pairs whose common neighbors share no link score 0.</p>
+<p>Neighborhoods are as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a>. In directed networks, the common neighbors
+of <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> are the nodes <span class="math notranslate nohighlight">\(z\)</span> of the paths <span class="math notranslate nohighlight">\(u \to z \to v\)</span>, and the local
+community links are the arcs between two of them. Each pair costs the degrees of its common
+neighbors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">car_index_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.common_neighbors_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">common_neighbors_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.common_neighbors_lp" title="Link to this definition"></a></dt>
+<dd><p>Common neighbors score of node pairs: the number of neighbors that the two nodes share,
+<span class="math notranslate nohighlight">\(|\Gamma(u) \cap \Gamma(v)|\)</span>, since two nodes with many friends in common are likely
+to become friends (triadic closure).</p>
+<p>Neighborhoods are sets: self loops and parallel edges are ignored. In directed networks,
+<span class="math notranslate nohighlight">\(\Gamma(u)\)</span> holds the out-neighbors of <code class="docutils literal notranslate"><span class="pre">u</span></code> and <span class="math notranslate nohighlight">\(\Gamma(v)\)</span> the in-neighbors of
+<code class="docutils literal notranslate"><span class="pre">v</span></code>, so the score of <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> counts the paths <span class="math notranslate nohighlight">\(u \to z \to v\)</span>. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, each
+common neighbor counts the mean weight of its two edges, <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) / 2\)</span> (the
+weights of parallel edges summed), as in Lü and Zhou (2009) up to the factor 1/2, so that the
+score is the unweighted one when all weights are 1.</p>
+<p>Each pair costs the number of neighbors of its endpoint with fewer neighbors, and the pairs
+are processed in parallel, on the device of the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_lp</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">),</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.common_neighbors_jaccard_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">common_neighbors_jaccard_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.common_neighbors_jaccard_lp" title="Link to this definition"></a></dt>
+<dd><p>Jaccard score of node pairs: the common neighbors as a fraction of all the neighbors of the two
+nodes, <span class="math notranslate nohighlight">\(|\Gamma(u) \cap \Gamma(v)| / |\Gamma(u) \cup \Gamma(v)|\)</span>, 0 if both have no
+neighbors. Unlike <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a>, it does not favor pairs of hubs.</p>
+<p>Neighborhoods are as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the weighted Jaccard
+(Ruzicka) similarity of the two vectors of edge weights,
+<span class="math notranslate nohighlight">\(\sum_z \min(w_{uz}, w_{zv}) / \sum_z \max(w_{uz}, w_{zv})\)</span>, the sums running over all
+nodes (weights of parallel edges summed, 0 for missing edges, positive values expected).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute (positive values), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">common_neighbors_jaccard_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.mutual_information_index_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">mutual_information_index_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.mutual_information_index_lp" title="Link to this definition"></a></dt>
+<dd><p>Mutual information score of node pairs (Tan, Xia and Zhu, 2014): how much knowing their common
+neighbors reduces the uncertainty about an edge between the two nodes,
+<span class="math notranslate nohighlight">\(s_{uv} = \sum_{z \in \Gamma(u) \cap \Gamma(v)} I(L; z) - I(L_{uv})\)</span>.</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(I(L_{uv}) = -\log_2 p_{uv}\)</span> is the self-information of an edge between <span class="math notranslate nohighlight">\(u\)</span> and
+<span class="math notranslate nohighlight">\(v\)</span> given only their degrees, with
+<span class="math notranslate nohighlight">\(p_{uv} = 1 - \binom{M - k_v}{k_u} / \binom{M}{k_u}\)</span> the probability that two nodes
+of these degrees are connected when <span class="math notranslate nohighlight">\(M\)</span> edges are placed at random: pairs of hubs are
+expected to be connected anyway, so their edge is less informative.</p></li>
+<li><p><span class="math notranslate nohighlight">\(I(L; z)\)</span> is what a common neighbor <span class="math notranslate nohighlight">\(z\)</span> tells about an edge between two of its
+neighbors: the mean, over the pairs <span class="math notranslate nohighlight">\(m, n\)</span> of its neighbors, of
+<span class="math notranslate nohighlight">\(I(L_{mn}) - I(L_{mn} | z)\)</span>, where <span class="math notranslate nohighlight">\(I(L_{mn} | z) = -\log_2 C_z\)</span>, with
+<span class="math notranslate nohighlight">\(C_z\)</span> the local clustering coefficient of <span class="math notranslate nohighlight">\(z\)</span>.</p></li>
+</ul>
+<p>A common neighbor whose neighbors are all unconnected (<span class="math notranslate nohighlight">\(C_z = 0\)</span>) makes the score
+<span class="math notranslate nohighlight">\(-\infty\)</span>: the pair is ranked last. Pairs without common neighbors score
+<span class="math notranslate nohighlight">\(-I(L_{uv})\)</span>, so they are ranked by degrees, like <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+<p>Neighborhoods are sets, as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored),
+and <span class="math notranslate nohighlight">\(M\)</span> is the number of connected pairs. Clustering coefficients are computed on the
+device of the network; the information of each node (a sum over the pairs of its neighbors,
+grouped by degree) is compiled with Numba, on the CPU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is directed or multilayer, or a pair does not have two
+nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mutual_information_index_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.resource_allocation_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">resource_allocation_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.resource_allocation_lp" title="Link to this definition"></a></dt>
+<dd><p>Resource allocation score of node pairs: the amount of a resource that <code class="docutils literal notranslate"><span class="pre">u</span></code> sends to <code class="docutils literal notranslate"><span class="pre">v</span></code>
+through their common neighbors, each of which splits what it receives equally among its
+neighbors, <span class="math notranslate nohighlight">\(\sum_{z \in \Gamma(u) \cap \Gamma(v)} 1 / k_z\)</span> (Zhou, Lü and Zhang, 2009).
+It punishes common neighbors with many neighbors more than <a class="reference internal" href="#graphoskop.adamic_adar_lp" title="graphoskop.adamic_adar_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a>.</p>
+<p>Neighborhoods and <span class="math notranslate nohighlight">\(k_z\)</span> are as in <a class="reference internal" href="#graphoskop.adamic_adar_lp" title="graphoskop.adamic_adar_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, each common
+neighbor counts <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) / 2\)</span> divided by its strength <span class="math notranslate nohighlight">\(s_z\)</span> (Lü and Zhou,
+2009, up to the factor 1/2), the unweighted score when all weights are 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute (positive values), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="hierarchical-random-graphs">
+<h3>Hierarchical random graphs<a class="headerlink" href="#hierarchical-random-graphs" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hierarchical_random_graph_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hierarchical_random_graph_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hierarchical_random_graph_lp" title="Link to this definition"></a></dt>
+<dd><p>Hierarchical random graph score of node pairs (Clauset, Moore and Newman, 2008): the
+probability of an edge between the two nodes in hierarchical random graphs fitted to the
+network.</p>
+<p>A hierarchical random graph is a dendrogram, a binary tree whose leaves are the nodes of the
+network, with a probability <span class="math notranslate nohighlight">\(p_r\)</span> at each internal node <span class="math notranslate nohighlight">\(r\)</span>: two nodes are connected
+with the probability of their lowest common ancestor. Nodes in the same branch deep down the
+tree are therefore connected with a probability of their own, which can be high (communities)
+or low (e.g. the two types of a bipartite network), so that, unlike the common neighbor
+scores, the model also predicts edges in disassortative networks. Given a dendrogram, the
+likelihood is largest with <span class="math notranslate nohighlight">\(p_r = E_r / (L_r R_r)\)</span>, the fraction of the pairs of leaves
+with <span class="math notranslate nohighlight">\(r\)</span> as lowest common ancestor (one in the left subtree, <span class="math notranslate nohighlight">\(L_r\)</span> leaves, and one
+in the right one, <span class="math notranslate nohighlight">\(R_r\)</span> leaves) that are connected (<span class="math notranslate nohighlight">\(E_r\)</span> edges), and its log is
+<span class="math notranslate nohighlight">\(\sum_r E_r \log p_r + (L_r R_r - E_r) \log(1 - p_r)\)</span>.</p>
+<p>Dendrograms are sampled in proportion to their likelihood by Markov chain Monte Carlo, from a
+random dendrogram: a move picks an internal node <span class="math notranslate nohighlight">\(r\)</span> and its parent, whose three subtrees
+below can be arranged in three ways, and proposes one of the other two, accepted with the
+Metropolis rule. Several independent chains, from different random dendrograms, run in
+parallel (one per CPU thread by default) and share the samples. Each chain first needs to reach
+dendrograms of high likelihood: <code class="docutils literal notranslate"><span class="pre">burnin</span></code> sweeps of <span class="math notranslate nohighlight">\(n\)</span> moves (<span class="math notranslate nohighlight">\(n\)</span> nodes) are
+discarded. Then each chain samples a dendrogram every <code class="docutils literal notranslate"><span class="pre">interval</span></code> sweeps, and the score of a
+pair is its mean edge probability over the <code class="docutils literal notranslate"><span class="pre">samples</span></code> dendrograms.</p>
+<p>The likelihood climbs slowly, with long plateaus, and needs more sweeps on larger networks: it
+took about 2,000 sweeps to level off on the karate club (34 nodes), 3,000 on a network of 500
+nodes with communities, 5,000 on one of 1,000 nodes, still drifting up slowly after that. With
+the default of 5,000 sweeps, the AUC was 0.86 on 1,000 nodes (0.87-0.88 with 20,000 sweeps)
+and 0.75-0.77 on 2,000 nodes (0.84 with 20,000 sweeps): give a larger <code class="docutils literal notranslate"><span class="pre">burnin</span></code> on larger
+networks. The posterior distribution of the dendrograms is rugged, so chains can keep sampling
+at different likelihood levels for a long time, and the convergence tests that compare chains,
+such as the potential scale reduction factor, rarely pass even when the predictions are
+stable: rather, compare the scores, or their AUC, between two seeds.</p>
+<p>The model is undirected and unweighted: directions, weights, parallel edges and self loops are
+ignored. All the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code> are leaves of the dendrograms, isolated ones included. The
+leaves are kept in an order in which every subtree is a range of positions, so that the edges
+between two subtrees, needed by every move, are counted by listing the neighbors of the leaves
+of the smaller one and comparing their positions with the range of the other: a move costs
+the degrees of the leaves of a small subtree, and an accepted move moves the leaves of at most
+two subtrees. Fitting is still much slower than the other scores, since it needs thousands of
+sweeps (see the Performance section of <a class="reference internal" href="#"><span class="doc">Link prediction</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+<li><p><strong>samples</strong> – Number of sampled dendrograms.</p></li>
+<li><p><strong>burnin</strong> – Number of sweeps of each chain before its first sample.</p></li>
+<li><p><strong>interval</strong> – Number of sweeps between samples.</p></li>
+<li><p><strong>chains</strong> – Number of chains, <code class="docutils literal notranslate"><span class="pre">None</span></code> for the number of Numba threads.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>; 0 for a pair of a node with itself.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, a pair does not have two nodes, or
+<code class="docutils literal notranslate"><span class="pre">samples</span></code>, <code class="docutils literal notranslate"><span class="pre">burnin</span></code> or <code class="docutils literal notranslate"><span class="pre">interval</span></code> are not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_random_graph_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="preferential-attachment">
+<h3>Preferential attachment<a class="headerlink" href="#preferential-attachment" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.preferential_attachment_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">preferential_attachment_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.preferential_attachment_lp" title="Link to this definition"></a></dt>
+<dd><p>Preferential attachment score of node pairs: the product of the degrees of the two nodes,
+<span class="math notranslate nohighlight">\(k_u k_v\)</span>, since in growth models such as the Barabási-Albert model the chance of a new
+edge grows with the degree of both its endpoints. In directed networks, the score of
+<code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> is the out-degree of <code class="docutils literal notranslate"><span class="pre">u</span></code> times the in-degree of <code class="docutils literal notranslate"><span class="pre">v</span></code>, <span class="math notranslate nohighlight">\(k_u^{out} k_v^{in}\)</span>.
+With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, degrees are strengths (sums of the edge attribute, see
+<a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>).</p>
+<p>Degrees are computed in <code class="docutils literal notranslate"><span class="pre">net</span></code>: to test the score, give the training network and the validation
+set of <a class="reference internal" href="#graphoskop.link_prediction_split" title="graphoskop.link_prediction_split"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_split()</span></code></a>. Degrees are computed on the device of the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – A pair <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> of node ids, an iterable of pairs, or a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the endpoints in its first two columns (e.g. the validation
+set).</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute for the weighted degree, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float, for one pair; otherwise a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>: a copy of the
+table with the column <code class="docutils literal notranslate"><span class="pre">name</span></code> added, or columns <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, or a pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>          <span class="c1"># one pair</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">preferential_attachment_lp</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">)],</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="random-walks">
+<h3>Random walks<a class="headerlink" href="#random-walks" title="Link to this heading"></a></h3>
+<p>Two nodes are similar if random walkers move easily from one to the other, or, started at the
+two, soon meet. Unlike common neighbors, walks of a few steps also relate nodes farther apart.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.local_random_walk_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">local_random_walk_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">superposed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.local_random_walk_lp" title="Link to this definition"></a></dt>
+<dd><p>Local random walk score of node pairs (Liu and Lü, 2010): how likely a random walker started
+at one node is to be at the other after <code class="docutils literal notranslate"><span class="pre">steps</span></code> steps, from both sides,
+<span class="math notranslate nohighlight">\(s_{uv}(t) = q_u \pi_{uv}(t) + q_v \pi_{vu}(t)\)</span>, where <span class="math notranslate nohighlight">\(\pi_{uv}(t)\)</span> is the
+probability that a walk of <span class="math notranslate nohighlight">\(t\)</span> steps from <span class="math notranslate nohighlight">\(u\)</span> ends at <span class="math notranslate nohighlight">\(v\)</span> and
+<span class="math notranslate nohighlight">\(q_u = k_u / 2m\)</span> the stationary probability of <span class="math notranslate nohighlight">\(u\)</span> (its share of the degrees).
+Few steps keep the walk local: <span class="math notranslate nohighlight">\(t = 2\)</span> gives a degree-weighted count of the common
+neighbors, larger <span class="math notranslate nohighlight">\(t\)</span> reaches pairs at distance up to <span class="math notranslate nohighlight">\(t\)</span>. With
+<code class="docutils literal notranslate"><span class="pre">superposed</span> <span class="pre">=</span> <span class="pre">True</span></code>, the superposed random walk, <span class="math notranslate nohighlight">\(\sum_{\tau = 1}^{t} s_{uv}(\tau)\)</span>,
+which favors nodes close to each other.</p>
+<p>The walk moves to a uniformly random neighbor (with <code class="docutils literal notranslate"><span class="pre">weight</span></code>, to a neighbor with
+probability proportional to the weight of the edge); neighborhoods are sets, as in
+<a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored, weights of parallel edges
+summed). In directed networks the walk follows the edges, and <span class="math notranslate nohighlight">\(q_u\)</span> is the share of the
+out-degrees. Only the pairs are scored: <span class="math notranslate nohighlight">\(\pi_{uv}(t)\)</span> is the product of the
+distribution after <span class="math notranslate nohighlight">\(\lceil t / 2 \rceil\)</span> steps from <span class="math notranslate nohighlight">\(u\)</span> and the probabilities of
+reaching <span class="math notranslate nohighlight">\(v\)</span> in the remaining steps, two sparse vectors with about <span class="math notranslate nohighlight">\(k^{t / 2}\)</span>
+entries each (<span class="math notranslate nohighlight">\(k\)</span> the average degree), computed with SciPy on the CPU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>steps</strong> – Number of steps <span class="math notranslate nohighlight">\(t\)</span>, at least 1.</p></li>
+<li><p><strong>superposed</strong> – Whether to sum the scores of 1 to <code class="docutils literal notranslate"><span class="pre">steps</span></code> steps.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute (positive values), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, a pair does not have two nodes, or
+<code class="docutils literal notranslate"><span class="pre">steps</span></code> is smaller than 1.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_random_walk_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">steps</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_random_walk_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">steps</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">superposed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;srw&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.simrank_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simrank_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simrank_lp" title="Link to this definition"></a></dt>
+<dd><p>SimRank similarity of node pairs (Jeh and Widom, 2002): two nodes are similar if they are
+pointed to by similar nodes,</p>
+<div class="math notranslate nohighlight">
+\[s(u, v) = \frac{C}{|I(u)| |I(v)|} \sum_{a \in I(u)} \sum_{b \in I(v)} s(a, b),
+\qquad s(u, u) = 1,\]</div>
+<p>with <span class="math notranslate nohighlight">\(I(u)\)</span> the in-neighbors of <span class="math notranslate nohighlight">\(u\)</span> (its neighbors in undirected networks) and
+<span class="math notranslate nohighlight">\(C\)</span> the <code class="docutils literal notranslate"><span class="pre">decay</span></code>; a node without in-neighbors is similar to no other node.</p>
+<p>The exact scores need all the pairs of nodes at once (<span class="math notranslate nohighlight">\(n^2\)</span> values), so only the given
+pairs are estimated, from the random surfer-pairs model of Jeh and Widom:
+<span class="math notranslate nohighlight">\(s(u, v) = E[C^t]\)</span>, where <span class="math notranslate nohighlight">\(t\)</span> is the first step at which two random walkers, started
+at <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> and moving at the same time to a random in-neighbor, meet. Each pair
+averages <code class="docutils literal notranslate"><span class="pre">walks</span></code> such pairs of walks, of at most <code class="docutils literal notranslate"><span class="pre">length</span></code> steps, in parallel over the pairs
+(compiled with Numba, on the CPU). The standard error is at most <span class="math notranslate nohighlight">\(0.5 / \sqrt{walks}\)</span>,
+and stopping after <code class="docutils literal notranslate"><span class="pre">length</span></code> steps underestimates a score by less than
+<span class="math notranslate nohighlight">\(C^{length + 1}\)</span>. Results depend on <code class="docutils literal notranslate"><span class="pre">seed</span></code> only, not on the number of threads.</p>
+<p>Neighborhoods are sets, as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>decay</strong> – The decay <span class="math notranslate nohighlight">\(C\)</span>, between 0 and 1.</p></li>
+<li><p><strong>walks</strong> – Number of pairs of walks per pair of nodes.</p></li>
+<li><p><strong>length</strong> – Largest number of steps of a walk.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, a pair does not have two nodes, or
+<code class="docutils literal notranslate"><span class="pre">decay</span></code>, <code class="docutils literal notranslate"><span class="pre">walks</span></code> or <code class="docutils literal notranslate"><span class="pre">length</span></code> are not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simrank_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="stochastic-block-models">
+<h3>Stochastic block models<a class="headerlink" href="#stochastic-block-models" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.block_model_reliability_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">block_model_reliability_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.block_model_reliability_lp" title="Link to this definition"></a></dt>
+<dd><p>Stochastic block model reliability of node pairs (Guimerà and Sales-Pardo, 2009): the
+probability that the two nodes are connected, averaged over all the partitions of the nodes
+into groups, each weighted by how well a stochastic block model with those groups explains the
+network. In a block model, two nodes of groups <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> are
+connected with a probability that depends only on the groups; with <span class="math notranslate nohighlight">\(l_{\alpha\beta}\)</span>
+links among the <span class="math notranslate nohighlight">\(r_{\alpha\beta}\)</span> pairs of nodes of the two groups, the reliability of
+a pair is</p>
+<div class="math notranslate nohighlight">
+\[R_{uv} = \frac{1}{Z} \sum_P \frac{l_{\sigma_u \sigma_v} + 1}{r_{\sigma_u \sigma_v} + 2}
+\exp(-H(P)), \qquad
+H(P) = \sum_{\alpha \le \beta} \left[\ln(r_{\alpha\beta} + 1)
++ \ln \binom{r_{\alpha\beta}}{l_{\alpha\beta}}\right],\]</div>
+<p>with <span class="math notranslate nohighlight">\(\sigma_u\)</span> the group of <span class="math notranslate nohighlight">\(u\)</span> in the partition <span class="math notranslate nohighlight">\(P\)</span>. The partitions are
+sampled in proportion to <span class="math notranslate nohighlight">\(\exp(-H(P))\)</span> by Markov chain Monte Carlo: a move puts a
+random node in a random group (a new one, possibly), accepted with the Metropolis rule. Each
+chain starts from a random partition into <span class="math notranslate nohighlight">\(\lceil \sqrt{n} \rceil\)</span> groups, runs
+<code class="docutils literal notranslate"><span class="pre">burnin</span></code> sweeps of <span class="math notranslate nohighlight">\(n\)</span> moves (<span class="math notranslate nohighlight">\(n\)</span> nodes), then samples a partition every
+<code class="docutils literal notranslate"><span class="pre">interval</span></code> sweeps; the score of a pair is its mean reliability over the <code class="docutils literal notranslate"><span class="pre">samples</span></code>
+partitions. Chains are independent, one per CPU thread by default, and share the samples. Like
+<a class="reference internal" href="#graphoskop.hierarchical_random_graph_lp" title="graphoskop.hierarchical_random_graph_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code></a>, the model learns any pattern of connection between groups,
+assortative or not.</p>
+<p>The model is undirected and unweighted: neighborhoods are sets, as in
+<a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored). Partitions have at most
+<code class="docutils literal notranslate"><span class="pre">groups</span></code> groups (by default the number of nodes, at most 1,000): every chain keeps a
+<code class="docutils literal notranslate"><span class="pre">groups</span></code> by <code class="docutils literal notranslate"><span class="pre">groups</span></code> table of links between groups, and a move costs the degree of the node
+plus the number of non-empty groups. Compiled with Numba, on the CPU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+<li><p><strong>samples</strong> – Number of sampled partitions.</p></li>
+<li><p><strong>burnin</strong> – Number of sweeps of each chain before its first sample.</p></li>
+<li><p><strong>interval</strong> – Number of sweeps between samples.</p></li>
+<li><p><strong>groups</strong> – Largest number of groups, <code class="docutils literal notranslate"><span class="pre">None</span></code> for the number of nodes, at most 1,000.</p></li>
+<li><p><strong>chains</strong> – Number of chains, <code class="docutils literal notranslate"><span class="pre">None</span></code> for the number of Numba threads.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is directed or multilayer, a pair does not have two nodes,
+or <code class="docutils literal notranslate"><span class="pre">samples</span></code>, <code class="docutils literal notranslate"><span class="pre">burnin</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code> or <code class="docutils literal notranslate"><span class="pre">groups</span></code> are not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">block_model_reliability_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="vertex-similarity">
+<h3>Vertex similarity<a class="headerlink" href="#vertex-similarity" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.vertex_similarity_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">vertex_similarity_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.vertex_similarity_lp" title="Link to this definition"></a></dt>
+<dd><p>Vertex similarity of node pairs (Leicht, Holme and Newman, 2006): two nodes are similar if
+their neighbors are similar, counting the paths of all lengths between them, each of length
+<span class="math notranslate nohighlight">\(l\)</span> weighted by <span class="math notranslate nohighlight">\((\phi / \lambda_1)^l\)</span>, relative to the number expected in a
+random network with the same degrees,</p>
+<div class="math notranslate nohighlight">
+\[S = 2 m \lambda_1 D^{-1} \left(I - \frac{\phi}{\lambda_1} A\right)^{-1} D^{-1},\]</div>
+<p>with <span class="math notranslate nohighlight">\(A\)</span> the adjacency matrix, <span class="math notranslate nohighlight">\(D\)</span> the diagonal matrix of the degrees,
+<span class="math notranslate nohighlight">\(\lambda_1\)</span> the largest eigenvalue of <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(m\)</span> the number of edges and
+<span class="math notranslate nohighlight">\(0 &lt; \phi &lt; 1\)</span>: close to 1, long paths count almost as much as short ones. Unlike the
+local scores, it relates nodes at any distance (in the same component), like
+<a class="reference internal" href="centrality.html#graphoskop.katz_centrality" title="graphoskop.katz_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a>.</p>
+<p>Neighborhoods are sets, as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored;
+with <code class="docutils literal notranslate"><span class="pre">weight</span></code>, <span class="math notranslate nohighlight">\(A\)</span> holds the weights, summed over parallel edges, <span class="math notranslate nohighlight">\(D\)</span> the
+strengths and <span class="math notranslate nohighlight">\(2m\)</span> their sum). Only the pairs are scored: the linear systems
+<span class="math notranslate nohighlight">\((I - \phi A / \lambda_1) x = e_u\)</span> are solved by conjugate gradients for the
+distinct nodes on one side of the pairs, a block at a time, on the device of the network;
+each costs a few tens of products with <span class="math notranslate nohighlight">\(A\)</span> (more as <span class="math notranslate nohighlight">\(\phi\)</span> approaches 1), so the
+time grows with the number of distinct nodes times the number of edges. Pairs with a node
+without neighbors score 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – Pairs, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p></li>
+<li><p><strong>phi</strong> – The parameter <span class="math notranslate nohighlight">\(\phi\)</span>, between 0 and 1 (excluded).</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute (positive values), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+<li><p><strong>tol</strong> – Relative residual at which conjugate gradients stop.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of conjugate gradient iterations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scores, as in <a class="reference internal" href="#graphoskop.preferential_attachment_lp" title="graphoskop.preferential_attachment_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">preferential_attachment_lp()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node or the edge attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If the network is directed or multilayer, a pair does not have two nodes,
+<code class="docutils literal notranslate"><span class="pre">phi</span></code> is not between 0 and 1, or conjugate gradients do not converge.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">vertex_similarity_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="training-and-validation-sets">
+<h2>Training and validation sets<a class="headerlink" href="#training-and-validation-sets" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.link_prediction_split">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">link_prediction_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negatives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sign'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.link_prediction_split" title="Link to this definition"></a></dt>
+<dd><p>Training network and validation set for link prediction.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">fraction</span></code> of the connected node pairs of the network (self loops excluded) are drawn
+uniformly at random as positives, and all their edges are removed from the training network
+(parallel edges included and, in undirected networks, both directions). <code class="docutils literal notranslate"><span class="pre">negatives</span></code> times as
+many pairs of nodes that are not connected in <code class="docutils literal notranslate"><span class="pre">net</span></code> are drawn uniformly as negatives, without
+repetitions: pairs of distinct nodes anywhere in the network, also in different components, of
+different types in bipartite networks.</p>
+<p>The training network keeps all the nodes, isolated ones included, with their attributes, and
+the attributes of the other edges; components are recomputed, since removing edges can split
+one.</p>
+<p>In signed networks (with the numeric edge attribute <code class="docutils literal notranslate"><span class="pre">sign</span></code>, see <a class="reference internal" href="signed.html"><span class="doc">Signed networks</span></a>), the
+validation set also has a column named as <code class="docutils literal notranslate"><span class="pre">sign</span></code>, with the sign of each positive (+1 or -1;
+with parallel edges, the sign of the sum of their signs; NaN if it is 0 or for the negatives),
+for <a class="reference internal" href="#graphoskop.link_prediction_sign_evaluation" title="graphoskop.link_prediction_sign_evaluation"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_sign_evaluation()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>fraction</strong> – Fraction of the connected pairs hidden as positives, between 0 and 1.</p></li>
+<li><p><strong>negatives</strong> – Number of negatives per positive (rounded to the nearest integer in total).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>sign</strong> – Name of the edge attribute holding the signs, if the network is signed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(train,</span> <span class="pre">validation)</span></code>: the training network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, and
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span></code> (node ids) and <code class="docutils literal notranslate"><span class="pre">label</span></code> (1
+for the positives, which come first, 0 for the negatives), and <code class="docutils literal notranslate"><span class="pre">sign</span></code> in signed networks.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is multilayer, if <code class="docutils literal notranslate"><span class="pre">fraction</span></code> is not between 0 and 1 or
+<code class="docutils literal notranslate"><span class="pre">negatives</span></code> is negative, or if there are not enough unconnected pairs.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">negatives</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">left_on</span> <span class="o">=</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="n">right_on</span> <span class="o">=</span> <span class="s2">&quot;node&quot;</span><span class="p">)</span>   <span class="c1"># source attributes</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="laplacians.html" class="btn btn-neutral float-left" title="Laplacians" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="multilayer.html" class="btn btn-neutral float-right" title="Multilayer networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

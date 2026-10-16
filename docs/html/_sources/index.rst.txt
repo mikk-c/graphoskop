@@ -9,20 +9,22 @@ Graphoskop
 
    network
    transformations
-   multilayer
-   signed
-   bipartite_projections
    network_statistics
-   communities
-   coloring
-   laplacians
-   exploration
-   shortest_paths
-   centrality
-   hierarchy
-   equivalence
-   node_vector_analysis
    backboning
-   generators
-   ergm
+   bipartite_projections
+   centrality
+   coloring
+   communities
    epidemics
+   equivalence
+   exploration
+   ergm
+   generators
+   hierarchy
+   laplacians
+   link_prediction
+   multilayer
+   node_vector_analysis
+   robustness
+   shortest_paths
+   signed

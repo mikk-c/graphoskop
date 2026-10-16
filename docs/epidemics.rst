@@ -4,6 +4,62 @@ Epidemics
 .. automodule:: graphoskop.epidemics
    :no-members:
 
+Complex contagion
+-----------------
+
+.. automodule:: graphoskop.epidemics.complex_contagion
+   :no-members:
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("contacts.tsv")
+   si = gsk.complex_si_model(net, 0.02, "classical", seeds = 5)       # one coin flip per infected neighbor
+   si = gsk.complex_si_model(net, 1, "threshold", 2, seeds = 0.05)    # Granovetter: at least 2 infected neighbors
+   si = gsk.complex_si_model(net, 1, "cascade", 0.18, seeds = 1)      # Watts: at least 18% of the neighbors
+   sir = gsk.complex_sir_model(net, 0.5, 0.1, "threshold", 2, seeds = 0.05)
+   sis = gsk.complex_sis_model(net, 0.05, 0.2, "classical", seeds = 10)
+
+   # heterogeneous thresholds, one per node, from a numeric node attribute
+   import numpy as np
+   net.set_node_attribute("phi", np.random.default_rng(1).uniform(0.1, 0.3, net.number_of_nodes(0)))
+   si = gsk.complex_si_model(net, 1, "cascade", "phi", seeds = 5)
+
+   # independent and decreasing cascades (Kempe, Kleinberg and Tardos): one attempt per edge
+   si = gsk.complex_si_model(net, 0.1, "independent", seeds = 5)      # the same probability on every edge
+   net.set_edge_attribute("p", np.random.default_rng(2).uniform(0, 0.3, net.components[0].edge_index.shape[1]))
+   si = gsk.complex_si_model(net, "p", "independent", seeds = 5)      # one probability per edge (and direction)
+   P = np.random.default_rng(3).uniform(0, 0.3, (net.number_of_nodes(0),) * 2)
+   si = gsk.complex_si_model(net, P, "decreasing", decay = 0.5, seeds = 5)   # table: origins by targets
+
+   # who infected whom in the last run: a forest, one tree per seed
+   si, forest = gsk.complex_si_model(net, 0.2, "independent", seeds = 3, forest = True)
+   edges, nodes = forest.to_pandas_dataframes()                     # source infected target at step; node attributes
+   trees = gsk.connected_components_nodes(forest)                   # the nodes reached from each seed
+
+On 100,000 nodes and 500,000 edges, 100 runs on two CPU threads with the Numba engine take
+about as long as simple contagion: 3.6 s for the classical SI model with ``beta = 0.02``
+(486 steps), 1.7 s for the threshold model with ``k = 2`` and 1% of seeds, 1.2 s for the cascade
+model with ``phi = 0.1``, 3.0 s for the classical SIR model with ``beta = 0.05``, ``mu = 0.1``,
+1.8 s for the independent cascade with ``p = 0.2`` (2.2 s with probabilities from an edge
+attribute), 1.3 s for the decreasing cascade with ``p = 0.3`` and ``decay = 0.5`` (10 seeds).
+
+Complex SI model
+~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.complex_si_model
+
+Complex SIR model
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.complex_sir_model
+
+Complex SIS model
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.complex_sis_model
+
 Simple contagion
 ----------------
 
@@ -84,68 +140,12 @@ SI model
 
 .. autofunction:: graphoskop.si_model
 
-SIS model
-~~~~~~~~~
-
-.. autofunction:: graphoskop.sis_model
-
 SIR model
 ~~~~~~~~~
 
 .. autofunction:: graphoskop.sir_model
 
-Complex contagion
------------------
+SIS model
+~~~~~~~~~
 
-.. automodule:: graphoskop.epidemics.complex_contagion
-   :no-members:
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("contacts.tsv")
-   si = gsk.complex_si_model(net, 0.02, "classical", seeds = 5)       # one coin flip per infected neighbor
-   si = gsk.complex_si_model(net, 1, "threshold", 2, seeds = 0.05)    # Granovetter: at least 2 infected neighbors
-   si = gsk.complex_si_model(net, 1, "cascade", 0.18, seeds = 1)      # Watts: at least 18% of the neighbors
-   sir = gsk.complex_sir_model(net, 0.5, 0.1, "threshold", 2, seeds = 0.05)
-   sis = gsk.complex_sis_model(net, 0.05, 0.2, "classical", seeds = 10)
-
-   # heterogeneous thresholds, one per node, from a numeric node attribute
-   import numpy as np
-   net.set_node_attribute("phi", np.random.default_rng(1).uniform(0.1, 0.3, net.number_of_nodes(0)))
-   si = gsk.complex_si_model(net, 1, "cascade", "phi", seeds = 5)
-
-   # independent and decreasing cascades (Kempe, Kleinberg and Tardos): one attempt per edge
-   si = gsk.complex_si_model(net, 0.1, "independent", seeds = 5)      # the same probability on every edge
-   net.set_edge_attribute("p", np.random.default_rng(2).uniform(0, 0.3, net.components[0].edge_index.shape[1]))
-   si = gsk.complex_si_model(net, "p", "independent", seeds = 5)      # one probability per edge (and direction)
-   P = np.random.default_rng(3).uniform(0, 0.3, (net.number_of_nodes(0),) * 2)
-   si = gsk.complex_si_model(net, P, "decreasing", decay = 0.5, seeds = 5)   # table: origins by targets
-
-   # who infected whom in the last run: a forest, one tree per seed
-   si, forest = gsk.complex_si_model(net, 0.2, "independent", seeds = 3, forest = True)
-   edges, nodes = forest.to_pandas_dataframes()                     # source infected target at step; node attributes
-   trees = gsk.connected_components_nodes(forest)                   # the nodes reached from each seed
-
-On 100,000 nodes and 500,000 edges, 100 runs on two CPU threads with the Numba engine take
-about as long as simple contagion: 3.6 s for the classical SI model with ``beta = 0.02``
-(486 steps), 1.7 s for the threshold model with ``k = 2`` and 1% of seeds, 1.2 s for the cascade
-model with ``phi = 0.1``, 3.0 s for the classical SIR model with ``beta = 0.05``, ``mu = 0.1``,
-1.8 s for the independent cascade with ``p = 0.2`` (2.2 s with probabilities from an edge
-attribute), 1.3 s for the decreasing cascade with ``p = 0.3`` and ``decay = 0.5`` (10 seeds).
-
-Complex SI model
-~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.complex_si_model
-
-Complex SIS model
-~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.complex_sis_model
-
-Complex SIR model
-~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.complex_sir_model
+.. autofunction:: graphoskop.sis_model

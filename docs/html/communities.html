@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Coloring and independent sets" href="coloring.html" />
-    <link rel="prev" title="Network statistics" href="network_statistics.html" /> 
+    <link rel="next" title="Epidemics" href="epidemics.html" />
+    <link rel="prev" title="Coloring and independent sets" href="coloring.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,31 +47,35 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Communities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#quality-of-a-partition">Quality of a partition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#graphoskop.modularity"><code class="docutils literal notranslate"><span class="pre">modularity()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#cliques">Cliques</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.maximal_cliques"><code class="docutils literal notranslate"><span class="pre">maximal_cliques()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#quality-of-a-partition">Quality of a partition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.modularity"><code class="docutils literal notranslate"><span class="pre">modularity()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -118,6 +122,50 @@ for which <code class="xref py py-func docutils literal notranslate"><span class
 <span class="n">cliques</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximal_cliques</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                       <span class="c1"># node sets of the cliques of 3+ nodes</span>
 </pre></div>
 </div>
+<section id="cliques">
+<h2>Cliques<a class="headerlink" href="#cliques" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.maximal_cliques">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">maximal_cliques</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.maximal_cliques" title="Link to this definition"></a></dt>
+<dd><p>Maximal cliques: sets of nodes all joined to each other, not contained in a larger such set.</p>
+<p>Only non-trivial cliques are returned, with at least <code class="docutils literal notranslate"><span class="pre">min_size</span></code> nodes (3 by default: single
+nodes and edges are left out). Edges are taken as undirected and unweighted (in directed
+networks, two nodes are joined if there is an edge in either direction), self loops and parallel
+edges are ignored. In multilayer networks only intra-layer edges count, so cliques are within a
+layer (couplings would make the copies of each entity a clique).</p>
+<p>Edges in no triangle cannot be in a clique of 3 or more nodes, so they are removed first, with
+the triangle enumeration of <a class="reference internal" href="network_statistics.html#graphoskop.global_clustering" title="graphoskop.global_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_clustering()</span></code></a> (on the device of the
+network); maximal cliques are then listed by Bron-Kerbosch with pivoting (Tomita et al., 2006)
+on what remains, on the CPU. The number of maximal cliques can grow exponentially with the size
+of dense networks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>min_size</strong> – Smallest clique returned (at least 3).</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once in the triangle enumeration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of arrays of input node ids, one per clique, largest first.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">min_size</span></code> is below 3.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">cliques</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximal_cliques</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">cliques</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>                          <span class="c1"># size of the largest clique</span>
+<span class="n">big</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximal_cliques</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">min_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="quality-of-a-partition">
 <h2>Quality of a partition<a class="headerlink" href="#quality-of-a-partition" title="Link to this heading"></a></h2>
 <dl class="py function">
@@ -203,58 +251,14 @@ not valid.</p></li>
 </dd></dl>
 
 </section>
-<section id="cliques">
-<h2>Cliques<a class="headerlink" href="#cliques" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.maximal_cliques">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">maximal_cliques</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.maximal_cliques" title="Link to this definition"></a></dt>
-<dd><p>Maximal cliques: sets of nodes all joined to each other, not contained in a larger such set.</p>
-<p>Only non-trivial cliques are returned, with at least <code class="docutils literal notranslate"><span class="pre">min_size</span></code> nodes (3 by default: single
-nodes and edges are left out). Edges are taken as undirected and unweighted (in directed
-networks, two nodes are joined if there is an edge in either direction), self loops and parallel
-edges are ignored. In multilayer networks only intra-layer edges count, so cliques are within a
-layer (couplings would make the copies of each entity a clique).</p>
-<p>Edges in no triangle cannot be in a clique of 3 or more nodes, so they are removed first, with
-the triangle enumeration of <a class="reference internal" href="network_statistics.html#graphoskop.global_clustering" title="graphoskop.global_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_clustering()</span></code></a> (on the device of the
-network); maximal cliques are then listed by Bron-Kerbosch with pivoting (Tomita et al., 2006)
-on what remains, on the CPU. The number of maximal cliques can grow exponentially with the size
-of dense networks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>min_size</strong> – Smallest clique returned (at least 3).</p></li>
-<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once in the triangle enumeration.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of arrays of input node ids, one per clique, largest first.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">min_size</span></code> is below 3.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">cliques</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximal_cliques</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="nb">len</span><span class="p">(</span><span class="n">cliques</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>                          <span class="c1"># size of the largest clique</span>
-<span class="n">big</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">maximal_cliques</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">min_size</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="network_statistics.html" class="btn btn-neutral float-left" title="Network statistics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="coloring.html" class="btn btn-neutral float-right" title="Coloring and independent sets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="coloring.html" class="btn btn-neutral float-left" title="Coloring and independent sets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="epidemics.html" class="btn btn-neutral float-right" title="Epidemics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

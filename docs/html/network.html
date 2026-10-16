@@ -52,10 +52,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.interlayer_mask"><code class="docutils literal notranslate"><span class="pre">Network.interlayer_mask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.get_node_attribute"><code class="docutils literal notranslate"><span class="pre">Network.get_node_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.set_node_attribute"><code class="docutils literal notranslate"><span class="pre">Network.set_node_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.set_node_attributes"><code class="docutils literal notranslate"><span class="pre">Network.set_node_attributes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.get_edge_attribute"><code class="docutils literal notranslate"><span class="pre">Network.get_edge_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.set_edge_attribute"><code class="docutils literal notranslate"><span class="pre">Network.set_edge_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.number_of_nodes"><code class="docutils literal notranslate"><span class="pre">Network.number_of_nodes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.number_of_edges"><code class="docutils literal notranslate"><span class="pre">Network.number_of_edges()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.edges"><code class="docutils literal notranslate"><span class="pre">Network.edges()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.number_of_components"><code class="docutils literal notranslate"><span class="pre">Network.number_of_components()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.is_planar"><code class="docutils literal notranslate"><span class="pre">Network.is_planar()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.to_pandas_dataframes"><code class="docutils literal notranslate"><span class="pre">Network.to_pandas_dataframes()</span></code></a></li>
@@ -70,23 +72,25 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -500,6 +504,50 @@ multilayer network (the layer is part of the node id).</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.Network.set_node_attributes">
+<span class="sig-name descname"><span class="pre">set_node_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.set_node_attributes" title="Link to this definition"></a></dt>
+<dd><p>Set node attributes from a table, creating those that do not exist, matching the rows to the
+nodes by their ids.</p>
+<p><code class="docutils literal notranslate"><span class="pre">table</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node and one column per
+attribute, plus the column <code class="docutils literal notranslate"><span class="pre">node_column</span></code> with the node ids (names or positions of columns,
+as in <a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>). Nodes not in the table keep their values; for a new attribute,
+they get missing values, as in <a class="reference internal" href="#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>. Missing cells (NaN) make the
+value missing (in long, sparse tables, numeric values then read as 0). A new attribute is numeric if its
+column holds numbers or booleans, qualitative otherwise; a cell can hold a list, tuple or set
+of values of a qualitative attribute (see <a class="reference internal" href="#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>). Node ids are
+matched as in <a class="reference internal" href="transformations.html#graphoskop.subgraph" title="graphoskop.subgraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code></a> (ids read from files are strings, and a number is tried again
+as a string).</p>
+<p>In multilayer networks, <code class="docutils literal notranslate"><span class="pre">layer_column</span></code> gives the layer of each row, so that rows are copies
+<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>; without it, the ids are entities and each row sets all their copies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p></li>
+<li><p><strong>node_column</strong> – Column with the node ids (entities in multilayer networks).</p></li>
+<li><p><strong>layer_column</strong> – In multilayer networks, column with the layers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node is not in the network.</p></li>
+<li><p><strong>ValueError</strong> – If a node appears in two rows, if non-numeric values are given for a
+numeric attribute, if <code class="docutils literal notranslate"><span class="pre">layer_column</span></code> is given for a network that is not multilayer, or
+for the attributes that cannot be set (see <a class="reference internal" href="#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">],</span> <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">34</span><span class="p">,</span> <span class="mi">27</span><span class="p">],</span> <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Rome&quot;</span><span class="p">,</span> <span class="s2">&quot;Oslo&quot;</span><span class="p">]})</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>    <span class="c1"># new attributes age (numeric) and city</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="graphoskop.Network.get_edge_attribute">
 <span class="sig-name descname"><span class="pre">get_edge_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.get_edge_attribute" title="Link to this definition"></a></dt>
 <dd><p>Edge attribute as a vector over the edges of a component, or its value on one edge.</p>
@@ -590,6 +638,54 @@ or <code class="docutils literal notranslate"><span class="pre">&quot;inter&quot
 <dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">kind</span></code> is not valid.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.Network.edges">
+<span class="sig-name descname"><span class="pre">edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.edges" title="Link to this definition"></a></dt>
+<dd><p>Iterate over the edges, as given in input: in undirected networks each edge comes once
+(the reverse copies stored by <a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> are left out); parallel edges and self
+loops come as they are.</p>
+<ul class="simple">
+<li><p>By default, an edge is a pair <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> of the indices of its endpoints in the component,
+the internal ids of the nodes, as in <code class="docutils literal notranslate"><span class="pre">edge_index</span></code>; with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>, the edges
+of all the components, as pairs of internal ids <code class="docutils literal notranslate"><span class="pre">((c,</span> <span class="pre">i),</span> <span class="pre">(c,</span> <span class="pre">j))</span></code>.</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">labels</span> <span class="pre">=</span> <span class="pre">True</span></code>, the input ids of the endpoints instead (<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code> copies
+in multilayer networks).</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">True</span></code>, a third element: a dictionary of the numeric edge attributes of the
+edge, by name; with <code class="docutils literal notranslate"><span class="pre">data</span></code> the name of an edge attribute, its value.</p></li>
+</ul>
+<p>The edges are read from the device once, so iterating is a plain Python loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>labels</strong> – Whether to give the endpoints by their input ids.</p></li>
+<li><p><strong>data</strong> – <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code> for all the edge attributes, or the name of one.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Iterator over the edges, as tuples <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> or <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v,</span> <span class="pre">d)</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If there is no edge attribute named <code class="docutils literal notranslate"><span class="pre">data</span></code>.</p></li>
+<li><p><strong>IndexError</strong> – If there is no such component.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">():</span>                          <span class="c1"># component 0, internal indices</span>
+   <span class="o">...</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>            <span class="c1"># all components, internal ids</span>
+   <span class="o">...</span>
+<span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">):</span>
+   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+   <span class="n">d</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;sign&quot;</span><span class="p">]</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -704,13 +800,15 @@ memory: they are kept once for the whole network in <code class="docutils litera
 <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of categorical columns in CPU memory, with rows in the network wide node
 order (component by component). Both kinds are read and written by name with
 <a class="reference internal" href="#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a> and <a class="reference internal" href="#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>,
-and are kept by <a class="reference internal" href="backboning.html#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> and <a class="reference internal" href="backboning.html#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>.</p>
+or set from a table matched by node id with <a class="reference internal" href="#graphoskop.Network.set_node_attributes" title="graphoskop.Network.set_node_attributes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attributes()</span></code></a>, and
+are kept by <a class="reference internal" href="backboning.html#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> and <a class="reference internal" href="backboning.html#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
 <span class="n">net</span><span class="o">.</span><span class="n">node_attributes</span>               <span class="c1"># [&quot;age&quot;, &quot;height&quot;]: on the GPU</span>
 <span class="n">net</span><span class="o">.</span><span class="n">qualitative_node_attributes</span>   <span class="c1"># [&quot;city&quot;]: in CPU memory</span>
 <span class="n">net</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span>    <span class="c1"># NumPy object array over the nodes of component 0</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>   <span class="c1"># one attribute per other column of the table</span>
 </pre></div>
 </div>
 </section>

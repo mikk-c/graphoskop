@@ -4,28 +4,29 @@ Multilayer networks
 .. automodule:: graphoskop.multilayer
    :no-members:
 
-Representation
---------------
+Analyses
+--------
 
-A multilayer network is stored as its supra-graph. A node is a copy of an entity in one layer, with
-input id ``(entity, layer)``, and internal id ``(component, index)`` like any other node. Entities
-absent from a layer have no copy there. Edges come in three kinds, all stored as ordinary edges:
-
-* intra-layer edges, between copies in the same layer;
-* couplings, between copies of the same entity in different layers;
-* other interlayer edges, between copies of different entities in different layers.
-
-Components are the weakly connected components of the supra-graph, so a component can hold copies
-of many layers, connected through couplings. Within a component, nodes are sorted by layer (by type
-first, then by layer, in bipartite networks). Every component has two int64 tensors on its device:
-``layer`` (position of the layer of each node in :attr:`~graphoskop.Network.layer_labels`) and
-``entity`` (position of its entity in :attr:`~graphoskop.Network.entity_ids`). An edge ``(s, t)``
-is interlayer if ``layer[s] != layer[t]`` (see :meth:`~graphoskop.Network.interlayer_mask`) and a
-coupling if moreover ``entity[s] == entity[t]``. :attr:`~graphoskop.Network.entity_map` maps every
-entity to its copies.
-
-.. autodata:: graphoskop.LAYER
-   :annotation: = "layer"
+* **Backboning** (:doc:`backboning`): layer by layer, as on :func:`layer_network`; interlayer edges
+  are never scored and are kept between kept copies.
+* **Bipartite projections** (:doc:`bipartite_projections`): a bipartite multilayer network is
+  bipartite in every layer (an entity has the same type in all its copies, and interlayer edges join
+  nodes of the same type); projections are layer by layer, and keep the interlayer edges between
+  the copies of the kept type.
+* **Degree** (:func:`~graphoskop.degree`): intra-layer edges only. A copy has its degree in its
+  layer, an entity the sum over its copies; distributions are given per layer, or per entity with
+  ``by = "entity"``.
+* **Laplacians and node vectors** (:doc:`laplacians`, :doc:`node_vector_analysis`): the Laplacian of
+  a component is the supra-Laplacian, so :func:`~graphoskop.generalized_euclidean` is the
+  multilayer generalized Euclidean distance (Coscia, 2022), and resistances, solvers, correlations,
+  variances and entropies are their multilayer versions. Couplings weigh as affinities. Dense
+  matrices have one row per copy.
+* **Robustness** (:doc:`robustness`): in :func:`~graphoskop.cascade_failures`, layers are
+  interdependent by default: when a copy fails, all the copies of its entity fail at the same step,
+  so failures percolate across layers (Buldyrev et al., 2010).
+* **Shortest paths** (:doc:`shortest_paths`): on the supra-graph, changing layer along a coupling
+  is a step. Entities can be given as origins or destinations (shortest over their copies). Use
+  ``inverse = True`` for lengths consistent with coupling affinities.
 
 Loading
 -------
@@ -67,26 +68,28 @@ attribute of the generated couplings.
 In the node table, a row with a missing layer applies to all the copies of its entity, and the rows
 of a copy override it: entity-wide attributes are given once, layer-specific ones per copy.
 
-Analyses
---------
+Representation
+--------------
 
-* **Laplacians and node vectors** (:doc:`laplacians`, :doc:`node_vector_analysis`): the Laplacian of
-  a component is the supra-Laplacian, so :func:`~graphoskop.generalized_euclidean` is the
-  multilayer generalized Euclidean distance (Coscia, 2022), and resistances, solvers, correlations,
-  variances and entropies are their multilayer versions. Couplings weigh as affinities. Dense
-  matrices have one row per copy.
-* **Degree** (:func:`~graphoskop.degree`): intra-layer edges only. A copy has its degree in its
-  layer, an entity the sum over its copies; distributions are given per layer, or per entity with
-  ``by = "entity"``.
-* **Shortest paths** (:doc:`shortest_paths`): on the supra-graph, changing layer along a coupling
-  is a step. Entities can be given as origins or destinations (shortest over their copies). Use
-  ``inverse = True`` for lengths consistent with coupling affinities.
-* **Backboning** (:doc:`backboning`): layer by layer, as on :func:`layer_network`; interlayer edges
-  are never scored and are kept between kept copies.
-* **Bipartite projections** (:doc:`bipartite_projections`): a bipartite multilayer network is
-  bipartite in every layer (an entity has the same type in all its copies, and interlayer edges join
-  nodes of the same type); projections are layer by layer, and keep the interlayer edges between
-  the copies of the kept type.
+A multilayer network is stored as its supra-graph. A node is a copy of an entity in one layer, with
+input id ``(entity, layer)``, and internal id ``(component, index)`` like any other node. Entities
+absent from a layer have no copy there. Edges come in three kinds, all stored as ordinary edges:
+
+* intra-layer edges, between copies in the same layer;
+* couplings, between copies of the same entity in different layers;
+* other interlayer edges, between copies of different entities in different layers.
+
+Components are the weakly connected components of the supra-graph, so a component can hold copies
+of many layers, connected through couplings. Within a component, nodes are sorted by layer (by type
+first, then by layer, in bipartite networks). Every component has two int64 tensors on its device:
+``layer`` (position of the layer of each node in :attr:`~graphoskop.Network.layer_labels`) and
+``entity`` (position of its entity in :attr:`~graphoskop.Network.entity_ids`). An edge ``(s, t)``
+is interlayer if ``layer[s] != layer[t]`` (see :meth:`~graphoskop.Network.interlayer_mask`) and a
+coupling if moreover ``entity[s] == entity[t]``. :attr:`~graphoskop.Network.entity_map` maps every
+entity to its copies.
+
+.. autodata:: graphoskop.LAYER
+   :annotation: = "layer"
 
 Saving
 ------
@@ -96,16 +99,16 @@ Saving
 ``prefix + "_nodes.tsv"`` (one row per copy). Load them back with ``multilayer = True`` and
 ``interlayer_edges``; generated couplings already in the interlayer table are not added twice.
 
-Single layers and aggregation
------------------------------
-
-.. autofunction:: graphoskop.layer_network
-
-.. autofunction:: graphoskop.aggregate_network
-
 Signed networks
 ---------------
 
 A signed network is a two-layer network, positive and negative, flattened into one network of
 entities whose edges carry a sign: build it from two layers with
 ``gsk.signed_network(net, positive = ..., negative = ...)`` (see :doc:`signed`).
+
+Single layers and aggregation
+-----------------------------
+
+.. autofunction:: graphoskop.aggregate_network
+
+.. autofunction:: graphoskop.layer_network

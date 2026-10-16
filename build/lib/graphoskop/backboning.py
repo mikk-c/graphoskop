@@ -15,6 +15,7 @@ Scoring methods:
 * :func:`~graphoskop.disparity_filter`: score only.
 * :func:`~graphoskop.doubly_stochastic`: score only.
 * :func:`~graphoskop.high_salience_skeleton`: score only.
+* :func:`~graphoskop.polya_filter`: score only.
 
 :func:`~graphoskop.spanning_tree`, :func:`~graphoskop.maximally_filtered_graph` and
 :func:`~graphoskop.triangulated_filtered_graph` instead filter the edges directly, keeping a
@@ -34,6 +35,7 @@ copies they keep, and the statistics of :func:`~graphoskop.test_bb_thresholds` a
 :func:`~graphoskop.find_bb_thresholds` are computed on the intra-layer edges.
 """
 
+import math
 import warnings
 from concurrent.futures import ProcessPoolExecutor
 
@@ -41,7 +43,10 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import torch
+from numba import njit, prange
+from scipy.optimize import minimize_scalar
 from scipy.sparse.csgraph import connected_components, dijkstra, minimum_spanning_tree
+from scipy.special import betainc
 
 from .network import _quiet_sparse, _subset
 from .planarity import _lr_planar
@@ -242,6 +247,424 @@ def disparity_filter(net, weight = "weight", policy = "max", prefix = "df"):
          other = _disparity(x / S_in[trg], K_in[trg])
          score = other if score is None else (torch.maximum if policy == "max" else torch.minimum)(score, other)
       net.set_edge_attribute(prefix + "_score", _scatter(score, keep), c)
+
+
+def _lgamma_diff(x, h):
+   """
+   :math:`\\ln \\Gamma(x + h) - \\ln \\Gamma(x)`, accurate also when :math:`x` is large (Stirling
+   series for :math:`x \\geq 20`, where the two terms would cancel).
+
+   :param x: Positive float64 tensor.
+   :param h: Non-negative float64 tensor.
+   :return: Float64 tensor.
+   """
+   big = x >= 20
+   xb = torch.where(big, x, 20)
+   corr = lambda z: (1 / 12 - (1 / 360 - (1 / 1260 - 1 / (1680 * z * z)) / (z * z)) / (z * z)) / z
+   st = (xb + h - 0.5) * torch.log1p(h / xb) + h * torch.log(xb) - h + corr(xb + h) - corr(xb)
+   return torch.where(big, st, torch.lgamma(x + h) - torch.lgamma(x))
+
+
+def _polya_loglik(w, s, k, a, discrete):
+   """
+   Log-likelihood of the Pólya urn null model, up to terms not depending on ``a``, with
+   :math:`\\alpha = 1 / a` and :math:`\\beta = (k - 1) / a`. Integer weights (``discrete``):
+   beta-binomial, the sum of :math:`\\ln B(\\alpha + w, \\beta + s - w) - \\ln B(\\alpha, \\beta)`.
+   Otherwise: the beta density of the shares :math:`x = w / s` (its large strength limit, the
+   model of the p-values of non-integer weights), the sum of
+   :math:`(\\alpha - 1) \\ln x + (\\beta - 1) \\ln(1 - x) - \\ln B(\\alpha, \\beta)`.
+
+   :param w: Edge weights (float64), of nodes with ``k > 1`` (and ``0 < w < s`` if not
+      ``discrete``).
+   :param s: Strengths of the nodes.
+   :param k: Degrees of the nodes.
+   :param a: Reinforcement parameter, positive.
+   :param discrete: Whether the weights are integers.
+   :return: Log-likelihood, a float.
+   """
+   al, be = 1 / a, (k - 1) / a
+   if discrete:
+      return float((_lgamma_diff(al + 0 * w, w) + _lgamma_diff(be, s - w) - _lgamma_diff(al + be, s)).sum())
+   x = w / s
+   return float(((al - 1) * torch.log(x) + (be - 1) * torch.log1p(-x) - math.lgamma(al) - torch.lgamma(be) + torch.lgamma(al + be)).sum())
+
+
+def _polya_ml(w, s, k, discrete):
+   """
+   Maximum likelihood estimate of the reinforcement parameter, over :math:`a \\in [10^{-3}, 10^3]`.
+
+   :param w: Edge weights (float64), of nodes with ``k > 1``.
+   :param s: Strengths of the nodes.
+   :param k: Degrees of the nodes.
+   :param discrete: Whether the weights are integers (see :func:`_polya_loglik`); otherwise
+      weights 0 and weights equal to the strength (log-density not finite) are skipped.
+   :return: The estimate, a float (``nan`` without observations).
+   """
+   if not discrete:
+      ok = (w > 0) & (w < s)
+      w, s, k = w[ok], s[ok], k[ok]
+   if len(w) == 0:
+      return float("nan")
+   lo, hi = np.log(1e-3), np.log(1e3)
+   res = minimize_scalar(lambda la: -_polya_loglik(w, s, k, np.exp(la), discrete), bounds = (lo, hi), method = "bounded", options = {"xatol": 1e-6})
+   if min(res.x - lo, hi - res.x) < 1e-3:
+      warnings.warn(f"the maximum likelihood estimate of a is at the boundary of [0.001, 1000] ({np.exp(res.x):.4g}): the weights are {'less' if res.x < 0 else 'more'} heterogeneous than any Pólya urn in the range")
+   return float(np.exp(res.x))
+
+
+def _polya_logpmf(x, s, k, a):
+   """
+   Logarithm of the beta-binomial probability :math:`P(x \\mid k, s, a)` of the Pólya filter,
+   accurate for large strengths.
+
+   :param x: Number of draws of the edge (float64, integer values from 0 to ``s``).
+   :param s: Strengths of the nodes.
+   :param k: Degrees of the nodes, at least 2.
+   :param a: Reinforcement parameter, positive.
+   :return: Float64 tensor.
+   """
+   al, be = 1 / a, (k - 1) / a
+   mn = torch.minimum(x, s - x)   # binomial coefficient of the smaller side
+   return _lgamma_diff(s - mn + 1, mn) - torch.lgamma(mn + 1) + _lgamma_diff(al, x) + _lgamma_diff(be, s - x) - _lgamma_diff(al + be, s)
+
+
+@njit(cache = True, parallel = True)
+def _polya_sum(s, k, a, start, end, upper, logp0, max_terms, tot, done):
+   """
+   Sums of the beta-binomial probabilities of the Pólya filter over ranges of terms, one range
+   per thread, each term being the previous one times the ratio of consecutive terms
+   :math:`r(x) = \\frac{(s - x)(\\alpha + x)}{(x + 1)(\\beta + s - x - 1)}` (relative error about
+   ``max_terms`` machine epsilons). Terms are kept rescaled, with the scale in a logarithm, so
+   that they neither underflow nor overflow.
+
+   Sums of upper tails stop early when the remaining terms are below :math:`10^{-16}` of the sum:
+   beyond the term :math:`x`, the ratios are at most
+   :math:`\\rho = \\frac{s - x}{\\beta + s - x - 1} \\max\\left(\\frac{\\alpha + x}{x + 1}, 1\\right)`
+   (the first factor decreases if :math:`\\beta \\geq 1`, the second decreases if
+   :math:`\\alpha \\geq 1` and is below 1 otherwise), so the rest is at most the term times
+   :math:`\\rho / (1 - \\rho)`. No bound holds if :math:`\\beta < 1`, when the probabilities rise
+   again towards :math:`x = s`.
+
+   :param s: Strength of each range's node (float64).
+   :param k: Degree of each range's node, at least 2.
+   :param a: Reinforcement parameter of each range, positive.
+   :param start: First term of each range.
+   :param end: Last term of each range.
+   :param upper: Whether each range is an upper tail (``end = s``), which can stop early.
+   :param logp0: Logarithm of the first term of each range.
+   :param max_terms: Maximum number of terms summed per range.
+   :param tot: Output, the sums.
+   :param done: Output, whether each range was completed (all terms, or early stop).
+   """
+   for e in prange(len(s)):
+      ss, al, be = s[e], 1 / a[e], (k[e] - 1) / a[e]
+      t, sm, off = 1.0, 0.0, logp0[e]   # term and sum are exp(off) times t and sm
+      x, n = start[e], 0
+      done[e] = False
+      while n < max_terms:
+         sm += t
+         n += 1
+         if x >= end[e]:
+            done[e] = True
+            break
+         if upper[e] and be >= 1:
+            rho = (ss - x) / (be + ss - x - 1) * max((al + x) / (x + 1), 1.0)
+            if rho < 1 and t * rho <= 1e-16 * sm * (1 - rho):
+               done[e] = True
+               break
+         t *= (ss - x) * (al + x) / ((x + 1) * (be + ss - x - 1))
+         x += 1
+         if t > 1e100 or (t < 1e-100 and sm < 1e-100):
+            d = np.log(t) if t > 0 else 0.0
+            off += d
+            sm *= np.exp(-d)
+            t = 1.0 if t > 0 else 0.0
+      tot[e] = sm * np.exp(off)
+
+
+_POLYA_BATCH = 2 ** 22   # terms per batch of the torch engine of the Pólya filter (about 100 bytes each)
+
+
+def _polya_sum_torch(s, k, a, start, end, upper, logp0, max_terms, chunk = 32):
+   """
+   :func:`_polya_sum` with torch, on the device of the tensors: ``chunk`` terms at a time for all
+   the ranges at once, in batches of about ``_POLYA_BATCH`` terms. The first term of every chunk
+   is computed in full, the others with the ratio of consecutive terms. Terms are not rescaled,
+   so terms below about :math:`10^{-308}` underflow to 0 (sums so small change no score).
+
+   :param s: Strength of each range's node (float64).
+   :param k: Degree of each range's node, at least 2.
+   :param a: Reinforcement parameter of each range, positive.
+   :param start: First term of each range.
+   :param end: Last term of each range.
+   :param upper: Whether each range is an upper tail, which can stop early.
+   :param logp0: Unused (the first term of every chunk is computed from ``start``).
+   :param max_terms: Maximum number of terms summed per range (rounded up to ``chunk``).
+   :param chunk: Terms per range and step.
+   :return: The sums, and the mask of the ranges completed.
+   """
+   tot = torch.zeros(len(s), dtype = torch.float64, device = s.device)
+   x0 = start.clone()
+   active = torch.arange(len(s), device = s.device)
+   step, rows = torch.arange(chunk, device = s.device), max(_POLYA_BATCH // chunk, 1)
+   for _ in range(-(-max_terms // chunk)):
+      if len(active) == 0:
+         break
+      left = []
+      for b in range(0, len(active), rows):
+         e = active[b:b + rows]
+         ss, kk, aa, en, x = s[e], k[e], a[e], end[e], x0[e]
+         al, be = 1 / aa, (kk - 1) / aa
+         xs = x[:, None] + step[:-1]   # ratios from term x to x + 1 (meaningless only past s, beyond the end)
+         r = (ss[:, None] - xs) * (al[:, None] + xs) / ((xs + 1) * (be[:, None] + ss[:, None] - xs - 1))
+         t = torch.exp(_polya_logpmf(x, ss, kk, aa))[:, None] * torch.cat([torch.ones_like(x)[:, None], torch.cumprod(r, 1)], 1)
+         t = torch.where(x[:, None] + step <= en[:, None], t, 0)
+         tot[e] += t.sum(1)
+         x0[e] += chunk
+         xl, pl = x + chunk - 1, t[:, -1]
+         rho = (ss - xl) / (be + ss - xl - 1) * torch.clamp((al + xl) / (xl + 1), min = 1)
+         small = upper[e] & (be >= 1) & (rho < 1) & (pl * rho <= 1e-16 * tot[e] * (1 - rho))
+         left.append(e[(x0[e] <= en) & ~small])
+      active = torch.cat(left)
+   done = torch.ones(len(s), dtype = torch.bool, device = s.device)
+   done[active] = False
+   return tot, done
+
+
+def _polya_pvalues(w, s, k, a, exact_max, engine, discrete):
+   """
+   Pólya filter p-values, the probability of a weight at least ``w`` in the null model.
+
+   In the discrete model the p-values are summed exactly (see :func:`_polya_sum`), on the shorter side
+   of the distribution: :math:`P(X \\geq w)`, :math:`s - w + 1` terms, or
+   :math:`1 - P(X < w)`, :math:`w` terms, if at most ``exact_max``. The second loses relative
+   precision for small p-values (its absolute error is about :math:`10^{-12}`), so below
+   :math:`10^{-6}` they are summed again on the upper tail, which there stops early, keeping the
+   first value if it does not within ``exact_max`` terms. Longer sums and the continuous model use
+   the tail of the beta distribution of the share :math:`w / s`, the large strength limit (on the
+   CPU, with SciPy). The p-value is 1 for nodes with ``k < 2`` and for weights or strengths not
+   above 0.
+
+   :param w: Edge weights (float64).
+   :param s: Strengths of the nodes.
+   :param k: Degrees of the nodes.
+   :param a: Reinforcement parameter of each entry (float64 tensor), positive.
+   :param exact_max: Maximum number of terms of an exact sum.
+   :param engine: ``"numba"`` (:func:`_polya_sum`, CPU threads) or ``"torch"``
+      (:func:`_polya_sum_torch`, device of the tensors) for the exact sums.
+   :param discrete: Boolean tensor, whether each entry belongs to a layer with integer weights
+      only; the others use the beta tail.
+   :return: Float64 tensor of p-values.
+   """
+   p = torch.ones_like(w)
+   valid = (k > 1) & (w > 0) & (s > 0) & discrete
+   up = s - w + 1 < w
+   exact = torch.zeros_like(valid)
+
+   def tail(i, upper):
+      st = torch.where(upper, w[i], 0)
+      args = (s[i], k[i], a[i], st, torch.where(upper, s[i], w[i] - 1), upper, _polya_logpmf(st, s[i], k[i], a[i]))
+      if engine == "torch":
+         return _polya_sum_torch(*args, exact_max)
+      tot, done = np.empty(len(i)), np.empty(len(i), dtype = np.bool_)
+      _polya_sum(*[x.cpu().numpy() for x in args], exact_max, tot, done)
+      return torch.as_tensor(tot, device = w.device), torch.as_tensor(done, device = w.device)
+
+   i = torch.nonzero(valid & (torch.where(up, s - w + 1, w) <= exact_max)).squeeze(1)
+   if len(i):
+      u = up[i]
+      tot, _ = tail(i, u)
+      p[i] = torch.clamp(torch.where(u, tot, 1 - tot), 0, 1)
+      exact[i] = True
+      i = i[~u & (p[i] < 1e-6)]   # imprecise small p-values: again on the upper tail
+      if len(i):
+         tot, done = tail(i, torch.ones_like(i, dtype = torch.bool))
+         p[i[done]] = torch.clamp(tot[done], 0, 1)
+   approx = (k > 1) & (w > 0) & (s > 0) & ~exact
+   if bool(approx.any()):   # survival of Beta(1 / a, (k - 1) / a) at w / s, as I_{1 - w / s}((k - 1) / a, 1 / a)
+      x = ((s - w) / s)[approx].cpu().numpy()
+      al, be = (1 / a)[approx].cpu().numpy(), ((k - 1) / a)[approx].cpu().numpy()
+      p[approx] = torch.as_tensor(betainc(be, al, x), dtype = p.dtype, device = p.device)
+   return p
+
+
+def polya_filter(net, a = None, weight = "weight", policy = "max", exact_max = 10000, prefix = "pf", bonferroni = False, engine = None):
+   """
+   Pólya filter backbone scores of all edges (Marcaccioli and Livan, 2019).
+
+   From the point of view of a node with ``k`` edges and strength ``s`` (integer weights, read
+   as counts), the null model distributes its ``s`` units of weight with a Pólya urn: an urn with
+   one ball for the edge and ``k - 1`` for the others, from which ``s`` balls are drawn, each
+   drawn ball being put back with ``a`` more of its color. The parameter :math:`a > 0` is
+   the strength of the self-reinforcement (the rich get richer). The weight :math:`w` of the edge
+   then follows a beta-binomial distribution, with :math:`\\alpha = 1 / a` and
+   :math:`\\beta = (k - 1) / a`:
+
+   .. math::
+
+      P(w \\mid k, s, a) = \\binom{s}{w}
+      \\frac{B\\left(\\frac{1}{a} + w, \\frac{k - 1}{a} + s - w\\right)}{B\\left(\\frac{1}{a}, \\frac{k - 1}{a}\\right)}
+
+   and the p-value of an edge is :math:`P(X \\geq w)`, the probability of a weight at least as
+   large. With :math:`a \\to 0` this is the binomial null model of uniform random allocation;
+   with :math:`a = 1` and large strengths it is the disparity filter
+   (:func:`~graphoskop.disparity_filter`); larger values of :math:`a` explain more heterogeneous
+   weights as reinforcement, so fewer edges are significant.
+
+   The score stored is :math:`1 - p`, as for :func:`~graphoskop.disparity_filter`: higher scores
+   are more significant, and the backbone at significance :math:`\\alpha` keeps the edges with
+   ``score > 1 - alpha``, with the same rule in :func:`~graphoskop.extract_backbone`,
+   :func:`~graphoskop.test_bb_thresholds` and :func:`~graphoskop.find_bb_thresholds`:
+
+   .. code-block:: python
+
+      gsk.polya_filter(net)
+      backbone = gsk.extract_backbone(net, 0.95, score = "pf_score")   # alpha = 0.05
+
+   The paper also applies a Bonferroni correction, p-value :math:`< \\alpha / L`, with :math:`L`
+   the number of tests: two per edge (one from each endpoint) with ``policy`` ``"max"`` or
+   ``"min"``, one with ``"out"`` or ``"in"``, counting the edges of the whole network (each
+   undirected edge once), or of the layer in multilayer networks. ``bonferroni = True`` stores
+   :math:`1 - L p` instead, with the same thresholds (0.95 for :math:`\\alpha = 0.05`). Use it
+   rather than the threshold :math:`1 - \\alpha / L` on the uncorrected score: scores are stored
+   in single precision, which cannot tell apart values within about :math:`6 \\cdot 10^{-8}` of
+   1. The corrected score is not clipped: edges with :math:`L p > 1` have negative scores, down to
+   :math:`1 - L`, so all edges stay ordered by p-value. With :math:`L = 2E` the correction is
+   very strict: in networks with small weights few edges pass it.
+
+   Every edge has two p-values, from its source (its weight among the out-edges, out-strength and
+   out-degree) and from its target (among the in-edges); in undirected networks, from its two
+   endpoints. ``policy`` combines them as in :func:`~graphoskop.disparity_filter`: ``"max"``
+   keeps the larger score (the edge passes if it is significant for at least one endpoint, as in
+   the paper), ``"min"`` the smaller one, ``"out"`` or ``"in"`` (directed networks only) one of
+   the two. Nodes with a single edge give the p-value 1, so such edges are judged by their other
+   endpoint; edges of weight 0 have p-value 1.
+
+   **Discrete and continuous model.** In a network (layer, in multilayer networks) whose weights
+   are all integers, they are read as counts and the model above is used as is. If any weight is
+   not an integer, the whole network uses its large strength limit, where the share
+   :math:`w / s` follows the beta distribution :math:`B(\\alpha, \\beta)`, for the p-values and
+   for the estimate of :math:`a` (the beta-binomial with fractional draws would be meaningless).
+
+   **Computation.** With integer weights the p-value is an exact sum of beta-binomial
+   probabilities, in double precision, on the shorter side of the distribution:
+   :math:`P(X \\geq w)` (:math:`s - w + 1` terms) or :math:`1 - P(X < w)` (:math:`w` terms). The
+   second has an absolute error of about :math:`10^{-12}`, so p-values below :math:`10^{-6}` are
+   summed again on the upper tail, which far from the mean stops early (when a bound on the
+   remaining terms falls below :math:`10^{-16}` of the sum): relative errors are below
+   :math:`10^{-6}` down to the smallest p-values. Each term is obtained from the previous one by
+   the ratio of consecutive probabilities. With ``engine = "numba"`` the sums run in a compiled
+   kernel on the CPU, one edge per thread, about a nanosecond per term: on two CPU cores, a network
+   with a million edges and geometric weights takes about 2 s with mean weight 20, 3 s with mean
+   200 and 13 s with mean 2000, plus 6 to 10 s to estimate :math:`a`. With ``engine = "torch"``
+   they run on the device of the network, 32 terms at a time for all the edges at once, in batches
+   of about :math:`2^{22}` terms (about 400 MB): memory bound, several times slower than Numba on
+   a CPU, meant for GPUs. By default, the torch engine is used for networks on a GPU, the Numba
+   engine otherwise. The maximum likelihood estimate runs on the device of the network with both.
+
+   Sums longer than ``exact_max`` terms, and continuous models, use instead the large strength
+   limit of the model: the tail of the share :math:`w / s` in the beta distribution
+   :math:`B(\\alpha, \\beta)` (on the CPU, with SciPy, for both engines). It is exact for the
+   disparity filter (:math:`a = 1` gives :math:`(1 - w / s)^{k - 1}`), and its own asymptotic form is the approximation the paper
+   suggests for non-integer weights, which is less accurate. It is reliable only when
+   :math:`s \\gg k / a` and :math:`w \\gg 1`: at :math:`w = 1000` its error is typically about 1%
+   of the p-value, but it can reach a factor of 2 when :math:`s` is not much larger than
+   :math:`k / a`. Rescaling non-integer weights to integer counts makes them exact, but the model
+   is not scale invariant: the p-values depend on the unit of the weights.
+
+   **Choice of a.** With ``a = None`` it is estimated by maximum likelihood (Appendix F of the
+   paper), over :math:`[10^{-3}, 10^3]`: the log-likelihood sums the log-probabilities of all
+   the weights from the points of view used by ``policy`` (both endpoints for ``"max"`` and
+   ``"min"``), skipping nodes with a single edge; in the continuous model, the log-densities of
+   the shares :math:`w / s`, skipping shares 0 and 1. A warning is issued if the estimate is at a boundary (e.g. unit weights,
+   less heterogeneous than any urn in the range). Alternatively, :math:`a` can be swept:
+   backbones shrink as it grows. The paper's other criteria (salience) are not implemented.
+
+   Parallel edges and self loops count as separate edges of their nodes (a self loop once in
+   undirected networks), as in :func:`~graphoskop.disparity_filter`. In multilayer networks every
+   layer is filtered on its own: strengths and degrees count the intra-layer edges, and with
+   ``a = None`` each layer gets its own estimate.
+
+   :param net: A :class:`~graphoskop.Network` with non-negative weights, modified in place.
+   :param a: Reinforcement parameter, positive, or ``None`` for the maximum likelihood estimate.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param policy: ``"max"``, ``"min"``, ``"out"`` or ``"in"``.
+   :param exact_max: Maximum number of terms of an exact sum; longer sums use the beta
+      approximation. ``0`` uses the approximation everywhere.
+   :param prefix: The score is stored in the edge attribute ``prefix + "_score"``.
+   :param bonferroni: Store one minus the Bonferroni corrected p-value, :math:`1 - L p`, instead of
+      :math:`1 - p`.
+   :param engine: ``"numba"`` (CPU threads), ``"torch"`` (device of the network), or ``None``.
+   :return: The value of :math:`a` used: a float, or, in multilayer networks with ``a = None``, a
+      dict from layer to its estimate.
+   :raises ValueError: If ``policy`` or ``engine`` is not valid, if ``a`` is not positive, or if a
+      weight is negative.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("flights.tsv")              # integer weights: passengers
+      a = gsk.polya_filter(net)                          # maximum likelihood a
+      backbone = gsk.extract_backbone(net, 0.95, score = "pf_score")
+      gsk.test_bb_thresholds(net, 0.9, 0.99, 0.01, score = "pf_score")
+      gsk.polya_filter(net, a = 1)                       # discrete disparity filter
+      gsk.polya_filter(net, a = a, bonferroni = True)    # as in the paper
+   """
+   if policy not in (("max", "min", "out", "in") if net.directed else ("max", "min")):
+      raise ValueError(f"unknown policy for a{' directed' if net.directed else 'n undirected'} network: {policy}")
+   if a is not None and not a > 0:
+      raise ValueError(f"a must be positive, got {a}")
+   engine = engine or ("torch" if net.components[0].edge_index.is_cuda else "numba")
+   if engine not in ("numba", "torch"):
+      raise ValueError(f"unknown engine: {engine}")
+   sides = [s for s in ("out", "in") if policy in ("max", "min", s)]
+   L = 1 if net.layer_labels is None else len(net.layer_labels)
+   tests = torch.zeros(L, dtype = torch.float64)   # Bonferroni: tests per layer, sides times input intra-layer edges
+   for c in range(len(net.components)):
+      ei = net._input_edges(c)[0]
+      lay = torch.zeros_like(ei[0]) if net.layer_labels is None else net.components[c].layer[ei[0][~net.interlayer_mask(c)[:ei.shape[1]]]]
+      tests += torch.bincount(lay, minlength = L).double().cpu()
+   tests *= len(sides)
+   obs = []   # per component and side: weights, strengths, degrees and layers of the entries
+   for c, data in enumerate(net.components):
+      keep, lay = _intra(net, c)
+      src, trg = data.edge_index if keep is None else data.edge_index[:, keep]
+      n = data.num_nodes
+      x = _weights(net, c, weight).double() if keep is None else _weights(net, c, weight).double()[keep]
+      if bool((x < 0).any()):
+         raise ValueError("the Pólya filter needs non-negative weights")
+      lay = torch.zeros_like(src) if lay is None else lay[keep]
+      for side in sides:
+         i = src if side == "out" else trg
+         S = torch.zeros(n, dtype = torch.float64, device = x.device).index_add_(0, i, x)
+         K = torch.bincount(i, minlength = n).double()
+         obs.append((c, keep, x, S[i], K[i], lay, side == "out" or net.directed))   # undirected: each endpoint once in the likelihood
+   frac = torch.zeros(L, dtype = torch.bool)   # layers with non-integer weights: continuous model
+   for o in obs:
+      frac |= torch.bincount(o[5][o[2] != torch.floor(o[2])], minlength = L).cpu() > 0
+   if a is None:
+      est = []
+      for l in range(L):
+         w, s, k = (torch.cat([o[j][(o[5] == l) & (o[4] > 1)] for o in obs if o[6]]) for j in (2, 3, 4))
+         est.append(_polya_ml(w, s, k, not bool(frac[l])))
+      found = {net.layer_labels[l]: est[l] for l in range(L)} if net.layer_labels is not None else est[0]
+      est = torch.tensor(est, dtype = torch.float64)
+   else:
+      found, est = a, torch.full((L,), float(a), dtype = torch.float64)
+   scores = {}
+   for c, keep, w, s, k, lay, _ in obs:
+      p = _polya_pvalues(w, s, k, est.to(w.device)[lay], exact_max, engine, ~frac.to(w.device)[lay])
+      sc = 1 - (p * tests.to(w.device)[lay] if bonferroni else p)
+      if c in scores:
+         scores[c] = (torch.maximum if policy == "max" else torch.minimum)(scores[c], sc)
+      else:
+         scores[c] = sc
+   for c, keep in {o[0]: o[1] for o in obs}.items():
+      net.set_edge_attribute(prefix + "_score", _scatter(scores[c], keep), c)
+   return found
 
 
 _SINKHORN_ITER = 100   # Sinkhorn-Knopp iterations before switching to the Newton method

@@ -11,11 +11,13 @@ graphoskop/ergms.py
 graphoskop/exploration.py
 graphoskop/generators.py
 graphoskop/hierarchy.py
+graphoskop/link_prediction.py
 graphoskop/multilayer.py
 graphoskop/network.py
 graphoskop/network_statistics.py
 graphoskop/node_vector_analysis.py
 graphoskop/planarity.py
+graphoskop/robustness.py
 graphoskop/shortest_paths.py
 graphoskop/signed.py
 graphoskop/transformations.py

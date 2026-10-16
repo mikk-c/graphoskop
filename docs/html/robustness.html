@@ -1,0 +1,449 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robustness &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shortest paths" href="shortest_paths.html" />
+    <link rel="prev" title="Node vector analysis" href="node_vector_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Robustness</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cascade-failures">Cascade failures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.cascade_failures"><code class="docutils literal notranslate"><span class="pre">cascade_failures()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#edge-removal">Edge removal</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.edge_removal"><code class="docutils literal notranslate"><span class="pre">edge_removal()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#node-removal">Node removal</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.node_removal"><code class="docutils literal notranslate"><span class="pre">node_removal()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Robustness</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/robustness.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.robustness">
+<span id="robustness"></span><h1>Robustness<a class="headerlink" href="#module-graphoskop.robustness" title="Link to this heading"></a></h1>
+<p>Robustness: how much a network breaks down when its nodes or edges fail, one after the other.
+Like epidemics, failures are a percolation process: removing nodes (site percolation) or edges
+(bond percolation) eventually breaks the network into small pieces.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">node_removal()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">edge_removal()</span></code> remove the nodes or the edges of a network one by
+one, in an order given by a strategy, and record a quality of the network after each removal:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;lcc&quot;</span></code>: the fraction of all the nodes in the largest connected component (weakly connected,
+in directed networks), the size of the giant component in percolation theory;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code>: the average shortest path length between the remaining nodes, as
+<a class="reference internal" href="network_statistics.html#graphoskop.average_shortest_path_length" title="graphoskop.average_shortest_path_length"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_shortest_path_length()</span></code></a> (unit lengths, ordered pairs connected by a
+path, directions followed in directed networks; NaN when no pair is connected).</p></li>
+</ul>
+<p>Strategies:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>: random failures, a uniformly random order, anew in every run;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code> (nodes only): an acquaintance attack, the order of the friends named by
+random nodes (as in the immunization of <a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a random
+node names a random neighbor (out-neighbor in directed networks), which is removed, drawn again
+if already removed. This is the same as drawing the nodes without replacement with probability
+proportional to <span class="math notranslate nohighlight">\(w_v = \sum_{u \to v} 1 / k_u\)</span>, the chance that a random node names
+<span class="math notranslate nohighlight">\(v\)</span>, which is how the order is drawn; nodes nobody names come last, in random order;</p></li>
+<li><p>node or edge ids: removed in the given order, and only those;</p></li>
+<li><p>a measure, i.e. values of the nodes (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> by node id, or
+the name of a numeric node attribute, e.g. a centrality or <a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a> with
+<code class="docutils literal notranslate"><span class="pre">distribution</span> <span class="pre">=</span> <span class="pre">None</span></code>) or of the edges (vector aligned with the edges, e.g.
+<a class="reference internal" href="centrality.html#graphoskop.edge_betweenness_centrality" title="graphoskop.edge_betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a>, or the name of a numeric edge attribute): a
+targeted attack, from the largest value down (<code class="docutils literal notranslate"><span class="pre">selection</span> <span class="pre">=</span> <span class="pre">&quot;top&quot;</span></code>, NaN last), or drawn
+without replacement with probability proportional to the values (<code class="docutils literal notranslate"><span class="pre">selection</span> <span class="pre">=</span> <span class="pre">&quot;weighted&quot;</span></code>).</p></li>
+</ul>
+<p>A measure can also be a function of the network returning such values (e.g.
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.degree(g,</span> <span class="pre">distribution</span> <span class="pre">=</span> <span class="pre">None)</span></code>). By default the measure is computed once, on
+the intact network. With <code class="docutils literal notranslate"><span class="pre">recompute</span> <span class="pre">=</span> <span class="pre">True</span></code> and a function, it is computed again on the
+remaining network after every removal (an adaptive attack: e.g. the node with the largest current
+degree, then the largest degree among the nodes left, and so on), or after every <code class="docutils literal notranslate"><span class="pre">recompute</span></code>
+removals if it is a number, which is much faster on large networks: each computation rebuilds the
+remaining network and calls the function. Random strategies are repeated <code class="docutils literal notranslate"><span class="pre">runs</span></code> times, and the table gives the mean and its 95% Student’s
+t confidence interval; the other strategies give the same order every time, and are run once.</p>
+<p>The largest component is found for every number of removals at once, by adding the removed
+nodes or edges back in reverse order with a union-find (Newman and Ziff, 2000), so a whole curve
+costs about as much as finding the components once; runs go in parallel on the CPU threads. The
+average path length needs a breadth-first search from every remaining node (or from <code class="docutils literal notranslate"><span class="pre">samples</span></code>
+random ones) at every recorded point, in parallel over the sources: much slower, so record few
+<code class="docutils literal notranslate"><span class="pre">points</span></code>.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">cascade_failures()</span></code> simulates cascades of failures instead: nodes or edges carry a load and
+have a capacity, a failed item passes its load to its neighbors, and overloaded items fail in turn.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">failures</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                 <span class="c1"># random failures</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">attack</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">)</span>                           <span class="c1"># hubs first</span>
+<span class="n">soft</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">selection</span> <span class="o">=</span> <span class="s2">&quot;weighted&quot;</span><span class="p">)</span>     <span class="c1"># hubs more likely first</span>
+<span class="n">friends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="s2">&quot;friend_of_random&quot;</span><span class="p">)</span>         <span class="c1"># acquaintance attack</span>
+<span class="n">chosen</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">])</span>            <span class="c1"># these nodes, in order</span>
+<span class="n">apl</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">quality</span> <span class="o">=</span> <span class="s2">&quot;apl&quot;</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="mi">500</span><span class="p">)</span>
+<span class="n">degree</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">adaptive</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">degree</span><span class="p">,</span> <span class="n">recompute</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># largest current degree first</span>
+
+<span class="n">cuts</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_removal</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                           <span class="c1"># random edge failures</span>
+<span class="n">eb</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">cuts</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">eb</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>            <span class="c1"># highest betweenness first</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">failures</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;fraction&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;lcc&quot;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;random&quot;</span><span class="p">)</span>
+<span class="n">attack</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;fraction&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;lcc&quot;</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;hubs&quot;</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">)</span>
+
+<span class="c1"># cascades: a failed node passes its load to its neighbors, overloaded neighbors fail next</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">margin</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>   <span class="c1"># random loads and capacities</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">margin</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>   <span class="c1"># load = degree, the hub fails</span>
+<span class="n">c</span><span class="p">[[</span><span class="s2">&quot;failed&quot;</span><span class="p">,</span> <span class="s2">&quot;lcc&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>                                            <span class="c1"># by step</span>
+<span class="n">ml</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;layers.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>                             <span class="c1"># all copies of an entity fail together</span>
+</pre></div>
+</div>
+<section id="cascade-failures">
+<h2>Cascade failures<a class="headerlink" href="#cascade-failures" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.cascade_failures">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">cascade_failures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nodes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lcc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interdependent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.cascade_failures" title="Link to this definition"></a></dt>
+<dd><p>Cascading failures with load redistribution, as in the overload models of power grids and
+fiber bundles (Motter and Lai, 2002): every node (or edge) carries a load and has a capacity;
+when it fails it is removed from the network and its load goes to its neighbors, which fail in
+turn at the next step if their load exceeds their capacity, and so on until no item is
+overloaded.</p>
+<p>Loads and capacities are node (or edge) attributes given by name, values (as for a measure,
+see the module description), or <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>: random loads are uniform in [0, 1), and random
+capacities are the load plus a spare capacity uniform in [0, <code class="docutils literal notranslate"><span class="pre">margin</span></code>), so that nothing is
+overloaded at the start; random values are drawn anew in every run.</p>
+<p>At step 0, the initial failures happen: <code class="docutils literal notranslate"><span class="pre">failures</span></code> items (a fraction of them if below 1)
+chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, as in <a class="reference internal" href="#graphoskop.node_removal" title="graphoskop.node_removal"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_removal()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code> for
+nodes, a measure with <code class="docutils literal notranslate"><span class="pre">selection</span></code>, or ids, which give the failing items themselves and make
+<code class="docutils literal notranslate"><span class="pre">failures</span></code> unused), or <code class="docutils literal notranslate"><span class="pre">&quot;overload&quot;</span></code>: all the items whose load already exceeds their
+capacity. At every step, the failing items are removed together, and each one splits its
+current load among its remaining neighbors (<code class="docutils literal notranslate"><span class="pre">distribution</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;equal&quot;</span></code>: in equal parts;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>: in random parts (weights uniform in [0, 1), normalized);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;load&quot;</span></code>: proportionally to the current load of the receivers;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;capacity&quot;</span></code>: proportionally to the capacity of the receivers.</p></li>
+</ul>
+<p>The neighbors of a node are its neighbors (out-neighbors in directed networks, where load
+flows along the edges); the neighbors of an edge are the edges that share an endpoint with it
+(in directed networks, the edges leaving its target). Parallel edges count as several
+neighbors. When <code class="docutils literal notranslate"><span class="pre">&quot;load&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;capacity&quot;</span></code> weights are all zero the split is equal, and the
+load of an item without remaining neighbors is lost. The items whose load exceeds their
+capacity after all the transfers of a step fail at the next step (only the items that received
+load are checked: given loads above capacity at the start fail only through <code class="docutils literal notranslate"><span class="pre">&quot;overload&quot;</span></code>).</p>
+<p>In multilayer networks the items are the copies of the entities (nodes) or the edges of the
+supra-graph, and couplings are edges like the others. With <code class="docutils literal notranslate"><span class="pre">interdependent</span> <span class="pre">=</span> <span class="pre">True</span></code> (and node
+items), the layers depend on each other as in interdependent networks (Buldyrev et al., 2010):
+when a copy fails, all the copies of its entity fail at the same step, and pass their own loads
+to their own neighbors, so failures percolate from layer to layer (the failing copies do not
+pass load to each other through their couplings). With <code class="docutils literal notranslate"><span class="pre">interdependent</span> <span class="pre">=</span> <span class="pre">False</span></code> the copies
+fail independently, and load flows through the couplings as through any edge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>load</strong> – Load of every item: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, the name of a numeric attribute, or values.</p></li>
+<li><p><strong>capacity</strong> – Capacity of every item: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, the name of a numeric attribute, or
+values.</p></li>
+<li><p><strong>failures</strong> – Number of initial failures, or a fraction of the items if below 1.</p></li>
+<li><p><strong>strategy</strong> – How the initial failures are chosen: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>
+(nodes), <code class="docutils literal notranslate"><span class="pre">&quot;overload&quot;</span></code>, a measure, or ids (the failing items).</p></li>
+<li><p><strong>selection</strong> – With a measure: <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>elements</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;nodes&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;edges&quot;</span></code>, the items that carry load and fail.</p></li>
+<li><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;equal&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;load&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;capacity&quot;</span></code>.</p></li>
+<li><p><strong>margin</strong> – Largest spare capacity of random capacities.</p></li>
+<li><p><strong>quality</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;lcc&quot;</span></code> (fraction of all the nodes in the largest connected component) or
+<code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code> (average shortest path length), after the failures of each step.</p></li>
+<li><p><strong>runs</strong> – Number of runs (a single run if nothing is random).</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>samples</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code>, the number of random source nodes of the searches, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>interdependent</strong> – In multilayer networks with node items, whether all the copies of an
+entity fail together.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step (0: the initial failures), with columns
+<code class="docutils literal notranslate"><span class="pre">failed</span></code> (mean fraction of the items failed so far), the mean quality (<code class="docutils literal notranslate"><span class="pre">lcc</span></code> or <code class="docutils literal notranslate"><span class="pre">apl</span></code>)
+and their confidence intervals (<code class="docutils literal notranslate"><span class="pre">failed_low</span></code>, <code class="docutils literal notranslate"><span class="pre">failed_high</span></code>, <code class="docutils literal notranslate"><span class="pre">lcc_low</span></code>, …; NaN with a
+single run). Runs that stop earlier keep their final values.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a parameter is not valid, or loads or capacities are not finite and non
+negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;grid.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;stations.tsv&quot;</span><span class="p">)</span>                     <span class="c1"># node attributes load, capacity</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="s2">&quot;overload&quot;</span><span class="p">,</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">margin</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span>              <span class="c1"># random loads and capacities</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;capacity&quot;</span><span class="p">)</span>   <span class="c1"># the hub fails</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">elements</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="n">c</span><span class="p">[</span><span class="s2">&quot;failed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                     <span class="c1"># final size of the cascade</span>
+<span class="n">ml</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;grid_layers.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">coupling</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>                             <span class="c1"># interdependent layers</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cascade_failures</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="n">failures</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">interdependent</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>     <span class="c1"># copies fail independently</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="edge-removal">
+<h2>Edge removal<a class="headerlink" href="#edge-removal" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.edge_removal">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_removal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lcc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recompute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_removal" title="Link to this definition"></a></dt>
+<dd><p>Robustness of a network to edge failures or attacks: remove its edges one by one (all nodes
+stay), and record the quality of the network after each removal (see the module description).
+Every edge counts once (in undirected networks, both stored directions go together); parallel
+edges are removed one at a time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>strategy</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code> (failures), edges <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> (removed in order; all the edges
+between <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code>, in either direction if undirected), or edge values (a measure: a
+vector with one value per edge or per stored edge, e.g.
+<a class="reference internal" href="centrality.html#graphoskop.edge_betweenness_centrality" title="graphoskop.edge_betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a>, a list of them, one per component, or the
+name of a numeric edge attribute), or a function of the network returning edge values.</p></li>
+<li><p><strong>selection</strong> – With a measure: <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> (largest values first) or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code> (drawn
+with probability proportional to the values).</p></li>
+<li><p><strong>quality</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;lcc&quot;</span></code> (fraction of the nodes in the largest connected component) or
+<code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code> (average shortest path length).</p></li>
+<li><p><strong>runs</strong> – Number of runs of the random strategies; the others are run once.</p></li>
+<li><p><strong>points</strong> – Number of numbers of removals recorded, evenly spaced from none to all, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for every removal.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>samples</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code>, the number of random source nodes of the searches at each
+point, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all the nodes (exact).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>recompute</strong> – With a measure given as a function of the network, <code class="docutils literal notranslate"><span class="pre">True</span></code> to compute it
+again on the remaining network after every removal (adaptive attack), a number of removals
+between computations, or <code class="docutils literal notranslate"><span class="pre">False</span></code> to compute it once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by the number of removed edges (<code class="docutils literal notranslate"><span class="pre">removed</span></code>), with
+columns <code class="docutils literal notranslate"><span class="pre">fraction</span></code> (of the edges removed), the mean quality (<code class="docutils literal notranslate"><span class="pre">lcc</span></code> or <code class="docutils literal notranslate"><span class="pre">apl</span></code>) and its
+confidence interval (NaN with a single run).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If a parameter is not valid, or a vector does not have one value per edge.</p></li>
+<li><p><strong>KeyError</strong> – If a node or an edge does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">failures</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_removal</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                      <span class="c1"># random, 10 runs</span>
+<span class="n">eb</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                             <span class="c1"># largest component</span>
+<span class="n">attack</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">eb</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>          <span class="c1"># highest betweenness first</span>
+<span class="n">cut</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="node-removal">
+<h2>Node removal<a class="headerlink" href="#node-removal" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.node_removal">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">node_removal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lcc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recompute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.node_removal" title="Link to this definition"></a></dt>
+<dd><p>Robustness of a network to node failures or attacks: remove its nodes one by one, with their
+edges, and record the quality of the network after each removal (see the module description).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>strategy</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code> (failures), <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code> (acquaintance attack), node
+ids (the nodes to remove, in order), or node values (a measure: vector, list of vectors,
+dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> by node id, or the name of a numeric node attribute),
+or a function of the network returning node values.</p></li>
+<li><p><strong>selection</strong> – With a measure: <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> (largest values first) or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code> (drawn
+with probability proportional to the values).</p></li>
+<li><p><strong>quality</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;lcc&quot;</span></code> (fraction of the nodes in the largest connected component) or
+<code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code> (average shortest path length).</p></li>
+<li><p><strong>runs</strong> – Number of runs of the random strategies (<code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>); the others are run once.</p></li>
+<li><p><strong>points</strong> – Number of numbers of removals recorded, evenly spaced from none to all, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for every removal.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>samples</strong> – With <code class="docutils literal notranslate"><span class="pre">&quot;apl&quot;</span></code>, the number of random source nodes of the searches at each
+point, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all the remaining nodes (exact).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>recompute</strong> – With a measure given as a function of the network, <code class="docutils literal notranslate"><span class="pre">True</span></code> to compute it
+again on the remaining network after every removal (adaptive attack), a number of removals
+between computations, or <code class="docutils literal notranslate"><span class="pre">False</span></code> to compute it once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by the number of removed nodes (<code class="docutils literal notranslate"><span class="pre">removed</span></code>), with
+columns <code class="docutils literal notranslate"><span class="pre">fraction</span></code> (of the nodes removed), the mean quality (<code class="docutils literal notranslate"><span class="pre">lcc</span></code> or <code class="docutils literal notranslate"><span class="pre">apl</span></code>) and its
+confidence interval (<code class="docutils literal notranslate"><span class="pre">lcc_low</span></code>, <code class="docutils literal notranslate"><span class="pre">lcc_high</span></code>, …; NaN with a single run).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If a parameter is not valid, a vector does not have one value per node, or
+a node is outside the nodes considered.</p></li>
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">failures</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                      <span class="c1"># random, 10 runs</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>                              <span class="c1"># one vector per component</span>
+<span class="n">attack</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">)</span>                          <span class="c1"># hubs first</span>
+<span class="n">soft</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">selection</span> <span class="o">=</span> <span class="s2">&quot;weighted&quot;</span><span class="p">)</span>    <span class="c1"># hubs more likely first</span>
+<span class="n">friends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="s2">&quot;friend_of_random&quot;</span><span class="p">)</span>
+<span class="n">apl</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">quality</span> <span class="o">=</span> <span class="s2">&quot;apl&quot;</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">failures</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;fraction&quot;</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="s2">&quot;lcc&quot;</span><span class="p">)</span>
+<span class="n">degree</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">adaptive</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">degree</span><span class="p">,</span> <span class="n">recompute</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># largest current degree first</span>
+<span class="n">faster</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_removal</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">strategy</span> <span class="o">=</span> <span class="n">degree</span><span class="p">,</span> <span class="n">recompute</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>      <span class="c1"># recomputed every 100 removals</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<p>On two CPU threads, 10 runs of random node failures with the largest component as quality take
+0.7 s on a random network with 100,000 nodes and 500,000 edges, and 10 s with 1,000,000 nodes and
+5,000,000 edges (every removal recorded internally). The average path length needs a full search
+at every recorded point: 20 points on 5,000 nodes and 25,000 edges take 8 s exactly, 0.5 s with
+<code class="docutils literal notranslate"><span class="pre">samples</span> <span class="pre">=</span> <span class="pre">200</span></code> (3.956 instead of 3.950 before any removal).</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">recompute</span></code>, the measure is computed again on a rebuilt copy of the remaining network, so
+the cost grows with the number of computations: an adaptive degree attack on 10,000 nodes and
+50,000 edges takes 13 s with <code class="docutils literal notranslate"><span class="pre">recompute</span> <span class="pre">=</span> <span class="pre">100</span></code> and 1.4 s with <code class="docutils literal notranslate"><span class="pre">recompute</span> <span class="pre">=</span> <span class="pre">1000</span></code>.</p>
+<p><a class="reference internal" href="#graphoskop.cascade_failures" title="graphoskop.cascade_failures"><code class="xref py py-func docutils literal notranslate"><span class="pre">cascade_failures()</span></code></a> runs the runs in parallel and only touches the items that
+receive load: 10 runs from 5 random failures take 0.9 s on 100,000 nodes and 500,000 edges, and
+14 s on 1,000,000 nodes and 5,000,000 edges.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="node_vector_analysis.html" class="btn btn-neutral float-left" title="Node vector analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shortest_paths.html" class="btn btn-neutral float-right" title="Shortest paths" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

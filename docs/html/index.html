@@ -45,23 +45,25 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -124,7 +126,11 @@ its nodes and their attributes (see <a class="reference internal" href="generato
 <p>Exponential random graph models, with node attributes and dyadic covariates, are written and
 fitted as in R’s <code class="docutils literal notranslate"><span class="pre">ergm</span></code> package (see <a class="reference internal" href="ergm.html"><span class="doc">Exponential random graph models</span></a>).</p>
 <p>Epidemics spread on networks with compartmental models (SI, SIS, SIR), by simple or complex
-contagion, simulated in parallel runs (see <a class="reference internal" href="epidemics.html"><span class="doc">Epidemics</span></a>).</p>
+contagion, simulated in parallel runs (see <a class="reference internal" href="epidemics.html"><span class="doc">Epidemics</span></a>). The robustness of a network to node
+or edge failures and attacks, another percolation process, and cascades of failures driven by
+loads and capacities are in <a class="reference internal" href="robustness.html"><span class="doc">Robustness</span></a>.</p>
+<p>Link prediction hides some edges of a network and scores the hidden pairs, and as many
+unconnected ones, from the rest of the network (see <a class="reference internal" href="link_prediction.html"><span class="doc">Link prediction</span></a>).</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
@@ -142,51 +148,67 @@ contagion, simulated in parallel runs (see <a class="reference internal" href="e
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.to_undirected"><code class="docutils literal notranslate"><span class="pre">to_undirected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.flip_edge_direction"><code class="docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_isolates"><code class="docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_self_loops"><code class="docutils literal notranslate"><span class="pre">remove_self_loops()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_self_loops"><code class="docutils literal notranslate"><span class="pre">remove_self_loops()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.subgraph"><code class="docutils literal notranslate"><span class="pre">subgraph()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.to_strongly_connected"><code class="docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.to_undirected"><code class="docutils literal notranslate"><span class="pre">to_undirected()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#adding-and-removing-nodes-and-edges">Adding and removing nodes and edges</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#representation">Representation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#loading">Loading</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#analyses">Analyses</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#saving">Saving</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#single-layers-and-aggregation">Single layers and aggregation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="multilayer.html#signed-networks">Signed networks</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="signed.html#graphoskop.SIGN"><code class="docutils literal notranslate"><span class="pre">SIGN</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="signed.html#building-a-signed-network">Building a signed network</a></li>
-<li class="toctree-l2"><a class="reference internal" href="signed.html#structural-balance-and-signed-triangles">Structural balance and signed triangles</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.simple_count_projection"><code class="docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.hist_intersection_projection"><code class="docutils literal notranslate"><span class="pre">hist_intersection_projection()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.hyperbolic_projection"><code class="docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.resource_allocation_projection"><code class="docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.random_walk_projection"><code class="docutils literal notranslate"><span class="pre">random_walk_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#collapsing-nodes">Collapsing nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#combining-networks">Combining networks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#assortativity">Assortativity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#average-shortest-path-length">Average shortest path length</a></li>
+<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#clustering">Clustering</a></li>
 <li class="toctree-l2"><a class="reference internal" href="network_statistics.html#connected-components">Connected components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="network_statistics.html#degree">Degree</a></li>
 <li class="toctree-l2"><a class="reference internal" href="network_statistics.html#density">Density</a></li>
 <li class="toctree-l2"><a class="reference internal" href="network_statistics.html#reciprocity">Reciprocity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#average-shortest-path-length">Average shortest path length</a></li>
-<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#clustering">Clustering</a></li>
-<li class="toctree-l2"><a class="reference internal" href="network_statistics.html#assortativity">Assortativity</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="communities.html#quality-of-a-partition">Quality of a partition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="communities.html#cliques">Cliques</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.disparity_filter"><code class="docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.doubly_stochastic"><code class="docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.extract_backbone"><code class="docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.find_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.high_salience_skeleton"><code class="docutils literal notranslate"><span class="pre">high_salience_skeleton()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.maximally_filtered_graph"><code class="docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.noise_corrected"><code class="docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.polya_filter"><code class="docutils literal notranslate"><span class="pre">polya_filter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.spanning_tree"><code class="docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.test_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.triangulated_filtered_graph"><code class="docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.cosine_similarity_projection"><code class="docutils literal notranslate"><span class="pre">cosine_similarity_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.hist_intersection_projection"><code class="docutils literal notranslate"><span class="pre">hist_intersection_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.hyperbolic_projection"><code class="docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.inverse_euclidean_projection"><code class="docutils literal notranslate"><span class="pre">inverse_euclidean_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.pearson_correlation_projection"><code class="docutils literal notranslate"><span class="pre">pearson_correlation_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.random_walk_projection"><code class="docutils literal notranslate"><span class="pre">random_walk_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.resource_allocation_projection"><code class="docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipartite_projections.html#graphoskop.simple_count_projection"><code class="docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.alpha_centrality"><code class="docutils literal notranslate"><span class="pre">alpha_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.centralization"><code class="docutils literal notranslate"><span class="pre">centralization()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.closeness_centrality"><code class="docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.edge_betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.eigenvector_centrality"><code class="docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.flow_centrality"><code class="docutils literal notranslate"><span class="pre">flow_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.harmonic_centrality"><code class="docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.hits"><code class="docutils literal notranslate"><span class="pre">hits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.k_core_centrality"><code class="docutils literal notranslate"><span class="pre">k_core_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.katz_centrality"><code class="docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.pagerank"><code class="docutils literal notranslate"><span class="pre">pagerank()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.reach_centrality"><code class="docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a><ul>
@@ -194,92 +216,30 @@ contagion, simulated in parallel runs (see <a class="reference internal" href="e
 <li class="toctree-l2"><a class="reference internal" href="coloring.html#graphoskop.maximum_independent_set"><code class="docutils literal notranslate"><span class="pre">maximum_independent_set()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian"><code class="docutils literal notranslate"><span class="pre">laplacian()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian_pinv"><code class="docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian_solver"><code class="docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution"><code class="docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.effective_resistance"><code class="docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.hitting_time"><code class="docutils literal notranslate"><span class="pre">hitting_time()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="communities.html#cliques">Cliques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="communities.html#quality-of-a-partition">Quality of a partition</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.complex_contagion">Complex contagion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.simple_contagion">Simple contagion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_automorphic_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_path_regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_structural_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_structural_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">path_regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.regular_equivalence"><code class="docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.structural_equivalence"><code class="docutils literal notranslate"><span class="pre">structural_equivalence()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.dfs"><code class="docutils literal notranslate"><span class="pre">dfs()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path"><code class="docutils literal notranslate"><span class="pre">shortest_path()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path_length"><code class="docutils literal notranslate"><span class="pre">shortest_path_length()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.single_source_shortest_paths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.single_source_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_paths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_paths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path_length_distribution"><code class="docutils literal notranslate"><span class="pre">shortest_path_length_distribution()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.diameter"><code class="docutils literal notranslate"><span class="pre">diameter()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.closeness_centrality"><code class="docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.harmonic_centrality"><code class="docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.eigenvector_centrality"><code class="docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.katz_centrality"><code class="docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.alpha_centrality"><code class="docutils literal notranslate"><span class="pre">alpha_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.pagerank"><code class="docutils literal notranslate"><span class="pre">pagerank()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.hits"><code class="docutils literal notranslate"><span class="pre">hits()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.edge_betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.flow_centrality"><code class="docutils literal notranslate"><span class="pre">flow_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.reach_centrality"><code class="docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.k_core_centrality"><code class="docutils literal notranslate"><span class="pre">k_core_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="centrality.html#graphoskop.centralization"><code class="docutils literal notranslate"><span class="pre">centralization()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="hierarchy.html#graphoskop.global_reach_centrality"><code class="docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.structural_equivalence"><code class="docutils literal notranslate"><span class="pre">structural_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_structural_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_structural_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_automorphic_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.regular_equivalence"><code class="docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_regular_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">path_regular_equivalence()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="equivalence.html#graphoskop.pairwise_path_regular_equivalence"><code class="docutils literal notranslate"><span class="pre">pairwise_path_regular_equivalence()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.pairwise_generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">pairwise_generalized_euclidean()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_correlation"><code class="docutils literal notranslate"><span class="pre">network_correlation()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.pairwise_network_correlation"><code class="docutils literal notranslate"><span class="pre">pairwise_network_correlation()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_variance"><code class="docutils literal notranslate"><span class="pre">network_variance()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_entropy"><code class="docutils literal notranslate"><span class="pre">network_entropy()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.noise_corrected"><code class="docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.disparity_filter"><code class="docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.doubly_stochastic"><code class="docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.high_salience_skeleton"><code class="docutils literal notranslate"><span class="pre">high_salience_skeleton()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.extract_backbone"><code class="docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.spanning_tree"><code class="docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.maximally_filtered_graph"><code class="docutils literal notranslate"><span class="pre">maximally_filtered_graph()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.triangulated_filtered_graph"><code class="docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.test_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.find_bb_thresholds"><code class="docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#simple-graphs">Simple graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#random-graphs">Random graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#clustered-graphs">Clustered graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#broad-degree-graphs">Broad degree graphs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#stochastic-blockmodels">Stochastic blockmodels</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#community-benchmarks">Community benchmarks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generators.html#testing-against-null-models">Testing against null models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a><ul>
@@ -288,9 +248,77 @@ contagion, simulated in parallel runs (see <a class="reference internal" href="e
 <li class="toctree-l2"><a class="reference internal" href="ergm.html#statistics">Statistics</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.simple_contagion">Simple contagion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="epidemics.html#module-graphoskop.epidemics.complex_contagion">Complex contagion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#broad-degree-graphs">Broad degree graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#clustered-graphs">Clustered graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#community-benchmarks">Community benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#random-graphs">Random graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#simple-graphs">Simple graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#stochastic-blockmodels">Stochastic blockmodels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generators.html#testing-against-null-models">Testing against null models</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hierarchy.html#graphoskop.global_reach_centrality"><code class="docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.effective_resistance"><code class="docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.hitting_time"><code class="docutils literal notranslate"><span class="pre">hitting_time()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian"><code class="docutils literal notranslate"><span class="pre">laplacian()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian_pinv"><code class="docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.laplacian_solver"><code class="docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution"><code class="docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="link_prediction.html#ensembles">Ensembles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="link_prediction.html#evaluation">Evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="link_prediction.html#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="link_prediction.html#scores">Scores</a></li>
+<li class="toctree-l2"><a class="reference internal" href="link_prediction.html#training-and-validation-sets">Training and validation sets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#analyses">Analyses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#loading">Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#representation">Representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#saving">Saving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#signed-networks">Signed networks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multilayer.html#single-layers-and-aggregation">Single layers and aggregation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_correlation"><code class="docutils literal notranslate"><span class="pre">network_correlation()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_entropy"><code class="docutils literal notranslate"><span class="pre">network_entropy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.network_variance"><code class="docutils literal notranslate"><span class="pre">network_variance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.pairwise_generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">pairwise_generalized_euclidean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="node_vector_analysis.html#graphoskop.pairwise_network_correlation"><code class="docutils literal notranslate"><span class="pre">pairwise_network_correlation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="robustness.html#cascade-failures">Cascade failures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robustness.html#edge-removal">Edge removal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robustness.html#node-removal">Node removal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="robustness.html#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_paths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_paths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.diameter"><code class="docutils literal notranslate"><span class="pre">diameter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path"><code class="docutils literal notranslate"><span class="pre">shortest_path()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path_length"><code class="docutils literal notranslate"><span class="pre">shortest_path_length()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.shortest_path_length_distribution"><code class="docutils literal notranslate"><span class="pre">shortest_path_length_distribution()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.single_source_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shortest_paths.html#graphoskop.single_source_shortest_paths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="signed.html#graphoskop.SIGN"><code class="docutils literal notranslate"><span class="pre">SIGN</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed.html#building-a-signed-network">Building a signed network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed.html#structural-balance-and-signed-triangles">Structural balance and signed triangles</a></li>
 </ul>
 </li>
 </ul>

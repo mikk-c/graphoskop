@@ -13,12 +13,12 @@ Communities
    gsk.modularity(net, {"alice": 0, "bob": 0, "carol": 1})  # or from labels by node id
    cliques = gsk.maximal_cliques(net)                       # node sets of the cliques of 3+ nodes
 
-Quality of a partition
-----------------------
-
-.. autofunction:: graphoskop.modularity
-
 Cliques
 -------
 
 .. autofunction:: graphoskop.maximal_cliques
+
+Quality of a partition
+----------------------
+
+.. autofunction:: graphoskop.modularity

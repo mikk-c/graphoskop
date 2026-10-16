@@ -11,7 +11,7 @@ Networks and their attributes
 .. autofunction:: graphoskop.load_pickled_network
 
 .. autoclass:: graphoskop.Network
-   :members: get_node_attribute, set_node_attribute, get_edge_attribute, set_edge_attribute, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
+   :members: get_node_attribute, set_node_attribute, get_edge_attribute, set_edge_attribute, edges, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
 
 .. autodata:: graphoskop.BIPARTITE
    :annotation: = "bipartite_type"
@@ -26,7 +26,8 @@ memory: they are kept once for the whole network in ``Network.qualitative_node_a
 :class:`pandas.DataFrame` of categorical columns in CPU memory, with rows in the network wide node
 order (component by component). Both kinds are read and written by name with
 :meth:`~graphoskop.Network.get_node_attribute` and :meth:`~graphoskop.Network.set_node_attribute`,
-and are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning_tree`.
+which also sets several attributes at once from a table matched by node id, and
+are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning_tree`.
 
 .. code-block:: python
 
@@ -36,6 +37,7 @@ and are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.span
    net.node_attributes               # ["age", "height"]: on the GPU
    net.qualitative_node_attributes   # ["city"]: in CPU memory
    net.get_node_attribute("city")    # NumPy object array over the nodes of component 0
+   net.set_node_attribute(table, node_column = "name")   # one attribute per other column
 
 .. _overlapping-communities:
 

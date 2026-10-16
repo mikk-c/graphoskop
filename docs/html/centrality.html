@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hierarchy" href="hierarchy.html" />
-    <link rel="prev" title="Shortest paths" href="shortest_paths.html" /> 
+    <link rel="next" title="Coloring and independent sets" href="coloring.html" />
+    <link rel="prev" title="Bipartite projections" href="bipartite_projections.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,34 +47,40 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Centrality</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.closeness_centrality"><code class="docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.harmonic_centrality"><code class="docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.eigenvector_centrality"><code class="docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.katz_centrality"><code class="docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.alpha_centrality"><code class="docutils literal notranslate"><span class="pre">alpha_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pagerank"><code class="docutils literal notranslate"><span class="pre">pagerank()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hits"><code class="docutils literal notranslate"><span class="pre">hits()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.edge_betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.flow_centrality"><code class="docutils literal notranslate"><span class="pre">flow_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.reach_centrality"><code class="docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.k_core_centrality"><code class="docutils literal notranslate"><span class="pre">k_core_centrality()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.centralization"><code class="docutils literal notranslate"><span class="pre">centralization()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.closeness_centrality"><code class="docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.edge_betweenness_centrality"><code class="docutils literal notranslate"><span class="pre">edge_betweenness_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.eigenvector_centrality"><code class="docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.flow_centrality"><code class="docutils literal notranslate"><span class="pre">flow_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.harmonic_centrality"><code class="docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.hits"><code class="docutils literal notranslate"><span class="pre">hits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.k_core_centrality"><code class="docutils literal notranslate"><span class="pre">k_core_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.katz_centrality"><code class="docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pagerank"><code class="docutils literal notranslate"><span class="pre">pagerank()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.reach_centrality"><code class="docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -143,196 +149,6 @@ work, see <a class="reference internal" href="shortest_paths.html#module-graphos
 </pre></div>
 </div>
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.closeness_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">closeness_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.closeness_centrality" title="Link to this definition"></a></dt>
-<dd><p>Closeness centrality: how close a node is to the nodes it reaches.</p>
-<p><span class="math notranslate nohighlight">\(C(i) = r_i / \sum_j d(i, j)\)</span>, with the sum over the <span class="math notranslate nohighlight">\(r_i\)</span> nodes reachable from
-<span class="math notranslate nohighlight">\(i\)</span> (in an undirected connected network, <span class="math notranslate nohighlight">\(r_i = n - 1\)</span>); 0 if <span class="math notranslate nohighlight">\(i\)</span> reaches no
-node. Nodes in small components are close to the few nodes they reach, so with
-<code class="docutils literal notranslate"><span class="pre">lin</span> <span class="pre">=</span> <span class="pre">True</span></code> (Lin, 1976; Wasserman and Faust, 1994) the value is scaled by the fraction of
-the network they reach, <span class="math notranslate nohighlight">\(C(i) = \frac{r_i}{N - 1} \frac{r_i}{\sum_j d(i, j)}\)</span>, with
-<span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network considered: use it with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> to
-compare nodes of different components (or of directed networks where not every node is
-reachable). See also <a class="reference internal" href="#graphoskop.harmonic_centrality" title="graphoskop.harmonic_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a>.</p>
-<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
-<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (NetworkX uses <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; its <code class="docutils literal notranslate"><span class="pre">wf_improved</span></code> is
-<code class="docutils literal notranslate"><span class="pre">lin</span></code>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
-once (see the module description).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
-<li><p><strong>lin</strong> – Scale by the fraction of the network reached.</p></li>
-<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
-does not match.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                              <span class="c1"># largest component</span>
-<span class="n">cs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># comparable across components</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;closeness&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.harmonic_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">harmonic_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.harmonic_centrality" title="Link to this definition"></a></dt>
-<dd><p>Harmonic centrality (Marchiori and Latora, 2000; Boldi and Vigna, 2014): the reciprocal of the
-harmonic mean of the lengths from a node to all the other nodes.</p>
-<p><span class="math notranslate nohighlight">\(H(i) = \frac{1}{N - 1} \sum_{j \ne i} \frac{1}{d(i, j)}\)</span>, with <span class="math notranslate nohighlight">\(1 / \infty = 0\)</span>
-for unreachable nodes, so nodes of different components (<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>) are compared
-directly, without corrections. <span class="math notranslate nohighlight">\(N\)</span> is the number of nodes of the network considered;
-<code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">False</span></code> gives the plain sum (as NetworkX). Nodes at length 0 (along edges of
-length 0) are left out of the sum.</p>
-<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
-<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (as NetworkX).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
-once (see the module description).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
-<li><p><strong>normalized</strong> – Divide by <span class="math notranslate nohighlight">\(N - 1\)</span>.</p></li>
-<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
-does not match.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">harmonic_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>         <span class="c1"># all components at once</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.eigenvector_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">eigenvector_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.eigenvector_centrality" title="Link to this definition"></a></dt>
-<dd><p>Eigenvector centrality (Bonacich, 1972): a node is central if its neighbors are,
-<span class="math notranslate nohighlight">\(\lambda x_i = \sum_j A_{ji} x_j\)</span>, with <span class="math notranslate nohighlight">\(x\)</span> the eigenvector of the largest
-eigenvalue <span class="math notranslate nohighlight">\(\lambda\)</span> of the adjacency matrix, non negative and of unit Euclidean norm.</p>
-<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code> gives a node the centrality of the nodes with edges
-to it (as NetworkX), <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> that of the nodes it has edges to. If the network is not
-strongly connected, nodes not reached from a strongly connected part with the largest
-eigenvalue get 0 (e.g. all of them in a directed acyclic network, where the iteration does not
-settle and a warning is raised): see <a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a> for a measure
-that is positive everywhere. In multilayer networks the eigenvector is that of the
-supra-adjacency matrix, couplings included. Weights add up over parallel edges; a self loop
-counts once in undirected networks.</p>
-<p>Computed by power iteration on <span class="math notranslate nohighlight">\(I + A^T\)</span> (same eigenvector, without the oscillation of
-bipartite networks), with one sparse product per step on the device of the network, starting
-from a constant vector (as NetworkX), until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node
-(1-norm of the change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). Each component is computed and normalized
-on its own.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components
-(each normalized on its own).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
-<li><p><strong>tol</strong> – Tolerance per node.</p></li>
-<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, or some weights are negative.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">eigenvector_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;eigenvector&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.katz_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">katz_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.katz_centrality" title="Link to this definition"></a></dt>
-<dd><p>Katz centrality (Katz, 1953): the walks reaching a node, those of <span class="math notranslate nohighlight">\(k\)</span> edges discounted by
-<span class="math notranslate nohighlight">\(\alpha^k\)</span>, plus a baseline <span class="math notranslate nohighlight">\(\beta_i\)</span> for every node,
-<span class="math notranslate nohighlight">\(x_i = \alpha \sum_j A_{ji} x_j + \beta_i\)</span>, i.e.
-<span class="math notranslate nohighlight">\(x = \beta + \alpha A^T \beta + \alpha^2 (A^T)^2 \beta + \ldots\)</span>. The series converges
-only if <span class="math notranslate nohighlight">\(\alpha &lt; 1 / \lambda_{max}\)</span>, the reciprocal of the largest eigenvalue of the
-adjacency matrix; as <span class="math notranslate nohighlight">\(\alpha\)</span> approaches it the ranking approaches that of
-<a class="reference internal" href="#graphoskop.eigenvector_centrality" title="graphoskop.eigenvector_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a>. Unlike eigenvector centrality it is positive on every node,
-also in directed acyclic networks.</p>
-<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code> counts the walks reaching a node (as NetworkX),
-<code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> those leaving it. Weights add up over parallel edges; a self loop counts once in
-undirected networks. In multilayer networks walks run on the supra-graph, couplings included.</p>
-<p>Computed by iterating the equation from <span class="math notranslate nohighlight">\(x = 0\)</span>, with one sparse product per step on the
-device of the network, until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node (1-norm of the
-change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the result has unit Euclidean
-norm over the network considered: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> all components are normalized
-together, so values are comparable across them. If <span class="math notranslate nohighlight">\(\beta\)</span> is 0 everywhere, so is the
-result.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>alpha</strong> – Attenuation factor <span class="math notranslate nohighlight">\(\alpha\)</span>.</p></li>
-<li><p><strong>beta</strong> – Baseline <span class="math notranslate nohighlight">\(\beta\)</span>: a number for all nodes, the name of a numeric node
-attribute, or a dictionary (or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>) from input node id to value (missing
-nodes get 0).</p></li>
-<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
-<li><p><strong>normalized</strong> – Scale to unit Euclidean norm.</p></li>
-<li><p><strong>tol</strong> – Tolerance per node.</p></li>
-<li><p><strong>max_iter</strong> – Largest number of iterations.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, weights are negative, or the iteration does
-not converge (<code class="docutils literal notranslate"><span class="pre">alpha</span></code> too large).</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">katz_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
-<span class="n">xs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">katz_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="s2">&quot;prior&quot;</span><span class="p">)</span>   <span class="c1"># node attribute as baseline</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.alpha_centrality">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">alpha_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.alpha_centrality" title="Link to this definition"></a></dt>
 <dd><p>Alpha centrality (Bonacich and Lloyd, 2001): status received from the neighbors plus an
@@ -394,99 +210,6 @@ result, a solution of the equation, is returned.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.pagerank">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pagerank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.85</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">personalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pagerank" title="Link to this definition"></a></dt>
-<dd><p>PageRank (Brin and Page, 1998): the stationary distribution of a random walker who, at each
-step, follows an out edge with probability <code class="docutils literal notranslate"><span class="pre">damping</span></code> (choosing it proportionally to its
-weight), and otherwise jumps to a random node. Nodes without out edges (dangling) always jump.
-Jumps go to a uniformly random node, or, with <code class="docutils literal notranslate"><span class="pre">personalization</span></code>, to a node drawn from those
-values (personalized PageRank, as NetworkX, where dangling nodes jump the same way).</p>
-<p>The values sum to 1 over the network considered: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> the walker jumps
-between components, so values are comparable across them (one walk on the whole network); with
-a component index, the walk stays in that component (as
-<a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>, which this generalizes). Undirected edges are
-followed both ways; in multilayer networks the walker moves along couplings too. Computed by
-power iteration, one sparse product per step on the device of the network, until the 1-norm
-of the change is below <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>damping</strong> – Probability of following an edge (<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">alpha</span></code> of
-<a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>).</p></li>
-<li><p><strong>personalization</strong> – Jump distribution: name of a numeric node attribute, or dictionary (or
-<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>) from input node id to value (missing nodes get 0), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for
-uniform. Values must be non negative, not all 0; they are normalized to sum 1.</p></li>
-<li><p><strong>tol</strong> – Convergence threshold (1-norm of the change between iterations).</p></li>
-<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If weights or personalization values are negative, or the personalization
-is all 0.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">pr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pagerank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>                       <span class="c1"># whole network</span>
-<span class="n">ppr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pagerank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">personalization</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;alice&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.hits">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hits" title="Link to this definition"></a></dt>
-<dd><p>Hubs and authorities (HITS; Kleinberg, 1999): a good authority is pointed to by good hubs, a
-good hub points to good authorities, <span class="math notranslate nohighlight">\(a \propto A^T h\)</span> and <span class="math notranslate nohighlight">\(h \propto A a\)</span>, so
-<span class="math notranslate nohighlight">\(a\)</span> is the leading eigenvector of <span class="math notranslate nohighlight">\(A^T A\)</span> and <span class="math notranslate nohighlight">\(h\)</span> that of <span class="math notranslate nohighlight">\(A A^T\)</span>.
-Each sums to 1 over the nodes of a component (as NetworkX, which normalizes over the whole
-network); each component is computed on its own, since a single power iteration over several
-components keeps only the one with the largest eigenvalue. In undirected networks hubs and
-authorities are the same. Weights add up over parallel edges; in multilayer networks the scores
-are those of the supra-graph, couplings included.</p>
-<p>Computed by power iteration on <span class="math notranslate nohighlight">\(A^T A\)</span> (positive semidefinite, so it does not oscillate),
-with two sparse products per step on the device of the network, starting from a constant
-vector, until the authorities change by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node (1-norm of the change below
-<span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). A component without edges gets 0. If the largest eigenvalue of
-<span class="math notranslate nohighlight">\(A^T A\)</span> is repeated (e.g. two disconnected parts once direction is taken into account),
-the scores are not unique; this iteration returns the ones reached from the constant vector.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
-<li><p><strong>tol</strong> – Tolerance per node.</p></li>
-<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(hubs,</span> <span class="pre">authorities)</span></code>, two vectors over the nodes of the component, or two lists of
-them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If some weights are negative.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;links.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">hubs</span><span class="p">,</span> <span class="n">authorities</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hits</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;authority&quot;</span><span class="p">,</span> <span class="n">authorities</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.betweenness_centrality">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">betweenness_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.betweenness_centrality" title="Link to this definition"></a></dt>
 <dd><p>Betweenness centrality (Freeman, 1977): the fraction of shortest paths between other nodes that
@@ -537,209 +260,6 @@ once (see the module description).</p></li>
 <span class="n">P</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">lengths</span> <span class="o">=</span> <span class="n">P</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">lengths</span> <span class="o">=</span> <span class="n">P</span><span class="p">)</span>                 <span class="c1"># same lengths, no new search</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.edge_betweenness_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_betweenness_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_betweenness_centrality" title="Link to this definition"></a></dt>
-<dd><p>Edge betweenness centrality (Girvan and Newman, 2002): the fraction of shortest paths between
-nodes that pass along an edge, <span class="math notranslate nohighlight">\(B(e) = \sum_{s \ne t} \sigma_{st}(e) / \sigma_{st}\)</span>,
-with <span class="math notranslate nohighlight">\(\sigma_{st}\)</span> the number of shortest paths from <span class="math notranslate nohighlight">\(s\)</span> to <span class="math notranslate nohighlight">\(t\)</span> and
-<span class="math notranslate nohighlight">\(\sigma_{st}(e)\)</span> those using <span class="math notranslate nohighlight">\(e\)</span>. All tied shortest paths count, and, unlike node
-betweenness, the pairs whose shortest paths start or end at the edge count too (an edge is on
-the shortest path between its own endpoints, unless a shorter path exists).</p>
-<p>With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the sum over ordered pairs is divided by <span class="math notranslate nohighlight">\(N (N - 1)\)</span>, the
-number of ordered pairs, with <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network considered (as
-NetworkX, also for undirected networks); otherwise the plain sum, over unordered pairs in
-undirected networks.</p>
-<p>Computed in the same pass as <a class="reference internal" href="#graphoskop.betweenness_centrality" title="graphoskop.betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a>, with the same algorithm, devices,
-memory bound and conditions on the lengths: the dependency of each edge on a shortest path is
-one of the terms of Brandes’ backward accumulation. In undirected networks an edge counts the
-paths along it in both directions. Among parallel edges, only the shortest (the first in input
-order on ties) carries the paths, the others get 0; self loops and edges of infinite length get
-0.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
-once (see the module description).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>normalized</strong> – Divide by <span class="math notranslate nohighlight">\(N (N - 1)\)</span>.</p></li>
-<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>batch_size</strong> – Bound on the numbers held at once (about one per source and edge).</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the stored edges of the component, aligned with <code class="docutils literal notranslate"><span class="pre">edge_index</span></code> (both
-directions of an undirected edge get its value), ready for
-<a class="reference internal" href="network.html#graphoskop.Network.set_edge_attribute" title="graphoskop.Network.set_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_edge_attribute()</span></code></a>; a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If some edge lengths are not positive, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code> does not match.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">eb</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span> <span class="n">eb</span><span class="p">)</span>
-<span class="n">ebs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span> <span class="n">ebs</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.flow_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">flow_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.flow_centrality" title="Link to this definition"></a></dt>
-<dd><p>Random walk betweenness centrality (Newman, 2005), also known as current flow betweenness: as
-<a class="reference internal" href="#graphoskop.betweenness_centrality" title="graphoskop.betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a>, but with all random walks from <span class="math notranslate nohighlight">\(s\)</span> to <span class="math notranslate nohighlight">\(t\)</span> instead of
-only the shortest paths. A node counts the net number of times the walks pass through it,
-which equals the current through it when a unit current enters the network at <span class="math notranslate nohighlight">\(s\)</span> and
-leaves at <span class="math notranslate nohighlight">\(t\)</span>, edges being resistors of conductance equal to their weight.</p>
-<p>The current from a pair is computed from the pseudoinverse <span class="math notranslate nohighlight">\(T\)</span> of the Laplacian: node
-<span class="math notranslate nohighlight">\(i\)</span> gets <span class="math notranslate nohighlight">\(I_i^{st} = \frac{1}{2} \sum_j A_{ij} |T_{is} - T_{it} - T_{js} + T_{jt}|\)</span>,
-and <span class="math notranslate nohighlight">\(B(i) = \sum_{s &lt; t} I_i^{st}\)</span>, over the pairs of other nodes (<code class="docutils literal notranslate"><span class="pre">endpoints</span> <span class="pre">=</span> <span class="pre">False</span></code>)
-or of all nodes, with <span class="math notranslate nohighlight">\(I_s^{st} = I_t^{st} = 1\)</span> (<code class="docutils literal notranslate"><span class="pre">endpoints</span> <span class="pre">=</span> <span class="pre">True</span></code>, Newman’s
-definition). With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the sum is divided by the number of pairs,
-<span class="math notranslate nohighlight">\((N - 1)(N - 2) / 2\)</span> or <span class="math notranslate nohighlight">\(N (N - 1) / 2\)</span>, with <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the
-network considered (the first as NetworkX’s <code class="docutils literal notranslate"><span class="pre">current_flow_betweenness_centrality</span></code>).</p>
-<p>The current along an edge <span class="math notranslate nohighlight">\((i, j)\)</span> is <span class="math notranslate nohighlight">\(A_{ij} |x_s - x_t|\)</span>, with
-<span class="math notranslate nohighlight">\(x = T_{i \cdot} - T_{j \cdot}\)</span>, so its sum over all pairs is found by sorting
-<span class="math notranslate nohighlight">\(x\)</span>: <span class="math notranslate nohighlight">\(\sum_{s &lt; t} |x_s - x_t| = \sum_k (2k - n + 1) x_{(k)}\)</span>. The cost is a dense
-pseudoinverse per component (as <a class="reference internal" href="laplacians.html#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>, <span class="math notranslate nohighlight">\(n^2\)</span> numbers in
-memory) and a sort of <span class="math notranslate nohighlight">\(n\)</span> numbers per edge, in blocks of edges (about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>
-numbers at once), all on the device of the network: <span class="math notranslate nohighlight">\(O(n^3 + m n \log n)\)</span>, instead of
-<span class="math notranslate nohighlight">\(O((m + n) n^2)\)</span> for Newman’s algorithm.</p>
-<p>Edges are taken as undirected (in directed networks each edge is a resistor whatever its
-direction), parallel edges add their conductances, self loops are ignored. Weights must be
-positive. Pairs of nodes in different components carry no current, so with
-<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> they add nothing. In multilayer networks the current flows on the
-supra-graph, couplings included.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
-once (see the module description).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge conductance, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit
-conductances.</p></li>
-<li><p><strong>normalized</strong> – Divide by the number of pairs.</p></li>
-<li><p><strong>endpoints</strong> – Count the pairs where the node is the source or the target, with current 1.</p></li>
-<li><p><strong>batch_size</strong> – Bound on the numbers held at once while sorting (about one per edge and
-node of a block).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If some weights are not positive.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flow_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flow_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">endpoints</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># Newman&#39;s normalization</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.reach_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">reach_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.reach_centrality" title="Link to this definition"></a></dt>
-<dd><p>Local reaching centrality (Mones, Vicsek and Vicsek, 2012): the fraction of the other nodes
-that a node reaches along edge directions, <span class="math notranslate nohighlight">\(C_R(i) = r_i / (N - 1)\)</span>, with <span class="math notranslate nohighlight">\(r_i\)</span> the
-number of nodes reachable from <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network
-considered (see the module description). With <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code>, the fraction of nodes from
-which <span class="math notranslate nohighlight">\(i\)</span> is reached. Defined for directed networks only: in an undirected network every
-node reaches its whole component. Edge weights do not matter (reaching does not depend on
-them; the weighted variant of the paper averages weights along one shortest path, which is not
-unique, and is not provided).</p>
-<p>All nodes of a strongly connected component reach the same nodes, so a single breadth first
-search per strongly connected component is needed (on the CPU, in parallel processes for
-large work, as <a class="reference internal" href="#graphoskop.closeness_centrality" title="graphoskop.closeness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a>), or none with precomputed <code class="docutils literal notranslate"><span class="pre">lengths</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
-once (see the module description).</p></li>
-<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (nodes reached) or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (nodes reaching).</p></li>
-<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected, <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
-does not match.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">r</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">reach_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;reach&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>See <a class="reference internal" href="hierarchy.html#graphoskop.global_reach_centrality" title="graphoskop.global_reach_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a> for the hierarchy measure built on it.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.k_core_centrality">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">k_core_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.k_core_centrality" title="Link to this definition"></a></dt>
-<dd><p>k-core centrality, or core number (Seidman, 1983): the largest <span class="math notranslate nohighlight">\(k\)</span> such that the node
-belongs to the <span class="math notranslate nohighlight">\(k\)</span>-core, the largest subgraph in which every node has at least <span class="math notranslate nohighlight">\(k\)</span>
-neighbors (obtained by repeatedly removing the nodes with fewer than <span class="math notranslate nohighlight">\(k\)</span> neighbors).
-Nodes without neighbors have 0.</p>
-<p>Edges count once whatever their weight and multiplicity, and self loops are ignored (as
-NetworkX’s <code class="docutils literal notranslate"><span class="pre">core_number</span></code>). In directed networks, <code class="docutils literal notranslate"><span class="pre">mode</span></code> chooses the degree used: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>
-(in plus out, as NetworkX, where a pair of reciprocal edges counts twice), <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>
-(as igraph’s <code class="docutils literal notranslate"><span class="pre">coreness</span></code>). In multilayer networks cores are those of the supra-graph, where
-couplings are edges like the others.</p>
-<p>Computed by peeling on the device of the network: at level <span class="math notranslate nohighlight">\(k\)</span> (starting at the smallest
-degree), all nodes with degree at most <span class="math notranslate nohighlight">\(k\)</span> are removed at once and the degrees of their
-neighbors updated, wave after wave, until none is left at that level; they get core number
-<span class="math notranslate nohighlight">\(k\)</span>. Each wave only touches the edges of the nodes it removes, so the work is
-proportional to the number of edges, plus a small fixed cost per wave and a pass over the
-nodes per level. Waves are few on most networks; long chains of nodes (e.g. a path) are peeled
-one node from each end per wave.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
-<li><p><strong>mode</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>int64 vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is
-<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not valid.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">k_core_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="n">core</span><span class="p">)</span>
-<span class="n">main_core</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][(</span><span class="n">core</span> <span class="o">==</span> <span class="n">core</span><span class="o">.</span><span class="n">max</span><span class="p">())</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -804,14 +324,500 @@ centralization (pass a function rescaling the vector to reproduce it).</p>
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.closeness_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">closeness_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.closeness_centrality" title="Link to this definition"></a></dt>
+<dd><p>Closeness centrality: how close a node is to the nodes it reaches.</p>
+<p><span class="math notranslate nohighlight">\(C(i) = r_i / \sum_j d(i, j)\)</span>, with the sum over the <span class="math notranslate nohighlight">\(r_i\)</span> nodes reachable from
+<span class="math notranslate nohighlight">\(i\)</span> (in an undirected connected network, <span class="math notranslate nohighlight">\(r_i = n - 1\)</span>); 0 if <span class="math notranslate nohighlight">\(i\)</span> reaches no
+node. Nodes in small components are close to the few nodes they reach, so with
+<code class="docutils literal notranslate"><span class="pre">lin</span> <span class="pre">=</span> <span class="pre">True</span></code> (Lin, 1976; Wasserman and Faust, 1994) the value is scaled by the fraction of
+the network they reach, <span class="math notranslate nohighlight">\(C(i) = \frac{r_i}{N - 1} \frac{r_i}{\sum_j d(i, j)}\)</span>, with
+<span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network considered: use it with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> to
+compare nodes of different components (or of directed networks where not every node is
+reachable). See also <a class="reference internal" href="#graphoskop.harmonic_centrality" title="graphoskop.harmonic_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">harmonic_centrality()</span></code></a>.</p>
+<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
+<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (NetworkX uses <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; its <code class="docutils literal notranslate"><span class="pre">wf_improved</span></code> is
+<code class="docutils literal notranslate"><span class="pre">lin</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
+once (see the module description).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>lin</strong> – Scale by the fraction of the network reached.</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
+does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                              <span class="c1"># largest component</span>
+<span class="n">cs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># comparable across components</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;closeness&quot;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.edge_betweenness_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_betweenness_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_betweenness_centrality" title="Link to this definition"></a></dt>
+<dd><p>Edge betweenness centrality (Girvan and Newman, 2002): the fraction of shortest paths between
+nodes that pass along an edge, <span class="math notranslate nohighlight">\(B(e) = \sum_{s \ne t} \sigma_{st}(e) / \sigma_{st}\)</span>,
+with <span class="math notranslate nohighlight">\(\sigma_{st}\)</span> the number of shortest paths from <span class="math notranslate nohighlight">\(s\)</span> to <span class="math notranslate nohighlight">\(t\)</span> and
+<span class="math notranslate nohighlight">\(\sigma_{st}(e)\)</span> those using <span class="math notranslate nohighlight">\(e\)</span>. All tied shortest paths count, and, unlike node
+betweenness, the pairs whose shortest paths start or end at the edge count too (an edge is on
+the shortest path between its own endpoints, unless a shorter path exists).</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the sum over ordered pairs is divided by <span class="math notranslate nohighlight">\(N (N - 1)\)</span>, the
+number of ordered pairs, with <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network considered (as
+NetworkX, also for undirected networks); otherwise the plain sum, over unordered pairs in
+undirected networks.</p>
+<p>Computed in the same pass as <a class="reference internal" href="#graphoskop.betweenness_centrality" title="graphoskop.betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a>, with the same algorithm, devices,
+memory bound and conditions on the lengths: the dependency of each edge on a shortest path is
+one of the terms of Brandes’ backward accumulation. In undirected networks an edge counts the
+paths along it in both directions. Among parallel edges, only the shortest (the first in input
+order on ties) carries the paths, the others get 0; self loops and edges of infinite length get
+0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
+once (see the module description).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>normalized</strong> – Divide by <span class="math notranslate nohighlight">\(N (N - 1)\)</span>.</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch_size</strong> – Bound on the numbers held at once (about one per source and edge).</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the stored edges of the component, aligned with <code class="docutils literal notranslate"><span class="pre">edge_index</span></code> (both
+directions of an undirected edge get its value), ready for
+<a class="reference internal" href="network.html#graphoskop.Network.set_edge_attribute" title="graphoskop.Network.set_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_edge_attribute()</span></code></a>; a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some edge lengths are not positive, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code> does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">eb</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span> <span class="n">eb</span><span class="p">)</span>
+<span class="n">ebs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">edge_betweenness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;betweenness&quot;</span><span class="p">,</span> <span class="n">ebs</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.eigenvector_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">eigenvector_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.eigenvector_centrality" title="Link to this definition"></a></dt>
+<dd><p>Eigenvector centrality (Bonacich, 1972): a node is central if its neighbors are,
+<span class="math notranslate nohighlight">\(\lambda x_i = \sum_j A_{ji} x_j\)</span>, with <span class="math notranslate nohighlight">\(x\)</span> the eigenvector of the largest
+eigenvalue <span class="math notranslate nohighlight">\(\lambda\)</span> of the adjacency matrix, non negative and of unit Euclidean norm.</p>
+<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code> gives a node the centrality of the nodes with edges
+to it (as NetworkX), <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> that of the nodes it has edges to. If the network is not
+strongly connected, nodes not reached from a strongly connected part with the largest
+eigenvalue get 0 (e.g. all of them in a directed acyclic network, where the iteration does not
+settle and a warning is raised): see <a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a> for a measure
+that is positive everywhere. In multilayer networks the eigenvector is that of the
+supra-adjacency matrix, couplings included. Weights add up over parallel edges; a self loop
+counts once in undirected networks.</p>
+<p>Computed by power iteration on <span class="math notranslate nohighlight">\(I + A^T\)</span> (same eigenvector, without the oscillation of
+bipartite networks), with one sparse product per step on the device of the network, starting
+from a constant vector (as NetworkX), until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node
+(1-norm of the change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). Each component is computed and normalized
+on its own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components
+(each normalized on its own).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>tol</strong> – Tolerance per node.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, or some weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">eigenvector_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;eigenvector&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.flow_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">flow_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.flow_centrality" title="Link to this definition"></a></dt>
+<dd><p>Random walk betweenness centrality (Newman, 2005), also known as current flow betweenness: as
+<a class="reference internal" href="#graphoskop.betweenness_centrality" title="graphoskop.betweenness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">betweenness_centrality()</span></code></a>, but with all random walks from <span class="math notranslate nohighlight">\(s\)</span> to <span class="math notranslate nohighlight">\(t\)</span> instead of
+only the shortest paths. A node counts the net number of times the walks pass through it,
+which equals the current through it when a unit current enters the network at <span class="math notranslate nohighlight">\(s\)</span> and
+leaves at <span class="math notranslate nohighlight">\(t\)</span>, edges being resistors of conductance equal to their weight.</p>
+<p>The current from a pair is computed from the pseudoinverse <span class="math notranslate nohighlight">\(T\)</span> of the Laplacian: node
+<span class="math notranslate nohighlight">\(i\)</span> gets <span class="math notranslate nohighlight">\(I_i^{st} = \frac{1}{2} \sum_j A_{ij} |T_{is} - T_{it} - T_{js} + T_{jt}|\)</span>,
+and <span class="math notranslate nohighlight">\(B(i) = \sum_{s &lt; t} I_i^{st}\)</span>, over the pairs of other nodes (<code class="docutils literal notranslate"><span class="pre">endpoints</span> <span class="pre">=</span> <span class="pre">False</span></code>)
+or of all nodes, with <span class="math notranslate nohighlight">\(I_s^{st} = I_t^{st} = 1\)</span> (<code class="docutils literal notranslate"><span class="pre">endpoints</span> <span class="pre">=</span> <span class="pre">True</span></code>, Newman’s
+definition). With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the sum is divided by the number of pairs,
+<span class="math notranslate nohighlight">\((N - 1)(N - 2) / 2\)</span> or <span class="math notranslate nohighlight">\(N (N - 1) / 2\)</span>, with <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the
+network considered (the first as NetworkX’s <code class="docutils literal notranslate"><span class="pre">current_flow_betweenness_centrality</span></code>).</p>
+<p>The current along an edge <span class="math notranslate nohighlight">\((i, j)\)</span> is <span class="math notranslate nohighlight">\(A_{ij} |x_s - x_t|\)</span>, with
+<span class="math notranslate nohighlight">\(x = T_{i \cdot} - T_{j \cdot}\)</span>, so its sum over all pairs is found by sorting
+<span class="math notranslate nohighlight">\(x\)</span>: <span class="math notranslate nohighlight">\(\sum_{s &lt; t} |x_s - x_t| = \sum_k (2k - n + 1) x_{(k)}\)</span>. The cost is a dense
+pseudoinverse per component (as <a class="reference internal" href="laplacians.html#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>, <span class="math notranslate nohighlight">\(n^2\)</span> numbers in
+memory) and a sort of <span class="math notranslate nohighlight">\(n\)</span> numbers per edge, in blocks of edges (about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>
+numbers at once), all on the device of the network: <span class="math notranslate nohighlight">\(O(n^3 + m n \log n)\)</span>, instead of
+<span class="math notranslate nohighlight">\(O((m + n) n^2)\)</span> for Newman’s algorithm.</p>
+<p>Edges are taken as undirected (in directed networks each edge is a resistor whatever its
+direction), parallel edges add their conductances, self loops are ignored. Weights must be
+positive. Pairs of nodes in different components carry no current, so with
+<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> they add nothing. In multilayer networks the current flows on the
+supra-graph, couplings included.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
+once (see the module description).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge conductance, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit
+conductances.</p></li>
+<li><p><strong>normalized</strong> – Divide by the number of pairs.</p></li>
+<li><p><strong>endpoints</strong> – Count the pairs where the node is the source or the target, with current 1.</p></li>
+<li><p><strong>batch_size</strong> – Bound on the numbers held at once while sorting (about one per edge and
+node of a block).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some weights are not positive.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flow_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flow_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">endpoints</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># Newman&#39;s normalization</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;flow&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.harmonic_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">harmonic_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.harmonic_centrality" title="Link to this definition"></a></dt>
+<dd><p>Harmonic centrality (Marchiori and Latora, 2000; Boldi and Vigna, 2014): the reciprocal of the
+harmonic mean of the lengths from a node to all the other nodes.</p>
+<p><span class="math notranslate nohighlight">\(H(i) = \frac{1}{N - 1} \sum_{j \ne i} \frac{1}{d(i, j)}\)</span>, with <span class="math notranslate nohighlight">\(1 / \infty = 0\)</span>
+for unreachable nodes, so nodes of different components (<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>) are compared
+directly, without corrections. <span class="math notranslate nohighlight">\(N\)</span> is the number of nodes of the network considered;
+<code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">False</span></code> gives the plain sum (as NetworkX). Nodes at length 0 (along edges of
+length 0) are left out of the sum.</p>
+<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
+<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (as NetworkX).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
+once (see the module description).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>normalized</strong> – Divide by <span class="math notranslate nohighlight">\(N - 1\)</span>.</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
+does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">harmonic_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>         <span class="c1"># all components at once</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hits">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hits" title="Link to this definition"></a></dt>
+<dd><p>Hubs and authorities (HITS; Kleinberg, 1999): a good authority is pointed to by good hubs, a
+good hub points to good authorities, <span class="math notranslate nohighlight">\(a \propto A^T h\)</span> and <span class="math notranslate nohighlight">\(h \propto A a\)</span>, so
+<span class="math notranslate nohighlight">\(a\)</span> is the leading eigenvector of <span class="math notranslate nohighlight">\(A^T A\)</span> and <span class="math notranslate nohighlight">\(h\)</span> that of <span class="math notranslate nohighlight">\(A A^T\)</span>.
+Each sums to 1 over the nodes of a component (as NetworkX, which normalizes over the whole
+network); each component is computed on its own, since a single power iteration over several
+components keeps only the one with the largest eigenvalue. In undirected networks hubs and
+authorities are the same. Weights add up over parallel edges; in multilayer networks the scores
+are those of the supra-graph, couplings included.</p>
+<p>Computed by power iteration on <span class="math notranslate nohighlight">\(A^T A\)</span> (positive semidefinite, so it does not oscillate),
+with two sparse products per step on the device of the network, starting from a constant
+vector, until the authorities change by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node (1-norm of the change below
+<span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). A component without edges gets 0. If the largest eigenvalue of
+<span class="math notranslate nohighlight">\(A^T A\)</span> is repeated (e.g. two disconnected parts once direction is taken into account),
+the scores are not unique; this iteration returns the ones reached from the constant vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>tol</strong> – Tolerance per node.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(hubs,</span> <span class="pre">authorities)</span></code>, two vectors over the nodes of the component, or two lists of
+them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;links.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">hubs</span><span class="p">,</span> <span class="n">authorities</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hits</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;authority&quot;</span><span class="p">,</span> <span class="n">authorities</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.k_core_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">k_core_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.k_core_centrality" title="Link to this definition"></a></dt>
+<dd><p>k-core centrality, or core number (Seidman, 1983): the largest <span class="math notranslate nohighlight">\(k\)</span> such that the node
+belongs to the <span class="math notranslate nohighlight">\(k\)</span>-core, the largest subgraph in which every node has at least <span class="math notranslate nohighlight">\(k\)</span>
+neighbors (obtained by repeatedly removing the nodes with fewer than <span class="math notranslate nohighlight">\(k\)</span> neighbors).
+Nodes without neighbors have 0.</p>
+<p>Edges count once whatever their weight and multiplicity, and self loops are ignored (as
+NetworkX’s <code class="docutils literal notranslate"><span class="pre">core_number</span></code>). In directed networks, <code class="docutils literal notranslate"><span class="pre">mode</span></code> chooses the degree used: <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>
+(in plus out, as NetworkX, where a pair of reciprocal edges counts twice), <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>
+(as igraph’s <code class="docutils literal notranslate"><span class="pre">coreness</span></code>). In multilayer networks cores are those of the supra-graph, where
+couplings are edges like the others.</p>
+<p>Computed by peeling on the device of the network: at level <span class="math notranslate nohighlight">\(k\)</span> (starting at the smallest
+degree), all nodes with degree at most <span class="math notranslate nohighlight">\(k\)</span> are removed at once and the degrees of their
+neighbors updated, wave after wave, until none is left at that level; they get core number
+<span class="math notranslate nohighlight">\(k\)</span>. Each wave only touches the edges of the nodes it removes, so the work is
+proportional to the number of edges, plus a small fixed cost per wave and a pass over the
+nodes per level. Waves are few on most networks; long chains of nodes (e.g. a path) are peeled
+one node from each end per wave.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>mode</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>int64 vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">mode</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">k_core_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="n">core</span><span class="p">)</span>
+<span class="n">main_core</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">][(</span><span class="n">core</span> <span class="o">==</span> <span class="n">core</span><span class="o">.</span><span class="n">max</span><span class="p">())</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.katz_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">katz_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.katz_centrality" title="Link to this definition"></a></dt>
+<dd><p>Katz centrality (Katz, 1953): the walks reaching a node, those of <span class="math notranslate nohighlight">\(k\)</span> edges discounted by
+<span class="math notranslate nohighlight">\(\alpha^k\)</span>, plus a baseline <span class="math notranslate nohighlight">\(\beta_i\)</span> for every node,
+<span class="math notranslate nohighlight">\(x_i = \alpha \sum_j A_{ji} x_j + \beta_i\)</span>, i.e.
+<span class="math notranslate nohighlight">\(x = \beta + \alpha A^T \beta + \alpha^2 (A^T)^2 \beta + \ldots\)</span>. The series converges
+only if <span class="math notranslate nohighlight">\(\alpha &lt; 1 / \lambda_{max}\)</span>, the reciprocal of the largest eigenvalue of the
+adjacency matrix; as <span class="math notranslate nohighlight">\(\alpha\)</span> approaches it the ranking approaches that of
+<a class="reference internal" href="#graphoskop.eigenvector_centrality" title="graphoskop.eigenvector_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a>. Unlike eigenvector centrality it is positive on every node,
+also in directed acyclic networks.</p>
+<p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code> counts the walks reaching a node (as NetworkX),
+<code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> those leaving it. Weights add up over parallel edges; a self loop counts once in
+undirected networks. In multilayer networks walks run on the supra-graph, couplings included.</p>
+<p>Computed by iterating the equation from <span class="math notranslate nohighlight">\(x = 0\)</span>, with one sparse product per step on the
+device of the network, until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node (1-norm of the
+change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). With <code class="docutils literal notranslate"><span class="pre">normalized</span> <span class="pre">=</span> <span class="pre">True</span></code> the result has unit Euclidean
+norm over the network considered: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> all components are normalized
+together, so values are comparable across them. If <span class="math notranslate nohighlight">\(\beta\)</span> is 0 everywhere, so is the
+result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>alpha</strong> – Attenuation factor <span class="math notranslate nohighlight">\(\alpha\)</span>.</p></li>
+<li><p><strong>beta</strong> – Baseline <span class="math notranslate nohighlight">\(\beta\)</span>: a number for all nodes, the name of a numeric node
+attribute, or a dictionary (or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>) from input node id to value (missing
+nodes get 0).</p></li>
+<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>; ignored in undirected networks.</p></li>
+<li><p><strong>normalized</strong> – Scale to unit Euclidean norm.</p></li>
+<li><p><strong>tol</strong> – Tolerance per node.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, weights are negative, or the iteration does
+not converge (<code class="docutils literal notranslate"><span class="pre">alpha</span></code> too large).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">katz_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="n">xs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">katz_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="s2">&quot;prior&quot;</span><span class="p">)</span>   <span class="c1"># node attribute as baseline</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pagerank">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pagerank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.85</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">personalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pagerank" title="Link to this definition"></a></dt>
+<dd><p>PageRank (Brin and Page, 1998): the stationary distribution of a random walker who, at each
+step, follows an out edge with probability <code class="docutils literal notranslate"><span class="pre">damping</span></code> (choosing it proportionally to its
+weight), and otherwise jumps to a random node. Nodes without out edges (dangling) always jump.
+Jumps go to a uniformly random node, or, with <code class="docutils literal notranslate"><span class="pre">personalization</span></code>, to a node drawn from those
+values (personalized PageRank, as NetworkX, where dangling nodes jump the same way).</p>
+<p>The values sum to 1 over the network considered: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> the walker jumps
+between components, so values are comparable across them (one walk on the whole network); with
+a component index, the walk stays in that component (as
+<a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>, which this generalizes). Undirected edges are
+followed both ways; in multilayer networks the walker moves along couplings too. Computed by
+power iteration, one sparse product per step on the device of the network, until the 1-norm
+of the change is below <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>damping</strong> – Probability of following an edge (<code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">alpha</span></code> of
+<a class="reference internal" href="laplacians.html#graphoskop.stationary_distribution" title="graphoskop.stationary_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a>).</p></li>
+<li><p><strong>personalization</strong> – Jump distribution: name of a numeric node attribute, or dictionary (or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>) from input node id to value (missing nodes get 0), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for
+uniform. Values must be non negative, not all 0; they are normalized to sum 1.</p></li>
+<li><p><strong>tol</strong> – Convergence threshold (1-norm of the change between iterations).</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations; a warning is raised if it is reached.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If weights or personalization values are negative, or the personalization
+is all 0.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">pr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pagerank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>                       <span class="c1"># whole network</span>
+<span class="n">ppr</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pagerank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">personalization</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;alice&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.reach_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">reach_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.reach_centrality" title="Link to this definition"></a></dt>
+<dd><p>Local reaching centrality (Mones, Vicsek and Vicsek, 2012): the fraction of the other nodes
+that a node reaches along edge directions, <span class="math notranslate nohighlight">\(C_R(i) = r_i / (N - 1)\)</span>, with <span class="math notranslate nohighlight">\(r_i\)</span> the
+number of nodes reachable from <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(N\)</span> the number of nodes of the network
+considered (see the module description). With <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;in&quot;</span></code>, the fraction of nodes from
+which <span class="math notranslate nohighlight">\(i\)</span> is reached. Defined for directed networks only: in an undirected network every
+node reaches its whole component. Edge weights do not matter (reaching does not depend on
+them; the weighted variant of the paper averages weights along one shortest path, which is not
+unique, and is not provided).</p>
+<p>All nodes of a strongly connected component reach the same nodes, so a single breadth first
+search per strongly connected component is needed (on the CPU, in parallel processes for
+large work, as <a class="reference internal" href="#graphoskop.closeness_centrality" title="graphoskop.closeness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a>), or none with precomputed <code class="docutils literal notranslate"><span class="pre">lengths</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components at
+once (see the module description).</p></li>
+<li><p><strong>direction</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (nodes reached) or <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (nodes reaching).</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths (see the module description), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Vector over the nodes of the component, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected, <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code>
+does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">reach_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;reach&quot;</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="hierarchy.html#graphoskop.global_reach_centrality" title="graphoskop.global_reach_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a> for the hierarchy measure built on it.</p>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="shortest_paths.html" class="btn btn-neutral float-left" title="Shortest paths" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="hierarchy.html" class="btn btn-neutral float-right" title="Hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="bipartite_projections.html" class="btn btn-neutral float-left" title="Bipartite projections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="coloring.html" class="btn btn-neutral float-right" title="Coloring and independent sets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

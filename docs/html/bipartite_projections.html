@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Network statistics" href="network_statistics.html" />
-    <link rel="prev" title="Multilayer networks" href="multilayer.html" /> 
+    <link rel="next" title="Centrality" href="centrality.html" />
+    <link rel="prev" title="Backboning" href="backboning.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,20 +46,36 @@
               <p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Bipartite projections</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.simple_count_projection"><code class="docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.cosine_similarity_projection"><code class="docutils literal notranslate"><span class="pre">cosine_similarity_projection()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.hist_intersection_projection"><code class="docutils literal notranslate"><span class="pre">hist_intersection_projection()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.hyperbolic_projection"><code class="docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.resource_allocation_projection"><code class="docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.inverse_euclidean_projection"><code class="docutils literal notranslate"><span class="pre">inverse_euclidean_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.pearson_correlation_projection"><code class="docutils literal notranslate"><span class="pre">pearson_correlation_projection()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.random_walk_projection"><code class="docutils literal notranslate"><span class="pre">random_walk_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.resource_allocation_projection"><code class="docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.simple_count_projection"><code class="docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -100,6 +116,11 @@ directed network, through every directed path <span class="math notranslate nohi
 <span class="math notranslate nohighlight">\(B_{ac}\)</span> the weight of <span class="math notranslate nohighlight">\(a \to c\)</span> and <span class="math notranslate nohighlight">\(B_{bc}\)</span> the weight of <span class="math notranslate nohighlight">\(c \to b\)</span>;
 the projection is then directed, and its components can split even if the bipartite ones do
 not. Each function combines the two weights of every path differently.</p>
+<p>The similarity projections (<code class="xref py py-func docutils literal notranslate"><span class="pre">cosine_similarity_projection()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pearson_correlation_projection()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">inverse_euclidean_projection()</span></code>) compare instead the
+whole rows of <span class="math notranslate nohighlight">\(B\)</span> of two kept nodes, as vectors over all the nodes of the other type. They
+take the dot products from the paths and the rest from the sums and sums of squares of each row,
+so they too only connect (and only compute) the pairs of kept nodes sharing a neighbor.</p>
 <p>All functions generate the paths of length two explicitly, <span class="math notranslate nohighlight">\(\sum_c d_c (d_c - 1) / 2\)</span> of
 them (<span class="math notranslate nohighlight">\(\sum_c d^{in}_c d^{out}_c\)</span> if directed), in batches of about <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> paths,
 each reduced to the sums of its distinct node pairs on the device of the network. Batches cover
@@ -117,14 +138,22 @@ re-coupled with the interlayer edges of the input between them (couplings and th
 interlayer edges, which join nodes of the same type), whose <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> is their value of the
 <code class="docutils literal notranslate"><span class="pre">weight</span></code> attribute (1 with unit weights).</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.simple_count_projection">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simple_count_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simple_count_projection" title="Link to this definition"></a></dt>
-<dd><p>Projection counting the shared neighbors, weighted: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are
-connected with weight <span class="math notranslate nohighlight">\(\sum_c B_{ac} B_{bc}\)</span>, i.e. <span class="math notranslate nohighlight">\(B B^T\)</span>
-(<span class="math notranslate nohighlight">\(B_{out} B_{in}\)</span> in directed networks), summing over the nodes <span class="math notranslate nohighlight">\(c\)</span> of the other
-type they share (paths of length two in directed networks, see the module description). With
-unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is the number of shared neighbors, parallel edges
-counting as many times as they appear. Kept nodes sharing no neighbor stay as isolated nodes.</p>
+<dt class="sig sig-object py" id="graphoskop.cosine_similarity_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">cosine_similarity_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.cosine_similarity_projection" title="Link to this definition"></a></dt>
+<dd><p>Cosine similarity projection: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> sharing at least one
+neighbor are connected with the cosine of the angle between their rows <span class="math notranslate nohighlight">\(B_a\)</span> and
+<span class="math notranslate nohighlight">\(B_b\)</span> of the biadjacency matrix:</p>
+<div class="math notranslate nohighlight">
+\[w_{ab} = \frac{\sum_c B_{ac} B_{bc}}{\sqrt{\sum_c B_{ac}^2} \sqrt{\sum_c B_{bc}^2}}\]</div>
+<p>The numerator is <a class="reference internal" href="#graphoskop.simple_count_projection" title="graphoskop.simple_count_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">simple_count_projection()</span></code></a>. With unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is
+the number of shared neighbors over <span class="math notranslate nohighlight">\(\sqrt{k_a k_b}\)</span> (Salton index). Weights are between
+0 and 1 for non-negative edge weights. Kept nodes sharing no neighbor (similarity 0) stay as
+isolated nodes.</p>
+<p>Vectors use the edge weights with parallel edges summed. In directed networks the weight of
+<span class="math notranslate nohighlight">\(a \to b\)</span> compares the out-vector of <span class="math notranslate nohighlight">\(a\)</span> (weights of <span class="math notranslate nohighlight">\(a \to c\)</span>) with the
+in-vector of <span class="math notranslate nohighlight">\(b\)</span> (weights of <span class="math notranslate nohighlight">\(c \to b\)</span>), and the projection is directed. The dot
+products are sums over the paths of length two (see the module description), accumulated in
+float64.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -153,9 +182,7 @@ with the edge attribute <code class="docutils literal notranslate"><span class="
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>   <span class="c1"># items bought in common</span>
-<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
-<span class="n">users</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">cosine_similarity_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -256,6 +283,169 @@ with the edge attribute <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.inverse_euclidean_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">inverse_euclidean_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.inverse_euclidean_projection" title="Link to this definition"></a></dt>
+<dd><p>Inverse Euclidean distance projection: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> sharing at least
+one neighbor are connected with</p>
+<div class="math notranslate nohighlight">
+\[w_{ab} = \frac{1}{1 + d_{ab}}, \qquad
+d_{ab} = \sqrt{\sum_c (B_{ac} - B_{bc})^2}
+= \sqrt{\sum_c B_{ac}^2 + \sum_c B_{bc}^2 - 2 \sum_c B_{ac} B_{bc}}\]</div>
+<p>the Euclidean distance between their rows of the biadjacency matrix. Adding 1 keeps the weight
+finite, between 0 and 1, with 1 for identical vectors. With unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>),
+<span class="math notranslate nohighlight">\(d_{ab}^2\)</span> is the number of neighbors of exactly one of the two nodes. Kept nodes sharing
+no neighbor stay as isolated nodes, even though their similarity is not 0: only pairs joined
+by a path of length two are computed.</p>
+<p>Vectors use the edge weights with parallel edges summed. In directed networks the weight of
+<span class="math notranslate nohighlight">\(a \to b\)</span> compares the out-vector of <span class="math notranslate nohighlight">\(a\)</span> with the in-vector of <span class="math notranslate nohighlight">\(b\)</span>, and the
+projection is directed. The dot products are sums over the paths of length two (see the module
+description), accumulated in float64 to limit cancellation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">inverse_euclidean_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.pearson_correlation_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pearson_correlation_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pearson_correlation_projection" title="Link to this definition"></a></dt>
+<dd><p>Pearson correlation projection: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> sharing at least one
+neighbor are connected with the Pearson correlation of their rows <span class="math notranslate nohighlight">\(B_a\)</span> and <span class="math notranslate nohighlight">\(B_b\)</span>
+of the biadjacency matrix, over all the <span class="math notranslate nohighlight">\(m\)</span> nodes of the other type (zeros included):</p>
+<div class="math notranslate nohighlight">
+\[w_{ab} = \frac{\sum_c B_{ac} B_{bc} - m \bar{B}_a \bar{B}_b}
+{\sqrt{\sum_c B_{ac}^2 - m \bar{B}_a^2} \sqrt{\sum_c B_{bc}^2 - m \bar{B}_b^2}}\]</div>
+<p>with <span class="math notranslate nohighlight">\(\bar{B}_a = \sum_c B_{ac} / m\)</span>. Weights are between -1 and 1: two nodes sharing
+a neighbor can still be negatively correlated, e.g. if each has many neighbors the other lacks.
+A node whose vector is constant (connected to every other node with the same weight) has zero
+variance, and its correlations are 0. Kept nodes sharing no neighbor stay as isolated nodes,
+even though their correlation is not 0 (it is negative): only pairs joined by a path of length
+two are computed.</p>
+<p>Vectors use the edge weights with parallel edges summed. <span class="math notranslate nohighlight">\(m\)</span> counts all the nodes of the
+other type in the network, isolated ones and other components included; in multilayer
+networks, those of the layer. In directed networks the weight of <span class="math notranslate nohighlight">\(a \to b\)</span> compares the
+out-vector of <span class="math notranslate nohighlight">\(a\)</span> with the in-vector of <span class="math notranslate nohighlight">\(b\)</span>, and the projection is directed. The
+dot products are sums over the paths of length two (see the module description), accumulated
+in float64 to limit cancellation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">pearson_correlation_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.random_walk_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">random_walk_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.random_walk_projection" title="Link to this definition"></a></dt>
+<dd><p>Random walk projection (YCN, Yildirim and Coscia, 2014): the weight from <span class="math notranslate nohighlight">\(a\)</span> to <span class="math notranslate nohighlight">\(b\)</span>
+is the probability that a random walker on the bipartite network moves from <span class="math notranslate nohighlight">\(a\)</span> to
+<span class="math notranslate nohighlight">\(b\)</span> in two steps (through a node of the other type), times the probability of finding it
+on <span class="math notranslate nohighlight">\(b\)</span> after infinitely many steps:</p>
+<div class="math notranslate nohighlight">
+\[U_{a \to b} = T_{ab} \pi_b, \qquad T_{ab} = \sum_c \frac{B_{ac}}{s_a} \frac{B_{bc}}{s_c}\]</div>
+<p>with <span class="math notranslate nohighlight">\(B\)</span> the biadjacency matrix, <span class="math notranslate nohighlight">\(s\)</span> the strengths (sums of edge weights; degrees
+with unit weights), <span class="math notranslate nohighlight">\(T\)</span> the two-step transition matrix (ProbS, see
+<a class="reference internal" href="#graphoskop.resource_allocation_projection" title="graphoskop.resource_allocation_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a>) and <span class="math notranslate nohighlight">\(\pi\)</span> its stationary distribution. The walk
+is reversible, so <span class="math notranslate nohighlight">\(\pi_b = s_b / S\)</span>, with <span class="math notranslate nohighlight">\(S\)</span> the total edge weight, and no
+eigenvector is computed: <span class="math notranslate nohighlight">\(U_{a \to b} = H_{ab} s_b / (s_a S)\)</span>, with <span class="math notranslate nohighlight">\(H\)</span> the
+hyperbolic sum of <a class="reference internal" href="#graphoskop.hyperbolic_projection" title="graphoskop.hyperbolic_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">directed</span> <span class="pre">=</span> <span class="pre">False</span></code> the two directions
+are averaged, <span class="math notranslate nohighlight">\((U_{a \to b} + U_{b \to a}) / 2\)</span>. Parallel edges are summed. Kept nodes
+sharing no neighbor stay as isolated nodes.</p>
+<p>This is the stationary distribution of the whole network, so on networks with several
+components, weights are comparable across components (the reference implementation takes an
+arbitrary eigenvector of eigenvalue 1 instead, which is unique only on connected networks). In
+multilayer networks, <span class="math notranslate nohighlight">\(S\)</span> is the total edge weight of the layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
+<code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
+<li><p><strong>directed</strong> – Return the directed projection <span class="math notranslate nohighlight">\(U\)</span>, with both directions of every
+pair, instead of the average of the two directions.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
+The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
+attribute.</p></li>
+<li><p><strong>batch_size</strong> – Target number of paths of length two per batch (see the module
+description).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with the edge attribute
+<code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed (the walk is then not reversible), is not
+bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;occupations.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">occupations</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">)</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.resource_allocation_projection">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">resource_allocation_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.resource_allocation_projection" title="Link to this definition"></a></dt>
 <dd><p>Resource allocation projections (Zhou et al.): ProbS (mass diffusion), HeatS (heat conduction)
@@ -319,34 +509,20 @@ has no node of type <code class="docutils literal notranslate"><span class="pre"
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.random_walk_projection">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">random_walk_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.random_walk_projection" title="Link to this definition"></a></dt>
-<dd><p>Random walk projection (YCN, Yildirim and Coscia, 2014): the weight from <span class="math notranslate nohighlight">\(a\)</span> to <span class="math notranslate nohighlight">\(b\)</span>
-is the probability that a random walker on the bipartite network moves from <span class="math notranslate nohighlight">\(a\)</span> to
-<span class="math notranslate nohighlight">\(b\)</span> in two steps (through a node of the other type), times the probability of finding it
-on <span class="math notranslate nohighlight">\(b\)</span> after infinitely many steps:</p>
-<div class="math notranslate nohighlight">
-\[U_{a \to b} = T_{ab} \pi_b, \qquad T_{ab} = \sum_c \frac{B_{ac}}{s_a} \frac{B_{bc}}{s_c}\]</div>
-<p>with <span class="math notranslate nohighlight">\(B\)</span> the biadjacency matrix, <span class="math notranslate nohighlight">\(s\)</span> the strengths (sums of edge weights; degrees
-with unit weights), <span class="math notranslate nohighlight">\(T\)</span> the two-step transition matrix (ProbS, see
-<a class="reference internal" href="#graphoskop.resource_allocation_projection" title="graphoskop.resource_allocation_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">resource_allocation_projection()</span></code></a>) and <span class="math notranslate nohighlight">\(\pi\)</span> its stationary distribution. The walk
-is reversible, so <span class="math notranslate nohighlight">\(\pi_b = s_b / S\)</span>, with <span class="math notranslate nohighlight">\(S\)</span> the total edge weight, and no
-eigenvector is computed: <span class="math notranslate nohighlight">\(U_{a \to b} = H_{ab} s_b / (s_a S)\)</span>, with <span class="math notranslate nohighlight">\(H\)</span> the
-hyperbolic sum of <a class="reference internal" href="#graphoskop.hyperbolic_projection" title="graphoskop.hyperbolic_projection"><code class="xref py py-func docutils literal notranslate"><span class="pre">hyperbolic_projection()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">directed</span> <span class="pre">=</span> <span class="pre">False</span></code> the two directions
-are averaged, <span class="math notranslate nohighlight">\((U_{a \to b} + U_{b \to a}) / 2\)</span>. Parallel edges are summed. Kept nodes
-sharing no neighbor stay as isolated nodes.</p>
-<p>This is the stationary distribution of the whole network, so on networks with several
-components, weights are comparable across components (the reference implementation takes an
-arbitrary eigenvector of eigenvalue 1 instead, which is unique only on connected networks). In
-multilayer networks, <span class="math notranslate nohighlight">\(S\)</span> is the total edge weight of the layer.</p>
+<dt class="sig sig-object py" id="graphoskop.simple_count_projection">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simple_count_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simple_count_projection" title="Link to this definition"></a></dt>
+<dd><p>Projection counting the shared neighbors, weighted: two kept nodes <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are
+connected with weight <span class="math notranslate nohighlight">\(\sum_c B_{ac} B_{bc}\)</span>, i.e. <span class="math notranslate nohighlight">\(B B^T\)</span>
+(<span class="math notranslate nohighlight">\(B_{out} B_{in}\)</span> in directed networks), summing over the nodes <span class="math notranslate nohighlight">\(c\)</span> of the other
+type they share (paths of length two in directed networks, see the module description). With
+unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is the number of shared neighbors, parallel edges
+counting as many times as they appear. Kept nodes sharing no neighbor stay as isolated nodes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – An undirected bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>net</strong> – A bipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>node_type</strong> – Value of <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of the nodes to keep, one of
 <code class="docutils literal notranslate"><span class="pre">net.bipartite_labels</span></code>.</p></li>
-<li><p><strong>directed</strong> – Return the directed projection <span class="math notranslate nohighlight">\(U\)</span>, with both directions of every
-pair, instead of the average of the two directions.</p></li>
 <li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.
 The default <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code> falls back to unit weights, with a warning, if there is no such
 attribute.</p></li>
@@ -355,13 +531,12 @@ description).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with the edge attribute
-<code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
+<dd class="field-even"><p>The projection, a new unipartite <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;weight&quot;</span></code>.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed (the walk is then not reversible), is not
-bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not bipartite, or has no node of type <code class="docutils literal notranslate"><span class="pre">node_type</span></code>.</p></li>
 <li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">weight</span></code> is another name and there is no edge attribute with it.</p></li>
 </ul>
 </dd>
@@ -369,9 +544,10 @@ bipartite, or has no node of type <code class="docutils literal notranslate"><sp
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;occupations.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">occupations</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">)</span>
-<span class="n">flows</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;occupation&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;purchases.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>   <span class="c1"># items bought in common</span>
+<span class="n">items</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simple_count_projection</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;quantity&quot;</span><span class="p">)</span>
+<span class="n">users</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -382,8 +558,8 @@ bipartite, or has no node of type <code class="docutils literal notranslate"><sp
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="multilayer.html" class="btn btn-neutral float-left" title="Multilayer networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="network_statistics.html" class="btn btn-neutral float-right" title="Network statistics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="backboning.html" class="btn btn-neutral float-left" title="Backboning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="centrality.html" class="btn btn-neutral float-right" title="Centrality" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

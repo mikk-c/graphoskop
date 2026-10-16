@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Centrality" href="centrality.html" />
-    <link rel="prev" title="Exploration" href="exploration.html" /> 
+    <link rel="next" title="Signed networks" href="signed.html" />
+    <link rel="prev" title="Robustness" href="robustness.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,28 +47,35 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Shortest paths</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.all_pairs_shortest_paths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_paths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.diameter"><code class="docutils literal notranslate"><span class="pre">diameter()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.shortest_path"><code class="docutils literal notranslate"><span class="pre">shortest_path()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.shortest_path_length"><code class="docutils literal notranslate"><span class="pre">shortest_path_length()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.single_source_shortest_paths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.single_source_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.all_pairs_shortest_paths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_paths()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.shortest_path_length_distribution"><code class="docutils literal notranslate"><span class="pre">shortest_path_length_distribution()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#graphoskop.diameter"><code class="docutils literal notranslate"><span class="pre">diameter()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.single_source_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.single_source_shortest_paths"><code class="docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
-<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
 </ul>
 
         </div>
@@ -120,6 +127,120 @@ coupling of length 0 makes changing layer free. Nodes are copies <code class="do
 are lists of copies, showing where they change layer. An entity can be given instead of a copy:
 then all its copies are origins (or destinations), and the shortest path from (or to) any of them
 is used.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.all_pairs_shortest_path_lengths">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">all_pairs_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.all_pairs_shortest_path_lengths" title="Link to this definition"></a></dt>
+<dd><p>Lengths of the shortest paths between all pairs of nodes of a component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>matrix</strong> – Return an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, in the same format as
+<a class="reference internal" href="laplacians.html#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a> (rows and columns ordered by internal node
+index, dtype of the edge attributes, device of the component; <code class="docutils literal notranslate"><span class="pre">inf</span></code> where there is no
+path). If <code class="docutils literal notranslate"><span class="pre">False</span></code>, return a dictionary from each source id to the dictionary of its
+lengths (as in <a class="reference internal" href="#graphoskop.single_source_shortest_path_lengths" title="graphoskop.single_source_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a>).</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Lengths, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
+<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>
+<span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                                  <span class="c1"># if both are in component 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.all_pairs_shortest_paths">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">all_pairs_shortest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.all_pairs_shortest_paths" title="Link to this definition"></a></dt>
+<dd><p>Shortest paths between all pairs of nodes of a component.</p>
+<p>The number of paths grows with the square of the number of nodes, so this is meant for small
+components; for large ones, use <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> or
+<a class="reference internal" href="#graphoskop.single_source_shortest_paths" title="graphoskop.single_source_shortest_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a> on the sources of interest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary from each source id to the dictionary of its paths (as in
+<a class="reference internal" href="#graphoskop.single_source_shortest_paths" title="graphoskop.single_source_shortest_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a>), or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_paths</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">paths</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">][</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>                                  <span class="c1"># [&#39;alice&#39;, &#39;bob&#39;, &#39;carol&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.diameter">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">diameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.diameter" title="Link to this definition"></a></dt>
+<dd><p>Diameter: the length of the longest shortest path, <span class="math notranslate nohighlight">\(\max_{s, t} d(s, t)\)</span> over the pairs
+connected by a path.</p>
+<p>Paths are those of the rest of the module (<code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, directions followed in
+directed networks, the supra-graph in multilayer networks); with unit lengths the diameter is
+in number of edges. Pairs without a path are left out: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> the result is
+the largest diameter over the components, and in directed networks the longest shortest path
+between pairs where one reaches the other (NetworkX instead raises an error unless the network is
+strongly connected). A single node has diameter 0.</p>
+<p>In undirected networks the diameter is found exactly with BoundingDiameters (Takes and
+Kosters, 2011): each search from a node bounds the eccentricities (largest lengths) of all the
+others, and searches stop when the lower and upper bounds of the diameter meet, usually after a
+handful of searches instead of one per node. Directed networks search from every node, in blocks
+and processes as <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>). With <code class="docutils literal notranslate"><span class="pre">lengths</span></code> (from
+<a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> with the same <code class="docutils literal notranslate"><span class="pre">component</span></code>, <code class="docutils literal notranslate"><span class="pre">weight</span></code> and
+<code class="docutils literal notranslate"><span class="pre">inverse</span></code>) nothing is searched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+<li><p><strong>n_jobs</strong> – Number of processes for the searches of directed networks, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
+<li><p><strong>lengths</strong> – Precomputed lengths: a tensor for one component, or the list of tensors of
+<code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths(net,</span> <span class="pre">None,</span> <span class="pre">...)</span></code> for <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The diameter: an <code class="docutils literal notranslate"><span class="pre">int</span></code> with unit lengths, a <code class="docutils literal notranslate"><span class="pre">float</span></code> otherwise.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code> does not match.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">diameter</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                        <span class="c1"># largest component, in edges</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">diameter</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;distance&quot;</span><span class="p">)</span>                   <span class="c1"># weighted</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.shortest_path">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">shortest_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.shortest_path" title="Link to this definition"></a></dt>
@@ -181,128 +302,6 @@ copies.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.single_source_shortest_paths">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_paths" title="Link to this definition"></a></dt>
-<dd><p>Shortest paths from one node to every node it reaches.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>source</strong> – Input id of the origin (or entity, in multilayer networks: paths from the nearest
-of its copies, each copy reaching itself with a path of one node).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary from the input id of each reachable node to its path (list of input ids).</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">paths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_source_shortest_paths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
-<span class="n">paths</span><span class="p">[</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>                                           <span class="c1"># [&#39;alice&#39;, &#39;bob&#39;, &#39;carol&#39;]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.single_source_shortest_path_lengths">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_path_lengths" title="Link to this definition"></a></dt>
-<dd><p>Lengths of the shortest paths from one node to every node it reaches.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>source</strong> – Input id of the origin (or entity, in multilayer networks: lengths from the
-nearest of its copies, 0 for the copies themselves).</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary from the input id of each reachable node to its length.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">lengths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_source_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.all_pairs_shortest_paths">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">all_pairs_shortest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.all_pairs_shortest_paths" title="Link to this definition"></a></dt>
-<dd><p>Shortest paths between all pairs of nodes of a component.</p>
-<p>The number of paths grows with the square of the number of nodes, so this is meant for small
-components; for large ones, use <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> or
-<a class="reference internal" href="#graphoskop.single_source_shortest_paths" title="graphoskop.single_source_shortest_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a> on the sources of interest.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionary from each source id to the dictionary of its paths (as in
-<a class="reference internal" href="#graphoskop.single_source_shortest_paths" title="graphoskop.single_source_shortest_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a>), or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">paths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_paths</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
-<span class="n">paths</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">][</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>                                  <span class="c1"># [&#39;alice&#39;, &#39;bob&#39;, &#39;carol&#39;]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.all_pairs_shortest_path_lengths">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">all_pairs_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.all_pairs_shortest_path_lengths" title="Link to this definition"></a></dt>
-<dd><p>Lengths of the shortest paths between all pairs of nodes of a component.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
-<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
-<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>matrix</strong> – Return an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, in the same format as
-<a class="reference internal" href="laplacians.html#graphoskop.effective_resistance" title="graphoskop.effective_resistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a> (rows and columns ordered by internal node
-index, dtype of the edge attributes, device of the component; <code class="docutils literal notranslate"><span class="pre">inf</span></code> where there is no
-path). If <code class="docutils literal notranslate"><span class="pre">False</span></code>, return a dictionary from each source id to the dictionary of its
-lengths (as in <a class="reference internal" href="#graphoskop.single_source_shortest_path_lengths" title="graphoskop.single_source_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_path_lengths()</span></code></a>).</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Lengths, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
-
-<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">P</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">all_pairs_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
-<span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>
-<span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                                  <span class="c1"># if both are in component 0</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.shortest_path_length_distribution">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">shortest_path_length_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.shortest_path_length_distribution" title="Link to this definition"></a></dt>
 <dd><p>Distribution of the lengths of shortest paths, in number of edges: how many pairs of nodes
@@ -352,48 +351,56 @@ or float when estimated with <code class="docutils literal notranslate"><span cl
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="graphoskop.diameter">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">diameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.diameter" title="Link to this definition"></a></dt>
-<dd><p>Diameter: the length of the longest shortest path, <span class="math notranslate nohighlight">\(\max_{s, t} d(s, t)\)</span> over the pairs
-connected by a path.</p>
-<p>Paths are those of the rest of the module (<code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, directions followed in
-directed networks, the supra-graph in multilayer networks); with unit lengths the diameter is
-in number of edges. Pairs without a path are left out: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> the result is
-the largest diameter over the components, and in directed networks the longest shortest path
-between pairs where one reaches the other (NetworkX instead raises an error unless the network is
-strongly connected). A single node has diameter 0.</p>
-<p>In undirected networks the diameter is found exactly with BoundingDiameters (Takes and
-Kosters, 2011): each search from a node bounds the eccentricities (largest lengths) of all the
-others, and searches stop when the lower and upper bounds of the diameter meet, usually after a
-handful of searches instead of one per node. Directed networks search from every node, in blocks
-and processes as <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>). With <code class="docutils literal notranslate"><span class="pre">lengths</span></code> (from
-<a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> with the same <code class="docutils literal notranslate"><span class="pre">component</span></code>, <code class="docutils literal notranslate"><span class="pre">weight</span></code> and
-<code class="docutils literal notranslate"><span class="pre">inverse</span></code>) nothing is searched.</p>
+<dt class="sig sig-object py" id="graphoskop.single_source_shortest_path_lengths">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_path_lengths" title="Link to this definition"></a></dt>
+<dd><p>Lengths of the shortest paths from one node to every node it reaches.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
-<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>source</strong> – Input id of the origin (or entity, in multilayer networks: lengths from the
+nearest of its copies, 0 for the copies themselves).</p></li>
 <li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
 <li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
-<li><p><strong>n_jobs</strong> – Number of processes for the searches of directed networks, <code class="docutils literal notranslate"><span class="pre">None</span></code> for all CPUs.</p></li>
-<li><p><strong>lengths</strong> – Precomputed lengths: a tensor for one component, or the list of tensors of
-<code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths(net,</span> <span class="pre">None,</span> <span class="pre">...)</span></code> for <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The diameter: an <code class="docutils literal notranslate"><span class="pre">int</span></code> with unit lengths, a <code class="docutils literal notranslate"><span class="pre">float</span></code> otherwise.</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If some lengths are negative or NaN, or <code class="docutils literal notranslate"><span class="pre">lengths</span></code> does not match.</p>
+<dd class="field-even"><p>Dictionary from the input id of each reachable node to its length.</p>
 </dd>
 </dl>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">gsk</span><span class="o">.</span><span class="n">diameter</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                        <span class="c1"># largest component, in edges</span>
-<span class="n">gsk</span><span class="o">.</span><span class="n">diameter</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;distance&quot;</span><span class="p">)</span>                   <span class="c1"># weighted</span>
+<span class="n">lengths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_source_shortest_path_lengths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.single_source_shortest_paths">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_paths" title="Link to this definition"></a></dt>
+<dd><p>Shortest paths from one node to every node it reaches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>source</strong> – Input id of the origin (or entity, in multilayer networks: paths from the nearest
+of its copies, each copy reaching itself with a path of one node).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of the edge attribute as length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary from the input id of each reachable node to its path (list of input ids).</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">paths</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_source_shortest_paths</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">paths</span><span class="p">[</span><span class="s2">&quot;carol&quot;</span><span class="p">]</span>                                           <span class="c1"># [&#39;alice&#39;, &#39;bob&#39;, &#39;carol&#39;]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -405,8 +412,8 @@ and processes as <a class="reference internal" href="#graphoskop.all_pairs_short
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="exploration.html" class="btn btn-neutral float-left" title="Exploration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="centrality.html" class="btn btn-neutral float-right" title="Centrality" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="robustness.html" class="btn btn-neutral float-left" title="Robustness" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signed.html" class="btn btn-neutral float-right" title="Signed networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

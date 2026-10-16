@@ -30,9 +30,9 @@ Building a signed network
 The result is an ordinary network, so every other function works on it; the sign is one more edge
 attribute, kept when saving and loading.
 
-.. autofunction:: graphoskop.signed_network
-
 .. autofunction:: graphoskop.signed_adjacency
+
+.. autofunction:: graphoskop.signed_network
 
 Structural balance and signed triangles
 ---------------------------------------
@@ -43,6 +43,6 @@ Structural balance and signed triangles
    gsk.structural_balance(signed, beta = 0.5)   # Tr(exp(beta A)) / Tr(exp(beta |A|)), all closed walks
    gsk.signed_triangle_counts(signed)    # count of each type, expected under shuffled signs, ratio, z
 
-.. autofunction:: graphoskop.structural_balance
-
 .. autofunction:: graphoskop.signed_triangle_counts
+
+.. autofunction:: graphoskop.structural_balance

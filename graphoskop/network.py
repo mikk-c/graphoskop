@@ -257,9 +257,12 @@ class Network:
       v[r["node"].to_numpy() - a] = np.asarray(r["value"], dtype = object)
       return v
 
-   def set_node_attribute(self, key, values, component = 0):
+   def set_node_attribute(self, key = None, values = None, component = 0, node_column = None, layer_column = None):
       """
-      Set a node attribute on the nodes of a component, creating it if it does not exist.
+      Set a node attribute on the nodes of a component, creating it if it does not exist; or, without
+      ``key``, set several node attributes from a table.
+
+      **One attribute** (``key`` given): ``values`` are its values, ordered by internal node index.
 
       A new attribute is numeric if its values are (a :class:`torch.Tensor`, or an array or list of
       numbers or booleans), qualitative otherwise. A new numeric attribute is appended to
@@ -271,16 +274,55 @@ class Network:
       A node can have several values of a qualitative attribute, given as a list, tuple or set
       (see :ref:`overlapping-communities`).
 
-      :param key: Attribute name, or position in :attr:`node_attributes`.
+      **Several attributes from a table** (no ``key``): ``values`` is a :class:`pandas.DataFrame`
+      with one row per node and one column per attribute, plus the column ``node_column`` with the
+      node ids (names or positions of columns, as in :func:`load_network`); the table can also be
+      given in place of ``key``. Rows are matched to nodes by id, as in :func:`subgraph` (ids read
+      from files are strings, and a number is tried again as a string), so ``component`` is not
+      used. Nodes not in the table keep their values; for a new attribute, they get missing values,
+      as above. Missing cells (NaN) make the value missing (in long, sparse tables, numeric values
+      then read as 0). A new attribute is numeric if its column holds numbers or booleans,
+      qualitative otherwise. In multilayer networks, ``layer_column`` gives the layer of each row,
+      so that rows are copies ``(entity, layer)``; without it, the ids are entities and each row
+      sets all their copies.
+
+      :param key: Attribute name, or position in :attr:`node_attributes`; ``None`` for a table.
       :param values: Vector of length ``n``, ordered by internal node index, or a list of them
-         (one per component) if ``component`` is ``None``.
+         (one per component) if ``component`` is ``None``; without ``key``, the table.
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
-      :raises KeyError: If ``key`` is a position and there is no node attribute there.
+      :param node_column: With a table, the column with the node ids (entities in multilayer
+         networks).
+      :param layer_column: With a table of a multilayer network, the column with the layers, or
+         ``None``.
+      :raises KeyError: If ``key`` is a position and there is no node attribute there, or if a node
+         of the table is not in the network.
       :raises ValueError: If a vector does not have one value per node, if non-numeric values are
          given for a numeric attribute, if ``key`` is :data:`BIPARTITE` in a bipartite network
-         (node types fix the node order and cannot change), or if ``key`` is ``"layer"`` in a
-         multilayer network (the layer is part of the node id).
+         (node types fix the node order and cannot change), if ``key`` is ``"layer"`` in a
+         multilayer network (the layer is part of the node id), if a table has no
+         ``node_column`` or a node in two rows, or if ``layer_column`` is given for a network that
+         is not multilayer.
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+         import pandas as pd
+         import torch
+
+         net = gsk.load_network("edges.tsv")
+         net.set_node_attribute("score", torch.rand(net.number_of_nodes(0)))     # component 0
+         table = pd.DataFrame({"name": ["alice", "bob"], "age": [34, 27], "city": ["Rome", "Oslo"]})
+         net.set_node_attribute(table, node_column = "name")   # new attributes age (numeric) and city
       """
+      if isinstance(key, pd.DataFrame) and values is None:
+         key, values = None, key
+      if key is None:
+         if node_column is None:
+            raise ValueError("a table of node attributes needs node_column, the column with the node ids")
+         self._set_node_table(values, node_column, layer_column)
+         return
       if self.bipartite_labels is not None and key == BIPARTITE:
          raise ValueError(f"{BIPARTITE!r} cannot be changed: node types fix the node order of a bipartite network")
       if self.layer_labels is not None and key == LAYER:
@@ -324,6 +366,44 @@ class Network:
          nz = v.nonzero().squeeze(1)
          i = torch.cat([C.indices()[:, keep], torch.stack([nz, torch.full_like(nz, j)])], 1)
          data.node_attr = torch.sparse_coo_tensor(i, torch.cat([C.values()[keep], v[nz]]), X.shape).coalesce().to_sparse_csr()
+
+   def _set_node_table(self, table, node_column, layer_column):
+      """
+      Set node attributes from a table matched by node id (see :meth:`set_node_attribute`).
+
+      :param table: :class:`pandas.DataFrame`.
+      :param node_column: Column with the node ids.
+      :param layer_column: Column with the layers (multilayer networks), or ``None``.
+      """
+      if layer_column is not None and self.layer_labels is None:
+         raise ValueError("layer_column is only for multilayer networks")
+      col = lambda c: table.columns[c] if isinstance(c, (int, np.integer)) and c not in table.columns else c
+      idc = [col(node_column)] + ([] if layer_column is None else [col(layer_column)])
+      keys = table[idc[0]].tolist() if layer_column is None else list(zip(table[idc[0]].tolist(), table[idc[1]].tolist()))
+      rows, comp, local = [], [], []
+      for r, x in enumerate(keys):
+         for c, i in self._nodes(x):
+            rows.append(r)
+            comp.append(c)
+            local.append(i)
+      rows, comp, local = np.array(rows, dtype = np.int64), np.array(comp, dtype = np.int64), np.array(local, dtype = np.int64)
+      pos = self.node_offsets[comp] + local
+      if len(np.unique(pos)) < len(pos):
+         raise ValueError("a node appears in two rows of the table")
+      for a in [c for c in table.columns if c not in idc]:
+         v = table[a].to_numpy()[rows]
+         qual = a in self.qualitative_node_attributes or (a not in self.node_attributes and not _is_numeric(table[a].dropna().to_numpy()))
+         if qual:
+            old = np.concatenate(self.get_node_attribute(a, None)) if a in self.qualitative_node_attributes else np.full(self.node_offsets[-1], np.nan, dtype = object)
+            for p, x in zip(pos, v):   # element by element: cells can be lists
+               old[p] = x
+         else:
+            if not _is_numeric(table[a].dropna().to_numpy()):
+               raise ValueError(f"node attribute {a!r} is numeric, got non-numeric values")
+            fill = 0. if self.node_format == "long" else np.nan
+            old = torch.cat(self.get_node_attribute(a, None)).cpu().double().numpy() if a in self.node_attributes else np.full(self.node_offsets[-1], fill)
+            old[pos] = np.nan_to_num(v.astype(np.float64), nan = fill)   # long tables: missing means no value
+         self.set_node_attribute(a, [old[self.node_offsets[c]:self.node_offsets[c + 1]] for c in range(len(self.components))], None)
 
    def _set_qualitative(self, key, values, component):
       """
@@ -457,6 +537,78 @@ class Network:
          return m
       inter = int(self.interlayer_mask(component).sum()) // (1 if self.directed else 2)
       return inter if kind == "inter" else m - inter
+
+   def edges(self, component = 0, labels = False, data = False):
+      """
+      Iterate over the edges, as given in input: in undirected networks each edge comes once
+      (the reverse copies stored by :func:`load_network` are left out); parallel edges and self
+      loops come as they are.
+
+      * By default, an edge is a pair ``(i, j)`` of the indices of its endpoints in the component,
+        the internal ids of the nodes, as in ``edge_index``; with ``component = None``, the edges
+        of all the components, as pairs of internal ids ``((c, i), (c, j))``.
+      * With ``labels = True``, the input ids of the endpoints instead (``(entity, layer)`` copies
+        in multilayer networks).
+      * With ``data = True``, a third element: a dictionary of the numeric edge attributes of the
+        edge, by name; with ``data`` the name of an edge attribute, its value.
+
+      The edges are read from the device once, so iterating is a plain Python loop.
+
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :param labels: Whether to give the endpoints by their input ids.
+      :param data: ``False``, ``True`` for all the edge attributes, or the name of one.
+      :return: Iterator over the edges, as tuples ``(u, v)`` or ``(u, v, d)``.
+      :raises KeyError: If there is no edge attribute named ``data``.
+      :raises IndexError: If there is no such component.
+
+      Example:
+
+      .. code-block:: python
+
+         for i, j in net.edges():                          # component 0, internal indices
+            ...
+         for (c, i), (c, j) in net.edges(None):            # all components, internal ids
+            ...
+         for u, v, w in net.edges(labels = True, data = "weight"):
+            print(f"{u} -> {v}: {w}")
+         for u, v, d in net.edges(None, labels = True, data = True):
+            d["weight"], d["sign"]
+         edges = list(net.edges(labels = True))
+      """
+      key = None if isinstance(data, bool) else self._column(self.edge_attributes, data, "edge")
+      if component is not None and not -len(self.components) <= component < len(self.components):
+         raise IndexError(f"no component {component}: the network has {len(self.components)}")
+      comps = range(len(self.components)) if component is None else [component]
+      return self._edges(comps, component is None, labels, data, key)
+
+   def _edges(self, comps, ids, labels, data, key):
+      """
+      Generator behind :meth:`edges`.
+
+      :param comps: Component indices.
+      :param ids: Whether to give endpoints as internal ids ``(c, i)``.
+      :param labels: Whether to give endpoints by input id.
+      :param data: As in :meth:`edges`.
+      :param key: Column of the edge attribute given by ``data``, or ``None``.
+      :return: Iterator over the edges.
+      """
+      for c in comps:
+         ei, X = self._input_edges(c)
+         s, t = ei.cpu().numpy()
+         if labels:
+            names = self.node_ids[c]
+            s, t = names[s].tolist(), names[t].tolist()
+         elif ids:
+            s, t = [(c, i) for i in s.tolist()], [(c, j) for j in t.tolist()]
+         else:
+            s, t = s.tolist(), t.tolist()
+         if data is False:
+            yield from zip(s, t)
+         elif key is not None:
+            yield from zip(s, t, X[:, key].cpu().tolist())
+         else:
+            names = self.edge_attributes
+            yield from zip(s, t, (dict(zip(names, row)) for row in X.cpu().tolist()))
 
    def number_of_components(self):
       """

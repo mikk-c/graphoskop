@@ -20,28 +20,28 @@ Centrality
    c = gsk.closeness_centrality(net, component = None, lin = True)
    h = gsk.harmonic_centrality(net, component = None)
 
-.. autofunction:: graphoskop.closeness_centrality
-
-.. autofunction:: graphoskop.harmonic_centrality
-
-.. autofunction:: graphoskop.eigenvector_centrality
-
-.. autofunction:: graphoskop.katz_centrality
-
 .. autofunction:: graphoskop.alpha_centrality
-
-.. autofunction:: graphoskop.pagerank
-
-.. autofunction:: graphoskop.hits
 
 .. autofunction:: graphoskop.betweenness_centrality
 
+.. autofunction:: graphoskop.centralization
+
+.. autofunction:: graphoskop.closeness_centrality
+
 .. autofunction:: graphoskop.edge_betweenness_centrality
+
+.. autofunction:: graphoskop.eigenvector_centrality
 
 .. autofunction:: graphoskop.flow_centrality
 
-.. autofunction:: graphoskop.reach_centrality
+.. autofunction:: graphoskop.harmonic_centrality
+
+.. autofunction:: graphoskop.hits
 
 .. autofunction:: graphoskop.k_core_centrality
 
-.. autofunction:: graphoskop.centralization
+.. autofunction:: graphoskop.katz_centrality
+
+.. autofunction:: graphoskop.pagerank
+
+.. autofunction:: graphoskop.reach_centrality

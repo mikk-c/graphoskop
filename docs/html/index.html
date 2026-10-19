@@ -60,6 +60,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -130,7 +131,9 @@ contagion, simulated in parallel runs (see <a class="reference internal" href="e
 or edge failures and attacks, another percolation process, and cascades of failures driven by
 loads and capacities are in <a class="reference internal" href="robustness.html"><span class="doc">Robustness</span></a>.</p>
 <p>Link prediction hides some edges of a network and scores the hidden pairs, and as many
-unconnected ones, from the rest of the network (see <a class="reference internal" href="link_prediction.html"><span class="doc">Link prediction</span></a>).</p>
+unconnected ones, from the rest of the network (see <a class="reference internal" href="link_prediction.html"><span class="doc">Link prediction</span></a>). Network error
+correction does both jobs of cleaning observed networks, finding spurious and missing edges, with
+the nested stochastic blockmodel (see <a class="reference internal" href="error_correction.html"><span class="doc">Network error correction</span></a>).</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
@@ -148,6 +151,7 @@ unconnected ones, from the rest of the network (see <a class="reference internal
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.ego_network"><code class="docutils literal notranslate"><span class="pre">ego_network()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.flip_edge_direction"><code class="docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_isolates"><code class="docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="transformations.html#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
@@ -171,6 +175,7 @@ unconnected ones, from the rest of the network (see <a class="reference internal
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.convex_skeleton"><code class="docutils literal notranslate"><span class="pre">convex_skeleton()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.disparity_filter"><code class="docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.doubly_stochastic"><code class="docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="backboning.html#graphoskop.extract_backbone"><code class="docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a></li>
@@ -240,6 +245,8 @@ unconnected ones, from the rest of the network (see <a class="reference internal
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.dfs"><code class="docutils literal notranslate"><span class="pre">dfs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.metropolis_hastings_random_walk"><code class="docutils literal notranslate"><span class="pre">metropolis_hastings_random_walk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exploration.html#graphoskop.random_walk"><code class="docutils literal notranslate"><span class="pre">random_walk()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a><ul>
@@ -286,6 +293,12 @@ unconnected ones, from the rest of the network (see <a class="reference internal
 <li class="toctree-l2"><a class="reference internal" href="multilayer.html#saving">Saving</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multilayer.html#signed-networks">Signed networks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multilayer.html#single-layers-and-aggregation">Single layers and aggregation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="error_correction.html#graphoskop.fit_nested_block_model"><code class="docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="error_correction.html#graphoskop.measured_network_correction"><code class="docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="error_correction.html#graphoskop.uncertain_network_correction"><code class="docutils literal notranslate"><span class="pre">uncertain_network_correction()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a><ul>

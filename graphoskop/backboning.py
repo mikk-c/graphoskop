@@ -12,6 +12,7 @@ backbone changes qualitatively.
 Scoring methods:
 
 * :func:`~graphoskop.noise_corrected`: score and standard deviation, thresholded as a z-score.
+* :func:`~graphoskop.convex_skeleton`: score only, threshold 0 for the skeleton.
 * :func:`~graphoskop.disparity_filter`: score only.
 * :func:`~graphoskop.doubly_stochastic`: score only.
 * :func:`~graphoskop.high_salience_skeleton`: score only.
@@ -35,9 +36,9 @@ copies they keep, and the statistics of :func:`~graphoskop.test_bb_thresholds` a
 :func:`~graphoskop.find_bb_thresholds` are computed on the intra-layer edges.
 """
 
+import heapq
 import math
 import warnings
-from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
 import pandas as pd
@@ -50,6 +51,7 @@ from scipy.special import betainc
 
 from .network import _quiet_sparse, _subset
 from .planarity import _lr_planar
+from .shortest_paths import _map
 from .utils import _weights
 
 
@@ -173,6 +175,292 @@ def noise_corrected(net, weight = "weight", prefix = "nc"):
          score, sdev = _noise_corrected(data.edge_index[:, keep], _weights(net, c, weight)[keep], data.num_nodes, total[lay[keep]])
       net.set_edge_attribute(prefix + "_score", _scatter(score, keep), c)
       net.set_edge_attribute(prefix + "_sdev", _scatter(sdev, keep), c)
+
+
+@njit(cache = True)
+def _cs_slot(ptr, nbr, x, y):
+   """
+   Position of ``y`` in the sorted neighbor list of ``x`` (CSR arrays), or -1.
+   """
+   lo, hi = ptr[x], ptr[x + 1]
+   k = lo + np.searchsorted(nbr[lo:hi], y)
+   return k if k < hi and nbr[k] == y else -1
+
+
+@njit(cache = True)
+def _cs_common(ptr, nbr, eid, alive, u, v, out_w, out_a, out_b):
+   """
+   Common neighbors of ``u`` and ``v`` through alive edges, scanning the shorter neighbor list and
+   searching the other.
+
+   :return: Their number ``k``; ``out_w[:k]`` are the neighbors, ``out_a[:k]`` and ``out_b[:k]``
+      the edges joining them to ``u`` and ``v``.
+   """
+   if ptr[u + 1] - ptr[u] > ptr[v + 1] - ptr[v]:
+      u, v = v, u
+      out_a, out_b = out_b, out_a
+   k = 0
+   for p in range(ptr[u], ptr[u + 1]):
+      w = nbr[p]
+      if w == v or not alive[eid[p]]:
+         continue
+      q = _cs_slot(ptr, nbr, v, w)
+      if q >= 0 and alive[eid[q]]:
+         out_w[k], out_a[k], out_b[k] = w, eid[p], eid[q]
+         k += 1
+   return k
+
+
+@njit(cache = True)
+def _cs_block(ptr, nbr, eid, alive, src, dst, emb, target, buf_w, buf_a, buf_b):
+   """
+   Whether the alive edges form a block graph (every biconnected component a clique): every edge
+   lies in a unique maximal clique (the common neighbors of its endpoints are pairwise adjacent),
+   and these cliques are joined like a forest, :math:`\\sum_e 2 / (e + 2) = n - c`.
+   """
+   f = 0.
+   for ed in range(len(src)):
+      if alive[ed]:
+         f += 2. / (emb[ed] + 2)
+   if abs(f - target) > 1e-9 * max(target, 1.):
+      return False
+   for ed in range(len(src)):
+      if alive[ed] and emb[ed] >= 2:
+         k = _cs_common(ptr, nbr, eid, alive, src[ed], dst[ed], buf_w, buf_a, buf_b)
+         for i in range(k):
+            for j in range(i + 1, k):
+               q = _cs_slot(ptr, nbr, buf_w[i], buf_w[j])
+               if q < 0 or not alive[eid[q]]:
+                  return False
+   return True
+
+
+@njit(cache = True)
+def _cs_root(parent, x):
+   """
+   Root of ``x`` in a union-find forest, with path halving.
+   """
+   while parent[x] != x:
+      parent[x] = parent[parent[x]]
+      x = parent[x]
+   return x
+
+
+@njit(cache = True)
+def _convex_skeleton(n, src, dst, rank, target):
+   """
+   Removal order of the convex skeleton heuristic (Šubelj, 2018) on a simple undirected graph.
+
+   Repeatedly removes the alive edge with the fewest common neighbors of its endpoints
+   (embeddedness), ties broken by ``rank``, unless it is a bridge (then it stays for good). An edge
+   without common neighbors changes no embeddedness when removed, and only such edges can be
+   bridges, so the order in which edges are tried does not depend on which are bridges: a first
+   pass finds it, treating every edge as removable; the bridges are then the spanning forest that
+   reverse-delete along this order keeps, found as Kruskal's forest along the reverse order
+   (union-find); a second pass replays the order without them, numbering the removals and finding
+   the first block graph.
+
+   :param n: Number of nodes.
+   :param src: First endpoint of each edge (``src < dst``, no repeated pairs).
+   :param dst: Second endpoint.
+   :param rank: Permutation of the edges, breaking ties.
+   :param target: :math:`n - c`, with :math:`c` the number of connected components.
+   :return: ``(order, R)``: the step (from 1) at which each edge is removed, 0 for the edges never
+      removed; and the number of removals after which the graph is first a block graph.
+   """
+   m = len(src)
+   deg = np.zeros(n + 1, dtype = np.int64)
+   for ed in range(m):
+      deg[src[ed] + 1] += 1
+      deg[dst[ed] + 1] += 1
+   ptr = np.cumsum(deg)
+   fill = ptr[:-1].copy()
+   nbr, eid = np.empty(2 * m, dtype = np.int64), np.empty(2 * m, dtype = np.int64)
+   for ed in range(m):
+      for a, b in ((src[ed], dst[ed]), (dst[ed], src[ed])):
+         nbr[fill[a]], eid[fill[a]] = b, ed
+         fill[a] += 1
+   for x in range(n):   # sorted neighbor lists, for binary search
+      o = np.argsort(nbr[ptr[x]:ptr[x + 1]])
+      nbr[ptr[x]:ptr[x + 1]], eid[ptr[x]:ptr[x + 1]] = nbr[ptr[x]:ptr[x + 1]][o], eid[ptr[x]:ptr[x + 1]][o]
+   maxdeg = max(1, int(np.max(deg)))
+   bw, ba, bb = np.empty(maxdeg, dtype = np.int64), np.empty(maxdeg, dtype = np.int64), np.empty(maxdeg, dtype = np.int64)
+   cw, ca, cb = np.empty(maxdeg, dtype = np.int64), np.empty(maxdeg, dtype = np.int64), np.empty(maxdeg, dtype = np.int64)
+   alive = np.ones(m, dtype = np.bool_)
+   emb = np.empty(m, dtype = np.int64)
+   for ed in range(m):
+      emb[ed] = _cs_common(ptr, nbr, eid, alive, src[ed], dst[ed], bw, ba, bb)
+   emb0 = emb.copy()
+   # first pass: order in which edges are tried
+   edge_of = np.empty(m, dtype = np.int64)
+   edge_of[rank] = np.arange(m)
+   heap = [emb[ed] * m + rank[ed] for ed in range(m)]
+   heapq.heapify(heap)
+   seq = np.empty(m, dtype = np.int64)
+   at = 0
+   while len(heap):
+      key = heapq.heappop(heap)
+      ed = edge_of[key % m]
+      if not alive[ed] or emb[ed] != key // m:   # stale entry
+         continue
+      alive[ed] = False
+      seq[at] = ed
+      at += 1
+      k = _cs_common(ptr, nbr, eid, alive, src[ed], dst[ed], bw, ba, bb)
+      for i in range(k):
+         for e2 in (ba[i], bb[i]):
+            emb[e2] -= 1
+            heapq.heappush(heap, emb[e2] * m + rank[e2])
+   # bridges: Kruskal's forest along the reverse order
+   parent = np.arange(n)
+   keep = np.zeros(m, dtype = np.bool_)
+   for i in range(m - 1, -1, -1):
+      ed = seq[i]
+      a, b = _cs_root(parent, src[ed]), _cs_root(parent, dst[ed])
+      if a != b:
+         parent[a] = b
+         keep[ed] = True
+   # second pass: removals, and the first block graph
+   alive[:] = True
+   emb[:] = emb0
+   f = 0.
+   for ed in range(m):
+      f += 2. / (emb[ed] + 2)
+   order = np.zeros(m, dtype = np.int64)
+   R = 0 if abs(f - target) <= 1e-7 * max(target, 1.) and _cs_block(ptr, nbr, eid, alive, src, dst, emb, target, cw, ca, cb) else -1
+   step = 0
+   for i in range(m):
+      ed = seq[i]
+      if keep[ed]:
+         continue
+      alive[ed] = False
+      step += 1
+      order[ed] = step
+      f -= 2. / (emb[ed] + 2)
+      k = _cs_common(ptr, nbr, eid, alive, src[ed], dst[ed], bw, ba, bb)
+      for j in range(k):
+         for e2 in (ba[j], bb[j]):
+            f += 2. / (emb[e2] + 1) - 2. / (emb[e2] + 2)
+            emb[e2] -= 1
+      if R < 0 and abs(f - target) <= 1e-7 * max(target, 1.) and _cs_block(ptr, nbr, eid, alive, src, dst, emb, target, cw, ca, cb):
+         R = step
+   return order, R if R >= 0 else step
+
+
+def convex_skeleton(net, weight = None, seed = None, prefix = "cs"):
+   """
+   Convex skeleton scores of all edges (Šubelj, 2018): the order in which edges are removed to
+   reduce the network to a tree of cliques.
+
+   A connected subgraph is convex if it contains all the shortest paths between its nodes; in a
+   tree of cliques (a block graph: cliques joined in a tree, two cliques sharing at most one node)
+   every connected subgraph is convex. The convex skeleton is what is left after removing the
+   edges that break this structure, a generalization of a spanning tree in which each edge can be
+   a clique of any size. Finding the fewest edges to remove is hard, so, as in the reference
+   implementation, edges are removed one at a time, each time the edge whose endpoints have the
+   fewest common neighbors (embeddedness, recomputed after each removal), never disconnecting
+   the network: an edge whose removal would disconnect it stays. Removal stops being informative
+   when only a spanning forest is left. The skeleton is the network after the first removal that
+   leaves a tree of cliques, :math:`R` removals in.
+
+   The score of an edge removed at step :math:`t` is :math:`t - R`; edges never removed (the
+   bridges of the final spanning forest) score :math:`+\\infty`. Higher scores mean edges more
+   embedded in the skeleton, and the skeleton is the backbone at threshold 0, with the same rule
+   in :func:`~graphoskop.extract_backbone`, :func:`~graphoskop.test_bb_thresholds` and
+   :func:`~graphoskop.find_bb_thresholds`; a threshold :math:`t` removes :math:`R + t` edges
+   (only threshold 0 is guaranteed to give a tree of cliques). Since no removal disconnects the
+   network, :func:`~graphoskop.find_bb_thresholds` finds no node isolated nor component broken at
+   any finite threshold (it reports :math:`+\\infty`).
+
+   .. code-block:: python
+
+      gsk.convex_skeleton(net)
+      skeleton = gsk.extract_backbone(net, 0, score = "cs_score")
+
+   Ties between edges with the same embeddedness are broken at random (``seed``), or, with
+   ``weight``, by removing lighter edges first (then at random). The procedure works on the simple
+   graph: parallel edges count as one edge and share its score, and self loops are not removed
+   (score :math:`+\\infty`). Weights do not change embeddedness. The paper picks the skeleton
+   along the removals at the peak of the network's convexity; here it is the first tree of
+   cliques. Each component keeps its nodes
+   connected; disconnected networks are handled at once. In multilayer networks every layer is
+   reduced on its own, with its own :math:`R`; interlayer edges get NaN.
+
+   Each removal updates the embeddedness of the edges to the common neighbors of its endpoints.
+   No path search is needed: removing an edge without common neighbors changes no embeddedness,
+   and only such edges can disconnect the network, so the order in which edges are tried does not
+   depend on which of them must stay; these are then the spanning forest kept along that order,
+   found with union-find. All of it runs in a compiled kernel (Numba) on the CPU: on one core,
+   about 1.5 s for half a million edges (Holme-Kim or Erdős-Rényi graphs with :math:`10^5` nodes)
+   and 6 s for a million edges of a random geometric graph. Whether the network is a tree of
+   cliques is first tested in constant time, with :math:`\\sum_e 2 / (e + 2) = n - c` (true of
+   every block graph, :math:`e` being the embeddedness of an edge and :math:`c` the number of
+   components), then confirmed exactly.
+
+   :param net: An undirected :class:`~graphoskop.Network`, modified in place.
+   :param weight: Name of the edge attribute used to break ties (lighter edges removed first), or
+      ``None`` for random ties only.
+   :param seed: Seed of the random tie breaking, or ``None``.
+   :param prefix: The score is stored in the edge attribute ``prefix + "_score"``.
+   :return: :math:`R`, the number of edges removed to reach the tree of cliques: an integer, or, in
+      multilayer networks, a dict from layer to its value.
+   :raises ValueError: If ``net`` is directed.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("coauthorship.tsv")
+      removed = gsk.convex_skeleton(net, seed = 0)              # R
+      skeleton = gsk.extract_backbone(net, 0, score = "cs_score")
+      gsk.test_bb_thresholds(net, -100, 100, 50, score = "cs_score")
+   """
+   if net.directed:
+      raise ValueError("convex skeletons are defined for undirected networks (see to_undirected)")
+   rng = np.random.default_rng(seed)
+   L = 1 if net.layer_labels is None else len(net.layer_labels)
+   offs = net.node_offsets
+   n = int(offs[-1])
+   parts = []   # per component: intra-layer mask, global endpoints, weights, layer of each stored edge
+   for c, d in enumerate(net.components):
+      keep, lay = _intra(net, c)
+      ei = d.edge_index if keep is None else d.edge_index[:, keep]
+      s, t = (ei + int(offs[c])).cpu().numpy()
+      w = None if weight is None else _weights(net, c, weight).double()[keep if keep is not None else slice(None)].cpu().numpy()
+      parts.append((keep, s, t, w, np.zeros(len(s), dtype = np.int64) if lay is None else lay[keep].cpu().numpy()))
+   S, T, Y = (np.concatenate([p[j] for p in parts]) for j in (1, 2, 4))
+   W = np.concatenate([p[3] for p in parts]) if weight is not None else None
+   score = np.full(len(S), np.inf)
+   found = {}
+   for l in range(L):
+      sel = np.flatnonzero((Y == l) & (S != T))
+      a, b = np.minimum(S[sel], T[sel]), np.maximum(S[sel], T[sel])
+      key = a * n + b
+      uk, inv = np.unique(key, return_inverse = True)
+      m = len(uk)
+      if m == 0:
+         found[l] = 0
+         continue
+      tie = rng.random(m)
+      if weight is None:
+         rank = np.argsort(np.argsort(tie))
+      else:
+         pw = np.bincount(inv, W[sel], minlength = m)   # parallel edges: their total weight
+         rank = np.argsort(np.lexsort((tie, pw)))
+      u, v = uk // n, uk % n
+      c = connected_components(sp.csr_matrix((np.ones(m), (u, v)), shape = (n, n)), directed = False)[0]
+      order, R = _convex_skeleton(n, u, v, rank.astype(np.int64), float(n - c))
+      ps = np.where(order > 0, (order - R).astype(np.float64), np.inf)
+      score[sel] = ps[inv]
+      found[l] = int(R)
+   at = 0
+   for c, (keep, s, _, _, _) in enumerate(parts):
+      x = torch.as_tensor(score[at:at + len(s)], device = net.components[c].edge_index.device)
+      at += len(s)
+      net.set_edge_attribute(prefix + "_score", _scatter(x, keep), c)
+   return found[0] if net.layer_labels is None else {net.layer_labels[l]: found[l] for l in range(L)}
 
 
 def _disparity(p, k):
@@ -900,6 +1188,16 @@ def _hss_counts(graph, s, t, d, roots, device = "cpu", threads = None):
    return count
 
 
+def _hss_task(args):
+   """
+   :func:`_hss_counts` on the CPU with one thread, for worker processes.
+
+   :param args: ``(graph, s, t, d, roots)``.
+   :return: Counts.
+   """
+   return _hss_counts(*args, "cpu", 1)
+
+
 def high_salience_skeleton(net, weight = "weight", n_jobs = 1, prefix = "hss"):
    """
    Link salience of all edges, for the high salience skeleton (Grady, Thiemann and Brockmann,
@@ -930,8 +1228,9 @@ def high_salience_skeleton(net, weight = "weight", n_jobs = 1, prefix = "hss"):
    This needs a shortest-path search from every node, :math:`O(N E \\log N)`, run by
    :func:`scipy.sparse.csgraph.dijkstra` on the CPU; the edges on each tree are then found on the
    device of the component. ``n_jobs`` processes split the roots of large components (checking
-   edges on the CPU); on systems that start processes by spawning (Windows, macOS), the calling
-   script must then be protected by ``if __name__ == "__main__":``.
+   edges on the CPU), the same processes as the shortest paths, kept between calls (see
+   :mod:`~graphoskop.shortest_paths`); on systems that start processes by spawning (Windows,
+   macOS), the calling script must then be protected by ``if __name__ == "__main__":``.
 
    :param net: A :class:`~graphoskop.Network`, modified in place.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
@@ -964,9 +1263,7 @@ def high_salience_skeleton(net, weight = "weight", n_jobs = 1, prefix = "hss"):
       roots = np.arange(n)
       edges = [torch.from_numpy(x) for x in (so, to, d)]
       if n_jobs > 1 and n >= 1000:
-         chunks = np.array_split(roots, 4 * n_jobs)
-         with ProcessPoolExecutor(n_jobs) as pool:
-            count = sum(pool.map(_hss_counts, *zip(*[(graph, *edges, r, "cpu", 1) for r in chunks])))
+         count = sum(_map(_hss_task, [(graph, *edges, r) for r in np.array_split(roots, 4 * n_jobs)], n_jobs))
       else:
          dev = data.edge_index.device
          count = _hss_counts(graph, *[x.to(dev) for x in edges], roots, dev)

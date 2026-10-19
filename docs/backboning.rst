@@ -3,6 +3,8 @@ Backboning
 
 .. automodule:: graphoskop.backboning
 
+.. autofunction:: graphoskop.convex_skeleton
+
 .. autofunction:: graphoskop.disparity_filter
 
 .. autofunction:: graphoskop.doubly_stochastic

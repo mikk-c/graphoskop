@@ -6,8 +6,11 @@ from :mod:`scipy.sparse.csgraph`, whatever the device of the network: on sparse 
 :math:`O(m + n \\log n)` work per source, while GPU alternatives either need :math:`O(n^3)` work
 (Floyd-Warshall) or synchronize at every step of the search. Searches from many sources are split
 across processes, since scipy's implementation does not release the Python global interpreter lock
-and so cannot run in parallel threads. Matrices of lengths are returned on the device of the
-component. On platforms where new processes do not fork (the default on Windows and macOS, and on
+and so cannot run in parallel threads. The processes are started by the first parallel search and
+kept, idle, for the next ones until Python exits (or until a search asks for a different
+``n_jobs``), so their start, which takes seconds where processes are spawned and import the
+library again, is paid once per session and not at every call. Matrices of lengths are returned
+on the device of the component. On platforms where new processes do not fork (the default on Windows and macOS, and on
 Linux from Python 3.14), scripts that compute all pairs on large components must protect their
 entry point with ``if __name__ == "__main__":``, and ``n_jobs = 1`` turns the processes off.
 
@@ -29,6 +32,7 @@ is used.
 
 import os
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 
 import numpy as np
 import pandas as pd
@@ -37,6 +41,31 @@ import torch
 from scipy.sparse.csgraph import dijkstra
 
 _PARALLEL_WORK = 1e8   # sources times edges above which searches are split across processes
+_POOL = None           # (number of processes, executor), kept between parallel searches
+
+
+def _map(worker, args, n_jobs):
+   """
+   A top level function mapped over arguments in the worker processes, which are started at the
+   first call and reused by the next ones with the same ``n_jobs``. If a process dies (e.g. out
+   of memory), the pool is dropped and the next call starts a new one.
+
+   :param worker: Top level function.
+   :param args: List of arguments, one per call of ``worker``.
+   :param n_jobs: Number of processes.
+   :return: List of the results, in the order of ``args``.
+   :raises concurrent.futures.process.BrokenProcessPool: If a process died.
+   """
+   global _POOL
+   if _POOL is None or _POOL[0] != n_jobs:
+      if _POOL is not None:
+         _POOL[1].shutdown()
+      _POOL = (n_jobs, ProcessPoolExecutor(n_jobs))
+   try:
+      return list(_POOL[1].map(worker, args))
+   except BrokenProcessPool:
+      _POOL = None
+      raise
 
 
 def _locate(net, node):
@@ -139,9 +168,7 @@ def _dijkstra(g, sources, unweighted, predecessors, n_jobs):
    n_jobs = os.cpu_count() if n_jobs is None else n_jobs
    if n_jobs <= 1 or len(sources) < 2 * n_jobs or len(sources) * g.nnz < _PARALLEL_WORK:
       return _search((g, sources, unweighted, predecessors))
-   chunks = np.array_split(sources, 4 * n_jobs)
-   with ProcessPoolExecutor(n_jobs) as ex:
-      parts = list(ex.map(_search, [(g, c, unweighted, predecessors) for c in chunks]))
+   parts = _map(_search, [(g, c, unweighted, predecessors) for c in np.array_split(sources, 4 * n_jobs)], n_jobs)
    if not predecessors:
       return np.vstack(parts)
    return np.vstack([p[0] for p in parts]), np.vstack([p[1] for p in parts])
@@ -457,10 +484,7 @@ def _blocks(g, sources, unweighted, n_jobs, worker):
    parallel = n_jobs > 1 and len(sources) * g.nnz >= _PARALLEL_WORK and len(sources) >= 2 * n_jobs
    chunks = max(int(np.ceil(len(sources) * g.shape[0] / 2 ** 24)), 4 * n_jobs if parallel else 1)
    args = [(g, x, unweighted) for x in np.array_split(np.asarray(sources), min(chunks, max(len(sources), 1)))]
-   if parallel:
-      with ProcessPoolExecutor(n_jobs) as ex:
-         return list(ex.map(worker, args))
-   return [worker(a) for a in args]
+   return _map(worker, args, n_jobs) if parallel else [worker(a) for a in args]
 
 
 def _hist_worker(args):

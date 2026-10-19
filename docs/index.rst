@@ -24,6 +24,7 @@ Graphoskop
    laplacians
    link_prediction
    multilayer
+   error_correction
    node_vector_analysis
    robustness
    shortest_paths

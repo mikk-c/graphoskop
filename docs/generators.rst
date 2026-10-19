@@ -139,7 +139,8 @@ Stochastic blockmodels
 
 Nodes in communities, with edge probabilities depending on the communities of the two nodes;
 in mixed membership blockmodels, nodes can be in several communities (see
-:ref:`overlapping-communities`).
+:ref:`overlapping-communities`); in the nested blockmodel, communities are themselves in groups,
+at several levels (see :doc:`error_correction`).
 
 .. code-block:: python
 
@@ -160,9 +161,14 @@ in mixed membership blockmodels, nodes can be in several communities (see
    gsk.modularity(g, "community")                                      # overlapping modularity
    rnd = gsk.mixed_membership_block_model(net = net)                   # "community" can list several per node
 
+   g = gsk.nested_block_model(1000, 5000, [32, 8, 2], seed = 1)        # community, community_1, community_2
+   rnd = gsk.nested_block_model(net = net)                             # fitted hierarchy of net
+
 .. autofunction:: graphoskop.degree_corrected_block_model
 
 .. autofunction:: graphoskop.mixed_membership_block_model
+
+.. autofunction:: graphoskop.nested_block_model
 
 .. autofunction:: graphoskop.planted_partition_graph
 

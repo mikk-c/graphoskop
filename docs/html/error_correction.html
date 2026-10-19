@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Network error correction &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Node vector analysis" href="node_vector_analysis.html" />
+    <link rel="prev" title="Multilayer networks" href="multilayer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Network error correction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.fit_nested_block_model"><code class="docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.measured_network_correction"><code class="docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.uncertain_network_correction"><code class="docutils literal notranslate"><span class="pre">uncertain_network_correction()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Network error correction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/error_correction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.error_correction">
+<span id="network-error-correction"></span><h1>Network error correction<a class="headerlink" href="#module-graphoskop.error_correction" title="Link to this heading"></a></h1>
+<p>Network error correction: inferring the true network behind noisy observations.</p>
+<p>Observed networks have errors: spurious edges that are not there and missing edges that are.
+Network data can be cleaned in two separate steps, filtering out the weakest edges with a
+backbone (see <a class="reference internal" href="backboning.html"><span class="doc">Backboning</span></a>) and adding the most likely missing ones with link prediction
+(see <a class="reference internal" href="link_prediction.html"><span class="doc">Link prediction</span></a>). The methods of this chapter do both at once, in a single and
+consistent framework (Peixoto, 2018): a generative model of the network, by default the nested
+degree-corrected stochastic blockmodel, is fitted jointly with a model of the measurement errors,
+and the posterior probability of every node pair being an edge is estimated by sampling. Edges
+with a low probability are likely spurious, non-edges with a high probability likely missing.
+Simpler generative models can be used instead, given as the generators of their families
+(<a class="reference internal" href="generators.html#graphoskop.degree_corrected_block_model" title="graphoskop.degree_corrected_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code></a>, <a class="reference internal" href="generators.html#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>,
+<a class="reference internal" href="generators.html#graphoskop.planted_partition_graph" title="graphoskop.planted_partition_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a>, <a class="reference internal" href="generators.html#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>,
+<a class="reference internal" href="generators.html#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a>): the more structure a model captures, the better it tells
+errors apart.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code> finds the hierarchy of groups that best compresses a network
+(the minimum description length of the nested blockmodel). <code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code>
+reconstructs a network from repeated measurements of its node pairs (or from a single
+observation), with error rates known or unknown, the same for every pair or heterogeneous.
+<code class="xref py py-func docutils literal notranslate"><span class="pre">uncertain_network_correction()</span></code> reconstructs a network whose node pairs come with
+probabilities of being edges, estimated by some other measurement. The generator
+<a class="reference internal" href="generators.html#graphoskop.nested_block_model" title="graphoskop.nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">nested_block_model()</span></code></a> samples networks from the model, or from its fit to a
+network.</p>
+<p>All the inference runs in compiled kernels (Numba) on the CPU, as in graph-tool: Markov chain
+moves are sequential and branchy, which suits a CPU core better than a GPU. The candidate merges
+of the fit are evaluated in parallel, and the posterior is sampled by several independent chains
+in parallel threads. The kernels are compiled the first time they run (about two minutes, once:
+they are cached). For scale, on two CPU cores: the fit takes 0.3
+seconds for 800 nodes and 4,400 edges, 4.5 seconds for 9,600 nodes and 56,000 edges, and 40
+seconds for 50,000 nodes and 350,000 edges; a sweep of the sampler, about one microsecond per
+move, takes 11 milliseconds for 960 nodes and 5,800 edges, so reconstructing it with the default
+1,200 sweeps per chain takes about 14 seconds with two chains (one per core).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">fit_nested_block_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>              <span class="c1"># node attributes community, community_1, ...</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;groups&quot;</span><span class="p">],</span> <span class="n">fit</span><span class="p">[</span><span class="s2">&quot;description_length&quot;</span><span class="p">]</span>
+
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">false_negative_rate</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">false_positive_rate</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">clean</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">corrected</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;probability&quot;</span><span class="p">,</span> <span class="n">keep_isolates</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># maximum marginal posterior network</span>
+
+<span class="n">screens</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;screens.tsv&quot;</span><span class="p">)</span>                    <span class="c1"># columns trials, hits: repeated measurements</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">screens</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">summary</span><span class="p">[</span><span class="s2">&quot;false_negative_rate&quot;</span><span class="p">],</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;false_positive_rate&quot;</span><span class="p">]</span>   <span class="c1"># estimated</span>
+
+<span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">gnm_random_graph</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">nested_block_model</span><span class="p">):</span>   <span class="c1"># Fig. 3 of Peixoto (2018)</span>
+   <span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">screens</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">screens</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                                                     <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;stochastic_block_model&quot;</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="s2">&quot;lab&quot;</span><span class="p">)</span>   <span class="c1"># fixed groups</span>
+
+<span class="n">scored</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;predictions.tsv&quot;</span><span class="p">)</span>                 <span class="c1"># column probability, from another method</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">uncertain_network_correction</span><span class="p">(</span><span class="n">scored</span><span class="p">,</span> <span class="s2">&quot;probability&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.fit_nested_block_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">fit_nested_block_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sweeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.fit_nested_block_model" title="Link to this definition"></a></dt>
+<dd><p>Fit the nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): the hierarchy of
+groups that minimizes the description length of the network.</p>
+<p>The model generates a network in levels. At the bottom, nodes are in groups, and edges are
+placed between groups according to the numbers of edges between every pair of groups, at
+random among their nodes in proportion to the node degrees (degree correction). These numbers
+are themselves a network between the groups, generated in the same way by a coarser grouping
+of the groups, and so on up to a single group. The description length is minus the logarithm
+of the probability of the network and of all its parameters (groups, numbers of edges between
+groups, degrees), the microcanonical formulation without free parameters:</p>
+<div class="math notranslate nohighlight">
+\[\Sigma = -\ln P(A \mid k, e, b) - \ln P(k \mid e, b) - \sum_l \ln P(e_l \mid e_{l + 1}, b_{l + 1}) - \sum_l \ln P(b_l)\]</div>
+<p>with the degree-corrected likelihood
+<span class="math notranslate nohighlight">\(P(A \mid k, e, b) = \prod_{r &lt; s} e_{rs}! \prod_r e_{rr}!! \prod_i k_i! / \prod_r e_r!\)</span>,
+the degree prior <span class="math notranslate nohighlight">\(P(k \mid e, b) = \prod_r \prod_k \eta^r_k! / (n_r!\, q(e_r, n_r))\)</span>
+(degree histograms <span class="math notranslate nohighlight">\(\eta^r_k\)</span> uniform given the number of partitions <span class="math notranslate nohighlight">\(q(e_r, n_r)\)</span>
+of <span class="math notranslate nohighlight">\(e_r\)</span> into at most <span class="math notranslate nohighlight">\(n_r\)</span> parts), the edge counts of each level uniform among the
+multigraphs between the groups of the level above,
+<span class="math notranslate nohighlight">\(P(e_l \mid e_{l + 1}, b_{l + 1}) = \prod_{r &lt; s} \left(\!\binom{n_r n_s}{e_{rs}}\!\right)^{-1}
+\prod_r \left(\!\binom{n_r (n_r + 1) / 2}{e_{rr} / 2}\!\right)^{-1}\)</span>, and each partition of
+<span class="math notranslate nohighlight">\(N\)</span> elements into <span class="math notranslate nohighlight">\(B\)</span> groups uniform given its group sizes,
+<span class="math notranslate nohighlight">\(P(b) = \prod_r n_r! / N! \binom{N - 1}{B - 1}^{-1} N^{-1}\)</span>. More groups, or more
+levels, are only used if they compress the network more than they cost, so the model selects
+its own numbers of groups and levels. <span class="math notranslate nohighlight">\(q(m, n)\)</span> is exact for <span class="math notranslate nohighlight">\(m \leq 1000\)</span> and given
+by Szekeres’ asymptotic formula otherwise (within 0.1 of its logarithm).</p>
+<p>The minimization follows Peixoto’s agglomerative heuristic: starting from one group per node,
+groups are merged in rounds that halve their number, each group merging into the best of
+<code class="docutils literal notranslate"><span class="pre">10</span></code> proposed groups (proposals through its edges, all groups evaluated in parallel), each
+round followed by up to <code class="docutils literal notranslate"><span class="pre">sweeps</span></code> greedy sweeps of node moves. The upper levels are built in
+the same way on the network between groups. The number of groups of the bottom level is chosen
+by the nested description length, first along the halving rounds and then by golden section
+search; the result is refined by greedy sweeps at all levels. It is a heuristic: different
+seeds can give slightly different results.</p>
+<p>The groups are written as numeric node attributes: <code class="docutils literal notranslate"><span class="pre">attribute</span></code> for the bottom level,
+<code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_2&quot;</span></code>, … for the levels above (the group of every node).
+Parallel edges count once and self loops are ignored. The bottom level has at most
+<code class="docutils literal notranslate"><span class="pre">max_blocks</span></code> groups (the levels above are dense tables of that size).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer, modified in place.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute of the bottom level.</p></li>
+<li><p><strong>max_blocks</strong> – Maximum number of groups of the bottom level.</p></li>
+<li><p><strong>sweeps</strong> – Maximum number of greedy sweeps after each merge round.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict with the <code class="docutils literal notranslate"><span class="pre">description_length</span></code> and the number of <code class="docutils literal notranslate"><span class="pre">groups</span></code> of every level,
+bottom first (without the single group on top).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or multilayer.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">fit_nested_block_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">fit</span><span class="p">[</span><span class="s2">&quot;groups&quot;</span><span class="p">]</span>                             <span class="c1"># e.g. [64, 8, 2]</span>
+<span class="n">net</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;community_1&quot;</span><span class="p">)</span>      <span class="c1"># groups of the second level, component 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.measured_network_correction">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">measured_network_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">positives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_measurements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_positives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">heterogeneous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">false_negative_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">false_positive_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nested_block_model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.measured_network_correction" title="Link to this definition"></a></dt>
+<dd><p>Reconstruct a network from noisy measurements of its node pairs, with known or unknown error
+rates (Peixoto, 2018), using a generative model of the true network: by default the nested
+degree-corrected stochastic blockmodel (see <a class="reference internal" href="#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a>), or a simpler one.</p>
+<p>Every node pair <span class="math notranslate nohighlight">\((i, j)\)</span> was measured <span class="math notranslate nohighlight">\(n_{ij}\)</span> times, and an edge was observed in
+<span class="math notranslate nohighlight">\(x_{ij}\)</span> of them. The pairs listed as edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> carry their numbers in the edge
+attributes <code class="docutils literal notranslate"><span class="pre">measurements</span></code> and <code class="docutils literal notranslate"><span class="pre">positives</span></code> (by default 1 and 1: each edge of <code class="docutils literal notranslate"><span class="pre">net</span></code> was
+observed once); all other pairs were measured <code class="docutils literal notranslate"><span class="pre">default_measurements</span></code> times with
+<code class="docutils literal notranslate"><span class="pre">default_positives</span></code> positive outcomes (by default, once, without seeing an edge). A single
+observed network is thus the default case. Measured non-edges are listed as edges of <code class="docutils literal notranslate"><span class="pre">net</span></code>
+with <code class="docutils literal notranslate"><span class="pre">positives</span></code> 0.</p>
+<p>An existing edge is missed in a measurement with probability <span class="math notranslate nohighlight">\(p\)</span> (false negative), a
+non-edge is seen as an edge with probability <span class="math notranslate nohighlight">\(q\)</span> (false positive), so that</p>
+<div class="math notranslate nohighlight">
+\[P(x \mid n, A, p, q) = \prod_{i &lt; j} \binom{n_{ij}}{x_{ij}}
+\left[(1 - p)^{x_{ij}} p^{n_{ij} - x_{ij}}\right]^{A_{ij}}
+\left[q^{x_{ij}} (1 - q)^{n_{ij} - x_{ij}}\right]^{1 - A_{ij}}\]</div>
+<ul class="simple">
+<li><p><strong>Homogeneous errors</strong> (<code class="docutils literal notranslate"><span class="pre">heterogeneous</span> <span class="pre">=</span> <span class="pre">False</span></code>): <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(q\)</span> are the same for
+all pairs, unknown, with priors <span class="math notranslate nohighlight">\(p \sim \mathrm{Beta}(\alpha, \beta)\)</span>,
+<span class="math notranslate nohighlight">\(q \sim \mathrm{Beta}(\mu, \nu)\)</span> (<code class="docutils literal notranslate"><span class="pre">priors</span> <span class="pre">=</span> <span class="pre">(alpha,</span> <span class="pre">beta,</span> <span class="pre">mu,</span> <span class="pre">nu)</span></code>, default
+<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">1)</span></code>, uniform), integrated out (Eq. 19 of the paper). Either rate can instead be
+given as known (<code class="docutils literal notranslate"><span class="pre">false_negative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">false_positive_rate</span></code>), and its prior is then
+ignored.</p></li>
+<li><p><strong>Heterogeneous errors</strong> (<code class="docutils literal notranslate"><span class="pre">heterogeneous</span> <span class="pre">=</span> <span class="pre">True</span></code>): every pair has its own error rates, drawn
+from these Beta distributions, whose hyperparameters are themselves unknown, with a flat prior
+on <span class="math notranslate nohighlight">\([0.01, 1000]\)</span> and sampled (<code class="docutils literal notranslate"><span class="pre">priors</span></code> are their initial values, default
+<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">10,</span> <span class="pre">1,</span> <span class="pre">10)</span></code>); the rates are integrated out pair by pair (Eq. 58).</p></li>
+</ul>
+<p>The posterior distribution of the true network <span class="math notranslate nohighlight">\(A\)</span> and of the groups is sampled by Markov
+chain Monte Carlo, and the posterior probability <span class="math notranslate nohighlight">\(\pi_{ij}\)</span> of every pair being an edge
+is the fraction of samples in which it is one. The structure inferred from the network (pairs
+of groups densely or sparsely connected) is what tells real edges from errors: an edge between
+two groups that are otherwise unconnected is likely spurious, a missing edge within a dense
+group likely missing. Edges with <span class="math notranslate nohighlight">\(\pi_{ij} &gt; 1/2\)</span> form the maximum marginal posterior
+estimate of the network:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">clean</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">corrected</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;probability&quot;</span><span class="p">,</span> <span class="n">keep_isolates</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Models of the true network.</strong> <code class="docutils literal notranslate"><span class="pre">model</span></code> is one of the generators below (the function itself,
+e.g. <code class="docutils literal notranslate"><span class="pre">gsk.configuration_model</span></code>, or its name); the reconstruction uses Peixoto’s nonparametric
+microcanonical version of its family, with all its parameters integrated out under
+noninformative priors (not the parametrization of the generator):</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="generators.html#graphoskop.nested_block_model" title="graphoskop.nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">nested_block_model()</span></code></a> (default): the nested degree-corrected stochastic
+blockmodel, a hierarchy of groups (see <a class="reference internal" href="#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a>);</p></li>
+<li><p><a class="reference internal" href="generators.html#graphoskop.degree_corrected_block_model" title="graphoskop.degree_corrected_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code></a>: degree-corrected blockmodel, one level of
+groups;</p></li>
+<li><p><a class="reference internal" href="generators.html#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>: blockmodel without degree correction (all nodes
+of a group alike);</p></li>
+<li><p><a class="reference internal" href="generators.html#graphoskop.planted_partition_graph" title="graphoskop.planted_partition_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a>: one density of edges within groups, one between;</p></li>
+<li><p><a class="reference internal" href="generators.html#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>: the degrees only (degree-corrected, one group);</p></li>
+<li><p><a class="reference internal" href="generators.html#graphoskop.gnm_random_graph" title="graphoskop.gnm_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnm_random_graph()</span></code></a> or <a class="reference internal" href="generators.html#graphoskop.gnp_random_graph" title="graphoskop.gnp_random_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">gnp_random_graph()</span></code></a>: Erdős-Rényi,
+no structure (one group without degree correction).</p></li>
+</ul>
+<p>The more structure a model captures, the better it tells errors apart: Erdős-Rényi gives every
+unobserved pair the same chance, the configuration model favors pairs of high degree nodes,
+blockmodels pairs of densely connected groups (as in Fig. 3 of the paper). The groups of the
+flat blockmodels are fitted by minimizing their description length, as
+<a class="reference internal" href="#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a> does for the nested one (the number of groups chosen along the
+same merges, refined by greedy sweeps under each model), then sampled; or fixed, read from the
+node attribute <code class="docutils literal notranslate"><span class="pre">groups</span></code> (numeric or qualitative).</p>
+<p><strong>Latent multigraph.</strong> These models generate multigraphs, with parallel edges and self loops,
+while measurements see simple networks: as in Appendix D of the paper, the chain samples a
+multigraph <span class="math notranslate nohighlight">\(G\)</span>, and the true network is its collapse, <span class="math notranslate nohighlight">\(A_{ij} = 1\)</span> if
+<span class="math notranslate nohighlight">\(G_{ij} &gt; 0\)</span>, <span class="math notranslate nohighlight">\(i \neq j\)</span>. Its number of edges has the negative binomial prior of
+Eq. C9 (geometric edge counts per pair of groups, their mean set by the observed edges), so
+that the posterior is proper.</p>
+<p><strong>Single observations.</strong> With one measurement per pair, a missing edge looks like every other
+unobserved pair between the same groups, so it cannot be singled out: the posterior spreads
+its probability evenly over all of them (low, unless the groups are dense), and only spurious
+edges, observed between sparsely connected groups, are told apart. With both rates unknown, the
+data cannot tell a structure with errors from the same structure without them either, and the
+estimated rates go to their minimum; known rates (<code class="docutils literal notranslate"><span class="pre">false_negative_rate</span></code>,
+<code class="docutils literal notranslate"><span class="pre">false_positive_rate</span></code>), even approximate, make the probabilities and the expected number of
+edges calibrated. Repeated measurements (<code class="docutils literal notranslate"><span class="pre">measurements</span></code>, <code class="docutils literal notranslate"><span class="pre">default_measurements</span></code> above 1)
+are what makes individual missing edges recoverable.</p>
+<p><strong>Sampling.</strong> The chain starts from the edges observed in most of their measurements, with the
+groups fitted to them. Each sweep tries a move of every node between the groups of the bottom
+level, of every group between the groups of the level above (for all levels; no group moves if
+the groups are fixed, or for the configuration model and Erdős-Rényi), and
+<span class="math notranslate nohighlight">\(\max(E, N)\)</span> moves of the multigraph:
+a pair is chosen at random among the edges of the multigraph, among all pairs, among the listed
+pairs, or through the blockmodel (a node, a group connected to its group, a member of it), each
+with probability 1/4; an edge is added to it or, if it has some, one is added or removed with
+probability 1/2 each (Eq. D8), and the move is accepted with the Metropolis-Hastings
+criterion.</p>
+<p>The numbers of groups are sampled too, as in graph-tool: a node or group moves to a new group
+with probability 0.01 (Eq. B4), the new group joining the group of the level above of the one
+it left, and groups that lose their last member disappear (into a group under the same group
+above, so that every move can be undone). Since single moves change the number of groups
+slowly, each sweep also tries 3 split-merge moves of the bottom groups (Jain and Neal, 2004;
+Peixoto, 2020): a group is split in two, its nodes assigned at random and then by 4 restricted
+Gibbs sweeps between the two halves, or two groups are merged, the probability of the reverse
+split computed in the same way. The numbers of groups are thus averaged over in the posterior,
+which matters when many partitions with more groups, each less likely than the best one,
+together outweigh it. Every level has room for twice the groups of the fit, at least 10 more
+(at most its number of elements); the hierarchy keeps the depth of the fit. On Zachary’s karate club
+measured twice, with one inconsistent pair (Fig. 3 of the paper), Erdős-Rényi gives that pair a
+probability of 0.50, the configuration model 0.87 and the nested blockmodel 0.93 (0.5, 0.87
+and 0.93 in the paper; 0.92 to 0.96 with the default number of sweeps), averaging over about 3
+groups, although a single group describes the club best. The number of groups changes slowly
+(over hundreds of sweeps): its posterior mean (<code class="docutils literal notranslate"><span class="pre">mean_groups</span></code>) needs longer chains than the
+probabilities of the edges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">chains</span></code> independent chains run in parallel threads, each discarding <code class="docutils literal notranslate"><span class="pre">burnin</span></code> sweeps and
+then taking <code class="docutils literal notranslate"><span class="pre">samples</span></code> samples every <code class="docutils literal notranslate"><span class="pre">interval</span></code> sweeps. The chains run in a compiled kernel
+(Numba) on the CPU.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>measurements</strong> – Edge attribute with the number of measurements of each listed pair, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for 1.</p></li>
+<li><p><strong>positives</strong> – Edge attribute with the number of positive measurements, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all
+of them.</p></li>
+<li><p><strong>default_measurements</strong> – Number of measurements of the pairs not in <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>default_positives</strong> – Number of positive measurements of the pairs not in <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>heterogeneous</strong> – Pair by pair error rates instead of one rate for all pairs.</p></li>
+<li><p><strong>priors</strong> – <code class="docutils literal notranslate"><span class="pre">(alpha,</span> <span class="pre">beta,</span> <span class="pre">mu,</span> <span class="pre">nu)</span></code>, see above.</p></li>
+<li><p><strong>false_negative_rate</strong> – Known <span class="math notranslate nohighlight">\(p\)</span>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (unknown); homogeneous errors only.</p></li>
+<li><p><strong>false_positive_rate</strong> – Known <span class="math notranslate nohighlight">\(q\)</span>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> (unknown); homogeneous errors only.</p></li>
+<li><p><strong>model</strong> – Model of the true network: a generator, or its name (see above).</p></li>
+<li><p><strong>groups</strong> – Node attribute with fixed groups (flat blockmodels only), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to fit and
+sample them.</p></li>
+<li><p><strong>samples</strong> – Samples per chain.</p></li>
+<li><p><strong>burnin</strong> – Sweeps discarded at the start of every chain.</p></li>
+<li><p><strong>interval</strong> – Sweeps between samples.</p></li>
+<li><p><strong>chains</strong> – Number of chains (threads).</p></li>
+<li><p><strong>max_blocks</strong> – Maximum number of groups of the bottom level of the fit.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(corrected,</span> <span class="pre">summary)</span></code>: the corrected network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>
+with the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code> and an edge for every pair observed or ever sampled as an edge,
+with the edge attribute <code class="docutils literal notranslate"><span class="pre">&quot;probability&quot;</span></code> (<span class="math notranslate nohighlight">\(\pi_{ij}\)</span>) and the numeric edge attributes
+of <code class="docutils literal notranslate"><span class="pre">net</span></code> (NaN for new pairs); and a dict with the <code class="docutils literal notranslate"><span class="pre">model</span></code>, the numbers of <code class="docutils literal notranslate"><span class="pre">groups</span></code> per
+level of its fit, the posterior means of the number of groups of the bottom level
+(<code class="docutils literal notranslate"><span class="pre">mean_groups</span></code>), of the number of <code class="docutils literal notranslate"><span class="pre">edges</span></code>, of the <code class="docutils literal notranslate"><span class="pre">description_length</span></code>, of
+the <code class="docutils literal notranslate"><span class="pre">false_negative_rate</span></code> <span class="math notranslate nohighlight">\(p\)</span> and the <code class="docutils literal notranslate"><span class="pre">false_positive_rate</span></code> <span class="math notranslate nohighlight">\(q\)</span> (with
+heterogeneous errors, the means of their Beta distributions, and the
+<code class="docutils literal notranslate"><span class="pre">hyperparameters</span></code>), and the number of <code class="docutils literal notranslate"><span class="pre">samples</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or multilayer, if measurements are negative or
+fewer than the positive outcomes, if known rates are not in <span class="math notranslate nohighlight">\((0, 1)\)</span> or are given
+with heterogeneous errors, if <code class="docutils literal notranslate"><span class="pre">model</span></code> is not one of the generators above, or if
+<code class="docutils literal notranslate"><span class="pre">groups</span></code> is given to another model or names a missing attribute.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;interactions.tsv&quot;</span><span class="p">)</span>      <span class="c1"># one observation of the network</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">false_negative_rate</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">false_positive_rate</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">spurious</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">corrected</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;probability&quot;</span><span class="p">)</span>   <span class="c1"># edges kept</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;screens.tsv&quot;</span><span class="p">)</span>           <span class="c1"># columns trials, hits: repeated measurements</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">heterogeneous</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">cm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">)</span>
+<span class="n">sbm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">measured_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;trials&quot;</span><span class="p">,</span> <span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="n">default_measurements</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;stochastic_block_model&quot;</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="s2">&quot;lab&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.uncertain_network_correction">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">uncertain_network_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'probability'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_probability</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nested_block_model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">burnin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chains</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.uncertain_network_correction" title="Link to this definition"></a></dt>
+<dd><p>Reconstruct a network whose node pairs come with probabilities of being edges, estimated by
+some other measurement (extrinsic uncertainty, Section III of Peixoto, 2018), using a
+generative model of the true network: by default the nested degree-corrected stochastic
+blockmodel, or a simpler one (see <a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a>).</p>
+<p>Every pair listed as an edge of <code class="docutils literal notranslate"><span class="pre">net</span></code> has the probability <span class="math notranslate nohighlight">\(Q_{ij}\)</span> in the edge attribute
+<code class="docutils literal notranslate"><span class="pre">probability</span></code>; the other pairs have <code class="docutils literal notranslate"><span class="pre">default_probability</span></code> (by default 0: they cannot be
+edges, so only the listed pairs are uncertain). <span class="math notranslate nohighlight">\(Q_{ij}\)</span> is read as the probability of the
+edge given its measurement alone, as if with a uniform prior, so it enters the posterior as the
+likelihood ratio <span class="math notranslate nohighlight">\(Q_{ij} / (1 - Q_{ij})\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[P(A \mid Q) \propto P(A) \prod_{i &lt; j} Q_{ij}^{A_{ij}} (1 - Q_{ij})^{1 - A_{ij}}\]</div>
+<p>with <span class="math notranslate nohighlight">\(P(A)\)</span> the model, which pulls the probabilities of the pairs towards what the
+structure of the rest of the network makes likely. Models, sampling, outputs and parameters
+are as in <a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a>; the chain starts from the pairs with
+<span class="math notranslate nohighlight">\(Q_{ij} &gt; 1/2\)</span>. Pairs with probability 0 never become edges, pairs with probability 1
+are always edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>probability</strong> – Edge attribute with the probability of each listed pair.</p></li>
+<li><p><strong>default_probability</strong> – Probability of the pairs not in <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>model</strong> – Model of the true network: a generator, or its name (see
+<a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a>).</p></li>
+<li><p><strong>groups</strong> – Node attribute with fixed groups (flat blockmodels only), or <code class="docutils literal notranslate"><span class="pre">None</span></code> to fit and
+sample them.</p></li>
+<li><p><strong>samples</strong> – Samples per chain.</p></li>
+<li><p><strong>burnin</strong> – Sweeps discarded at the start of every chain.</p></li>
+<li><p><strong>interval</strong> – Sweeps between samples.</p></li>
+<li><p><strong>chains</strong> – Number of chains (threads).</p></li>
+<li><p><strong>max_blocks</strong> – Maximum number of groups of the bottom level of the fit.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(corrected,</span> <span class="pre">summary)</span></code>, as <a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a> (the summary has
+<code class="docutils literal notranslate"><span class="pre">model</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code>, <code class="docutils literal notranslate"><span class="pre">mean_groups</span></code>, <code class="docutils literal notranslate"><span class="pre">edges</span></code>, <code class="docutils literal notranslate"><span class="pre">description_length</span></code> and <code class="docutils literal notranslate"><span class="pre">samples</span></code>). The edge
+attribute <code class="docutils literal notranslate"><span class="pre">&quot;probability&quot;</span></code> of the corrected network replaces the input one.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed or multilayer, if a probability is outside
+<span class="math notranslate nohighlight">\([0, 1]\)</span>, if a pair is listed twice, or for <code class="docutils literal notranslate"><span class="pre">model</span></code> and <code class="docutils literal notranslate"><span class="pre">groups</span></code> as in
+<a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;predicted_interactions.tsv&quot;</span><span class="p">)</span>   <span class="c1"># column probability</span>
+<span class="n">corrected</span><span class="p">,</span> <span class="n">summary</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">uncertain_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">likely</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">corrected</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;probability&quot;</span><span class="p">)</span>
+<span class="n">cm</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">uncertain_network_correction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="multilayer.html" class="btn btn-neutral float-left" title="Multilayer networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="node_vector_analysis.html" class="btn btn-neutral float-right" title="Node vector analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

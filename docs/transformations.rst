@@ -14,7 +14,9 @@ Transformations
    core = gsk.remove_isolates(net)                                 # nodes without edges dropped
    clean = gsk.remove_isolates(gsk.remove_self_loops(net))         # no self loops, then no isolates
    simple = gsk.remove_parallel_edges(net)                         # one edge per pair (per direction)
-   ego = gsk.subgraph(net, ["alice", "bob", "carol"])              # induced subgraph
+   sub = gsk.subgraph(net, ["alice", "bob", "carol"])              # induced subgraph
+   ego = gsk.ego_network(net, "alice")                             # alice, her neighbors, their edges
+   alters = gsk.ego_network(net, "alice", include_ego = False)     # without alice and her edges
    scc = gsk.to_strongly_connected(net)                            # one component per strongly connected component
    rev = gsk.flip_edge_direction(net)                              # all edges reversed: A^T
    rev = gsk.flip_edge_direction(net, ("alice", "bob"))            # only alice -> bob, now bob -> alice
@@ -35,6 +37,8 @@ Nodes and edges are added or removed one at a time, from any iterable, or from a
 
 See also :func:`~graphoskop.layer_network` and :func:`~graphoskop.aggregate_network` for multilayer
 networks, and :func:`~graphoskop.signed_network`.
+
+.. autofunction:: graphoskop.ego_network
 
 .. autofunction:: graphoskop.flip_edge_direction
 

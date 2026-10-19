@@ -47,6 +47,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Transformations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.ego_network"><code class="docutils literal notranslate"><span class="pre">ego_network()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.flip_edge_direction"><code class="docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_isolates"><code class="docutils literal notranslate"><span class="pre">remove_isolates()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.remove_parallel_edges"><code class="docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a></li>
@@ -89,6 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -126,8 +128,8 @@
 direction, become one undirected edge, whose attributes combine theirs. <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_isolates()</span></code>
 drops the nodes without edges, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_self_loops()</span></code> the edges from a node to itself,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code> merges the edges between the same two nodes. <code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code> keeps a
-set of nodes and the edges between them, <code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code> the edges within strongly
-connected components. <code class="xref py py-func docutils literal notranslate"><span class="pre">add_nodes()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">add_edges()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_nodes()</span></code> and
+set of nodes and the edges between them, <code class="xref py py-func docutils literal notranslate"><span class="pre">ego_network()</span></code> the neighbors of a node and the edges
+between them, <code class="xref py py-func docutils literal notranslate"><span class="pre">to_strongly_connected()</span></code> the edges within strongly connected components. <code class="xref py py-func docutils literal notranslate"><span class="pre">add_nodes()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">add_edges()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_nodes()</span></code> and
 <code class="xref py py-func docutils literal notranslate"><span class="pre">remove_edges()</span></code> add or remove nodes and edges, one or many at once.
 <code class="xref py py-func docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code> reverses some or all of the edges of a directed network.</p>
 <p><code class="xref py py-func docutils literal notranslate"><span class="pre">network_union()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">network_difference()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">network_intersection()</span></code> combine the
@@ -142,7 +144,9 @@ network.</p>
 <span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                 <span class="c1"># nodes without edges dropped</span>
 <span class="n">clean</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_isolates</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">remove_self_loops</span><span class="p">(</span><span class="n">net</span><span class="p">))</span>         <span class="c1"># no self loops, then no isolates</span>
 <span class="n">simple</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">remove_parallel_edges</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                         <span class="c1"># one edge per pair (per direction)</span>
-<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>              <span class="c1"># induced subgraph</span>
+<span class="n">sub</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">])</span>              <span class="c1"># induced subgraph</span>
+<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ego_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                             <span class="c1"># alice, her neighbors, their edges</span>
+<span class="n">alters</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ego_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">include_ego</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>     <span class="c1"># without alice and her edges</span>
 <span class="n">scc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">to_strongly_connected</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                            <span class="c1"># one component per strongly connected component</span>
 <span class="n">rev</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flip_edge_direction</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                              <span class="c1"># all edges reversed: A^T</span>
 <span class="n">rev</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">flip_edge_direction</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>            <span class="c1"># only alice -&gt; bob, now bob -&gt; alice</span>
@@ -162,6 +166,47 @@ network.</p>
 </div>
 <p>See also <a class="reference internal" href="multilayer.html#graphoskop.layer_network" title="graphoskop.layer_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">layer_network()</span></code></a> and <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a> for multilayer
 networks, and <a class="reference internal" href="signed.html#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.ego_network">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">ego_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ego</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_ego</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.ego_network" title="Link to this definition"></a></dt>
+<dd><p>Ego network: the subgraph induced by a node (the ego) and its neighbors, with all the edges
+among them; with <code class="docutils literal notranslate"><span class="pre">include_ego</span> <span class="pre">=</span> <span class="pre">False</span></code>, only the neighbors and the edges among them, the ego
+and its edges being removed.</p>
+<p>Attributes, node types, node table format, directedness and device are kept, and components
+are recomputed, as in <a class="reference internal" href="#graphoskop.subgraph" title="graphoskop.subgraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">subgraph()</span></code></a> (without the ego, the neighbors can fall apart in several
+components). In multilayer networks the neighbors are those in the supra-graph (couplings
+included), and an entity given as ego stands for all its copies, which are all egos.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>ego</strong> – The ego (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in multilayer
+networks).</p></li>
+<li><p><strong>include_ego</strong> – Whether to keep the ego and its edges.</p></li>
+<li><p><strong>direction</strong> – In directed networks, the neighbors: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (nodes the ego points to),
+<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (nodes pointing to the ego) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The ego network, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If there is no such node.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ego_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                         <span class="c1"># alice, her friends, their edges</span>
+<span class="n">alters</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">ego_network</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">include_ego</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># how her friends know each other</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.flip_edge_direction">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">flip_edge_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.flip_edge_direction" title="Link to this definition"></a></dt>
@@ -651,9 +696,10 @@ valid, or if a strongly connected component of a bipartite network has nodes of 
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">quotient_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sum'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_combine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.quotient_network" title="Link to this definition"></a></dt>
 <dd><p>Quotient network: the nodes of each set collapse into a single node.</p>
 <p><code class="docutils literal notranslate"><span class="pre">sets</span></code> is a list of sets (or lists, tuples, arrays) of nodes; nodes in no set stay as they
-are.
-The node collapsing the set at position <code class="docutils literal notranslate"><span class="pre">i</span></code> of the list has id <code class="docutils literal notranslate"><span class="pre">i</span></code>, so the ids of the other
-nodes cannot be integers from 0 to <code class="docutils literal notranslate"><span class="pre">len(sets)</span> <span class="pre">-</span> <span class="pre">1</span></code>. Each edge joins the nodes its endpoints
+are. The nodes collapsing the sets get integer ids, in the order of the list, counting from 0
+and skipping the integers that are ids of nodes in no set: set <code class="docutils literal notranslate"><span class="pre">i</span></code> gets id <code class="docutils literal notranslate"><span class="pre">i</span></code> unless some
+of these integers are taken (with ids <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">2]</span></code> left out of the sets, three sets get <code class="docutils literal notranslate"><span class="pre">1</span></code>,
+<code class="docutils literal notranslate"><span class="pre">3</span></code> and <code class="docutils literal notranslate"><span class="pre">4</span></code>). Each edge joins the nodes its endpoints
 collapse into; the edges then joining the same two nodes are merged into one, combining their
 attributes with <code class="docutils literal notranslate"><span class="pre">combine</span></code>, as in <a class="reference internal" href="#graphoskop.remove_parallel_edges" title="graphoskop.remove_parallel_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a> (also merging the parallel
 edges of <code class="docutils literal notranslate"><span class="pre">net</span></code>). Edges within a set become self loops of its node, or are dropped with
@@ -684,9 +730,8 @@ Components are recomputed; node table format, node types and device are kept.</p
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>KeyError</strong> – If a node is not in the network.</p></li>
-<li><p><strong>ValueError</strong> – If a node is in two sets, if a node in no set has an integer id from 0 to
-<code class="docutils literal notranslate"><span class="pre">len(sets)</span> <span class="pre">-</span> <span class="pre">1</span></code>, if <code class="docutils literal notranslate"><span class="pre">combine</span></code> or <code class="docutils literal notranslate"><span class="pre">node_combine</span></code> is not valid, or if a set has nodes of
-both types of a bipartite network.</p></li>
+<li><p><strong>ValueError</strong> – If a node is in two sets, if <code class="docutils literal notranslate"><span class="pre">combine</span></code> or <code class="docutils literal notranslate"><span class="pre">node_combine</span></code> is not valid,
+or if a set has nodes of both types of a bipartite network.</p></li>
 </ul>
 </dd>
 </dl>

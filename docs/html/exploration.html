@@ -58,6 +58,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Exploration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.bfs"><code class="docutils literal notranslate"><span class="pre">bfs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.dfs"><code class="docutils literal notranslate"><span class="pre">dfs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.metropolis_hastings_random_walk"><code class="docutils literal notranslate"><span class="pre">metropolis_hastings_random_walk()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.random_walk"><code class="docutils literal notranslate"><span class="pre">random_walk()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
@@ -66,6 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -98,23 +101,47 @@
              
   <section id="module-graphoskop.exploration">
 <span id="exploration"></span><h1>Exploration<a class="headerlink" href="#module-graphoskop.exploration" title="Link to this heading"></a></h1>
-<p>Graph exploration: breadth first and depth first search from a node.</p>
-<p>Both return the nodes reached from the source, in the order they are visited, with the node they
-were reached from (their parent in the search tree) and their depth in that tree; in breadth first
-search the depth is the number of edges of a shortest path from the source. Only the component of
-the source is explored. Searches run on the CPU with <code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.sparse.csgraph</span></code> (compiled code,
-<span class="math notranslate nohighlight">\(O(n + m)\)</span>), whatever the device of the network, as in <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>.
-Neighbors are visited in order of internal index; parallel edges and self loops do not matter.</p>
+<p>Graph exploration: breadth first and depth first search, random walks and Metropolis-Hastings
+random walks from a node.</p>
+<p>Searches return the nodes reached from the source, each once, in the order they are visited, with
+the node they were reached from (their parent in the search tree) and their depth in that tree; in
+breadth first search the depth is the number of edges of a shortest path from the source. Searches
+run on the CPU with <code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.sparse.csgraph</span></code> (compiled code, <span class="math notranslate nohighlight">\(O(n + m)\)</span>), whatever the
+device of the network, as in <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>. Neighbors are visited in order of
+internal index; parallel edges and self loops do not matter.</p>
+<p>Random walks instead move for a given number of steps, each to a random neighbor of the current
+node: they need not reach every node, and can visit a node many times. A vanilla random walk
+visits nodes in proportion to their degree, in the long run (undirected networks); a
+Metropolis-Hastings random walk corrects this bias by refusing some moves: from <span class="math notranslate nohighlight">\(u\)</span> it
+proposes a random neighbor <span class="math notranslate nohighlight">\(v\)</span> and moves there with probability
+<span class="math notranslate nohighlight">\(\min(1, k_u / k_v)\)</span>, otherwise it stays at <span class="math notranslate nohighlight">\(u\)</span> for that step, so that in the long run
+the walk spends the same number of steps on every node (as used in network sampling). Refused moves
+add nothing to the output, so a node is listed once for each time the walk arrives on it, with
+the number of steps it stayed there (its <code class="docutils literal notranslate"><span class="pre">duration</span></code>): weighting visits by duration gives the
+uniform distribution, counting visits alone still favors hubs, though less than a vanilla walk. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, neighbors are
+chosen with probability proportional to the weight of the edge, and <span class="math notranslate nohighlight">\(k\)</span> is the strength (sum
+of the weights) instead of the degree. Parallel edges count as many times as they appear and self
+loops are edges like the others (the walk can stay on its node). In directed networks a walk stops
+at a node without edges to follow; there, the correction of the Metropolis-Hastings walk is exact
+only with <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;both&quot;</span></code>. All the walks of a component advance together, one step at a
+time, on the device of the network.</p>
+<p>Only the component of the source is explored. A source can be given as an iterable of nodes (a
+list, set, range, NumPy array or pandas Series or Index; a tuple is always one node): each is then
+explored on its own, and the result gains a first column <code class="docutils literal notranslate"><span class="pre">source</span></code>, with the node as given.</p>
 <p>In directed networks <code class="docutils literal notranslate"><span class="pre">direction</span></code> chooses the edges followed: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (along their direction),
-<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (against it) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>. In multilayer networks the search runs on the supra-graph
-(couplings are edges like the others), and an entity given as source stands for all its copies,
-which are all searched from at once (as one source linked to each of them).</p>
+<code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (against it) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>. In multilayer networks the exploration runs on the supra-graph
+(couplings are edges like the others). An entity given as source stands for all its copies: a
+search starts from all of them at once (as one source linked to each of them), and each random
+walk starts from one of them, drawn uniformly at random.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
-<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                     <span class="c1"># node, depth, parent, in visit order</span>
-<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>      <span class="c1"># neighborhood up to two edges away</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                                   <span class="c1"># node, depth, parent, in visit order</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>                    <span class="c1"># neighborhood up to two edges away</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">])</span>                          <span class="c1"># one search per source</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">dfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>            <span class="c1"># walk, step, node</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">metropolis_hastings_random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>   <span class="c1"># not biased towards hubs</span>
 </pre></div>
 </div>
 <dl class="py function">
@@ -127,7 +154,7 @@ it (see the module description).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
-multilayer networks).</p></li>
+multilayer networks), or an iterable of them, searched one by one.</p></li>
 <li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
 <li><p><strong>max_depth</strong> – Only nodes at most this many edges away, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all.</p></li>
 </ul>
@@ -135,7 +162,7 @@ multilayer networks).</p></li>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> in visit order, with columns <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id),
 <code class="docutils literal notranslate"><span class="pre">depth</span></code> (number of edges from the source, 0 for the source) and <code class="docutils literal notranslate"><span class="pre">parent</span></code> (input id of
-the node it was reached from, missing for the source).</p>
+the node it was reached from, missing for the source); first <code class="docutils literal notranslate"><span class="pre">source</span></code> with an iterable.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -151,6 +178,7 @@ the node it was reached from, missing for the source).</p>
 <span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
 <span class="n">friends_of_friends</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">depth</span> <span class="o">==</span> <span class="mi">2</span><span class="p">]</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># alice and her neighbors</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">bfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">],</span> <span class="n">max_depth</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># both, with a column source</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -165,14 +193,14 @@ through it before backtracking (preorder; see the module description).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
-multilayer networks).</p></li>
+multilayer networks), or an iterable of them, searched one by one.</p></li>
 <li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> in visit order, with columns <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id),
 <code class="docutils literal notranslate"><span class="pre">depth</span></code> (depth in the search tree, 0 for the source) and <code class="docutils literal notranslate"><span class="pre">parent</span></code> (input id of the node
-it was reached from, missing for the source).</p>
+it was reached from, missing for the source); first <code class="docutils literal notranslate"><span class="pre">source</span></code> with an iterable.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -184,6 +212,97 @@ it was reached from, missing for the source).</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">dfs</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>
 <span class="n">tree</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>                            <span class="c1"># visit order</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.metropolis_hastings_random_walk">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">metropolis_hastings_random_walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.metropolis_hastings_random_walk" title="Link to this definition"></a></dt>
+<dd><p>Metropolis-Hastings random walks: as <a class="reference internal" href="#graphoskop.random_walk" title="graphoskop.random_walk"><code class="xref py py-func docutils literal notranslate"><span class="pre">random_walk()</span></code></a>, but a move from <span class="math notranslate nohighlight">\(u\)</span> to the
+drawn neighbor <span class="math notranslate nohighlight">\(v\)</span> happens only with probability <span class="math notranslate nohighlight">\(\min(1, k_u / k_v)\)</span> (degrees, or
+strengths with <code class="docutils literal notranslate"><span class="pre">weight</span></code>); otherwise the walk stays at <span class="math notranslate nohighlight">\(u\)</span> for that step, and nothing is
+added to the output. Moves towards hubs are refused more often, which corrects the bias of
+random walks towards them: in the long run the walk spends the same number of steps on every
+node (undirected networks, or <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;both&quot;</span></code>; see the module description). The
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> of each visit (1 plus the moves refused there) keeps that count.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
+multilayer networks), or an iterable of them, each with its own walks.</p></li>
+<li><p><strong>length</strong> – Number of steps of each walk, refused moves included (the walk lists at most
+<code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">+</span> <span class="pre">1</span></code> nodes).</p></li>
+<li><p><strong>walks</strong> – Number of walks from each source.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per arrival on a node, by walk: columns
+<code class="docutils literal notranslate"><span class="pre">walk</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code> (0 for the source, then 1, 2, … over accepted moves only), <code class="docutils literal notranslate"><span class="pre">node</span></code>
+(input id) and <code class="docutils literal notranslate"><span class="pre">duration</span></code> (number of steps spent on the node: 1 plus the moves refused
+there; durations of a walk add up to <code class="docutils literal notranslate"><span class="pre">length</span> <span class="pre">+</span> <span class="pre">1</span></code>, unless it stopped early); first
+<code class="docutils literal notranslate"><span class="pre">source</span></code> with an iterable.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, <code class="docutils literal notranslate"><span class="pre">length</span></code> is negative, <code class="docutils literal notranslate"><span class="pre">walks</span></code> is below
+1, or some weights are negative or NaN.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node or edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">metropolis_hastings_random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">share</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">w</span><span class="o">.</span><span class="n">duration</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>   <span class="c1"># about uniform</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.random_walk">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">random_walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">walks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.random_walk" title="Link to this definition"></a></dt>
+<dd><p>Random walks: from <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">length</span></code> steps, each to a neighbor of the current node drawn
+uniformly at random (or in proportion to the edge weights), possibly repeated (see the module
+description). Nodes can be visited many times, and not every node is reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>source</strong> – Starting node (input id, internal id <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, or entity in
+multilayer networks), or an iterable of them, each with its own walks.</p></li>
+<li><p><strong>length</strong> – Number of steps of each walk.</p></li>
+<li><p><strong>walks</strong> – Number of walks from each source.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight (neighbors are drawn in proportion
+to it), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform choices.</p></li>
+<li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per visit, by walk and step: columns <code class="docutils literal notranslate"><span class="pre">walk</span></code>
+(0 to <code class="docutils literal notranslate"><span class="pre">walks</span> <span class="pre">-</span> <span class="pre">1</span></code>), <code class="docutils literal notranslate"><span class="pre">step</span></code> (0 for the source) and <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id); first <code class="docutils literal notranslate"><span class="pre">source</span></code>
+with an iterable. In directed networks a walk ends early at a node without edges to follow.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is not valid, <code class="docutils literal notranslate"><span class="pre">length</span></code> is negative, <code class="docutils literal notranslate"><span class="pre">walks</span></code> is below
+1, or some weights are negative or NaN.</p></li>
+<li><p><strong>KeyError</strong> – If there is no such node or edge attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>                 <span class="c1"># walk, step, node</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>    <span class="c1"># 100 walks from alice</span>
+<span class="n">visits</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">],</span> <span class="mi">10</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

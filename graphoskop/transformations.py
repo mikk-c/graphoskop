@@ -5,8 +5,8 @@ Transformations of a network into another network.
 direction, become one undirected edge, whose attributes combine theirs. :func:`remove_isolates`
 drops the nodes without edges, :func:`remove_self_loops` the edges from a node to itself,
 :func:`remove_parallel_edges` merges the edges between the same two nodes. :func:`subgraph` keeps a
-set of nodes and the edges between them, :func:`to_strongly_connected` the edges within strongly
-connected components. :func:`add_nodes`, :func:`add_edges`, :func:`remove_nodes` and
+set of nodes and the edges between them, :func:`ego_network` the neighbors of a node and the edges
+between them, :func:`to_strongly_connected` the edges within strongly connected components. :func:`add_nodes`, :func:`add_edges`, :func:`remove_nodes` and
 :func:`remove_edges` add or remove nodes and edges, one or many at once.
 :func:`flip_edge_direction` reverses some or all of the edges of a directed network.
 
@@ -399,6 +399,56 @@ def subgraph(net, nodes):
    for x in nodes:
       for c, i in net._nodes(x):
          keep[c][i] = True
+   edges = []
+   for c, d in enumerate(net.components):
+      s, t = d.edge_index.cpu().numpy()
+      edges.append(keep[c][s] & keep[c][t])
+   return _restrict(net, keep, edges)
+
+
+def ego_network(net, ego, include_ego = True, direction = "out"):
+   """
+   Ego network: the subgraph induced by a node (the ego) and its neighbors, with all the edges
+   among them; with ``include_ego = False``, only the neighbors and the edges among them, the ego
+   and its edges being removed.
+
+   Attributes, node types, node table format, directedness and device are kept, and components
+   are recomputed, as in :func:`subgraph` (without the ego, the neighbors can fall apart in several
+   components). In multilayer networks the neighbors are those in the supra-graph (couplings
+   included), and an entity given as ego stands for all its copies, which are all egos.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param ego: The ego (input id, internal id ``(component, index)``, or entity in multilayer
+      networks).
+   :param include_ego: Whether to keep the ego and its edges.
+   :param direction: In directed networks, the neighbors: ``"out"`` (nodes the ego points to),
+      ``"in"`` (nodes pointing to the ego) or ``"both"``; ignored otherwise.
+   :return: The ego network, a new :class:`~graphoskop.Network`.
+   :raises KeyError: If there is no such node.
+   :raises ValueError: If ``direction`` is not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      ego = gsk.ego_network(net, "alice")                         # alice, her friends, their edges
+      alters = gsk.ego_network(net, "alice", include_ego = False) # how her friends know each other
+   """
+   if direction not in ("out", "in", "both"):
+      raise ValueError(f"unknown direction: {direction}")
+   egos = net._nodes(ego)
+   keep = [np.zeros(d.num_nodes, dtype = bool) for d in net.components]
+   for c, i in egos:
+      s, t = net.components[c].edge_index.cpu().numpy()
+      if not net.directed or direction in ("out", "both"):
+         keep[c][t[s == i]] = True
+      if net.directed and direction in ("in", "both"):
+         keep[c][s[t == i]] = True
+   for c, i in egos:
+      keep[c][i] = include_ego
    edges = []
    for c, d in enumerate(net.components):
       s, t = d.edge_index.cpu().numpy()

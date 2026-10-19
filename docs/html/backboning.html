@@ -49,6 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Backboning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.convex_skeleton"><code class="docutils literal notranslate"><span class="pre">convex_skeleton()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.disparity_filter"><code class="docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.doubly_stochastic"><code class="docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.extract_backbone"><code class="docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a></li>
@@ -75,6 +76,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -118,6 +120,7 @@ backbone changes qualitatively.</p>
 <p>Scoring methods:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#graphoskop.noise_corrected" title="graphoskop.noise_corrected"><code class="xref py py-func docutils literal notranslate"><span class="pre">noise_corrected()</span></code></a>: score and standard deviation, thresholded as a z-score.</p></li>
+<li><p><a class="reference internal" href="#graphoskop.convex_skeleton" title="graphoskop.convex_skeleton"><code class="xref py py-func docutils literal notranslate"><span class="pre">convex_skeleton()</span></code></a>: score only, threshold 0 for the skeleton.</p></li>
 <li><p><a class="reference internal" href="#graphoskop.disparity_filter" title="graphoskop.disparity_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a>: score only.</p></li>
 <li><p><a class="reference internal" href="#graphoskop.doubly_stochastic" title="graphoskop.doubly_stochastic"><code class="xref py py-func docutils literal notranslate"><span class="pre">doubly_stochastic()</span></code></a>: score only.</p></li>
 <li><p><a class="reference internal" href="#graphoskop.high_salience_skeleton" title="graphoskop.high_salience_skeleton"><code class="xref py py-func docutils literal notranslate"><span class="pre">high_salience_skeleton()</span></code></a>: score only.</p></li>
@@ -137,6 +140,80 @@ couplings and other interlayer edges get NaN scores. <a class="reference interna
 <a class="reference internal" href="#graphoskop.triangulated_filtered_graph" title="graphoskop.triangulated_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a> always keep the interlayer edges between the
 copies they keep, and the statistics of <a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a> and
 <a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> are computed on the intra-layer edges.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.convex_skeleton">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">convex_skeleton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cs'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.convex_skeleton" title="Link to this definition"></a></dt>
+<dd><p>Convex skeleton scores of all edges (Šubelj, 2018): the order in which edges are removed to
+reduce the network to a tree of cliques.</p>
+<p>A connected subgraph is convex if it contains all the shortest paths between its nodes; in a
+tree of cliques (a block graph: cliques joined in a tree, two cliques sharing at most one node)
+every connected subgraph is convex. The convex skeleton is what is left after removing the
+edges that break this structure, a generalization of a spanning tree in which each edge can be
+a clique of any size. Finding the fewest edges to remove is hard, so, as in the reference
+implementation, edges are removed one at a time, each time the edge whose endpoints have the
+fewest common neighbors (embeddedness, recomputed after each removal), never disconnecting
+the network: an edge whose removal would disconnect it stays. Removal stops being informative
+when only a spanning forest is left. The skeleton is the network after the first removal that
+leaves a tree of cliques, <span class="math notranslate nohighlight">\(R\)</span> removals in.</p>
+<p>The score of an edge removed at step <span class="math notranslate nohighlight">\(t\)</span> is <span class="math notranslate nohighlight">\(t - R\)</span>; edges never removed (the
+bridges of the final spanning forest) score <span class="math notranslate nohighlight">\(+\infty\)</span>. Higher scores mean edges more
+embedded in the skeleton, and the skeleton is the backbone at threshold 0, with the same rule
+in <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a>, <a class="reference internal" href="#graphoskop.test_bb_thresholds" title="graphoskop.test_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_bb_thresholds()</span></code></a> and
+<a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a>; a threshold <span class="math notranslate nohighlight">\(t\)</span> removes <span class="math notranslate nohighlight">\(R + t\)</span> edges
+(only threshold 0 is guaranteed to give a tree of cliques). Since no removal disconnects the
+network, <a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> finds no node isolated nor component broken at
+any finite threshold (it reports <span class="math notranslate nohighlight">\(+\infty\)</span>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">convex_skeleton</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">skeleton</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;cs_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Ties between edges with the same embeddedness are broken at random (<code class="docutils literal notranslate"><span class="pre">seed</span></code>), or, with
+<code class="docutils literal notranslate"><span class="pre">weight</span></code>, by removing lighter edges first (then at random). The procedure works on the simple
+graph: parallel edges count as one edge and share its score, and self loops are not removed
+(score <span class="math notranslate nohighlight">\(+\infty\)</span>). Weights do not change embeddedness. The paper picks the skeleton
+along the removals at the peak of the network’s convexity; here it is the first tree of
+cliques. Each component keeps its nodes
+connected; disconnected networks are handled at once. In multilayer networks every layer is
+reduced on its own, with its own <span class="math notranslate nohighlight">\(R\)</span>; interlayer edges get NaN.</p>
+<p>Each removal updates the embeddedness of the edges to the common neighbors of its endpoints.
+No path search is needed: removing an edge without common neighbors changes no embeddedness,
+and only such edges can disconnect the network, so the order in which edges are tried does not
+depend on which of them must stay; these are then the spanning forest kept along that order,
+found with union-find. All of it runs in a compiled kernel (Numba) on the CPU: on one core,
+about 1.5 s for half a million edges (Holme-Kim or Erdős-Rényi graphs with <span class="math notranslate nohighlight">\(10^5\)</span> nodes)
+and 6 s for a million edges of a random geometric graph. Whether the network is a tree of
+cliques is first tested in constant time, with <span class="math notranslate nohighlight">\(\sum_e 2 / (e + 2) = n - c\)</span> (true of
+every block graph, <span class="math notranslate nohighlight">\(e\)</span> being the embeddedness of an edge and <span class="math notranslate nohighlight">\(c\)</span> the number of
+components), then confirmed exactly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – An undirected <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, modified in place.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used to break ties (lighter edges removed first), or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for random ties only.</p></li>
+<li><p><strong>seed</strong> – Seed of the random tie breaking, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>prefix</strong> – The score is stored in the edge attribute <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_score&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="math notranslate nohighlight">\(R\)</span>, the number of edges removed to reach the tree of cliques: an integer, or, in
+multilayer networks, a dict from layer to its value.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;coauthorship.tsv&quot;</span><span class="p">)</span>
+<span class="n">removed</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">convex_skeleton</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>              <span class="c1"># R</span>
+<span class="n">skeleton</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">extract_backbone</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;cs_score&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">test_bb_thresholds</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">score</span> <span class="o">=</span> <span class="s2">&quot;cs_score&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.disparity_filter">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">disparity_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">policy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'df'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.disparity_filter" title="Link to this definition"></a></dt>
@@ -372,8 +449,9 @@ the number of nodes of its connected piece within its layer (its component in
 <p>This needs a shortest-path search from every node, <span class="math notranslate nohighlight">\(O(N E \log N)\)</span>, run by
 <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.sparse.csgraph.dijkstra()</span></code> on the CPU; the edges on each tree are then found on the
 device of the component. <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> processes split the roots of large components (checking
-edges on the CPU); on systems that start processes by spawning (Windows, macOS), the calling
-script must then be protected by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>.</p>
+edges on the CPU), the same processes as the shortest paths, kept between calls (see
+<a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>); on systems that start processes by spawning (Windows,
+macOS), the calling script must then be protected by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

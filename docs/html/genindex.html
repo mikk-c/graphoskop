@@ -58,6 +58,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -109,6 +110,7 @@
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
@@ -196,6 +198,8 @@
 </li>
       <li><a href="network_statistics.html#graphoskop.connected_components_nodes">connected_components_nodes() (in module graphoskop)</a>
 </li>
+      <li><a href="backboning.html#graphoskop.convex_skeleton">convex_skeleton() (in module graphoskop)</a>
+</li>
       <li><a href="generators.html#graphoskop.copying_graph">copying_graph() (in module graphoskop)</a>
 </li>
       <li><a href="bipartite_projections.html#graphoskop.cosine_similarity_projection">cosine_similarity_projection() (in module graphoskop)</a>
@@ -242,6 +246,8 @@
 </li>
       <li><a href="laplacians.html#graphoskop.effective_resistance">effective_resistance() (in module graphoskop)</a>
 </li>
+      <li><a href="transformations.html#graphoskop.ego_network">ego_network() (in module graphoskop)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="centrality.html#graphoskop.eigenvector_centrality">eigenvector_centrality() (in module graphoskop)</a>
@@ -263,6 +269,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="backboning.html#graphoskop.find_bb_thresholds">find_bb_thresholds() (in module graphoskop)</a>
+</li>
+      <li><a href="error_correction.html#graphoskop.fit_nested_block_model">fit_nested_block_model() (in module graphoskop)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -361,8 +369,6 @@
         <li><a href="epidemics.html#module-graphoskop.epidemics.simple_contagion">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     graphoskop.equivalence
 
@@ -370,11 +376,20 @@
         <li><a href="equivalence.html#module-graphoskop.equivalence">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     graphoskop.ergms
 
       <ul>
         <li><a href="ergm.html#module-graphoskop.ergms">module</a>
+</li>
+      </ul></li>
+      <li>
+    graphoskop.error_correction
+
+      <ul>
+        <li><a href="error_correction.html#module-graphoskop.error_correction">module</a>
 </li>
       </ul></li>
       <li>
@@ -568,6 +583,10 @@
 </li>
       <li><a href="coloring.html#graphoskop.maximum_independent_set">maximum_independent_set() (in module graphoskop)</a>
 </li>
+      <li><a href="error_correction.html#graphoskop.measured_network_correction">measured_network_correction() (in module graphoskop)</a>
+</li>
+      <li><a href="exploration.html#graphoskop.metropolis_hastings_random_walk">metropolis_hastings_random_walk() (in module graphoskop)</a>
+</li>
       <li><a href="generators.html#graphoskop.mixed_membership_block_model">mixed_membership_block_model() (in module graphoskop)</a>
 </li>
       <li><a href="communities.html#graphoskop.modularity">modularity() (in module graphoskop)</a>
@@ -597,6 +616,8 @@
         <li><a href="equivalence.html#module-graphoskop.equivalence">graphoskop.equivalence</a>
 </li>
         <li><a href="ergm.html#module-graphoskop.ergms">graphoskop.ergms</a>
+</li>
+        <li><a href="error_correction.html#module-graphoskop.error_correction">graphoskop.error_correction</a>
 </li>
         <li><a href="exploration.html#module-graphoskop.exploration">graphoskop.exploration</a>
 </li>
@@ -635,6 +656,8 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generators.html#graphoskop.nested_block_model">nested_block_model() (in module graphoskop)</a>
+</li>
       <li><a href="network.html#graphoskop.Network">Network (class in graphoskop)</a>
 </li>
       <li><a href="transformations.html#graphoskop.network_condensation">network_condensation() (in module graphoskop)</a>
@@ -711,6 +734,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="exploration.html#graphoskop.random_walk">random_walk() (in module graphoskop)</a>
+</li>
       <li><a href="bipartite_projections.html#graphoskop.random_walk_projection">random_walk_projection() (in module graphoskop)</a>
 </li>
       <li><a href="generators.html#graphoskop.randomization_test">randomization_test() (in module graphoskop)</a>
@@ -721,10 +746,10 @@
 </li>
       <li><a href="equivalence.html#graphoskop.regular_equivalence">regular_equivalence() (in module graphoskop)</a>
 </li>
-      <li><a href="transformations.html#graphoskop.remove_edges">remove_edges() (in module graphoskop)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transformations.html#graphoskop.remove_edges">remove_edges() (in module graphoskop)</a>
+</li>
       <li><a href="transformations.html#graphoskop.remove_isolates">remove_isolates() (in module graphoskop)</a>
 </li>
       <li><a href="transformations.html#graphoskop.remove_nodes">remove_nodes() (in module graphoskop)</a>
@@ -749,8 +774,6 @@
 </li>
       <li><a href="network.html#graphoskop.Network.set_node_attribute">set_node_attribute() (graphoskop.Network method)</a>
 </li>
-      <li><a href="network.html#graphoskop.Network.set_node_attributes">set_node_attributes() (graphoskop.Network method)</a>
-</li>
       <li><a href="shortest_paths.html#graphoskop.shortest_path">shortest_path() (in module graphoskop)</a>
 </li>
       <li><a href="shortest_paths.html#graphoskop.shortest_path_length">shortest_path_length() (in module graphoskop)</a>
@@ -767,10 +790,10 @@
 </li>
       <li><a href="signed.html#graphoskop.signed_triangle_counts">signed_triangle_counts() (in module graphoskop)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bipartite_projections.html#graphoskop.simple_count_projection">simple_count_projection() (in module graphoskop)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="link_prediction.html#graphoskop.simrank_lp">simrank_lp() (in module graphoskop)</a>
 </li>
       <li><a href="ergm.html#graphoskop.ERGMFit.simulate">simulate() (graphoskop.ERGMFit method)</a>
@@ -812,6 +835,14 @@
       <li><a href="transformations.html#graphoskop.to_undirected">to_undirected() (in module graphoskop)</a>
 </li>
       <li><a href="backboning.html#graphoskop.triangulated_filtered_graph">triangulated_filtered_graph() (in module graphoskop)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="error_correction.html#graphoskop.uncertain_network_correction">uncertain_network_correction() (in module graphoskop)</a>
 </li>
   </ul></td>
 </tr></table>

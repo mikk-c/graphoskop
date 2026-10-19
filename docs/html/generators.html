@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#stochastic-blockmodels">Stochastic blockmodels</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_corrected_block_model"><code class="docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.mixed_membership_block_model"><code class="docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.nested_block_model"><code class="docutils literal notranslate"><span class="pre">nested_block_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.planted_partition_graph"><code class="docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.stochastic_block_model"><code class="docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a></li>
 </ul>
@@ -105,6 +106,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
@@ -149,7 +151,8 @@ network), <code class="xref py py-func docutils literal notranslate"><span class
 <code class="xref py py-func docutils literal notranslate"><span class="pre">copying_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">holme_kim_graph()</span></code> (with clustering);</p></li>
 <li><p>stochastic blockmodels, with communities: <code class="xref py py-func docutils literal notranslate"><span class="pre">planted_partition_graph()</span></code>,
 <code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code>,
-<code class="xref py py-func docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code> (overlapping communities);</p></li>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mixed_membership_block_model()</span></code> (overlapping communities), <code class="xref py py-func docutils literal notranslate"><span class="pre">nested_block_model()</span></code>
+(hierarchy of groups);</p></li>
 <li><p>community benchmarks, with planted communities to test community discovery:
 <code class="xref py py-func docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code> (broad degrees and community sizes;
 directed, weighted, overlapping).</p></li>
@@ -1257,7 +1260,8 @@ edges: <code class="docutils literal notranslate"><span class="pre">True</span><
 <h2>Stochastic blockmodels<a class="headerlink" href="#stochastic-blockmodels" title="Link to this heading"></a></h2>
 <p>Nodes in communities, with edge probabilities depending on the communities of the two nodes;
 in mixed membership blockmodels, nodes can be in several communities (see
-<a class="reference internal" href="network.html#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>).</p>
+<a class="reference internal" href="network.html#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>); in the nested blockmodel, communities are themselves in groups,
+at several levels (see <a class="reference internal" href="error_correction.html"><span class="doc">Network error correction</span></a>).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pp</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">],</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># p_in and p_out</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">pp</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                     <span class="c1"># planted partition, node attribute</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                        <span class="c1"># communities of net (&quot;community&quot;)</span>
@@ -1274,6 +1278,9 @@ in mixed membership blockmodels, nodes can be in several communities (see
 <span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">memberships</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">modularity</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                                      <span class="c1"># overlapping modularity</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                   <span class="c1"># &quot;community&quot; can list several per node</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">nested_block_model</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>        <span class="c1"># community, community_1, community_2</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">nested_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">)</span>                             <span class="c1"># fitted hierarchy of net</span>
 </pre></div>
 </div>
 <dl class="py function">
@@ -1442,6 +1449,96 @@ if <code class="docutils literal notranslate"><span class="pre">net</span></code
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>     <span class="c1"># &quot;community&quot;: e.g. [0, 1] for a node in both</span>
 <span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">mixed_membership_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.nested_block_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">nested_block_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_self_loops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.nested_block_model" title="Link to this definition"></a></dt>
+<dd><p>Nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): a degree-corrected
+blockmodel whose numbers of edges between groups are themselves generated by a blockmodel of
+the groups, and so on up a hierarchy of groups of groups, ending in a single group. It is the
+most general of the blockmodels here: communities, core-periphery or bipartite-like structures
+at several scales, and heterogeneous degrees, all generated from the numbers of groups of every
+level alone. It is also the model that <a class="reference internal" href="error_correction.html#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a> fits, and that the
+functions of <a class="reference internal" href="error_correction.html"><span class="doc">Network error correction</span></a> use to reconstruct networks.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">net</span></code>, the network is drawn top-down from the model’s priors:</p>
+<ul class="simple">
+<li><p>the partition of each level (the <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes into <code class="docutils literal notranslate"><span class="pre">levels[0]</span></code> groups, those into
+<code class="docutils literal notranslate"><span class="pre">levels[1]</span></code> groups, …) is uniform given its group sizes, which are uniform among all
+compositions (every group non-empty);</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">m</span></code> edges are spread over the pairs of groups of the top level, and those of every pair
+of groups over the pairs of their subgroups one level down, down to the pairs of bottom
+groups, each time uniformly among all multisets (a Dirichlet-multinomial with all
+parameters 1, drawn by giving each edge a pair with probability proportional to Exp(1)
+weights of the pairs);</p></li>
+<li><p>the edges of each bottom group are spread over its nodes, each half-edge picking a node in
+proportion to <code class="docutils literal notranslate"><span class="pre">degrees</span></code> (relative degrees within the group) or, by default, to Exp(1)
+weights, which makes the degree sequence of each group uniform among all those with its
+number of half-edges (the “uniform” degree prior of the microcanonical model; the description
+length of <a class="reference internal" href="error_correction.html#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a> uses the more permissive prior of degree
+histograms).</p></li>
+</ul>
+<p>The edges are then wired as in <a class="reference internal" href="#graphoskop.degree_corrected_block_model" title="graphoskop.degree_corrected_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree_corrected_block_model()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code>:
+the numbers of edges between bottom groups are exact, self loops and parallel edges redrawn
+for up to <code class="docutils literal notranslate"><span class="pre">rounds</span></code> rounds and those left dropped (unless asked otherwise). The model is a
+multigraph, and its priors are heavy-tailed: they often pile the edges of the network on a few
+pairs of groups, beyond what their pairs of nodes can hold, so that dropping can remove a good
+share of the <code class="docutils literal notranslate"><span class="pre">m</span></code> edges (a quarter, for 2,000 nodes, 10,000 edges and levels <code class="docutils literal notranslate"><span class="pre">[32,</span> <span class="pre">8,</span> <span class="pre">2]</span></code>);
+<code class="docutils literal notranslate"><span class="pre">drop_parallel</span> <span class="pre">=</span> <span class="pre">False</span></code> keeps the multigraph, with exactly <code class="docutils literal notranslate"><span class="pre">m</span></code> edges if self loops are kept
+too. Directed networks spread the edges over ordered pairs of groups, with out- and
+in-degrees. Everything runs on the device, in time and memory linear in the number of edges and
+of pairs of groups of every level. Nodes are the integers <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, bottom group by bottom group, and the
+group of every node at every level is stored as numeric node attributes: <code class="docutils literal notranslate"><span class="pre">attribute</span></code> for the
+bottom level, <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_2&quot;</span></code>, … for the levels above.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">net</span></code>, the model is first fitted to <code class="docutils literal notranslate"><span class="pre">net</span></code> by <a class="reference internal" href="error_correction.html#graphoskop.fit_nested_block_model" title="graphoskop.fit_nested_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">fit_nested_block_model()</span></code></a>
+(undirected networks only, not multilayer nor bipartite; parallel edges count once, self loops
+are ignored), and the result is a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> with the fitted hierarchy: it keeps
+the nodes, the exact numbers of edges between bottom groups and, on average, the degrees, and
+gets the groups of all levels as node attributes. The fit runs on the CPU (Numba), the wiring on
+the device.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>m</strong> – Number of edges; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>levels</strong> – Number of groups of every level, bottom first, non-increasing, at most <code class="docutils literal notranslate"><span class="pre">n</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">[16,</span> <span class="pre">4]</span></code>: 16 groups of nodes, in 4 groups); <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>degrees</strong> – Relative degree of each node, bottom group by bottom group (a pair of out- and
+in-degrees if directed), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the uniform prior; <code class="docutils literal notranslate"><span class="pre">None</span></code> with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> to fit and randomize, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the node attribute of the bottom groups (<code class="docutils literal notranslate"><span class="pre">None</span></code> for no
+attributes).</p></li>
+<li><p><strong>directed</strong> – Whether the edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for undirected. Must be undirected
+with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>rounds</strong> – Maximum number of rounds of redrawing self loops and parallel edges (0 for none).</p></li>
+<li><p><strong>drop_self_loops</strong> – Whether to drop the self loops left.</p></li>
+<li><p><strong>drop_parallel</strong> – Whether to drop the parallel edges left (one edge of each group stays).</p></li>
+<li><p><strong>max_blocks</strong> – Maximum number of bottom groups of the fit (with <code class="docutils literal notranslate"><span class="pre">net</span></code>).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the CPU, or for the device
+of <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The nested blockmodel graph, a new <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If neither <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">levels</span></code> nor <code class="docutils literal notranslate"><span class="pre">net</span></code> are given, if they are
+given together, if <code class="docutils literal notranslate"><span class="pre">levels</span></code> is not a non-increasing list of positive numbers at most <code class="docutils literal notranslate"><span class="pre">n</span></code>,
+if <code class="docutils literal notranslate"><span class="pre">degrees</span></code> does not have one non-negative value per node, or if <code class="docutils literal notranslate"><span class="pre">net</span></code> is directed,
+multilayer or bipartite.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">g</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">nested_block_model</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">,</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>   <span class="c1"># three levels of groups</span>
+<span class="n">g</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;community_1&quot;</span><span class="p">)</span>                           <span class="c1"># groups of the middle level</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">rnd</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">nested_block_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>              <span class="c1"># fitted hierarchy of net</span>
 </pre></div>
 </div>
 </dd></dl>

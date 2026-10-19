@@ -70,3 +70,29 @@ generators, is described in the documentation:
 
 ## Performance
 
+The plots below compare the runtime of Graphoskop, on a CPU and on a GPU, with
+[NetworkX](https://networkx.org/), [python-igraph](https://python.igraph.org/) and
+[graph-tool](https://graph-tool.skewed.de/). Networks are LFR benchmark graphs
+(`gsk.lfr_benchmark_graph`, average degree 20, largest degree 50, mixing parameter 0.3), of five
+sizes up to the size where NetworkX takes about five minutes; every library works on the same
+largest connected component, and only the computation is timed. Graphoskop's points are the
+median of three runs; the other libraries, whose runtimes are long and steady, run once. Each
+library runs with its default
+settings: Graphoskop's shortest paths and graph-tool use all CPU cores, NetworkX and igraph use
+one. Shortest paths run on the CPU whatever the device (see the documentation of shortest
+paths), so the two Graphoskop lines of the first plot differ only by the transfer of the results.
+
+![Average shortest path length](benchmarks/average_shortest_path_length.png)
+
+![Global clustering coefficient](benchmarks/global_clustering.png)
+
+igraph and graph-tool have no function for effective resistances: their lines take the Laplacian
+from the library and finish with NumPy, as NetworkX does internally (pseudoinverse of the dense
+Laplacian, in double precision). Graphoskop works in the precision of the network, single by
+default.
+
+![Effective resistance](benchmarks/effective_resistance.png)
+
+The scripts that produce these plots are in the `benchmarks` folder of the repository: each test
+runs on its own, e.g. `python benchmarks/global_clustering.py`, and writes its table of runtimes
+and its plot.

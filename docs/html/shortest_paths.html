@@ -62,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Shortest paths</a><ul>
@@ -110,8 +111,11 @@ from <code class="xref py py-mod docutils literal notranslate"><span class="pre"
 <span class="math notranslate nohighlight">\(O(m + n \log n)\)</span> work per source, while GPU alternatives either need <span class="math notranslate nohighlight">\(O(n^3)\)</span> work
 (Floyd-Warshall) or synchronize at every step of the search. Searches from many sources are split
 across processes, since scipy’s implementation does not release the Python global interpreter lock
-and so cannot run in parallel threads. Matrices of lengths are returned on the device of the
-component. On platforms where new processes do not fork (the default on Windows and macOS, and on
+and so cannot run in parallel threads. The processes are started by the first parallel search and
+kept, idle, for the next ones until Python exits (or until a search asks for a different
+<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>), so their start, which takes seconds where processes are spawned and import the
+library again, is paid once per session and not at every call. Matrices of lengths are returned
+on the device of the component. On platforms where new processes do not fork (the default on Windows and macOS, and on
 Linux from Python 3.14), scripts that compute all pairs on large components must protect their
 entry point with <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>, and <code class="docutils literal notranslate"><span class="pre">n_jobs</span> <span class="pre">=</span> <span class="pre">1</span></code> turns the processes off.</p>
 <p>Edge lengths are the values of an edge attribute (<code class="docutils literal notranslate"><span class="pre">weight</span></code>), or 1. For edge attributes that

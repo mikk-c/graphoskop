@@ -1,6 +1,6 @@
 """
-Network container, loading of networks from edge list and node attribute tables, conversion
-back to tables, and saving to disk.
+Network container, loading of networks from edge list and node attribute tables or from
+(bi)adjacency matrices, conversion back to tables and matrices, and saving to disk.
 
 Node attributes are either numeric or qualitative. Numeric attributes are stored in the
 ``node_attr`` tensor of each component, on the device of the network. Qualitative attributes
@@ -9,7 +9,9 @@ Node attributes are either numeric or qualitative. Numeric attributes are stored
 memory, whatever the device.
 
 A network loaded with ``bipartite = True`` has two node types, given by the mandatory node
-attribute :data:`BIPARTITE`, and no edge between two nodes of the same type.
+attribute :data:`BIPARTITE`, and no edge between two nodes of the same type. A network loaded from
+a rectangular matrix with :func:`load_matrix` is bipartite, with the types set from the rows and
+the columns.
 
 A network loaded with ``multilayer = True`` is stored as its supra-graph: every node is a copy of
 an entity in one layer, with input id ``(entity, layer)``, and intra-layer edges, couplings
@@ -1833,3 +1835,167 @@ def load_pickled_network(path, device = None):
    :return: The :class:`Network`.
    """
    return torch.load(path, map_location = device, weights_only = False)
+
+
+def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = None, weight = "weight", sep = None, node_sep = "\t", device = "cpu"):
+   """
+   Load a network from its adjacency matrix, or the biadjacency matrix of a bipartite network: a
+   dense text file of numbers, a NumPy array (or anything :func:`numpy.asarray` reads, such as a
+   list of lists or a CPU tensor), or a SciPy sparse matrix.
+
+   Every non-zero entry :math:`(i, j)` is an edge from node :math:`i` to node :math:`j`, with the
+   entry as its edge attribute ``weight``, unless all the non-zero entries are 1 (or ``weight`` is
+   ``None``), when the network is unweighted. Diagonal entries of a square matrix are self loops.
+   An undirected network is read from the upper triangle (diagonal included) of its symmetric
+   matrix. Nodes without edges (empty rows and columns) are kept, as isolated nodes.
+
+   A rectangular matrix is a bipartite network: rows are the nodes of type 0 and columns the nodes
+   of type 1, joined by the non-zero entries. The node attribute :data:`BIPARTITE` is set
+   automatically (0 for rows, 1 for columns), so no node table is needed. A square matrix is read
+   as bipartite only with ``bipartite = True``.
+
+   Nodes are numbered by their position: ``0`` to ``n - 1``, or, if bipartite, ``0`` to ``R - 1``
+   for the rows and ``R`` to ``R + C - 1`` for the columns, unless ``ids`` are given. Node
+   attributes can come from a wide node table (first column the node id, then one column per
+   attribute), matched to these ids; then the network is built by :func:`load_network`.
+
+   :param matrix: File path, array-like, or :class:`scipy.sparse` matrix.
+   :param nodes: Wide node attribute table, as a file path (read with ``node_sep``, with a header
+      row) or a :class:`pandas.DataFrame`, or ``None``.
+   :param ids: Node ids in matrix order: a sequence of ``n`` ids, or, if bipartite, a pair
+      ``(row_ids, column_ids)``; ``None`` for positions.
+   :param directed: Whether edges are directed; ``None`` for directed if the (square, not
+      bipartite) matrix is not symmetric, undirected otherwise.
+   :param bipartite: Whether the matrix is a biadjacency matrix; ``None`` for rectangular
+      matrices only.
+   :param weight: Name of the edge attribute holding the entries, or ``None`` for unweighted.
+   :param sep: Separator of the columns of a matrix file; ``None`` for any whitespace.
+   :param node_sep: Separator of the columns of a node table file.
+   :param device: Device where all tensors are created, e.g. ``"cuda"``.
+   :return: The loaded :class:`Network`.
+   :raises ValueError: If a rectangular matrix is not read as bipartite, an undirected network has
+      a matrix that is not symmetric, ``ids`` do not match the matrix or repeat, or the node table
+      has a :data:`BIPARTITE` column for a matrix read as bipartite.
+
+   Examples:
+
+   .. code-block:: python
+
+      import numpy as np
+      import graphoskop as gsk
+
+      net = gsk.load_matrix("adjacency.txt")                     # whitespace separated numbers
+      net = gsk.load_matrix(np.array([[0, 1], [1, 0]]))          # undirected: symmetric
+      net = gsk.load_matrix(A, ids = ["alice", "bob", "carol"], nodes = "nodes.tsv")
+
+      # bipartite: 3 plants (rows, type 0) and 4 pollinators (columns, type 1)
+      M = np.array([[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]])
+      net = gsk.load_matrix(M)
+      gsk.nestedness(net)
+
+      import scipy.sparse as sp
+      net = gsk.load_matrix(sp.random(1000, 1000, density = 0.01), directed = True, device = "cuda")
+   """
+   if isinstance(matrix, (str, bytes)) or hasattr(matrix, "__fspath__"):
+      matrix = pd.read_csv(matrix, sep = r"\s+" if sep is None else sep, header = None).to_numpy(dtype = float)
+   M = sp.coo_matrix(matrix if sp.issparse(matrix) else np.asarray(matrix))
+   M.sum_duplicates()
+   M.eliminate_zeros()
+   R, C = M.shape
+   bipartite = R != C if bipartite is None else bipartite
+   if R != C and not bipartite:
+      raise ValueError(f"a {R} by {C} matrix can only be read as bipartite")
+   if not bipartite:
+      sym = (M != M.T).nnz == 0
+      directed = not sym if directed is None else directed
+      if not directed and not sym:
+         raise ValueError("an undirected network needs a symmetric matrix")
+   if ids is None:
+      rid, cid = np.arange(R), (np.arange(R, R + C) if bipartite else np.arange(C))
+   elif bipartite:
+      rid, cid = np.asarray(ids[0], dtype = object), np.asarray(ids[1], dtype = object)
+   else:
+      rid = cid = np.asarray(ids, dtype = object)
+   allid = np.concatenate([rid, cid]) if bipartite else rid
+   if len(rid) != R or len(cid) != C or len(pd.unique(pd.Series(allid))) != len(allid):
+      raise ValueError("ids must give one distinct id per row and column of the matrix")
+   r, c, v = M.row, M.col, M.data
+   if not bipartite and not directed:
+      keep = r <= c
+      r, c, v = r[keep], c[keep], v[keep]
+   edges = pd.DataFrame({"source": rid[r], "target": cid[c]})
+   if weight is not None and not (v == 1).all():
+      edges[weight] = v
+   table = pd.DataFrame({"id": allid})
+   if bipartite:
+      table[BIPARTITE] = np.r_[np.zeros(R, dtype = int), np.ones(C, dtype = int)]
+   if nodes is not None:
+      extra = pd.read_csv(nodes, sep = node_sep) if not isinstance(nodes, pd.DataFrame) else nodes
+      if bipartite and BIPARTITE in extra.columns:
+         raise ValueError(f"the node types of a bipartite matrix come from it: drop the {BIPARTITE} column")
+      extra = extra.rename(columns = {extra.columns[0]: "id"})
+      table = table.merge(extra, on = "id", how = "left")
+   return load_network(edges, table, directed = bool(directed), bipartite = bool(bipartite), device = device)
+
+
+def save_matrix(net, path = None, weight = "weight", sparse = False, sep = "\t"):
+   """
+   The adjacency matrix of a network, or the biadjacency matrix of a bipartite network, optionally
+   written to a dense text file, which :func:`load_matrix` reads back.
+
+   Rows and columns follow the network wide node order (component by component); in bipartite
+   networks rows are the nodes of type 0 and columns the nodes of type 1, each in that order. Entry
+   :math:`(i, j)` is the sum of the attribute ``weight`` of the edges from :math:`i` to :math:`j`,
+   or their number if ``weight`` is ``None`` or not an edge attribute. Undirected networks give
+   symmetric matrices, with self loops once on the diagonal. Node attributes are not written: use
+   :func:`save_network` to keep them, or pass them back to :func:`load_matrix` with the ids.
+
+   :param net: A :class:`Network`, not multilayer.
+   :param path: File to write the dense matrix to (no header, ``sep`` between columns), or
+      ``None`` not to write it.
+   :param weight: Name of the edge attribute summed in the entries, or ``None`` to count edges.
+   :param sparse: Whether to return a :class:`scipy.sparse.csr_matrix` instead of a dense
+      :class:`numpy.ndarray` (the file, if any, is dense either way).
+   :param sep: Column separator of the file.
+   :return: ``(matrix, ids)``: the float64 matrix and the node ids in its order, or, if bipartite,
+      a pair ``(row_ids, column_ids)``.
+   :raises ValueError: If the network is multilayer.
+
+   Example:
+
+   .. code-block:: python
+
+      A, ids = gsk.save_matrix(net)                              # dense NumPy array
+      A, ids = gsk.save_matrix(net, "adjacency.txt")             # also written to disk
+      back = gsk.load_matrix("adjacency.txt", ids = ids, directed = net.directed)
+      M, (rows, columns) = gsk.save_matrix(bipartite_net, sparse = True)
+   """
+   if net.layer_labels is not None:
+      raise ValueError("save_matrix does not support multilayer networks")
+   s, t, w = [], [], []
+   use = weight is not None and weight in net.edge_attributes
+   for c in range(len(net.components)):
+      ei, X = net._input_edges(c)
+      off = int(net.node_offsets[c])
+      s.append(ei[0].cpu().numpy() + off)
+      t.append(ei[1].cpu().numpy() + off)
+      w.append(X[:, net.edge_attributes.index(weight)].double().cpu().numpy() if use else np.ones(ei.shape[1]))
+   s, t, w = np.concatenate(s), np.concatenate(t), np.concatenate(w)
+   n = int(net.node_offsets[-1])
+   ids = np.concatenate(net.node_ids)
+   types = _node_types(net)
+   if types is not None:
+      pos = np.zeros(n, dtype = np.int64)
+      for k in (0, 1):
+         pos[types == k] = np.arange((types == k).sum())
+      a, b = np.where(types[s] == 0, s, t), np.where(types[s] == 0, t, s)   # rows: type 0
+      M = sp.csr_matrix((w, (pos[a], pos[b])), shape = ((types == 0).sum(), (types == 1).sum()))
+      ids = (ids[types == 0], ids[types == 1])
+   else:
+      loop = s == t
+      both = ~loop & ~np.bool_(net.directed)
+      M = sp.csr_matrix((np.r_[w, w[both]], (np.r_[s, t[both]], np.r_[t, s[both]])), shape = (n, n))
+   M.sum_duplicates()
+   if path is not None:
+      pd.DataFrame(M.toarray()).to_csv(path, sep = sep, header = False, index = False)
+   return (M if sparse else M.toarray()), ids

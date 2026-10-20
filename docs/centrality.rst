@@ -20,6 +20,10 @@ Centrality
    c = gsk.closeness_centrality(net, component = None, lin = True)
    h = gsk.harmonic_centrality(net, component = None)
 
+   # hierarchy of a directed network: an edge i -> j pulls i one level above j
+   d = gsk.load_network("dominance.tsv", directed = True)
+   s = gsk.springrank(d, weight = "weight")
+
 .. autofunction:: graphoskop.alpha_centrality
 
 .. autofunction:: graphoskop.betweenness_centrality
@@ -45,3 +49,5 @@ Centrality
 .. autofunction:: graphoskop.pagerank
 
 .. autofunction:: graphoskop.reach_centrality
+
+.. autofunction:: graphoskop.springrank

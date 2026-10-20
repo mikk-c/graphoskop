@@ -8,6 +8,10 @@ Networks and their attributes
 
 .. autofunction:: graphoskop.save_network
 
+.. autofunction:: graphoskop.load_matrix
+
+.. autofunction:: graphoskop.save_matrix
+
 .. autofunction:: graphoskop.load_pickled_network
 
 .. autoclass:: graphoskop.Network

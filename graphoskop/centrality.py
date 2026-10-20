@@ -4,7 +4,8 @@ betweenness centrality of edges; local reaching centrality of directed networks;
 shortest paths, random walk (current flow) betweenness (:func:`flow_centrality`), eigenvector
 centrality (:func:`eigenvector_centrality`), Katz centrality (:func:`katz_centrality`), alpha
 centrality (:func:`alpha_centrality`), PageRank (:func:`pagerank`), hubs and authorities
-(:func:`hits`) and k-core centrality (:func:`k_core_centrality`). Any of them can be turned into a
+(:func:`hits`), k-core centrality (:func:`k_core_centrality`) and the SpringRank hierarchy of
+directed networks (:func:`springrank`). Any of them can be turned into a
 centralization of the whole network with :func:`centralization`.
 
 Paths are those of :mod:`~graphoskop.shortest_paths`: lengths are the values of an edge attribute
@@ -1024,6 +1025,108 @@ def alpha_centrality(net, component = 0, weight = None, alpha = 1., exo = 1., di
          if x is None or not np.isfinite(x).all():
             raise ValueError(f"alpha centrality: I - alpha A^T is singular (component {c}); 1 / alpha is an eigenvalue of the adjacency matrix")
       out.append(torch.as_tensor(x, dtype = torch.float64, device = dev))
+   return out if component is None else out[0]
+
+
+def springrank(net, component = 0, weight = None, alpha = 0., tol = 1e-10, max_iter = None):
+   """
+   SpringRank (De Bacco, Larremore and Moore, 2018): the ranks :math:`s` of the nodes of a
+   directed network that minimize the energy of a system of springs, one per edge, each of rest
+   length 1,
+
+   .. math::
+
+      H(s) = \\frac{1}{2} \\sum_{i, j} A_{ij} (s_i - s_j - 1)^2 + \\frac{\\alpha}{2} \\sum_i s_i^2,
+
+   so that an edge from :math:`i` to :math:`j` pulls :math:`i` one unit above :math:`j` (e.g.
+   :math:`i` beats :math:`j`, or :math:`i` places a graduate at :math:`j`; to rank the targets of
+   the edges higher, reverse them with :func:`~graphoskop.flip_edge_direction`). The minimum
+   solves the linear system
+
+   .. math::
+
+      \\left[D^{out} + D^{in} - (A + A^T) + \\alpha I\\right] s = d^{out} - d^{in},
+
+   with :math:`d^{out}`, :math:`d^{in}` the (weighted) out- and in-degrees: the Laplacian of the
+   network with directions ignored, so the system is solved by conjugate gradient (Jacobi
+   preconditioned), one sparse product per iteration on the device of the network, in double
+   precision. Without regularization (:math:`\\alpha = 0`) ranks are defined up to a shift in each
+   component: they are centered to mean 0 in each component, as in the reference implementation,
+   so ranks are comparable only within a component. With :math:`\\alpha > 0` they are pulled
+   towards 0 and are unique.
+
+   Ranks are in units of the rest length: an edge from :math:`i` to :math:`j` is relaxed when
+   :math:`s_i = s_j + 1`. Parallel edges add their weights; self loops pull nothing. In
+   multilayer networks the supra-graph is used.
+
+   :param net: A directed :class:`~graphoskop.Network`.
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+   :param weight: Name of the edge attribute used as edge weight (number of interactions), or
+      ``None`` for unit weights.
+   :param alpha: Regularization :math:`\\alpha \\ge 0`.
+   :param tol: Relative residual tolerance of the conjugate gradient.
+   :param max_iter: Largest number of iterations, ``10 * n`` if ``None``; a warning is raised if
+      it is reached.
+   :return: float64 vector of ranks over the nodes of the component, on its device (a list of them,
+      one per component, with ``component = None``), higher for higher ranked nodes.
+   :raises ValueError: If the network is undirected (all ranks would be 0), weights are negative,
+      or ``alpha`` is negative.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("dominance.tsv", directed = True)   # winner, loser, number of fights
+      s = gsk.springrank(net, weight = "weight")
+      net.set_node_attribute("springrank", s)
+      s = gsk.springrank(net, component = None, alpha = 1)       # regularized, all components
+   """
+   if not net.directed:
+      raise ValueError("springrank needs a directed network")
+   if alpha < 0:
+      raise ValueError("springrank: alpha must be non negative")
+   comps = list(range(len(net.components))) if component is None else [component]
+   dev = net.components[comps[0]].edge_index.device
+   sizes = [net.components[c].num_nodes for c in comps]
+   off = np.cumsum([0] + sizes)
+   n = int(off[-1])
+   s, t = torch.cat([net.components[c].edge_index + int(o) for c, o in zip(comps, off)], 1)
+   w = torch.cat([torch.ones(net.components[c].edge_index.shape[1], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double() for c in comps])
+   if bool((w < 0).any()):
+      raise ValueError("springrank: weights must be non negative")
+   keep = s != t
+   s, t, w = s[keep], t[keep], w[keep]
+   dout = torch.zeros(n, dtype = torch.float64, device = dev).index_add_(0, s, w)
+   din = torch.zeros(n, dtype = torch.float64, device = dev).index_add_(0, t, w)
+   diag = dout + din + alpha
+   mv = lambda x: diag * x - torch.zeros_like(x).index_add_(0, s, w * x[t]).index_add_(0, t, w * x[s])
+   b = dout - din
+   pre = torch.where(diag > 0, 1 / diag, 1.)
+   x = torch.zeros_like(b)
+   r = b.clone()
+   z = pre * r
+   p = z.clone()
+   rz = r @ z
+   stop = tol * float(b.norm())
+   max_iter = 10 * n if max_iter is None else max_iter
+   for it in range(max_iter):
+      if float(r.norm()) <= stop:
+         break
+      Ap = mv(p)
+      step = rz / (p @ Ap)
+      x += step * p
+      r -= step * Ap
+      z = pre * r
+      rz, old = r @ z, rz
+      p = z + (rz / old) * p
+   else:
+      if float(r.norm()) > stop:
+         warnings.warn(f"springrank: conjugate gradient did not converge in {max_iter} iterations")
+   out = list(torch.split(x, sizes))
+   if alpha == 0:
+      out = [v - v.mean() for v in out]
    return out if component is None else out[0]
 
 

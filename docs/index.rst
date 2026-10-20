@@ -15,6 +15,7 @@ Graphoskop
    centrality
    coloring
    communities
+   core_periphery
    epidemics
    equivalence
    exploration

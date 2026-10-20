@@ -2135,7 +2135,7 @@ def _nested_dl(N, eu, ev, b0, par, Bs, kind = 0):
    return _dl_light(N, eu, ev, b0, par, np.asarray(Bs, dtype = np.int64), kind, qtab, lu, vt)
 
 
-def _fit(N, eu, ev, max_blocks = 4096, sweeps = 10, merges = 10, eps = 0.1, seed = None, kind = 0, flat = False):
+def _fit(N, eu, ev, max_blocks = 4096, sweeps = 10, merges = 10, eps = 0.1, seed = None, kind = 0, flat = False, fixed = None):
    """
    Nested partition minimizing the description length of a simple undirected graph (or flat
    partition, for ``flat`` or kinds other than 0).
@@ -2145,7 +2145,9 @@ def _fit(N, eu, ev, max_blocks = 4096, sweeps = 10, merges = 10, eps = 0.1, seed
    by greedy node sweeps once at most ``max_blocks`` groups are left (merges and sweeps with the
    degree-corrected description length). Each partition of these rounds gets the upper levels of
    :func:`_hierarchy` or, flat, greedy sweeps with the description length of its kind, and the
-   one with the smallest description length is refined by greedy sweeps at all levels.
+   one with the smallest description length is refined by greedy sweeps at all levels. With
+   ``fixed``, the level 0 partition has that many groups (or fewer, if the final sweeps empty
+   some), instead of the number minimizing the description length.
 
    :return: ``(b0, par, Bs, S)``: level 0 groups, upper groupings concatenated, numbers of groups
       per level, description length.
@@ -2199,6 +2201,8 @@ def _fit(N, eu, ev, max_blocks = 4096, sweeps = 10, merges = 10, eps = 0.1, seed
       if B <= max_blocks:
          states[B] = b.copy()
    grid = sorted(x for x in states)
+   if fixed is not None:
+      grid = [int(fixed)]
    # nested description length from few groups upwards, until it rises twice in a row
    rises, prev = 0, np.inf
    for B0 in grid:
@@ -2210,6 +2214,8 @@ def _fit(N, eu, ev, max_blocks = 4096, sweeps = 10, merges = 10, eps = 0.1, seed
    done = sorted(results)
    i = int(np.argmin([results[x][0] for x in done]))
    lo, hi = done[max(i - 1, 0)], done[min(i + 1, len(done) - 1)]
+   if fixed is not None:
+      lo = hi = int(fixed)
    # golden section search between the neighbors of the best candidate
    phi = (math.sqrt(5) - 1) / 2
    while hi - lo > 2:
@@ -2284,7 +2290,9 @@ def _write_levels(net, b0, par, Bs, attribute):
 def fit_nested_block_model(net, attribute = "community", max_blocks = 4096, sweeps = 10, seed = None):
    """
    Fit the nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): the hierarchy of
-   groups that minimizes the description length of the network.
+   groups that minimizes the description length of the network. The same fit, and those of the
+   other blockmodels, are also available for community discovery as
+   :func:`~graphoskop.block_model_communities`.
 
    The model generates a network in levels. At the bottom, nodes are in groups, and edges are
    placed between groups according to the numbers of edges between every pair of groups, at

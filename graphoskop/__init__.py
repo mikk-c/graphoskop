@@ -43,6 +43,10 @@ contagion, simulated in parallel runs (see :doc:`epidemics`). The robustness of 
 or edge failures and attacks, another percolation process, and cascades of failures driven by
 loads and capacities are in :doc:`robustness`.
 
+Core-periphery structures, a dense core of nodes and a sparse periphery attached to it, are fit
+with the discrete and continuous models of Borgatti and Everett and the model of Rombach et al. (see
+:doc:`core_periphery`).
+
 Link prediction hides some edges of a network and scores the hidden pairs, and as many
 unconnected ones, from the rest of the network (see :doc:`link_prediction`). Network error
 correction does both jobs of cleaning observed networks, finding spurious and missing edges, with
@@ -51,17 +55,18 @@ the nested stochastic blockmodel (see :doc:`error_correction`).
 
 from importlib.metadata import version, PackageNotFoundError
 
-from .network import BIPARTITE, LAYER, Network, load_network, save_network, load_pickled_network
+from .network import BIPARTITE, LAYER, Network, load_network, save_network, load_pickled_network, load_matrix, save_matrix
 from .multilayer import layer_network, aggregate_network
 from .transformations import to_undirected, remove_isolates, remove_self_loops, remove_parallel_edges, subgraph, ego_network, to_strongly_connected, add_nodes, add_edges, remove_nodes, remove_edges, flip_edge_direction, network_union, network_difference, network_intersection, quotient_network, network_condensation
 from .signed import SIGN, signed_network, signed_adjacency, structural_balance, signed_triangle_counts
 from .utils import laplacian, laplacian_pinv, laplacian_solver, stationary_distribution, effective_resistance, hitting_time
 from .shortest_paths import shortest_path, shortest_path_length, single_source_shortest_paths, single_source_shortest_path_lengths, all_pairs_shortest_paths, all_pairs_shortest_path_lengths, shortest_path_length_distribution, diameter
-from .communities import modularity, maximal_cliques
+from .communities import modularity, maximal_cliques, block_model_communities
+from .core_periphery import discrete_core_periphery, continuous_core_periphery, rombach_core_periphery, nestedness, nestedness_isocline
 from .coloring import graph_coloring, maximum_independent_set
 from .exploration import bfs, dfs, random_walk, metropolis_hastings_random_walk
-from .centrality import closeness_centrality, harmonic_centrality, betweenness_centrality, edge_betweenness_centrality, flow_centrality, reach_centrality, eigenvector_centrality, pagerank, katz_centrality, alpha_centrality, hits, k_core_centrality, centralization
-from .hierarchy import global_reach_centrality
+from .centrality import closeness_centrality, harmonic_centrality, betweenness_centrality, edge_betweenness_centrality, flow_centrality, reach_centrality, eigenvector_centrality, pagerank, katz_centrality, alpha_centrality, hits, k_core_centrality, springrank, centralization
+from .hierarchy import global_reach_centrality, flow_hierarchy, arborescence_hierarchy, agony_hierarchy
 from .equivalence import structural_equivalence, automorphic_equivalence, pairwise_structural_equivalence, pairwise_automorphic_equivalence, regular_equivalence, pairwise_regular_equivalence, path_regular_equivalence, pairwise_path_regular_equivalence
 from .network_statistics import connected_components_count, connected_components_nodes, degree, average_degree, degree_power_law, degree_centralization, density, reciprocity, average_shortest_path_length, local_clustering, global_clustering, average_clustering, assortativity
 from .backboning import noise_corrected, convex_skeleton, disparity_filter, polya_filter, doubly_stochastic, high_salience_skeleton, extract_backbone, test_bb_thresholds, find_bb_thresholds, spanning_tree, maximally_filtered_graph, triangulated_filtered_graph
@@ -90,14 +95,16 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "load_network", "save_network", "loa
            "shortest_path", "shortest_path_length", "single_source_shortest_paths",
            "single_source_shortest_path_lengths", "all_pairs_shortest_paths",
            "all_pairs_shortest_path_lengths", "shortest_path_length_distribution", "diameter",
-           "modularity", "maximal_cliques", "graph_coloring", "maximum_independent_set", "bfs",
-           "dfs", "random_walk", "metropolis_hastings_random_walk", "closeness_centrality",
+           "modularity", "maximal_cliques", "block_model_communities", "discrete_core_periphery",
+           "continuous_core_periphery", "graph_coloring", "maximum_independent_set", "bfs", "dfs",
+           "random_walk", "metropolis_hastings_random_walk", "closeness_centrality",
            "harmonic_centrality", "betweenness_centrality", "edge_betweenness_centrality",
            "flow_centrality", "reach_centrality", "eigenvector_centrality", "pagerank",
-           "katz_centrality", "alpha_centrality", "hits", "k_core_centrality", "centralization",
-           "global_reach_centrality", "structural_equivalence", "automorphic_equivalence",
-           "pairwise_structural_equivalence", "pairwise_automorphic_equivalence",
-           "regular_equivalence", "pairwise_regular_equivalence", "path_regular_equivalence",
+           "katz_centrality", "alpha_centrality", "hits", "k_core_centrality", "springrank",
+           "centralization", "global_reach_centrality", "flow_hierarchy", "arborescence_hierarchy",
+           "structural_equivalence", "automorphic_equivalence", "pairwise_structural_equivalence",
+           "pairwise_automorphic_equivalence", "regular_equivalence",
+           "pairwise_regular_equivalence", "path_regular_equivalence",
            "pairwise_path_regular_equivalence", "connected_components_count",
            "connected_components_nodes", "degree", "average_degree", "degree_power_law",
            "degree_centralization", "density", "reciprocity", "average_shortest_path_length",

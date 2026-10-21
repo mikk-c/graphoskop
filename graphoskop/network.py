@@ -369,6 +369,34 @@ class Network:
          i = torch.cat([C.indices()[:, keep], torch.stack([nz, torch.full_like(nz, j)])], 1)
          data.node_attr = torch.sparse_coo_tensor(i, torch.cat([C.values()[keep], v[nz]]), X.shape).coalesce().to_sparse_csr()
 
+   def _drop_node_attribute(self, key):
+      """
+      Remove a node attribute (numeric or qualitative), if it exists.
+
+      :param key: Attribute name.
+      """
+      if key in self.qualitative_node_attributes:
+         self.qualitative_node_attributes.remove(key)
+         Q = self.qualitative_node_attr
+         if self.node_format == "wide":
+            del Q[key]
+         else:
+            self.qualitative_node_attr = Q[(Q["attribute"] != key).to_numpy()].reset_index(drop = True)
+      if key in self.node_attributes:
+         j = self.node_attributes.index(key)
+         self.node_attributes.remove(key)
+         for data in self.components:
+            X = data.node_attr
+            if X.layout != torch.sparse_csr:
+               data.node_attr = torch.cat([X[:, :j], X[:, j + 1:]], 1)
+               continue
+            with _quiet_sparse():
+               C = X.to_sparse_coo()
+               i, v = C.indices(), C.values()
+               keep = i[1] != j
+               i = torch.stack([i[0][keep], i[1][keep] - (i[1][keep] > j).long()])
+               data.node_attr = torch.sparse_coo_tensor(i, v[keep], (X.shape[0], X.shape[1] - 1)).coalesce().to_sparse_csr()
+
    def _set_node_table(self, table, node_column, layer_column):
       """
       Set node attributes from a table matched by node id (see :meth:`set_node_attribute`).

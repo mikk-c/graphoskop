@@ -152,13 +152,14 @@ def plot(name, title):
    print(f"saved {name}.png")
 
 
-def run(name, title, functions, sizes, summary = float):
+def run(name, title, functions, sizes, summary = float, compare = True):
    """
    Command line entry point of a test: times ``functions`` on LFR graphs of the given sizes,
    appends every run to ``<name>.csv`` and plots them.
 
    A library is not run again after a run longer than ``--limit`` seconds. Values that differ
-   between libraries by more than one part in a million are reported.
+   between libraries by more than one part in a million are reported (unless ``compare`` is
+   ``False``).
 
    :param name: Base name of the result files.
    :param title: Title of the plot.
@@ -167,6 +168,8 @@ def run(name, title, functions, sizes, summary = float):
    :param sizes: Default numbers of nodes of the LFR graphs, increasing.
    :param summary: Function of a result returning the number compared across libraries, or a
       dictionary from library name to such functions.
+   :param compare: Whether the numbers should agree across libraries (warn if not); ``False`` for
+      heuristic results, whose numbers (e.g. a description length) are only printed and saved.
    """
    parser = argparse.ArgumentParser(description = title)
    parser.add_argument("--sizes", type = int, nargs = "+", default = sizes, help = "numbers of nodes")
@@ -210,6 +213,6 @@ def run(name, title, functions, sizes, summary = float):
             if torch.cuda.is_available():
                torch.cuda.empty_cache()
          v = np.array(list(values.values()))
-         if len(v) and np.ptp(v) > 1e-6 * np.abs(v).max():
+         if compare and len(v) and np.ptp(v) > 1e-6 * np.abs(v).max():
             print(f"warning: values differ at n = {n}: {values}")
    plot(name, title)

@@ -1419,7 +1419,8 @@ def hierarchical_random_graph_lp(net, pairs, name = "score", samples = 100, burn
    of the smaller one and comparing their positions with the range of the other: a move costs
    the degrees of the leaves of a small subtree, and an accepted move moves the leaves of at most
    two subtrees. Fitting is still much slower than the other scores, since it needs thousands of
-   sweeps (see the Performance section of :doc:`link_prediction`).
+   sweeps (see the Performance section of :doc:`link_prediction`). The same dendrograms give
+   hierarchical communities: :func:`~graphoskop.hierarchical_random_graph_communities`.
 
    :param net: A :class:`~graphoskop.Network`, not multilayer.
    :param pairs: Pairs, as in :func:`preferential_attachment_lp`.
@@ -1449,6 +1450,25 @@ def hierarchical_random_graph_lp(net, pairs, name = "score", samples = 100, burn
       raise ValueError(f"need samples >= 1, burnin >= 0 and interval >= 1, got {samples}, {burnin}, {interval}")
    s, t = _endpoints(pairs)
    us, vs = _positions(net, s), _positions(net, t)
+   N, ptr, nbr, counts, states, trees, ll = _hrg_setup(net, samples, chains, seed)
+   out = np.zeros((len(counts), len(us)))
+   us, vs = us.astype(np.int64), vs.astype(np.int64)
+   run = lambda sweeps, k: _hrg_run(N, ptr, nbr, *trees, states, ll, sweeps, interval, k, us, vs, out)
+   if N > 2:   # otherwise there is a single dendrogram
+      run(int(burnin), np.zeros(len(counts), dtype = np.int64))
+   run(0, counts)
+   return _scored(pairs, out.sum(0) / samples, name)
+
+
+def _hrg_setup(net, samples, chains, seed):
+   """
+   Graph and random starting dendrograms of the chains of a hierarchical random graph: directions,
+   weights, parallel edges and self loops ignored, all the nodes of the network as leaves.
+
+   :return: ``(N, ptr, nbr, counts, states, trees, ll)``: number of nodes, CSR of the neighbors,
+      number of samples of each chain, random states, tree arrays (``parent``, ``left``,
+      ``right``, ``size``, ``e``, ``lo``, ``leafat``, one row per chain) and log-likelihoods.
+   """
    N = net.number_of_nodes()
    ei = np.concatenate([d.edge_index.cpu().numpy() + net.node_offsets[c] for c, d in enumerate(net.components)], 1)
    a, b = np.minimum(ei[0], ei[1]), np.maximum(ei[0], ei[1])
@@ -1466,13 +1486,39 @@ def hierarchical_random_graph_lp(net, pairs, name = "score", samples = 100, burn
    parent, left, right, size, e, lo = (np.empty((C, m), dtype = np.int64) for _ in range(6))
    leafat, stack = np.empty((C, N), dtype = np.int64), np.empty(m, dtype = np.int64)
    ll = np.array([_hrg_init(N, src, dst, states[c:c + 1], parent[c], left[c], right[c], size[c], e[c], lo[c], leafat[c], stack) for c in range(C)])
-   out = np.zeros((C, len(us)))
-   us, vs = us.astype(np.int64), vs.astype(np.int64)
-   run = lambda sweeps, k: _hrg_run(N, ptr, nbr, parent, left, right, size, e, lo, leafat, states, ll, sweeps, interval, k, us, vs, out)
-   if N > 2:   # otherwise there is a single dendrogram
-      run(int(burnin), np.zeros(C, dtype = np.int64))
-   run(0, counts)
-   return _scored(pairs, out.sum(0) / samples, name)
+   return N, ptr, nbr, counts, states, (parent, left, right, size, e, lo, leafat), ll
+
+
+@njit(cache = True, parallel = True)
+def _hrg_trees(n, ptr, nbr, parent, left, right, size, e, lo, leafat, states, ll, interval, samples, keys, H, LO, SZ, P, LEAF, LL):
+   """
+   Sample dendrograms with chains already burnt in (as :func:`_hrg_run`): chain ``c`` writes its
+   samples from row ``sum(samples[:c])`` on. For every sample, the leaf order (``LEAF``), its
+   log-likelihood (``LL``) and, for every internal node, the first position (``LO``) and number
+   (``SZ``) of its leaves, its edge probability (``P``) and a hash of its set of leaves (``H``, the
+   sum of the random ``keys`` of the leaves, modulo :math:`2^{64}`).
+   """
+   start = np.zeros(states.shape[0] + 1, dtype = np.int64)
+   for c in range(states.shape[0]):
+      start[c + 1] = start[c] + samples[c]
+   for c in prange(states.shape[0]):
+      state = states[c:c + 1]
+      stack = np.empty(2 * n - 1, dtype = np.int64)
+      leaves = np.empty(n, dtype = np.int64)
+      prefix = np.zeros(n + 1, dtype = np.uint64)
+      x = ll[c]
+      for k in range(start[c], start[c + 1]):
+         for i in range(interval):
+            x = _hrg_sweep(n, ptr, nbr, parent[c], left[c], right[c], size[c], e[c], lo[c], leafat[c], stack, leaves, state, x)
+         for q in range(n):
+            prefix[q + 1] = prefix[q] + keys[leafat[c, q]]
+            LEAF[k, q] = leafat[c, q]
+         for z in range(n, 2 * n - 1):
+            a, b = lo[c, z], lo[c, z] + size[c, z]
+            H[k, z - n], LO[k, z - n], SZ[k, z - n] = prefix[b] - prefix[a], a, size[c, z]
+            P[k, z - n] = e[c, z] / (size[c, left[c, z]] * size[c, right[c, z]])
+         LL[k] = x
+      ll[c] = x
 
 
 @njit(cache = True)

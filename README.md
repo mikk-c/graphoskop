@@ -93,6 +93,18 @@ default.
 
 ![Effective resistance](benchmarks/effective_resistance.png)
 
+Community discovery with the hierarchical degree-corrected stochastic blockmodel (the nested
+blockmodel of Peixoto, `gsk.block_model_communities` with its default model) is compared only
+with graph-tool (`minimize_nested_blockmodel_dl`), since NetworkX and igraph have no stochastic
+blockmodels; here the largest network is the one where the slower library takes about a minute.
+Both minimize the description length with their default settings: the fits are heuristic, so the
+communities found, and their description lengths (saved with the runtimes), can differ.
+Graphoskop's kernels are compiled on first use, and the timed runs are those after compilation.
+The fit runs on the CPU whatever the device, so the two Graphoskop lines differ only by the
+transfer of the edges.
+
+![Hierarchical degree-corrected blockmodel](benchmarks/hierarchical_block_model.png)
+
 The scripts that produce these plots are in the `benchmarks` folder of the repository: each test
 runs on its own, e.g. `python benchmarks/global_clustering.py`, and writes its table of runtimes
 and its plot.

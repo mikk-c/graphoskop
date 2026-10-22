@@ -670,7 +670,7 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
    if pairwise:
       a, b = s.cpu().numpy().copy(), t.cpu().numpy().copy()
       if isinstance(beta, str):   # edge attribute
-         x = np.concatenate([net.get_edge_attribute(beta, c).double().cpu().numpy() for c in comps])
+         x = np.concatenate([net._numeric_edge(beta, c).double().cpu().numpy() for c in comps])
       elif isinstance(beta, pd.DataFrame):   # source, target, probability, by node id; missing pairs: 0
          ids = pd.Index(np.concatenate([net.node_ids[c] for c in comps]), dtype = object, tupleize_cols = False)
          i, j = ids.get_indexer(beta.iloc[:, 0].tolist()), ids.get_indexer(beta.iloc[:, 1].tolist())

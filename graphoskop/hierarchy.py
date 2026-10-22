@@ -90,7 +90,7 @@ def flow_hierarchy(net, component = 0, weight = None, by = "edges"):
       s, t = net.components[c].edge_index.cpu().numpy()
       cyc = lab[s] == lab[t]   # in a cycle
       if by == "edges":
-         w = np.ones(len(s)) if weight is None else net.get_edge_attribute(weight, c).double().cpu().numpy()
+         w = np.ones(len(s)) if weight is None else net._numeric_edge(weight, c).double().cpu().numpy()
          if (w < 0).any():
             raise ValueError("flow_hierarchy: weights must be non negative")
          out, total = out + w[~cyc].sum(), total + w.sum()
@@ -227,7 +227,7 @@ def agony_hierarchy(net, component = 0, weight = None, ranks = False):
       data = net.components[c]
       n = data.num_nodes
       s, t = data.edge_index.cpu().numpy()
-      w = np.ones(len(s)) if weight is None else net.get_edge_attribute(weight, c).double().cpu().numpy()
+      w = np.ones(len(s)) if weight is None else net._numeric_edge(weight, c).double().cpu().numpy()
       if (w < 0).any():
          raise ValueError("agony_hierarchy: weights must be non negative")
       total += w.sum()

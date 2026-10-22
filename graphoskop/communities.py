@@ -224,7 +224,7 @@ def modularity(net, partition, weight = None, resolution = 1, component = None, 
       data = net.components[c]
       s, t = data.edge_index
       dev = s.device
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double()
       if not net.directed:   # other edges are stored in both directions, self loops once
          w = torch.where(s == t, 2 * w, w)
       mine = (node >= off[j]) & (node < off[j + 1])   # memberships of this component, by node
@@ -554,7 +554,7 @@ def _infomap_flows(net, weight, directed, teleportation, raw = False):
    S, T, W = [], [], []
    for c in range(len(net.components)):
       ei, _ = net._input_edges(c)
-      w = torch.ones(ei.shape[1], dtype = torch.float64) if weight is None else net.get_edge_attribute(weight, c)[:ei.shape[1]].double().cpu()
+      w = torch.ones(ei.shape[1], dtype = torch.float64) if weight is None else net._numeric_edge(weight, c)[:ei.shape[1]].double().cpu()
       S.append(ei[0].cpu().numpy() + int(net.node_offsets[c]))
       T.append(ei[1].cpu().numpy() + int(net.node_offsets[c]))
       W.append(w.numpy())
@@ -940,7 +940,7 @@ def label_propagation_communities(net, attribute = "community", weight = None, s
       ei = net.components[c].edge_index
       S.append(ei[0] + int(net.node_offsets[c]))
       T.append(ei[1] + int(net.node_offsets[c]))
-      W.append(torch.ones(ei.shape[1], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double())
+      W.append(torch.ones(ei.shape[1], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double())
    s, t, w = torch.cat(S), torch.cat(T), torch.cat(W)
    if bool((w < 0).any()):
       raise ValueError("label_propagation_communities: weights must be non negative")
@@ -1092,7 +1092,7 @@ def leiden_communities(net, attribute = "community", weight = None, quality = "m
    for c in comps:
       data = net.components[c]
       s, t = data.edge_index
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
       if not net.directed:   # stored self loops count twice, as in modularity
          w = torch.where(s == t, 2 * w, w)
       intra = ~net.interlayer_mask(c)
@@ -1188,7 +1188,7 @@ def _community_stats(net, partition, weight, component):
       data = net.components[c]
       s, t = data.edge_index
       dev = s.device
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double()
       keep = s != t
       s, t, w = s[keep], t[keep], w[keep]
       if net.directed:   # directions ignored
@@ -2006,7 +2006,7 @@ def _links(net, weight):
       ei, _ = net._input_edges(c)
       S.append(ei[0].cpu().numpy() + int(net.node_offsets[c]))
       T.append(ei[1].cpu().numpy() + int(net.node_offsets[c]))
-      W.append(np.ones(ei.shape[1]) if weight is None else net.get_edge_attribute(weight, c)[:ei.shape[1]].double().cpu().numpy())
+      W.append(np.ones(ei.shape[1]) if weight is None else net._numeric_edge(weight, c)[:ei.shape[1]].double().cpu().numpy())
    s, t, w = np.concatenate(S), np.concatenate(T), np.concatenate(W)
    if (w < 0).any():
       raise ValueError("weights must be non negative")
@@ -2292,7 +2292,7 @@ def demon_communities(net, attribute = "community", epsilon = 0.25, min_size = 3
       ei = net.components[c].edge_index.cpu().numpy()
       S.append(ei[0] + int(net.node_offsets[c]))
       T.append(ei[1] + int(net.node_offsets[c]))
-      W.append(np.ones(ei.shape[1]) if weight is None else net.get_edge_attribute(weight, c).double().cpu().numpy())
+      W.append(np.ones(ei.shape[1]) if weight is None else net._numeric_edge(weight, c).double().cpu().numpy())
    s, t, w = np.concatenate(S), np.concatenate(T), np.concatenate(W)
    if (w < 0).any():
       raise ValueError("weights must be non negative")

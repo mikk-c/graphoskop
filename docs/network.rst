@@ -43,6 +43,36 @@ are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning
    net.get_node_attribute("city")    # NumPy object array over the nodes of component 0
    net.set_node_attribute(table, node_column = "name")   # one attribute per other column
 
+Numeric and qualitative edge attributes
+---------------------------------------
+
+Edge attributes are numeric (numbers, booleans) or qualitative (text, any other value), decided
+column by column when loading and by the values given to
+:meth:`~graphoskop.Network.set_edge_attribute`, and are stored as node attributes are. Numeric
+edge attributes live in the ``edge_attr`` tensor of each component, on the device of the network
+(``Network.edge_attributes``). Qualitative ones never take GPU memory: they are kept once for the
+whole network in ``Network.qualitative_edge_attr``, a :class:`pandas.DataFrame` of categorical
+columns in CPU memory (``Network.qualitative_edge_attributes``), with one row per edge as given in
+input, in the network wide edge order (component by component, input order within a component);
+the two stored directions of an undirected edge share its row. Every transformation that moves,
+copies or drops edges carries both along. Functions that need numbers (weights, signs, scores)
+refuse a qualitative attribute with a :class:`KeyError`. When edges merge
+(:func:`~graphoskop.to_undirected`, :func:`~graphoskop.remove_parallel_edges`,
+:func:`~graphoskop.quotient_network`, :func:`~graphoskop.aggregate_network`), a qualitative
+attribute keeps the distinct values of the merged edges: their value if they agree, a tuple of the
+distinct values otherwise. Qualitative edge attributes can be compared by
+:func:`~graphoskop.is_isomorphic` and serve as edge labels in
+:func:`~graphoskop.transactional_graph_mining`.
+
+.. code-block:: python
+
+   net = gsk.load_network("edges.tsv")                # columns source, target, weight, kind
+   net.edge_attributes                                 # ["weight"]
+   net.qualitative_edge_attributes                     # ["kind"]
+   net.get_edge_attribute("kind")                      # NumPy object array, on the CPU
+   net.get_edge_attribute("kind", edge = ("alice", "bob"))   # e.g. "friend"
+   net.set_edge_attribute("tie", ["strong"] * net.components[0].edge_index.shape[1])
+
 .. _overlapping-communities:
 
 Several values per node: overlapping communities

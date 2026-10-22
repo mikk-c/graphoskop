@@ -8,6 +8,12 @@ Node attributes are either numeric or qualitative. Numeric attributes are stored
 :attr:`Network.qualitative_node_attr`, a :class:`pandas.DataFrame` that always stays in CPU
 memory, whatever the device.
 
+Edge attributes are numeric or qualitative too, and are stored the same way: numeric ones in the
+``edge_attr`` tensor of each component, on the device of the network; qualitative ones once for
+the whole network in :attr:`Network.qualitative_edge_attr`, a :class:`pandas.DataFrame` of
+categorical columns that always stays in CPU memory, with one row per edge as given in input (an
+undirected edge once, although ``edge_index`` stores it in both directions).
+
 A network loaded with ``bipartite = True`` has two node types, given by the mandatory node
 attribute :data:`BIPARTITE`, and no edge between two nodes of the same type. A network loaded from
 a rectangular matrix with :func:`load_matrix` is bipartite, with the types set from the rows and
@@ -65,6 +71,13 @@ class Network:
       ``value`` (both categorical), one row per stored value.
    :ivar node_format: ``"wide"`` or ``"long"``, the format of the node table.
    :ivar edge_attributes: Numeric edge attribute names; position ``j`` is column ``j`` of ``edge_attr``.
+   :ivar qualitative_edge_attributes: Qualitative edge attribute names, in order of appearance. A
+      name is never in both lists.
+   :ivar qualitative_edge_attr: Qualitative edge attributes, in CPU memory (``None`` if there are
+      none): one categorical column per attribute and one row per input edge, in the network wide edge order: component by
+      component, and within a component in the order of the input edges (the first columns of
+      ``edge_index``; in undirected networks the reverse copies that follow them share the rows of
+      their edges).
    :ivar directed: Whether the edges are directed.
    :ivar bipartite_labels: In bipartite networks, the values of :data:`BIPARTITE` of type 0 and
       type 1, in this order (sorted); ``None`` otherwise.
@@ -90,12 +103,17 @@ class Network:
       w = net.get_edge_attribute("weight")            # vector over the edges of component 0
       w_ab = net.get_edge_attribute("weight", edge = ("alice", "bob"))   # one edge, None if absent
       net.set_edge_attribute("log_weight", w.log())   # new attribute, NaN in other components
+      kind = net.get_edge_attribute("kind")           # qualitative: NumPy array, on the CPU
+      net.set_edge_attribute("tie", ["strong"] * len(kind))   # new qualitative attribute
       net.set_node_attribute("age", [a + 1 for a in net.get_node_attribute("age", None)], None)
       net.set_node_attribute("group", ["a"] * net.number_of_nodes(0))   # new qualitative attribute
       net.number_of_nodes(), net.number_of_edges(), net.number_of_components()
    """
 
-   def __init__(self, components, node_map, node_ids, node_attributes, edge_attributes, directed, qualitative_node_attr, qualitative_node_attributes, node_format = "wide", bipartite_labels = None, bipartite_split = None, layer_labels = None, entity_ids = None):
+   qualitative_edge_attributes = ()   # defaults of networks pickled before 0.11.2
+   qualitative_edge_attr = None
+
+   def __init__(self, components, node_map, node_ids, node_attributes, edge_attributes, directed, qualitative_node_attr, qualitative_node_attributes, node_format = "wide", bipartite_labels = None, bipartite_split = None, layer_labels = None, entity_ids = None, qualitative_edge_attributes = None, qualitative_edge_attr = None):
       self.components = components
       self.node_map = node_map
       self.node_ids = node_ids
@@ -106,6 +124,8 @@ class Network:
       self.node_format = node_format
       self.edge_attributes = edge_attributes
       self.directed = directed
+      self.qualitative_edge_attributes = list(qualitative_edge_attributes or [])
+      self.qualitative_edge_attr = qualitative_edge_attr   # None: no qualitative edge attributes yet
       self.bipartite_labels = bipartite_labels
       self.bipartite_split = bipartite_split
       self.layer_labels = layer_labels
@@ -475,8 +495,11 @@ class Network:
       component. In undirected networks every edge is stored in both directions, so each value
       appears twice (self loops once), as in ``edge_attr``.
 
+      Qualitative attributes are returned as a NumPy object array, on the CPU, with NaN for missing
+      values.
+
       With ``edge = (u, v)``, given by input node ids, the value on the edge between ``u`` and
-      ``v`` is returned instead, as a Python number, and ``component`` is ignored. In directed
+      ``v`` is returned instead, as a Python value, and ``component`` is ignored. In directed
       networks the edge goes from ``u`` to ``v``; in undirected networks the order does not matter.
       If the edge is not in the network (including when a node is not), ``None`` is returned. If
       there are parallel edges, the list of their values is returned, in input order.
@@ -485,10 +508,12 @@ class Network:
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
       :param edge: Pair of input node ids ``(u, v)``, or ``None``.
       :return: Vector with one entry per stored edge, or a list of them if ``component`` is
-         ``None``; with ``edge``, a number, a list of numbers or ``None``.
+         ``None``; with ``edge``, a value, a list of values or ``None``.
       :raises KeyError: If there is no edge attribute with that name.
       """
-      j = self._column(self.edge_attributes, key, "edge")
+      if isinstance(key, str) and key in self.qualitative_edge_attributes:
+         return self._get_qualitative_edges(key, component, edge)
+      j = self._edge_column(key)
       if edge is not None:
          u, v = (self.node_map.get(x) for x in edge)
          if u is None or v is None or u[0] != v[0]:
@@ -503,28 +528,144 @@ class Network:
          return [self.get_edge_attribute(j, c) for c in range(len(self.components))]
       return self.components[component].edge_attr[:, j].clone()
 
+   def _numeric_edge(self, key, component = 0):
+      """
+      Numeric edge attribute as a vector over the edges of a component (as
+      :meth:`get_edge_attribute`), with a clear error for qualitative ones.
+
+      :param key: Attribute name, or position in :attr:`edge_attributes`.
+      :param component: Index of the component, or ``None`` for all components.
+      :return: Vector, or a list of them.
+      :raises KeyError: If there is no numeric edge attribute with that name.
+      """
+      j = self._edge_column(key)
+      if component is None:
+         return [d.edge_attr[:, j].clone() for d in self.components]
+      return self.components[component].edge_attr[:, j].clone()
+
+   def _edge_column(self, key):
+      """
+      Column of ``edge_attr`` of a numeric edge attribute.
+
+      :param key: Name, or position in :attr:`edge_attributes`.
+      :return: Column.
+      :raises KeyError: If there is no numeric edge attribute with that name.
+      """
+      if isinstance(key, str) and key in self.qualitative_edge_attributes:
+         raise KeyError(f"edge attribute {key!r} is qualitative, a number is needed here; numeric edge attributes: {self.edge_attributes}")
+      if isinstance(key, str) and key not in self.edge_attributes:
+         raise KeyError(f"no edge attribute named {key!r}; edge attributes: {self.edge_attributes + self.qualitative_edge_attributes}")
+      return self._column(self.edge_attributes, key, "edge")
+
+   def _edge_offsets(self):
+      """
+      Position of the first input edge of each component in the network wide edge order (the
+      rows of :attr:`qualitative_edge_attr`), followed by the number of input edges.
+      """
+      if "_eoffsets" not in self.__dict__:   # edges never change in place
+         self._eoffsets = np.cumsum([0] + [self.number_of_edges(c) for c in range(len(self.components))])
+      return self._eoffsets
+
+   def _edge_table(self):
+      """
+      :attr:`qualitative_edge_attr`, or an empty table (one row per input edge) if it is ``None``.
+      """
+      if self.qualitative_edge_attr is None:
+         return pd.DataFrame(index = pd.RangeIndex(int(self._edge_offsets()[-1])))
+      return self.qualitative_edge_attr
+
+   def _arc_rows(self, component):
+      """
+      Row of :attr:`qualitative_edge_attr` of every stored edge of a component (column of
+      ``edge_index``): undirected networks store the input edges, then the reverses of those that
+      are not self loops.
+
+      :param component: Component index.
+      :return: Network wide row positions, a NumPy array.
+      """
+      m = self.number_of_edges(component)
+      o = int(self._edge_offsets()[component])
+      if self.directed:
+         return np.arange(o, o + m)
+      s, t = self.components[component].edge_index[:, :m].cpu().numpy()
+      return o + np.r_[np.arange(m), np.flatnonzero(s != t)]
+
+   def _get_qualitative_edges(self, key, component, edge):
+      """
+      Qualitative edge attribute over the edges of a component, or on one edge.
+
+      :param key: Attribute name.
+      :param component: Component index, or ``None``.
+      :param edge: Pair of input node ids, or ``None``.
+      :return: As :meth:`get_edge_attribute`.
+      """
+      col = self.qualitative_edge_attr[key]
+      if edge is not None:
+         u, v = (self.node_map.get(x) for x in edge)
+         if u is None or v is None or u[0] != v[0]:
+            return None
+         ei = self._input_edges(u[0])[0]
+         m = (ei[0] == u[1]) & (ei[1] == v[1])
+         if not self.directed:
+            m |= (ei[0] == v[1]) & (ei[1] == u[1])
+         rows = int(self._edge_offsets()[u[0]]) + np.flatnonzero(m.cpu().numpy())
+         w = np.asarray(col.iloc[rows], dtype = object).tolist()
+         return None if not w else w[0] if len(w) == 1 else w
+      if component is None:
+         return [self._get_qualitative_edges(key, c, None) for c in range(len(self.components))]
+      return np.asarray(col.iloc[self._arc_rows(component)], dtype = object)
+
    def set_edge_attribute(self, key, values, component = 0):
       """
       Set an edge attribute on the edges of a component, creating it if it does not exist.
 
-      A new attribute is appended to :attr:`edge_attributes` and to ``edge_attr`` of every
-      component; components not set get NaN. Values are aligned with the columns of
-      ``edge_index``, as returned by :meth:`get_edge_attribute`: in undirected networks both
-      directions of an edge are stored and should get the same value. Values are cast to the dtype
-      of ``edge_attr``.
+      A new attribute is numeric if its values are numbers (or booleans), qualitative otherwise;
+      it is appended to :attr:`edge_attributes` (a new column of ``edge_attr`` in every component)
+      or to :attr:`qualitative_edge_attributes` (a new column of :attr:`qualitative_edge_attr`);
+      components not set get NaN. Values are aligned with the columns of ``edge_index``, as
+      returned by :meth:`get_edge_attribute`: in undirected networks both directions of an edge are
+      stored, and the value of the first one (the input edge) is kept for a qualitative attribute.
+      Numeric values are cast to the dtype of ``edge_attr``; the values of a qualitative attribute
+      can be anything hashable (NaN or ``None`` for missing values).
 
       :param key: Attribute name, or position in :attr:`edge_attributes`.
       :param values: Vector with one entry per stored edge, or a list of them (one per component)
          if ``component`` is ``None``.
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
       :raises KeyError: If ``key`` is a position and there is no edge attribute there.
-      :raises ValueError: If a vector does not have one value per stored edge.
+      :raises ValueError: If a vector does not have one value per stored edge, or if non-numeric
+         values are given for a numeric attribute.
       """
-      if isinstance(key, str) and key not in self.edge_attributes:
-         self.edge_attributes.append(key)
-         for data in self.components:
-            X = data.edge_attr
-            data.edge_attr = torch.cat([X, X.new_full((X.shape[0], 1), float("nan"))], 1)
+      if isinstance(key, str) and key not in self.edge_attributes and key not in self.qualitative_edge_attributes:
+         first = next((v for v in values if len(v)), values[0] if len(values) else []) if component is None else values
+         if _is_numeric(first):
+            self.edge_attributes.append(key)
+            for data in self.components:
+               X = data.edge_attr
+               data.edge_attr = torch.cat([X, X.new_full((X.shape[0], 1), float("nan"))], 1)
+         else:
+            self.qualitative_edge_attributes = list(self.qualitative_edge_attributes) + [key]
+            Q = self._edge_table().copy()
+            Q[key] = pd.Categorical(np.full(len(Q), np.nan, dtype = object))
+            self.qualitative_edge_attr = Q
+      if isinstance(key, str) and key in self.qualitative_edge_attributes:
+         if component is None:
+            for c, v in enumerate(values):
+               self.set_edge_attribute(key, v, c)
+            return
+         v = pd.Series(list(values.cpu().numpy() if isinstance(values, torch.Tensor) else values), dtype = object).to_numpy()
+         rows = self._arc_rows(component)
+         if len(v) != len(rows):
+            raise ValueError(f"expected a vector of length {len(rows)}, got {len(v)} values")
+         m = self.number_of_edges(component)
+         col = np.asarray(self.qualitative_edge_attr[key], dtype = object)
+         col[rows[:m]] = v[:m]
+         Q = self.qualitative_edge_attr.copy()
+         Q[key] = pd.Categorical(col)
+         self.qualitative_edge_attr = Q
+         return
+      if not _is_numeric(values) and component is not None:
+         raise ValueError(f"edge attribute {key!r} is numeric, got non-numeric values")
       j = self._column(self.edge_attributes, key, "edge")
       if j >= len(self.edge_attributes):
          raise KeyError(f"no edge attribute at position {j}; edge attributes: {self.edge_attributes}")
@@ -579,8 +720,8 @@ class Network:
         of all the components, as pairs of internal ids ``((c, i), (c, j))``.
       * With ``labels = True``, the input ids of the endpoints instead (``(entity, layer)`` copies
         in multilayer networks).
-      * With ``data = True``, a third element: a dictionary of the numeric edge attributes of the
-        edge, by name; with ``data`` the name of an edge attribute, its value.
+      * With ``data = True``, a third element: a dictionary of the edge attributes of the edge
+        (numeric and qualitative), by name; with ``data`` the name of an edge attribute, its value.
 
       The edges are read from the device once, so iterating is a plain Python loop.
 
@@ -605,7 +746,7 @@ class Network:
             d["weight"], d["sign"]
          edges = list(net.edges(labels = True))
       """
-      key = None if isinstance(data, bool) else self._column(self.edge_attributes, data, "edge")
+      key = None if isinstance(data, bool) or data in self.qualitative_edge_attributes else self._edge_column(data)
       if component is not None and not -len(self.components) <= component < len(self.components):
          raise IndexError(f"no component {component}: the network has {len(self.components)}")
       comps = range(len(self.components)) if component is None else [component]
@@ -632,13 +773,18 @@ class Network:
             s, t = [(c, i) for i in s.tolist()], [(c, j) for j in t.tolist()]
          else:
             s, t = s.tolist(), t.tolist()
+         o, m = int(self._edge_offsets()[c]), len(s)
+         qual = {a: np.asarray(self.qualitative_edge_attr[a].iloc[o:o + m], dtype = object).tolist() for a in self.qualitative_edge_attributes}
          if data is False:
             yield from zip(s, t)
          elif key is not None:
             yield from zip(s, t, X[:, key].cpu().tolist())
+         elif data is not True:
+            yield from zip(s, t, qual[data])
          else:
             names = self.edge_attributes
-            yield from zip(s, t, (dict(zip(names, row)) for row in X.cpu().tolist()))
+            rows = (dict(zip(names, row)) for row in X.cpu().tolist())
+            yield from zip(s, t, ({**r, **{a: q[e] for a, q in qual.items()}} for e, r in enumerate(rows)))
 
    def number_of_components(self):
       """
@@ -684,9 +830,10 @@ class Network:
       Edges and nodes of all components, with their attributes, as :class:`pandas.DataFrame`.
 
       The edge table has columns ``source`` and ``target`` (input node ids), then one column per
-      edge attribute. Edges are grouped by component, in input order within each component. In
-      undirected networks each edge appears once, as in the input (the reverse copies stored by
-      :func:`load_network` are dropped).
+      numeric edge attribute, then one per qualitative edge attribute (with its values). Edges are
+      grouped by component, in input order within each component. In undirected networks each
+      edge appears once, as in the input (the reverse copies stored by :func:`load_network` are
+      dropped).
 
       The node table is returned only if there are node attributes (always in bipartite networks,
       which have :data:`BIPARTITE`). Nodes are in the network wide node order. Wide node tables
@@ -738,6 +885,8 @@ class Network:
             ls.append(lay[ei[0]])
             lt.append(lay[ei[1]])
       edges = pd.DataFrame(np.concatenate(attr), columns = self.edge_attributes)
+      for a in self.qualitative_edge_attributes:   # same rows: the input edges, in order
+         edges[a] = np.asarray(self.qualitative_edge_attr[a], dtype = object)
       edges.insert(0, "target", np.concatenate(tgt))
       edges.insert(0, "source", np.concatenate(src))
       if ml:
@@ -817,6 +966,103 @@ def _is_numeric(values):
    except ValueError:   # ragged nested values, e.g. lists of communities
       return False
    return a.ndim == 1 and a.dtype.kind in "biuf"
+
+
+def _objects(values):
+   """
+   Values as a 1-dimensional NumPy object array (tuples stay single values).
+   """
+   if isinstance(values, torch.Tensor):
+      values = values.cpu().numpy()
+   return pd.Series(list(values), dtype = object).to_numpy()
+
+
+def _encode_tables(*tables):
+   """
+   Qualitative edge attributes of tables of edge attributes (columns that are not numbers or
+   booleans), replaced by category codes shared by all the tables, columns matched by name, so
+   that they follow the rows of the numeric attributes until :func:`_load` turns them into a
+   qualitative edge table.
+
+   :param tables: Tables (or ``None``); they are not modified.
+   :return: ``(tables, categories)``: the tables with codes, and a dictionary from qualitative
+      attribute name to its categories, in order of first appearance.
+   """
+   tables = [None if t is None else t.copy() for t in tables]
+   names = []
+   for t in tables:
+      if t is not None:
+         names += [a for a in t.columns if a not in _numeric(t).columns and a not in names]
+   cats = {}
+   for a in names:
+      parts = [t[a] for t in tables if t is not None and a in t.columns]
+      c, uniques = pd.factorize(pd.Series(pd.concat(parts, ignore_index = True).tolist(), dtype = object))
+      c = np.where(c < 0, np.nan, c).astype(np.float32)
+      cats[a] = _objects(uniques)
+      start = 0
+      for t in tables:
+         if t is not None and a in t.columns:
+            t[a] = c[start:start + len(t)]
+            start += len(t)
+   return tables, cats
+
+
+def _codes_values(codes, cats):
+   """
+   Values from float category codes (NaN for missing values).
+
+   :return: NumPy object array, NaN for missing values.
+   """
+   out = np.full(len(codes), np.nan, dtype = object)
+   ok = ~np.isnan(codes)
+   out[ok] = cats[codes[ok].astype(np.int64)]
+   return out
+
+
+def _distinct(values):
+   """
+   Distinct values of a qualitative attribute over merged nodes or edges, several values of an
+   item (tuples, lists, sets) included.
+
+   :param values: Iterable of values.
+   :return: NaN if there are none, the value if there is one, otherwise a tuple of them, in order
+      of first appearance.
+   """
+   out = []
+   for x in values:
+      if isinstance(x, (tuple, list, set, frozenset)):
+         out.extend(x)
+      elif not pd.isna(x):
+         out.append(x)
+   out = list(dict.fromkeys(out))
+   return np.nan if not out else out[0] if len(out) == 1 else tuple(out)
+
+
+def _take_edges(Q, rows):
+   """
+   Rows of a qualitative edge table (see :attr:`Network.qualitative_edge_attr`).
+
+   :param Q: Table.
+   :param rows: Row positions; -1 gives missing values.
+   :return: New table, same categories.
+   """
+   rows = np.asarray(rows, dtype = np.int64)
+   out = {}
+   for a in Q.columns:
+      c = Q[a].cat.codes.to_numpy()[rows.clip(min = 0)]
+      out[a] = pd.Categorical.from_codes(np.where(rows >= 0, c, -1), dtype = Q[a].dtype)
+   return pd.DataFrame(out, index = pd.RangeIndex(len(rows)))
+
+
+def _edge_frame(columns, m):
+   """
+   Qualitative edge table from value arrays.
+
+   :param columns: Dictionary from attribute name to an object array of ``m`` values.
+   :param m: Number of edges.
+   :return: Table of categorical columns.
+   """
+   return pd.DataFrame({a: pd.Categorical(v) for a, v in columns.items()}, index = pd.RangeIndex(m))
 
 
 def _membership(v):
@@ -1043,7 +1289,7 @@ def _release_memory():
       pass
 
 
-def _build(s, t, names, ea, edge_attributes, node_table, node_attributes, directed, device, qualitative_table = None, qualitative_attributes = (), node_format = "wide", types = None, labels = None, ml = None):
+def _build(s, t, names, ea, edge_attributes, node_table, node_attributes, directed, device, qualitative_table = None, qualitative_attributes = (), node_format = "wide", types = None, labels = None, ml = None, qualitative_edges = None):
    """
    Network from edges between integer node ids: split into weakly connected components, sorted
    by size, with nodes ordered by component (then by type in bipartite networks, then by layer in
@@ -1052,8 +1298,8 @@ def _build(s, t, names, ea, edge_attributes, node_table, node_attributes, direct
    :param s: Source of each edge, integer ids from 0 to ``len(names) - 1``.
    :param t: Target of each edge.
    :param names: Node ids, by integer id (:class:`numpy.ndarray`).
-   :param ea: Edge attributes, ``m`` by ``k`` float32 :class:`numpy.ndarray`.
-   :param edge_attributes: Edge attribute names.
+   :param ea: Numeric edge attributes, ``m`` by ``k`` float32 :class:`numpy.ndarray`.
+   :param edge_attributes: Numeric edge attribute names.
    :param node_table: Function taking the node order (integer ids in network wide order) and
       returning the numeric node attribute matrix with rows in that order (dense
       :class:`numpy.ndarray` or canonical :class:`scipy.sparse.csr_matrix`), or ``None`` if there
@@ -1070,6 +1316,8 @@ def _build(s, t, names, ea, edge_attributes, node_table, node_attributes, direct
    :param ml: In multilayer networks, ``(layer, entity, layer_labels, entity_ids)``: layer and
       entity (positions in ``layer_labels`` and ``entity_ids``) of each integer id; ``None``
       otherwise.
+   :param qualitative_edges: Qualitative edge table (see :attr:`Network.qualitative_edge_attr`)
+      with one row per edge, in the order of ``s`` and ``t``, or ``None``.
    :return: The :class:`Network`.
    """
    n = len(names)
@@ -1119,7 +1367,8 @@ def _build(s, t, names, ea, edge_attributes, node_table, node_attributes, direct
    node_map = dict(zip(names.tolist(), zip(comp.tolist(), local.tolist())))
    node_ids = np.split(names[perm], np.cumsum(counts)[:-1])
    split = None if types is None else np.bincount(comp[types == 0], minlength = len(counts)).tolist()
-   return Network(components, node_map, node_ids, list(node_attributes), list(edge_attributes), directed, q, list(qualitative_attributes), node_format, labels, split, *((None, None) if ml is None else ml[2:]))
+   qe = None if qualitative_edges is None or not len(qualitative_edges.columns) else _take_edges(qualitative_edges, eperm)   # edges grouped by component
+   return Network(components, node_map, node_ids, list(node_attributes), list(edge_attributes), directed, q, list(qualitative_attributes), node_format, labels, split, *((None, None) if ml is None else ml[2:]), [] if qe is None else list(qe.columns), qe)
 
 
 def _node_table(net, rows):
@@ -1175,7 +1424,7 @@ def _node_types(net):
    return (local >= np.repeat(net.bipartite_split, sizes)).astype(np.int8)
 
 
-def _subset(net, s, t, ea, rows):
+def _subset(net, s, t, ea, rows, qe = None):
    """
    New network with some of the nodes of a network and edges between them, all node attributes,
    node types and layers kept, components recomputed.
@@ -1185,6 +1434,8 @@ def _subset(net, s, t, ea, rows):
    :param t: Target of each edge, as a position in ``rows``.
    :param ea: Edge attributes, ``m`` by ``k`` float32 :class:`numpy.ndarray`.
    :param rows: Positions of the nodes to keep, in the network wide node order.
+   :param qe: Qualitative edge table with one row per edge (see :func:`_take_edges`), or ``None``
+      for none.
    :return: The new :class:`Network`.
    """
    names = np.concatenate(net.node_ids)[rows]
@@ -1192,7 +1443,7 @@ def _subset(net, s, t, ea, rows):
    codes = _node_codes(net)
    ml = None if codes is None else (codes[0][rows], codes[1][rows], net.layer_labels, net.entity_ids)
    device = net.components[0].edge_index.device
-   return _build(s, t, names, ea, net.edge_attributes, lambda perm: _node_table(net, rows[perm]), net.node_attributes, net.directed, device, lambda perm: _qualitative_rows(net, rows[perm]), net.qualitative_node_attributes, net.node_format, None if types is None else types[rows], net.bipartite_labels, ml)
+   return _build(s, t, names, ea, net.edge_attributes, lambda perm: _node_table(net, rows[perm]), net.node_attributes, net.directed, device, lambda perm: _qualitative_rows(net, rows[perm]), net.qualitative_node_attributes, net.node_format, None if types is None else types[rows], net.bipartite_labels, ml, qe)
 
 
 def _bipartite_types(key, val, names, s, t, inter = None, entity = None):
@@ -1418,11 +1669,12 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
          raise ValueError(f"a multilayer network needs a {layer!r} column in the edge table")
       lcol = _column(edges.columns, layer)
       drop.append(lcol)
-   eattr = _numeric(edges.drop(columns = drop)) if edge_attributes else edges[[]]
+   eattr = edges.drop(columns = drop) if edge_attributes else edges[[]]
    inter, iattr = None, None
    if multilayer and interlayer_edges is not None:
       inter = _read(interlayer_edges, sep, hdr, [0, 2])[0]
-      iattr = _numeric(inter.drop(columns = inter.columns[:4])) if edge_attributes else inter[[]]
+      iattr = inter.drop(columns = inter.columns[:4]) if edge_attributes else inter[[]]
+   (eattr, iattr), qcats = _encode_tables(eattr, iattr)   # qualitative edge attributes as codes
    if nodes is not None:
       nodes = _read(nodes, sep, hdr, [0] if node_format == "wide" else [0, 2] if multilayer else [0, 1])[0]
    m = len(edges)
@@ -1444,6 +1696,10 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
          feats, name, v = (nodes.iloc[:, 1:], None, None) if node_format == "wide" else (None, nodes.iloc[:, 1], nodes.iloc[:, 2])
    del edges, eattr, inter, iattr
    n = len(names)
+   enames = list(enames)
+   num = [j for j, a in enumerate(enames) if a not in qcats]
+   qe = _edge_frame({a: _codes_values(ea[:, j], qcats[a]) for j, a in enumerate(enames) if a in qcats}, ea.shape[0])
+   ea, enames = np.ascontiguousarray(ea[:, num]), [enames[j] for j in num]
 
    # node attributes, rows in the order given by _build
    attrs, quals, table, qtable, tkey, tval = [], [], None, None, None, None
@@ -1507,7 +1763,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
             return _categorize(_merge_values(Q.drop_duplicates()))
 
    types, labels = _bipartite_types(tkey, tval, names, s, t, inter_mask, None if ml is None else ml[1]) if bipartite else (None, None)
-   return _build(s, t, names, ea, enames, table, attrs, directed, device, qtable, quals, node_format, types, labels, ml)
+   return _build(s, t, names, ea, enames, table, attrs, directed, device, qtable, quals, node_format, types, labels, ml, qe)
 
 
 def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None):
@@ -1522,8 +1778,12 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
    n - 1. Nodes appearing only in the node table become isolated components. In undirected
    networks every edge is stored in both directions (input edges first, then their reverses, self
    loops once), following the torch_geometric convention. Every component has an ``edge_attr``
-   and a ``node_attr`` tensor, with zero columns when there are no such attributes. Only numeric
-   edge attributes are stored.
+   and a ``node_attr`` tensor, with zero columns when there are no such attributes.
+
+   Edge attributes whose column is numeric (or boolean) are numeric; the others (text, any value
+   that is not a number) are qualitative. Numeric ones are stored in ``edge_attr`` on ``device``,
+   qualitative ones in :attr:`Network.qualitative_edge_attr`, always in CPU memory, as for node
+   attributes.
 
    Node attributes whose values are all numbers (or booleans) are numeric, and are stored in
    ``node_attr`` on ``device``. The others are qualitative, and are stored in

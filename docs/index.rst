@@ -20,8 +20,10 @@ Graphoskop
    equivalence
    exploration
    ergm
+   frequent_subgraphs
    generators
    hierarchy
+   isomorphism
    laplacians
    link_prediction
    multilayer

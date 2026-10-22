@@ -679,7 +679,7 @@ def eigenvector_centrality(net, component = 0, weight = None, direction = "in", 
       s, t = data.edge_index
       if net.directed and direction == "out":
          s, t = t, s
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
       if bool((w < 0).any()):
          raise ValueError("eigenvector centrality: weights must be non negative")
       x = torch.full((n,), n ** -0.5, dtype = torch.float64, device = s.device)
@@ -742,7 +742,7 @@ def pagerank(net, component = 0, weight = None, damping = 0.85, personalization 
    sizes = [net.components[c].num_nodes for c in comps]
    off = np.cumsum([0] + sizes)
    ei = torch.cat([net.components[c].edge_index + int(o) for c, o in zip(comps, off)], 1)
-   w = torch.cat([torch.ones(net.components[c].edge_index.shape[1], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double() for c in comps])
+   w = torch.cat([torch.ones(net.components[c].edge_index.shape[1], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double() for c in comps])
    if bool((w < 0).any()):
       raise ValueError("pagerank: weights must be non negative")
    v = None
@@ -804,7 +804,7 @@ def hits(net, component = 0, weight = None, tol = 1e-10, max_iter = 10000):
       n = data.num_nodes
       s, t = data.edge_index
       dev = s.device
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double()
       if bool((w < 0).any()):
          raise ValueError("hits: weights must be non negative")
       zero = torch.zeros(n, dtype = torch.float64, device = dev)
@@ -918,7 +918,7 @@ def katz_centrality(net, component = 0, weight = None, alpha = 0.1, beta = 1., d
       if net.directed and direction == "out":
          s, t = t, s
       dev = s.device
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double()
       if bool((w < 0).any()):
          raise ValueError("katz centrality: weights must be non negative")
       if isinstance(beta, str):
@@ -1002,7 +1002,7 @@ def alpha_centrality(net, component = 0, weight = None, alpha = 1., exo = 1., di
       s, t = data.edge_index
       if net.directed and direction == "out":
          s, t = t, s
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double()
       if not loops:
          keep = s != t
          s, t, w = s[keep], t[keep], w[keep]
@@ -1093,7 +1093,7 @@ def springrank(net, component = 0, weight = None, alpha = 0., tol = 1e-10, max_i
    off = np.cumsum([0] + sizes)
    n = int(off[-1])
    s, t = torch.cat([net.components[c].edge_index + int(o) for c, o in zip(comps, off)], 1)
-   w = torch.cat([torch.ones(net.components[c].edge_index.shape[1], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double() for c in comps])
+   w = torch.cat([torch.ones(net.components[c].edge_index.shape[1], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double() for c in comps])
    if bool((w < 0).any()):
       raise ValueError("springrank: weights must be non negative")
    keep = s != t

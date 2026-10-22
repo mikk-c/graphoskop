@@ -49,7 +49,7 @@ from scipy.optimize import minimize_scalar
 from scipy.sparse.csgraph import connected_components, dijkstra, minimum_spanning_tree
 from scipy.special import betainc
 
-from .network import _quiet_sparse, _subset
+from .network import _quiet_sparse, _subset, _take_edges
 from .planarity import _lr_planar
 from .shortest_paths import _map
 from .utils import _weights
@@ -1475,7 +1475,8 @@ def _subnetwork(net, s, t, keep, eoffset, keep_isolates, inter = None):
       rows = rows[used]
       new = np.cumsum(used) - 1
       s, t = new[s], new[t]
-   return _subset(net, s, t, ea, rows)
+   qe = _take_edges(net.qualitative_edge_attr, np.flatnonzero(keep)) if net.qualitative_edge_attributes else None
+   return _subset(net, s, t, ea, rows, qe)
 
 
 def spanning_tree(net, weight = "weight", kind = "maximum"):

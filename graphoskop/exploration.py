@@ -181,7 +181,7 @@ def _walk_component(net, c, start, length, weight, direction, metropolis, gen):
    data = net.components[c]
    n, dev = data.num_nodes, data.edge_index.device
    s, t = data.edge_index
-   w = None if weight is None else net.get_edge_attribute(weight, c).double()
+   w = None if weight is None else net._numeric_edge(weight, c).double()
    if w is not None and (torch.isnan(w).any() or (w < 0).any()):
       raise ValueError("random walks: weights must be non negative numbers")
    if net.directed and direction == "in":

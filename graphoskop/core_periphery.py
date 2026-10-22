@@ -83,7 +83,7 @@ def _pairs(net, component, weight):
    for c in comps:
       data = net.components[c]
       s, t = data.edge_index
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
       us.append(s + offset)
       vs.append(t + offset)
       ws.append(w)

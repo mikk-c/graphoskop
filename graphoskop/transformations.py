@@ -23,7 +23,7 @@ import pandas as pd
 import torch
 from torch_geometric.data import Data
 
-from .network import BIPARTITE, LAYER, Network, _load, _release_memory, _to_long, _wide_rows
+from .network import BIPARTITE, LAYER, Network, _distinct, _edge_frame, _load, _release_memory, _take_edges, _to_long, _wide_rows
 from .multilayer import _flat_tables
 from .network_statistics import _strong_labels, connected_components_nodes
 from .signed import SIGN
@@ -33,7 +33,8 @@ def _merge(edges, src, tgt, combine, sign, disagree):
    """
    Merge the edges of a table that join the same two nodes, in either direction.
 
-   :param edges: Edge table: endpoint columns, then numeric attributes.
+   :param edges: Edge table: endpoint columns, then attributes (qualitative ones keep their
+      distinct values, see :func:`~graphoskop.network._distinct`).
    :param src: Columns identifying the first endpoint (e.g. ``["source"]``, or the entity and the
       layer of a copy).
    :param tgt: Columns identifying the second endpoint, matching ``src``.
@@ -56,7 +57,11 @@ def _merge(edges, src, tgt, combine, sign, disagree):
    keys = list(dict.fromkeys(src + tgt))
    attrs = [c for c in edges.columns if c not in keys]
    g = edges.groupby([np.minimum(a, b), np.maximum(a, b)], sort = False)
-   out = g[attrs].sum(min_count = 1) if combine == "sum" else g[attrs].agg(combine)
+   qual = [a for a in attrs if a not in edges[attrs].select_dtypes(["number", "bool"]).columns]
+   num = [a for a in attrs if a not in qual]
+   out = g[num].sum(min_count = 1) if combine == "sum" else g[num].agg(combine)
+   for q in qual:
+      out[q] = g[q].agg(_distinct)
    if sign in attrs:
       x = edges[sign].to_numpy()
       both = pd.DataFrame({"p": x > 0, "n": x < 0}).groupby([np.minimum(a, b), np.maximum(a, b)], sort = False).max()
@@ -66,20 +71,22 @@ def _merge(edges, src, tgt, combine, sign, disagree):
    return pd.concat([ends, out], axis = 1)[edges.columns].reset_index(drop = True)
 
 
-def _with_edges(net, edges):
+def _with_edges(net, edges, qualitative = None):
    """
    Copy of a network with new edges in each component (same nodes, so the same components).
 
    :param net: Network.
    :param edges: One ``(edge_index, edge_attr)`` per component, stored as in the network
       (undirected: input edges, then the reverses of those that are not self loops).
+   :param qualitative: Qualitative edge table of the new input edges, or ``None`` if the input
+      edges are those of ``net``, in the same order (its table is then kept).
    :return: New :class:`~graphoskop.Network`; node tensors are copied.
    """
    comps = []
    for d, (ei, ea) in zip(net.components, edges):
       rest = {k: v.clone() if torch.is_tensor(v) else v for k, v in d if k not in ("edge_index", "edge_attr")}
       comps.append(Data(edge_index = ei, edge_attr = ea, **rest))
-   return Network(comps, dict(net.node_map), list(net.node_ids), list(net.node_attributes), list(net.edge_attributes), net.directed, net.qualitative_node_attr.copy(), list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, None if net.bipartite_split is None else list(net.bipartite_split), net.layer_labels, net.entity_ids)
+   return Network(comps, dict(net.node_map), list(net.node_ids), list(net.node_attributes), list(net.edge_attributes), net.directed, net.qualitative_node_attr.copy(), list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, None if net.bipartite_split is None else list(net.bipartite_split), net.layer_labels, net.entity_ids, net.qualitative_edge_attributes, net.qualitative_edge_attr if qualitative is None else qualitative)
 
 
 def to_undirected(net, combine = "sum", sign = SIGN, disagree = "zero"):
@@ -93,6 +100,9 @@ def to_undirected(net, combine = "sum", sign = SIGN, disagree = "zero"):
    * ``"sum"``: their sum, so that weights give :math:`A + A^T`;
    * ``"mean"``: their mean (an edge in one direction only keeps its value);
    * ``"max"``: their maximum.
+
+   Each qualitative edge attribute keeps the distinct values of the merged edges: the value if they
+   all have the same (missing values aside), a tuple of the distinct values otherwise.
 
    The sign attribute (if the network has one, see :doc:`signed`) is not combined: if all the
    merged edges have the same sign, the edge keeps it; if some are positive and some negative,
@@ -180,7 +190,11 @@ def remove_isolates(net):
    node_ids = [net.node_ids[c] for c in keep]
    node_map = {x: (k, i) for k, ids in enumerate(node_ids) for i, x in enumerate(ids.tolist())}
    split = None if net.bipartite_split is None else [net.bipartite_split[c] for c in keep]
-   return Network([net.components[c].clone() for c in keep], node_map, node_ids, list(net.node_attributes), list(net.edge_attributes), net.directed, Q, list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, split, net.layer_labels, net.entity_ids)
+   QE = None
+   if net.qualitative_edge_attributes:
+      eo = net._edge_offsets()
+      QE = _take_edges(net.qualitative_edge_attr, np.concatenate([np.arange(eo[c], eo[c + 1]) for c in keep] + [np.zeros(0, dtype = np.int64)]))
+   return Network([net.components[c].clone() for c in keep], node_map, node_ids, list(net.node_attributes), list(net.edge_attributes), net.directed, Q, list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, split, net.layer_labels, net.entity_ids, net.qualitative_edge_attributes, QE)
 
 
 def remove_self_loops(net):
@@ -206,11 +220,14 @@ def remove_self_loops(net):
       net = gsk.load_network("replies.tsv", directed = True)   # people replying to themselves
       clean = gsk.remove_isolates(gsk.remove_self_loops(net))
    """
-   edges = []
-   for d in net.components:
+   edges, rows = [], []
+   eo = net._edge_offsets()
+   for c, d in enumerate(net.components):
       keep = d.edge_index[0] != d.edge_index[1]   # undirected: reverse copies are never self loops, so the input edges stay first
       edges.append((d.edge_index[:, keep], d.edge_attr[keep]))
-   return _with_edges(net, edges)
+      rows.append(eo[c] + np.flatnonzero(keep[:eo[c + 1] - eo[c]].cpu().numpy()))
+   QE = _take_edges(net.qualitative_edge_attr, np.concatenate(rows)) if net.qualitative_edge_attributes else None
+   return _with_edges(net, edges, QE)
 
 
 def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
@@ -227,7 +244,8 @@ def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
 
    Each numeric edge attribute of a merged edge combines the values of its edges, ignoring NaN, as
    in :func:`to_undirected`: ``"sum"`` (weights then give the same adjacency matrix and Laplacians),
-   ``"mean"`` or ``"max"``. The sign attribute (see :doc:`signed`) keeps the common sign of the
+   ``"mean"`` or ``"max"``; each qualitative one keeps their distinct values (one value, or a tuple
+   of them). The sign attribute (see :doc:`signed`) keeps the common sign of the
    edges, and ``disagree`` decides when they have both signs: ``"positive"``, ``"negative"`` or
    ``"zero"``. A merged edge keeps the position and orientation of the first of its edges.
 
@@ -258,7 +276,9 @@ def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
       raise ValueError(f"unknown disagree: {disagree}")
    d_sign = {"positive": 1., "negative": -1., "zero": 0.}[disagree]
    j = net.edge_attributes.index(sign) if sign in net.edge_attributes else None
-   edges = []
+   eo = net._edge_offsets()
+   qual = {a: [] for a in net.qualitative_edge_attributes}
+   edges, merged = [], 0
    for c, d in enumerate(net.components):
       ei, X = net._input_edges(c)   # undirected: one copy of each edge
       s, t = ei
@@ -289,12 +309,18 @@ def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
          q = torch.zeros(k, dtype = torch.bool, device = dev).index_put_((g,), v < 0, accumulate = True)
          y[:, j] = torch.where(p & q, d_sign, torch.where(p, 1., torch.where(q, -1., y[:, j])))
       y = y.to(X.dtype)
+      gn = g.cpu().numpy()
+      merged += k
+      for a in qual:   # qualitative: the distinct values of the merged edges
+         v = pd.Series(np.asarray(net.qualitative_edge_attr[a].iloc[eo[c]:eo[c + 1]], dtype = object))
+         qual[a].append(v.groupby(gn, sort = True).agg(_distinct).to_numpy())
       s, t = s[first], t[first]
       if not net.directed:   # stored again in both directions
          loop = s == t
          s, t, y = torch.cat([s, t[~loop]]), torch.cat([t, s[~loop]]), torch.cat([y, y[~loop]])
       edges.append((torch.stack([s, t]), y))
-   return _with_edges(net, edges)
+   QE = _edge_frame({a: np.concatenate(v + [np.zeros(0, dtype = object)]) for a, v in qual.items()}, merged) if qual else None
+   return _with_edges(net, edges, QE)
 
 
 def _tables(net):
@@ -1087,24 +1113,6 @@ def network_intersection(net, other):
    (E1, I1, N1), _, k1, k2 = _edge_sets(net, other)
    seen = np.concatenate(k2)
    return _reload(net, E1[np.isin(k1[0], seen)], None if I1 is None else I1[np.isin(k1[1], seen)], _merge_nodes(net, N1, other, True))
-
-
-def _distinct(values):
-   """
-   Distinct values of a qualitative attribute over the nodes of a set, several values of a node
-   (tuples, lists, sets) included.
-
-   :param values: Iterable of values.
-   :return: NaN if there are none, the value if there is one, otherwise a tuple of them.
-   """
-   out = []
-   for x in values:
-      if isinstance(x, (tuple, list, set, frozenset)):
-         out.extend(x)
-      elif not pd.isna(x):
-         out.append(x)
-   out = list(dict.fromkeys(out))
-   return np.nan if not out else out[0] if len(out) == 1 else tuple(out)
 
 
 def _collapse_nodes(net, N, node_combine):

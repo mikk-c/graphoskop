@@ -459,7 +459,7 @@ def _values(net, comps, strategy, nodes):
       from .epidemics.simple_contagion import _node_values
       return _node_values(net, comps, strategy)
    if isinstance(strategy, str):
-      vec = [net.get_edge_attribute(strategy, c) for c in comps]
+      vec = [net._numeric_edge(strategy, c) for c in comps]
    elif isinstance(strategy, (list, tuple)) and len(strategy) == len(net.components):
       vec = [strategy[c] for c in comps]
    elif isinstance(strategy, (list, tuple)) and len(strategy) and (torch.is_tensor(strategy[0]) or isinstance(strategy[0], np.ndarray)):

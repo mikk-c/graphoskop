@@ -29,6 +29,9 @@ Scores:
   meet soon;
 * :func:`vertex_similarity_lp`: the paths of all lengths between the two nodes, relative to the
   number expected from their degrees;
+* :func:`association_rules_lp`: the association rules between frequent patterns whose added edge
+  would join the two nodes (see :doc:`frequent_subgraphs`); rules that add a new node also predict
+  neighbors that are not in the network yet;
 * models fitted to the network by Markov chain Monte Carlo, which learn any pattern of
   connection, assortative or not: :func:`hierarchical_random_graph_lp`, the edge probability of the
   pair in hierarchical random graphs, and :func:`block_model_reliability_lp`, in stochastic block
@@ -315,7 +318,7 @@ def link_prediction_split(net, fraction = 0.1, negatives = 1, seed = None, sign 
    validation = _pairs(net, np.concatenate([positives, negative]), N, types)
    validation["label"] = np.repeat(np.array([1, 0], dtype = np.int64), [len(positives), len(negative)])
    if sign in net.edge_attributes:   # sign of each hidden pair: of the sum over its stored edges
-      values = np.concatenate([net.get_edge_attribute(sign, c).cpu().numpy() for c in range(len(net.components))])
+      values = np.concatenate([net._numeric_edge(sign, c).cpu().numpy() for c in range(len(net.components))])
       at = np.searchsorted(hidden, keys[drop])
       total = np.bincount(at, np.nan_to_num(values[drop]), minlength = len(hidden))
       signs = np.sign(total[np.searchsorted(hidden, positives)]) if len(hidden) else np.zeros(0)
@@ -453,7 +456,7 @@ def _arcs(net, weight):
    if weight is None:
       w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device)
    else:
-      w = torch.cat([net.get_edge_attribute(weight, c).double() for c in range(len(net.components))])
+      w = torch.cat([net._numeric_edge(weight, c).double() for c in range(len(net.components))])
    ok = s != t
    arcs = _arc_table(N, s[ok], t[ok], w[ok, None])
    if weight is None:   # neighborhoods are sets
@@ -2044,3 +2047,179 @@ def link_prediction_evaluation(validation, score = "score", label = "label", cur
    if curves:
       result["roc_curve"], result["precision_recall_curve"] = _curves(tp, n, p, len(y) - p, points)
    return result
+
+
+def _rule_graph(net, ncode, ecode, node_label, edge_label):
+   """
+   The network in the label codes of a pattern network (see
+   :func:`~graphoskop.frequent_subgraphs._pattern_keys`), as the CSR of oriented entries of
+   :mod:`._mining`; labels missing from the patterns get code -1 and their edges are left out.
+
+   :return: ``(lab, ptr, nbr, el, key, L, ndecode, edecode)``: node label codes, CSR, and the
+      label values of each code (for the output).
+   """
+   from .frequent_subgraphs import _database
+   db = _database(net, node_label, edge_label)
+   clean = lambda v: None if isinstance(v, float) and v != v else v
+   nmap = np.array([ncode.get((clean(v),) if node_label is not None else (), -1) for v in db["nvalues"]], dtype = np.int64)
+   emap = np.array([ecode.get((clean(v),) if edge_label is not None else (), -1) for v in db["evalues"]], dtype = np.int64)
+   lab = nmap[db["lab"]]
+   a, b, l = db["a"], db["b"], emap[db["l"]]
+   ok = l >= 0
+   a, b, l = a[ok], b[ok], l[ok]
+   x, y = np.concatenate([a, b]), np.concatenate([b, a])
+   el = np.concatenate([2 * l, 2 * l + (1 if net.directed else 0)])
+   L = 2 * len(ecode) + 2
+   key = y * L + el
+   o = np.lexsort((key, x))
+   ptr = np.zeros(len(lab) + 1, np.int64)
+   np.cumsum(np.bincount(x, minlength = len(lab)), out = ptr[1:])
+   ndecode = {c: k[0] if k else None for k, c in ncode.items()}
+   edecode = {c: k[0] if k else None for k, c in ecode.items()}
+   return lab, ptr, y[o], el[o], key[o], L, ndecode, edecode
+
+
+def association_rules_lp(net, pairs, patterns, rules, node_label = None, edge_label = None, measure = "confidence", combine = "max", new_nodes = False, name = "score"):
+   """
+   Association rule score of node pairs: the rules of :func:`~graphoskop.graph_association_rules`
+   whose added edge would join the two nodes. A rule ``P -> Q`` applies to a pair ``(u, v)`` if
+   ``Q`` adds an edge between two nodes ``a`` and ``b`` of ``P`` and some occurrence of ``P`` in
+   ``net`` (an embedding with the same labels and directions, not necessarily induced) maps ``a``
+   onto ``u`` and ``b`` onto ``v`` (in directed networks, the added edge goes from ``a`` to ``b``).
+   The score of a pair combines, over the rules that apply, their ``measure`` (``"support"``,
+   ``"confidence"`` or ``"lift"``), with ``combine``: ``"max"`` or ``"sum"``; it is 0 if no rule
+   applies. Every rule counts once per pair, however many occurrences of its antecedent map onto
+   the pair. The edge label of the added edge does not matter: the pairs of a validation set are
+   not labeled.
+
+   Rules whose added edge brings a new node, joined to a node ``a`` of ``P``, predict instead that
+   the image of ``a`` gains a neighbor that is not in the network yet, with the label of the new
+   node: no other link prediction score can, but these predictions cannot be tested on a
+   validation set. With ``new_nodes = True`` they are returned too, as a second table: every node
+   onto which an occurrence of the antecedent maps ``a``, with the label of the new node, the
+   label of the new edge and, in directed networks, its direction, scored as the pairs are.
+
+   Rules and patterns come from mining a network labeled as ``net`` (the training network, when
+   testing): ``node_label`` and ``edge_label`` must name the attributes used for mining. Mining
+   the training network itself keeps the hidden edges out of the rules. Antecedents are found
+   with the compiled search of :func:`~graphoskop.single_graph_mining`, all the pairs of a rule
+   in parallel.
+
+   :param net: A :class:`~graphoskop.Network`, not multilayer.
+   :param pairs: A pair ``(u, v)`` of node ids, an iterable of pairs, or a
+      :class:`pandas.DataFrame` with the endpoints in its first two columns (e.g. the validation
+      set).
+   :param patterns: Pattern network of the mining.
+   :param rules: Rules of :func:`~graphoskop.graph_association_rules` (any subset of the rows).
+   :param node_label: Name of the node attribute used as node label in the mining, or ``None``.
+   :param edge_label: Name of the edge attribute used as edge label in the mining, or ``None``.
+   :param measure: ``"support"``, ``"confidence"`` or ``"lift"``.
+   :param combine: ``"max"`` or ``"sum"``.
+   :param new_nodes: Whether to also return the predictions of new neighbors.
+   :param name: Name of the score column.
+   :return: The scores, as the other scores (a float for one pair, otherwise a
+      :class:`pandas.DataFrame`); with ``new_nodes``, ``(scores, new)``, ``new`` a
+      :class:`pandas.DataFrame` with columns ``source`` (node id), ``label`` (of the new node, if
+      ``node_label``), ``edge_label`` (if ``edge_label``), ``direction`` (directed networks:
+      ``"out"`` if the new edge leaves the node, ``"in"`` otherwise) and ``name``.
+   :raises ValueError: If the network is multilayer, or ``measure`` or ``combine`` is not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      train, validation = gsk.link_prediction_split(net, seed = 1)
+      patterns, support = gsk.single_graph_mining(train, 50, node_label = "city", max_edges = 4)
+      rules = gsk.graph_association_rules(train, patterns, support, transactional = False)
+      validation = gsk.association_rules_lp(train, validation, patterns, rules, node_label = "city")
+      gsk.link_prediction_evaluation(validation)
+      validation, new = gsk.association_rules_lp(train, validation, patterns, rules, node_label = "city", new_nodes = True)
+      new.sort_values("score", ascending = False).head()   # who will get a new neighbor, of which city
+   """
+   from . import _mining as _k
+   from .frequent_subgraphs import _one_edge_less, _pattern_keys
+   _check(net)
+   if measure not in ("support", "confidence", "lift"):
+      raise ValueError(f"unknown measure: {measure}")
+   if combine not in ("max", "sum"):
+      raise ValueError(f"unknown combine: {combine}")
+   s, t = _endpoints(pairs)
+   us, vs = _positions(net, s), _positions(net, t)
+   score = np.zeros(len(us))
+   keys, structures, directed, ncode, ecode = _pattern_keys(patterns)
+   lab, ptr, nbr, el, key, L, ndecode, edecode = _rule_graph(net, ncode, ecode, node_label, edge_label)
+   chunks = 4 * numba.get_num_threads()
+   new = {}
+   names = np.concatenate(net.node_ids)
+   merge = np.maximum if combine == "max" else np.add
+   for p, q, value in zip(rules["antecedent"].tolist(), rules["consequent"].tolist(), rules[measure].tolist()):
+      qlab, qedges = structures[q]
+      variants = []   # every edge of Q whose removal leaves P: the added edge, in all its positions
+      for ants, e, keep, sub in _one_edge_less(qlab, qedges, directed):
+         a, b, _ = qedges[e]
+         if keep is None:   # one edge: the antecedent is a single node, either endpoint if both fit
+            variants += [(e, [v], []) for v in (a, b) if keys[p] == ("node", qlab[v])][:2 if directed else 1]
+         elif keys[p] in ants:
+            variants.append((e, keep, sub))
+      hits, born = np.zeros(len(us), bool), set()
+      for e, keep, sub in variants:
+         a, b, ecl = qedges[e]
+         at = {v: i for i, v in enumerate(keep)}
+         plab = [qlab[v] for v in keep]
+         k = len(plab)
+         src, dst, pe = [], [], []
+         for x, y, z in sub:
+            src += [x, y]
+            dst += [y, x]
+            pe += [z, z ^ 1 if directed else z]
+         o = np.argsort(np.array(src, np.int64), kind = "stable")
+         pptr = np.zeros(k + 1, np.int64)
+         np.cumsum(np.bincount(np.array(src, np.int64), minlength = k), out = pptr[1:])
+         pnbr, pel = np.array(dst, np.int64)[o], np.array(pe, np.int64)[o]
+         D = np.stack([lab == c for c in plab])
+         if k > 1:
+            _k._arc_consistency(D, pptr, pnbr, pel, ptr, nbr, el)
+         root = at[a] if a in at else at[b]
+         order, par, pare = [root], [-1], [-1]
+         for w in order:
+            for f in range(pptr[w], pptr[w + 1]):
+               if pnbr[f] not in order:
+                  order += [int(pnbr[f])]
+                  par += [int(w)]
+                  pare += [int(pel[f])]
+         order, par, pare = np.array(order, np.int64), np.array(par, np.int64), np.array(pare, np.int64)
+         if a in at and b in at:   # the added edge joins two nodes of the antecedent: pairs
+            fix = at[b]
+            hit = _k._pair_embeds(us, vs, fix, order, par, pare, pptr, pnbr, pel, D, ptr, nbr, el, key, L, chunks)
+            if not directed:
+               hit |= _k._pair_embeds(vs, us, fix, order, par, pare, pptr, pnbr, pel, D, ptr, nbr, el, key, L, chunks)
+            hits |= hit
+         elif new_nodes:   # a new node: the images of the node it joins
+            V = np.zeros_like(D)
+            cand = np.flatnonzero(D[root])
+            if k == 1:
+               V[root] = D[root]
+            elif len(cand):
+               _k._resolve(cand, order, par, pare, pptr, pnbr, pel, D, V, ptr, nbr, el, key, L, min(chunks, len(cand)))
+            out = (a in at) == (ecl % 2 == 0) if directed else True   # the edge leaves the node
+            tag = (qlab[b] if a in at else qlab[a], ecl // 2, "out" if out else "in")
+            born.update((x,) + tag for x in np.flatnonzero(V[root]).tolist())
+      score[hits] = merge(score[hits], value)   # a rule counts once per pair
+      for r in born:
+         new[r] = merge(new.get(r, 0.), value)
+   scored = _scored(pairs, score, name)
+   if not new_nodes:
+      return scored
+   rows = list(new.items())
+   table = pd.DataFrame({"source": [names[r[0][0]] for r in rows]})
+   if node_label is not None:
+      table["label"] = [ndecode[r[0][1]] for r in rows]
+   if edge_label is not None:
+      table["edge_label"] = [edecode[r[0][2]] for r in rows]
+   if directed:
+      table["direction"] = [r[0][3] for r in rows]
+   table[name] = [r[1] for r in rows]
+   return scored, table

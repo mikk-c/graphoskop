@@ -155,7 +155,7 @@ def _degrees(net, component, direction, weight = None):
       raise ValueError(f"unknown direction: {direction}")
    data = net.components[component]
    s, t = data.edge_index
-   w = None if weight is None else net.get_edge_attribute(weight, component).double()
+   w = None if weight is None else net._numeric_edge(weight, component).double()
    if net.layer_labels is not None:
       intra = ~net.interlayer_mask(component)
       s, t, w = s[intra], t[intra], None if w is None else w[intra]
@@ -1218,7 +1218,7 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
    for k, c in enumerate(comps):
       data = net.components[c]
       s, t = data.edge_index
-      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+      w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
       if attribute is None:
          if direction[0] not in ("out", "in", "total") or direction[1] not in ("out", "in", "total"):
             raise ValueError(f"unknown direction: {direction}")

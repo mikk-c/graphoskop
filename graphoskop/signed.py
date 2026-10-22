@@ -142,7 +142,7 @@ def _signed_edges(net, component, sign):
       raise ValueError("the network is multilayer: build a signed network first (signed_network)")
    data = net.components[component]
    s, t = data.edge_index
-   v = torch.sign(net.get_edge_attribute(sign, component)).nan_to_num(0)
+   v = torch.sign(net._numeric_edge(sign, component)).nan_to_num(0)
    keep = v != 0
    n = data.num_nodes
    key, inv = torch.unique(s[keep] * n + t[keep], return_inverse = True)

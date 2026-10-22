@@ -54,7 +54,7 @@ def _weights(net, component, weight):
    data = net.components[component]
    if weight is None:
       return torch.ones(data.edge_index.shape[1], dtype = data.edge_attr.dtype, device = data.edge_index.device)
-   return net.get_edge_attribute(weight, component)
+   return net._numeric_edge(weight, component)
 
 
 def _walk(ei, w, n, alpha, tol, max_iter, v = None):

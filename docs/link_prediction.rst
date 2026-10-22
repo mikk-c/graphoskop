@@ -186,6 +186,23 @@ Between seeds, the scores of the Markov chain models vary by a few hundredths.
 Scores
 ------
 
+Association rules
+~~~~~~~~~~~~~~~~~
+
+Frequent patterns that differ by one edge give association rules
+(:func:`~graphoskop.graph_association_rules`): a pair is scored by the rules whose antecedent
+occurs around it and whose added edge would join it, so the score learns any labeled local
+structure that precedes an edge (feed-forward triads between roles, for instance), not only
+triangles. Rules whose added edge brings a new node predict new neighbors that are not in the
+network yet. In a directed network of 20,000 nodes with three roles (hubs, brokers and leaves
+following a broker and two of its hubs, plus random edges), mining the training network
+(:func:`~graphoskop.single_graph_mining`, MNI threshold 500, up to 3 edges: 206 patterns, 2.1 s)
+gives 407 rules, which score the 14,774 validation pairs in 1 s with AUC 0.79, against 0.63 for
+common neighbors and 0.76 for preferential attachment; predicting the new neighbors of all the
+nodes too takes 5 s.
+
+.. autofunction:: graphoskop.association_rules_lp
+
 Common neighbors
 ~~~~~~~~~~~~~~~~
 

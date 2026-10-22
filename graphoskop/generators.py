@@ -47,7 +47,7 @@ import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import connected_components
 
-from .network import BIPARTITE, _build, _explode, _membership, _memberships, _node_codes, _node_types, _subset
+from .network import BIPARTITE, _build, _explode, _membership, _memberships, _node_codes, _node_types, _subset, _take_edges
 
 
 # ------------------------------------------------------------------------------------------------
@@ -315,7 +315,8 @@ def _randomize(net, seed, make):
    for start, values in given:
       for name, v in values.items():
          ea[start:start + v.shape[0], net.edge_attributes.index(name)] = v.to(ea.dtype)
-   return _subset(net, s.cpu().numpy(), t.cpu().numpy(), ea.cpu().numpy().astype(np.float32), np.arange(N))
+   qe = _take_edges(net.qualitative_edge_attr, rows.cpu().numpy()) if net.qualitative_edge_attributes else None   # -1: new edge, missing values
+   return _subset(net, s.cpu().numpy(), t.cpu().numpy(), ea.cpu().numpy().astype(np.float32), np.arange(N), qe)
 
 
 # ------------------------------------------------------------------------------------------------

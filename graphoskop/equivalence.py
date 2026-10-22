@@ -35,7 +35,7 @@ def _neighbor_entries(net, comps, mode, weight):
    a, b, w = [], [], []
    for c, o in zip(comps, offset):
       s, t = net.components[c].edge_index
-      x = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+      x = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
       sides = [(s, t, 0)] if not net.directed or mode == "out" else [(t, s, 0)] if mode == "in" else [(s, t, 0), (t, s, 1)]
       for p, q, tag in sides:
          a.append(p + int(o))
@@ -500,7 +500,7 @@ def _undirected(net, c, weight):
    data = net.components[c]
    n = data.num_nodes
    s, t = data.edge_index
-   w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net.get_edge_attribute(weight, c).double()
+   w = torch.ones(s.shape[0], dtype = torch.float64, device = s.device) if weight is None else net._numeric_edge(weight, c).double()
    if bool((w < 0).any()):
       raise ValueError("regular equivalence: weights must be non negative")
    if net.directed:
@@ -663,7 +663,7 @@ def _rege(net, comps, weight, iterations, tol, batch_size):
       s, t = net.components[c].edge_index
       a.append(s + int(o))
       b.append(t + int(o))
-      w.append(torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net.get_edge_attribute(weight, c).double())
+      w.append(torch.ones(s.shape[0], dtype = torch.float64, device = dev) if weight is None else net._numeric_edge(weight, c).double())
    a, b, w = torch.cat(a), torch.cat(b), torch.cat(w)
    if bool((w < 0).any()):
       raise ValueError("regular equivalence: weights must be non negative")

@@ -20,7 +20,7 @@ layers flattened into one network of entities.
 import numpy as np
 import pandas as pd
 
-from .network import LAYER, _load, _release_memory
+from .network import LAYER, _distinct, _load, _release_memory
 
 
 def _tables(net):
@@ -113,7 +113,8 @@ def aggregate_network(net, merge = True):
    entities (except in bipartite networks, where they would join two nodes of the same type, and
    are left out). With ``merge = True`` the edges between the same two entities (in the same
    direction, if directed), from any layer, are merged into one edge whose numeric attributes are
-   the sums of theirs (NaN only if all are NaN): the weight of an edge is then its total weight
+   the sums of theirs (NaN only if all are NaN) and whose qualitative attributes keep their
+   distinct values (one value, or a tuple of them): the weight of an edge is then its total weight
    over the layers, and the degree of an entity its number of distinct neighbors. With
    ``merge = False`` they stay as parallel edges, which give the same Laplacians.
 
@@ -146,7 +147,14 @@ def aggregate_network(net, merge = True):
       a, b = codes[:len(edges)], codes[len(edges):]
       if not net.directed:
          a, b = np.minimum(a, b), np.maximum(a, b)
-      merged = edges.drop(columns = ["source", "target"]).groupby([a, b], sort = False).sum(min_count = 1)
+      attrs = edges.drop(columns = ["source", "target"])
+      g = attrs.groupby([a, b], sort = False)
+      num = list(attrs.select_dtypes(["number", "bool"]).columns)
+      merged = g[num].sum(min_count = 1)
+      for c in attrs.columns:   # qualitative attributes: their distinct values
+         if c not in num:
+            merged[c] = g[c].agg(_distinct)
+      merged = merged[list(attrs.columns)]
       ids = np.asarray(ids)
       merged.insert(0, "target", ids[merged.index.get_level_values(1)])
       merged.insert(0, "source", ids[merged.index.get_level_values(0)])

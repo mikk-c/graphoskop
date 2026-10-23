@@ -57,6 +57,7 @@ from numba import njit, prange
 from scipy.stats import t as student
 
 from .ergms import _random
+from .progress import _bar
 
 
 @njit(cache = True)
@@ -256,7 +257,7 @@ def _reverse_of(ei, m):
    return np.flatnonzero(ei[0, :m] != ei[1, :m])
 
 
-def _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src, dst, recompute = False):
+def _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src, dst, recompute = False, progress = None, name = ""):
    """
    Removal orders of the nodes or edges of a strategy (see the module description).
 
@@ -275,6 +276,8 @@ def _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src
    :param dst: Target of every edge.
    :param recompute: With a function, ``True`` or a number of removals after which it is computed
       again on the remaining network; ``False`` to compute it once.
+   :param progress: Progress bar setting of adaptive attacks (see :mod:`~graphoskop.progress`).
+   :param name: Name shown by the bar.
    :return: Orders, one row per run (one row for deterministic strategies).
    :raises ValueError: If the strategy is not valid for the items, or ``recompute`` is asked
       without a function.
@@ -287,7 +290,7 @@ def _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src
       step = 1 if recompute is True else int(recompute)
       if step < 1:
          raise ValueError(f"recompute must be True or a positive number of removals, got {recompute}")
-      return _adaptive(net, comps, off, nodes, strategy, selection, runs if selection == "weighted" else 1, step, rs, src)
+      return _adaptive(net, comps, off, nodes, strategy, selection, runs if selection == "weighted" else 1, step, rs, src, progress, name + ": attack")
    if callable(strategy):
       strategy = strategy(net)
    if isinstance(strategy, str) and strategy == "random":
@@ -308,7 +311,7 @@ def _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src
 _POSITION = "__graphoskop_position"
 
 
-def _adaptive(net, comps, off, nodes, f, selection, runs, step, rs, src):
+def _adaptive(net, comps, off, nodes, f, selection, runs, step, rs, src, progress = None, name = ""):
    """
    Removal orders of an adaptive attack: the measure ``f`` is computed on the remaining network,
    the ``step`` items with the largest values (or drawn proportionally to them) are removed, and
@@ -318,6 +321,9 @@ def _adaptive(net, comps, off, nodes, f, selection, runs, step, rs, src):
       component 0, a list of vectors, one per component, or a dictionary or
       :class:`pandas.Series` by node id) or edge values (a vector for component 0, or a list of
       them, with one value per edge or per stored edge).
+   :param progress: Progress bar setting (see :mod:`~graphoskop.progress`), over the items
+      measured (each computation counts the remaining items).
+   :param name: Name shown by the bar.
    :return: Orders, one row per run.
    """
    from .transformations import _restrict, _with_edges, subgraph
@@ -341,24 +347,27 @@ def _adaptive(net, comps, off, nodes, f, selection, runs, step, rs, src):
       work = _with_edges(net, cols)
       work.edge_attributes.append(_POSITION)
    out = np.empty((runs, total), dtype = np.int64)
-   for r in range(runs):
-      alive = np.ones(total, dtype = np.bool_)
-      done = 0
-      while done < total:
-         if nodes:
-            sub = subgraph(net, ids[alive].tolist())
-         else:
-            keep = []
-            for c, d in enumerate(work.components):
-               p = work.get_edge_attribute(_POSITION, c).cpu().numpy().round().astype(np.int64)
-               keep.append((p >= 0) & alive[np.maximum(p, 0)])
-            sub = _restrict(work, [np.ones(d.num_nodes, dtype = np.bool_) for d in work.components], keep)
-         x = _mapped(sub, f(sub), nodes, pos_of, total)
-         cand = np.flatnonzero(alive)
-         take = cand[_measure_order(x[cand], selection, 1, rs)[0][:step]]
-         out[r, done:done + take.shape[0]] = take
-         alive[take] = False
-         done += take.shape[0]
+   units = runs * int((total - step * np.arange(-(-total // step))).sum())   # items measured
+   with _bar(units, name, progress) as bar:
+      for r in range(runs):
+         alive = np.ones(total, dtype = np.bool_)
+         done = 0
+         while done < total:
+            if nodes:
+               sub = subgraph(net, ids[alive].tolist())
+            else:
+               keep = []
+               for c, d in enumerate(work.components):
+                  p = work.get_edge_attribute(_POSITION, c).cpu().numpy().round().astype(np.int64)
+                  keep.append((p >= 0) & alive[np.maximum(p, 0)])
+               sub = _restrict(work, [np.ones(d.num_nodes, dtype = np.bool_) for d in work.components], keep)
+            x = _mapped(sub, f(sub), nodes, pos_of, total)
+            cand = np.flatnonzero(alive)
+            take = cand[_measure_order(x[cand], selection, 1, rs)[0][:step]]
+            out[r, done:done + take.shape[0]] = take
+            alive[take] = False
+            done += take.shape[0]
+            bar.update(int(cand.shape[0]))
    return out
 
 
@@ -388,7 +397,7 @@ def _mapped(sub, v, nodes, pos_of, total):
    return x
 
 
-def _curves(net, nodes, strategy, selection, quality, runs, points, component, samples, seed, recompute = False):
+def _curves(net, nodes, strategy, selection, quality, runs, points, component, samples, seed, recompute = False, progress = None, name = ""):
    """
    Body of :func:`node_removal` and :func:`edge_removal`.
    """
@@ -400,7 +409,7 @@ def _curves(net, nodes, strategy, selection, quality, runs, points, component, s
    total = n if nodes else src.shape[0]
    rs = np.random.default_rng(seed)
 
-   orders = _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src, dst, recompute)
+   orders = _orders(net, comps, off, nodes, strategy, selection, runs, rs, ptr, nbr, src, dst, recompute, progress, name)
    orders = np.ascontiguousarray(orders, dtype = np.int64)
    k = orders.shape[1]
 
@@ -412,14 +421,18 @@ def _curves(net, nodes, strategy, selection, quality, runs, points, component, s
       q = sizes[:, at] / n
    else:
       q = np.zeros((orders.shape[0], at.shape[0]))
-      for r in range(orders.shape[0]):
-         for j, i in enumerate(at):
-            node_ok, edge_ok = np.ones(n, dtype = np.bool_), np.ones(src.shape[0], dtype = np.bool_)
-            (node_ok if nodes else edge_ok)[orders[r, :i]] = False
-            alive = np.flatnonzero(node_ok)
-            srcs = alive if samples is None or samples >= alive.shape[0] else np.sort(rs.choice(alive, samples, replace = False))
-            tot, cnt = _path_sums(ptr, nbr, eid, node_ok, edge_ok, srcs) if srcs.shape[0] else (0., 0.)
-            q[r, j] = tot / cnt if cnt > 0 else np.nan
+      left = total - at   # items left at each point; cost of a point: sources times items left
+      cost = (np.minimum(n - at if nodes else n, n if samples is None else samples) + 1) * (left + 1)
+      with _bar(orders.shape[0] * int(cost.sum()), name + ": path lengths", progress) as bar:
+         for r in range(orders.shape[0]):
+            for j, i in enumerate(at):
+               node_ok, edge_ok = np.ones(n, dtype = np.bool_), np.ones(src.shape[0], dtype = np.bool_)
+               (node_ok if nodes else edge_ok)[orders[r, :i]] = False
+               alive = np.flatnonzero(node_ok)
+               srcs = alive if samples is None or samples >= alive.shape[0] else np.sort(rs.choice(alive, samples, replace = False))
+               tot, cnt = _path_sums(ptr, nbr, eid, node_ok, edge_ok, srcs) if srcs.shape[0] else (0., 0.)
+               q[r, j] = tot / cnt if cnt > 0 else np.nan
+               bar.update(int(cost[j]))
    name = quality
    mean = np.nanmean(q, 0) if quality == "apl" else q.mean(0)
    R = q.shape[0]
@@ -517,7 +530,7 @@ def _ids(net, comps, off, strategy, nodes, src, dst):
    return np.asarray(list(dict.fromkeys(order)), dtype = np.int64)
 
 
-def node_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False):
+def node_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False, progress = None):
    """
    Robustness of a network to node failures or attacks: remove its nodes one by one, with their
    edges, and record the quality of the network after each removal (see the module description).
@@ -542,6 +555,8 @@ def node_removal(net, strategy = "random", selection = "top", quality = "lcc", r
    :param recompute: With a measure given as a function of the network, ``True`` to compute it
       again on the remaining network after every removal (adaptive attack), a number of removals
       between computations, or ``False`` to compute it once.
+   :param progress: Whether to show progress bars over the adaptive attack and the path
+      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by the number of removed nodes (``removed``), with
       columns ``fraction`` (of the nodes removed), the mean quality (``lcc`` or ``apl``) and its
       confidence interval (``lcc_low``, ``lcc_high``, ...; NaN with a single run).
@@ -567,10 +582,10 @@ def node_removal(net, strategy = "random", selection = "top", quality = "lcc", r
       adaptive = gsk.node_removal(net, strategy = degree, recompute = True)   # largest current degree first
       faster = gsk.node_removal(net, strategy = degree, recompute = 100)      # recomputed every 100 removals
    """
-   return _curves(net, True, strategy, selection, quality, runs, points, component, samples, seed, recompute)
+   return _curves(net, True, strategy, selection, quality, runs, points, component, samples, seed, recompute, progress, "node_removal")
 
 
-def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False):
+def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False, progress = None):
    """
    Robustness of a network to edge failures or attacks: remove its edges one by one (all nodes
    stay), and record the quality of the network after each removal (see the module description).
@@ -597,6 +612,8 @@ def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", r
    :param recompute: With a measure given as a function of the network, ``True`` to compute it
       again on the remaining network after every removal (adaptive attack), a number of removals
       between computations, or ``False`` to compute it once.
+   :param progress: Whether to show progress bars over the adaptive attack and the path
+      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by the number of removed edges (``removed``), with
       columns ``fraction`` (of the edges removed), the mean quality (``lcc`` or ``apl``) and its
       confidence interval (NaN with a single run).
@@ -615,7 +632,7 @@ def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", r
       attack = gsk.edge_removal(net, strategy = eb, component = 0)          # highest betweenness first
       cut = gsk.edge_removal(net, strategy = [("alice", "bob"), ("bob", "carol")])
    """
-   return _curves(net, False, strategy, selection, quality, runs, points, component, samples, seed, recompute)
+   return _curves(net, False, strategy, selection, quality, runs, points, component, samples, seed, recompute, progress, "edge_removal")
 
 
 @njit(cache = True)
@@ -762,7 +779,7 @@ def _load_values(net, comps, x, nodes, total, runs, rs, name):
    return np.repeat(v[None], runs, 0)
 
 
-def cascade_failures(net, load = "random", capacity = "random", failures = 1, strategy = "random", selection = "top", elements = "nodes", distribution = "equal", margin = 0.5, quality = "lcc", runs = 10, max_steps = 1000, component = None, samples = None, seed = None, interdependent = True):
+def cascade_failures(net, load = "random", capacity = "random", failures = 1, strategy = "random", selection = "top", elements = "nodes", distribution = "equal", margin = 0.5, quality = "lcc", runs = 10, max_steps = 1000, component = None, samples = None, seed = None, interdependent = True, progress = None):
    """
    Cascading failures with load redistribution, as in the overload models of power grids and
    fiber bundles (Motter and Lai, 2002): every node (or edge) carries a load and has a capacity;
@@ -823,6 +840,8 @@ def cascade_failures(net, load = "random", capacity = "random", failures = 1, st
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param interdependent: In multilayer networks with node items, whether all the copies of an
       entity fail together.
+   :param progress: Whether to show a progress bar over the path lengths (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step (0: the initial failures), with columns
       ``failed`` (mean fraction of the items failed so far), the mean quality (``lcc`` or ``apl``)
       and their confidence intervals (``failed_low``, ``failed_high``, ``lcc_low``, ...; NaN with a
@@ -909,14 +928,17 @@ def cascade_failures(net, load = "random", capacity = "random", failures = 1, st
       q = np.take_along_axis(sizes, failed, 1) / n
    else:
       q = np.zeros((runs, T + 1))
-      for r in range(runs):
-         for t in steps:
-            node_ok, edge_ok = np.ones(n, dtype = np.bool_), np.ones(src.shape[0], dtype = np.bool_)
-            (node_ok if nodes else edge_ok)[order[r, :failed[r, t]]] = False
-            alive = np.flatnonzero(node_ok)
-            srcs = alive if samples is None or samples >= alive.shape[0] else np.sort(rs.choice(alive, samples, replace = False))
-            tot, cnt = _path_sums(ptr, nbr, eid, node_ok, edge_ok, srcs) if srcs.shape[0] else (0., 0.)
-            q[r, t] = tot / cnt if cnt > 0 else np.nan
+      cost = (np.minimum(n - failed if nodes else n, n if samples is None else samples) + 1) * (total - failed + 1)   # sources times items left
+      with _bar(int(cost.sum()), "cascade_failures: path lengths", progress) as bar:
+         for r in range(runs):
+            for t in steps:
+               node_ok, edge_ok = np.ones(n, dtype = np.bool_), np.ones(src.shape[0], dtype = np.bool_)
+               (node_ok if nodes else edge_ok)[order[r, :failed[r, t]]] = False
+               alive = np.flatnonzero(node_ok)
+               srcs = alive if samples is None or samples >= alive.shape[0] else np.sort(rs.choice(alive, samples, replace = False))
+               tot, cnt = _path_sums(ptr, nbr, eid, node_ok, edge_ok, srcs) if srcs.shape[0] else (0., 0.)
+               q[r, t] = tot / cnt if cnt > 0 else np.nan
+               bar.update(int(cost[r, t]))
    cols = {}
    for name, x in (("failed", failed / total), (quality, q)):
       mean = np.nanmean(x, 0)

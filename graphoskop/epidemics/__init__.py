@@ -6,8 +6,9 @@ Nodes are in compartments (states), and move between them by contagion from thei
 spontaneously. In simple contagion (:mod:`graphoskop.epidemics.simple_contagion`), one infected
 neighbor is enough to infect a node: SI, SIS and SIR models. In complex contagion
 (:mod:`graphoskop.epidemics.complex_contagion`), the number of infected neighbors matters: one
-chance of infection per infected neighbor, or a threshold on their count or share.
+chance of infection per infected neighbor, or a threshold on their count or share (which, in the
+non progressive model, also makes infected nodes susceptible again when they fall below it).
 """
 
 from .simple_contagion import si_model, sis_model, sir_model
-from .complex_contagion import complex_si_model, complex_sis_model, complex_sir_model
+from .complex_contagion import complex_si_model, complex_sis_model, complex_sir_model, complex_nonprogressive_model

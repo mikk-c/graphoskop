@@ -22,6 +22,7 @@ Graphoskop
    ergm
    frequent_subgraphs
    generators
+   gnn
    hierarchy
    isomorphism
    laplacians
@@ -29,6 +30,7 @@ Graphoskop
    multilayer
    error_correction
    node_vector_analysis
+   progress
    robustness
    shortest_paths
    signed

@@ -15,7 +15,7 @@ Networks and their attributes
 .. autofunction:: graphoskop.load_pickled_network
 
 .. autoclass:: graphoskop.Network
-   :members: get_node_attribute, set_node_attribute, get_edge_attribute, set_edge_attribute, edges, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
+   :members: get_node_attribute, set_node_attribute, remove_node_attribute, get_edge_attribute, set_edge_attribute, remove_edge_attribute, edges, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
 
 .. autodata:: graphoskop.BIPARTITE
    :annotation: = "bipartite_type"
@@ -28,10 +28,10 @@ network, and are what Laplacian solvers and node vector analysis work on. Qualit
 attributes (strings, categories) cannot be used by these computations, so they never take GPU
 memory: they are kept once for the whole network in ``Network.qualitative_node_attr``, a
 :class:`pandas.DataFrame` of categorical columns in CPU memory, with rows in the network wide node
-order (component by component). Both kinds are read and written by name with
-:meth:`~graphoskop.Network.get_node_attribute` and :meth:`~graphoskop.Network.set_node_attribute`,
-which also sets several attributes at once from a table matched by node id, and
-are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning_tree`.
+order (component by component). Both kinds are read, written and removed by name with
+:meth:`~graphoskop.Network.get_node_attribute`, :meth:`~graphoskop.Network.set_node_attribute`
+(which also sets several attributes at once from a table matched by node id) and
+:meth:`~graphoskop.Network.remove_node_attribute`, and are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning_tree`.
 
 .. code-block:: python
 
@@ -42,13 +42,15 @@ are kept by :func:`~graphoskop.extract_backbone` and :func:`~graphoskop.spanning
    net.qualitative_node_attributes   # ["city"]: in CPU memory
    net.get_node_attribute("city")    # NumPy object array over the nodes of component 0
    net.set_node_attribute(table, node_column = "name")   # one attribute per other column
+   net.remove_node_attribute("height")                      # numeric or qualitative
 
 Numeric and qualitative edge attributes
 ---------------------------------------
 
 Edge attributes are numeric (numbers, booleans) or qualitative (text, any other value), decided
 column by column when loading and by the values given to
-:meth:`~graphoskop.Network.set_edge_attribute`, and are stored as node attributes are. Numeric
+:meth:`~graphoskop.Network.set_edge_attribute`, and are stored as node attributes are (and removed
+by name with :meth:`~graphoskop.Network.remove_edge_attribute`). Numeric
 edge attributes live in the ``edge_attr`` tensor of each component, on the device of the network
 (``Network.edge_attributes``). Qualitative ones never take GPU memory: they are kept once for the
 whole network in ``Network.qualitative_edge_attr``, a :class:`pandas.DataFrame` of categorical
@@ -72,6 +74,7 @@ distinct values otherwise. Qualitative edge attributes can be compared by
    net.get_edge_attribute("kind")                      # NumPy object array, on the CPU
    net.get_edge_attribute("kind", edge = ("alice", "bob"))   # e.g. "friend"
    net.set_edge_attribute("tie", ["strong"] * net.components[0].edge_index.shape[1])
+   net.remove_edge_attribute("kind")                   # numeric or qualitative
 
 .. _overlapping-communities:
 

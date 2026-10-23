@@ -64,6 +64,7 @@ from scipy.special import gammaln
 
 from .generators import _choose, _swap_edges
 from .network import _quiet_sparse
+from .progress import _bar
 
 _EXACT_SWAPS = 64   # up to this many nodes, all swaps are tried, with exact gains
 
@@ -665,7 +666,7 @@ def _null(r, c, R, C, model, gen):
    return a, b - R
 
 
-def nestedness(net, null_model = None, samples = 100, seed = None):
+def nestedness(net, null_model = None, samples = 100, seed = None, progress = None):
    """
    NODF nestedness of a bipartite network, optionally compared with a null model (see the module
    description).
@@ -675,6 +676,8 @@ def nestedness(net, null_model = None, samples = 100, seed = None):
       comparison.
    :param samples: Number of random matrices of the null model.
    :param seed: Seed of the random matrices, or ``None`` for a random seed.
+   :param progress: Whether to show a progress bar over the random matrices (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: A dictionary with ``nodf`` (between 0 and 100), ``nodf_rows`` and ``nodf_columns`` (the
       averages over pairs of rows, nodes of type 0, and over pairs of columns, nodes of type 1;
       NaN with fewer than two of them); with a null model also ``null_mean``, ``null_std``,
@@ -706,9 +709,13 @@ def nestedness(net, null_model = None, samples = 100, seed = None):
       return out
    gen = torch.Generator(device = r.device)
    gen.manual_seed(int(np.random.default_rng(seed).integers(2 ** 62)))
-   parts = [_null(r, c, R, C, null_model, gen) for _ in range(samples)]
-   groups = torch.cat([torch.full((len(a),), i, dtype = torch.long, device = r.device) for i, (a, _) in enumerate(parts)])
-   null = _nodf(torch.cat([a for a, _ in parts]), torch.cat([b for _, b in parts]), R, C, groups, samples)[0].cpu().numpy()
+   null = []
+   with _bar(samples, "nestedness", progress) as bar:
+      for _ in range(samples):   # one matrix at a time: as fast as all together, and less memory
+         a, b = _null(r, c, R, C, null_model, gen)
+         null.append(_nodf(a, b, R, C, torch.zeros(len(a), dtype = torch.long, device = r.device), 1)[0])
+         bar.update()
+   null = torch.cat(null).cpu().numpy()
    std = null.std(ddof = 1) if samples > 1 else float("nan")
    out.update(null_mean = float(null.mean()), null_std = float(std), z = float((nodf - null.mean()) / std) if std > 1e-9 * max(1, abs(null.mean())) else float("nan"), p_value = float((1 + (null >= nodf - 1e-9).sum()) / (1 + samples)), null = null)
    return out

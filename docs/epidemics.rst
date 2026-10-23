@@ -20,6 +20,7 @@ Complex contagion
    si = gsk.complex_si_model(net, 1, "cascade", 0.18, seeds = 1)      # Watts: at least 18% of the neighbors
    sir = gsk.complex_sir_model(net, 0.5, 0.1, "threshold", 2, seeds = 0.05)
    sis = gsk.complex_sis_model(net, 0.05, 0.2, "classical", seeds = 10)
+   held = gsk.complex_nonprogressive_model(net, 1, "threshold", 2, seeds = 0.05)   # adoption undone below the threshold
 
    # heterogeneous thresholds, one per node, from a numeric node attribute
    import numpy as np
@@ -43,7 +44,9 @@ about as long as simple contagion: 3.6 s for the classical SI model with ``beta 
 (486 steps), 1.7 s for the threshold model with ``k = 2`` and 1% of seeds, 1.2 s for the cascade
 model with ``phi = 0.1``, 3.0 s for the classical SIR model with ``beta = 0.05``, ``mu = 0.1``,
 1.8 s for the independent cascade with ``p = 0.2`` (2.2 s with probabilities from an edge
-attribute), 1.3 s for the decreasing cascade with ``p = 0.3`` and ``decay = 0.5`` (10 seeds).
+attribute), 1.3 s for the decreasing cascade with ``p = 0.3`` and ``decay = 0.5`` (10 seeds), 1.4 s
+for the non progressive threshold model with ``k = 2``, ``beta = 0.5`` and 5% of seeds, 1.2 s with
+``phi = 0.2`` and 20% of seeds.
 
 Complex SI model
 ~~~~~~~~~~~~~~~~
@@ -59,6 +62,11 @@ Complex SIS model
 ~~~~~~~~~~~~~~~~~
 
 .. autofunction:: graphoskop.complex_sis_model
+
+Non progressive threshold model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.complex_nonprogressive_model
 
 Simple contagion
 ----------------

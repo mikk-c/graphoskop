@@ -29,6 +29,8 @@ Scores:
   meet soon;
 * :func:`vertex_similarity_lp`: the paths of all lengths between the two nodes, relative to the
   number expected from their degrees;
+* :func:`embedding_lp`: a logistic regression on edge features made from node embeddings (e.g.
+  :func:`~graphoskop.node2vec`), with the four operators of node2vec;
 * :func:`association_rules_lp`: the association rules between frequent patterns whose added edge
   would join the two nodes (see :doc:`frequent_subgraphs`); rules that add a new node also predict
   neighbors that are not in the network yet;
@@ -81,7 +83,7 @@ from numba import njit, prange
 from scipy.sparse.linalg import eigsh
 from scipy.stats import rankdata
 
-from .ergms import _random
+from .ergms import _logistic, _random
 from .network import _quiet_sparse
 from .signed import SIGN
 from .network_statistics import _degrees
@@ -2223,3 +2225,93 @@ def association_rules_lp(net, pairs, patterns, rules, node_label = None, edge_la
       table["direction"] = [r[0][3] for r in rows]
    table[name] = [r[1] for r in rows]
    return scored, table
+
+
+#: Edge features from the vectors ``a`` and ``b`` of the two nodes (Grover and Leskovec, 2016).
+_OPERATORS = {"average": lambda a, b: (a + b) / 2, "hadamard": lambda a, b: a * b, "weighted_l1": lambda a, b: np.abs(a - b), "weighted_l2": lambda a, b: (a - b) ** 2}
+
+
+def embedding_lp(net, pairs, attributes, operator = "hadamard", negatives = 1, samples = 100000, ridge = 1., seed = None, name = "score"):
+   """
+   Link prediction from node embeddings (Grover and Leskovec, 2016): the numeric node attributes
+   ``attributes`` are the vector of every node (e.g. stored by :func:`~graphoskop.node2vec`), a
+   pair gets an edge feature vector from the vectors of its two nodes, and a logistic regression
+   trained on the edges of ``net`` against unconnected pairs scores it. The edge features are
+   computed coordinate by coordinate from the vectors :math:`a` and :math:`b` of the two nodes,
+   with one of the four operators of node2vec:
+
+   * ``"average"``: :math:`(a_i + b_i) / 2`;
+   * ``"hadamard"``: :math:`a_i b_i` (the best in node2vec's experiments; with equal coefficients,
+     the dot product of the two vectors);
+   * ``"weighted_l1"``: :math:`|a_i - b_i|`;
+   * ``"weighted_l2"``: :math:`(a_i - b_i)^2`.
+
+   The regression is trained in ``net``, so to test the score give the training network of
+   :func:`link_prediction_split`, with vectors computed on it, not on the full network (whose
+   vectors have seen the hidden edges). Its positives are ``samples`` edges of ``net`` (all of
+   them if fewer), its negatives ``negatives`` times as many unconnected pairs, drawn uniformly
+   and never among the ``pairs`` to score; the features are standardized, and the regression has
+   an intercept and a ridge penalty :math:`\\lambda \\|\\theta\\|^2 / 2` (``ridge``; the default
+   is that of scikit-learn), which keeps the coefficients finite when the classes are separable.
+   The score is the log-odds of an edge. The operators are symmetric, so in directed networks the
+   two directions of a pair get the same score. Missing values of an attribute are replaced by
+   its mean.
+
+   :param net: A :class:`~graphoskop.Network`, not multilayer.
+   :param pairs: A pair ``(u, v)`` of node ids, an iterable of pairs, or a
+      :class:`pandas.DataFrame` with the endpoints in its first two columns (e.g. the validation
+      set).
+   :param attributes: Names of the numeric node attributes that make the vectors (an iterable, or
+      one name).
+   :param operator: ``"average"``, ``"hadamard"``, ``"weighted_l1"`` or ``"weighted_l2"``.
+   :param negatives: Number of unconnected pairs per edge to train on.
+   :param samples: Largest number of edges to train on.
+   :param ridge: Ridge penalty of the logistic regression.
+   :param seed: Seed of the training edges and pairs, or ``None``.
+   :param name: Name of the score column.
+   :return: The score, a float, for one pair; otherwise a :class:`pandas.DataFrame`: a copy of the
+      table with the column ``name`` added, or columns ``source``, ``target`` and ``name``.
+   :raises KeyError: If a node does not exist, or an attribute is not a numeric node attribute.
+   :raises ValueError: If the network is multilayer, has no edges, the operator is not known, or a
+      pair does not have two nodes.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv")
+      train, validation = gsk.link_prediction_split(net, seed = 1)
+      gsk.node2vec(train, seed = 1, attribute = "n2v")          # vectors of the training network
+      vec = [f"n2v_{j}" for j in range(128)]
+      for op in ("average", "hadamard", "weighted_l1", "weighted_l2"):
+         scored = gsk.embedding_lp(train, validation, vec, operator = op, seed = 1)
+         print(op, gsk.link_prediction_evaluation(scored)["auc"])
+   """
+   _check(net)
+   if operator not in _OPERATORS:
+      raise ValueError(f"unknown operator {operator!r}; known: {sorted(_OPERATORS)}")
+   attributes = [attributes] if isinstance(attributes, str) else list(attributes)
+   for a in attributes:
+      if a not in net.node_attributes:
+         raise KeyError(f"no numeric node attribute named {a!r}")
+   X = np.stack([torch.cat(net.get_node_attribute(a, None)).double().cpu().numpy() for a in attributes], 1)
+   X = np.where(np.isnan(X), np.nanmean(X, 0), X)
+   N, types, rng = int(net.node_offsets[-1]), _types(net), np.random.default_rng(seed)
+   edges = _unique(np.concatenate(_stored_keys(net, N)))
+   pos = edges[edges // N != edges % N]   # no self loops
+   if not len(pos):
+      raise ValueError("embedding_lp: the network has no edges to train on")
+   pos = rng.choice(pos, min(samples, len(pos)), replace = False)
+   s, t = _endpoints(pairs)
+   s, t = _positions(net, s), _positions(net, t)
+   neg = _negatives(net, N, types, _unique(np.concatenate([edges, _keys(net, s, t, N)])), negatives * len(pos), rng)
+   keys = np.concatenate([pos, neg])
+   f = _OPERATORS[operator]
+   F = f(X[keys // N], X[keys % N])
+   mu, sd = F.mean(0), F.std(0)
+   sd = np.where(sd > 0, sd, 1.)
+   theta = _logistic(np.column_stack([(F - mu) / sd, np.ones(len(F))]), np.r_[np.ones(len(pos)), np.zeros(len(neg))], np.ones(len(F)), ridge)[0]
+   score = np.column_stack([(f(X[s], X[t]) - mu) / sd, np.ones(len(s))]) @ theta
+   return _scored(pairs, score, name)

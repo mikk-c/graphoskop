@@ -107,6 +107,8 @@ class Network:
       net.set_edge_attribute("tie", ["strong"] * len(kind))   # new qualitative attribute
       net.set_node_attribute("age", [a + 1 for a in net.get_node_attribute("age", None)], None)
       net.set_node_attribute("group", ["a"] * net.number_of_nodes(0))   # new qualitative attribute
+      net.remove_node_attribute("group")              # gone from all nodes
+      net.remove_edge_attribute("log_weight")         # gone from all edges
       net.number_of_nodes(), net.number_of_edges(), net.number_of_components()
    """
 
@@ -396,15 +398,15 @@ class Network:
       :param key: Attribute name.
       """
       if key in self.qualitative_node_attributes:
-         self.qualitative_node_attributes.remove(key)
+         self.qualitative_node_attributes = [a for a in self.qualitative_node_attributes if a != key]   # new lists and tables: never shared with another network
          Q = self.qualitative_node_attr
          if self.node_format == "wide":
-            del Q[key]
+            self.qualitative_node_attr = Q.drop(columns = [key])
          else:
             self.qualitative_node_attr = Q[(Q["attribute"] != key).to_numpy()].reset_index(drop = True)
       if key in self.node_attributes:
          j = self.node_attributes.index(key)
-         self.node_attributes.remove(key)
+         self.node_attributes = [a for a in self.node_attributes if a != key]
          for data in self.components:
             X = data.node_attr
             if X.layout != torch.sparse_csr:
@@ -416,6 +418,28 @@ class Network:
                keep = i[1] != j
                i = torch.stack([i[0][keep], i[1][keep] - (i[1][keep] > j).long()])
                data.node_attr = torch.sparse_coo_tensor(i, v[keep], (X.shape[0], X.shape[1] - 1)).coalesce().to_sparse_csr()
+
+   def remove_node_attribute(self, key):
+      """
+      Remove a node attribute, numeric or qualitative, from all the nodes (in place).
+
+      :param key: Attribute name.
+      :raises KeyError: If there is no node attribute with that name.
+      :raises ValueError: If ``key`` is :data:`BIPARTITE` in a bipartite network (node types fix
+         the node order).
+
+      Example:
+
+      .. code-block:: python
+
+         net.remove_node_attribute("age")
+         net.node_attributes                # "age" is gone
+      """
+      if key not in self.node_attributes and key not in self.qualitative_node_attributes:
+         raise KeyError(f"no node attribute named {key!r}; node attributes: {list(self.node_attributes) + list(self.qualitative_node_attributes)}")
+      if self.bipartite_labels is not None and key == BIPARTITE:
+         raise ValueError(f"{BIPARTITE!r} cannot be removed: node types fix the node order of a bipartite network")
+      self._drop_node_attribute(key)
 
    def _set_node_table(self, table, node_column, layer_column):
       """
@@ -675,6 +699,32 @@ class Network:
          return
       X = self.components[component].edge_attr
       X[:, j] = self._values(values, X.shape[0], X)
+
+   def remove_edge_attribute(self, key):
+      """
+      Remove an edge attribute, numeric or qualitative, from all the edges (in place).
+
+      :param key: Attribute name.
+      :raises KeyError: If there is no edge attribute with that name.
+
+      Example:
+
+      .. code-block:: python
+
+         net.remove_edge_attribute("weight")
+         net.edge_attributes                # "weight" is gone
+      """
+      if key in self.qualitative_edge_attributes:
+         self.qualitative_edge_attributes = [a for a in self.qualitative_edge_attributes if a != key]
+         Q = self.qualitative_edge_attr.drop(columns = [key])
+         self.qualitative_edge_attr = Q if Q.shape[1] else None   # as a network that never had any
+      elif key in self.edge_attributes:
+         j = self.edge_attributes.index(key)
+         self.edge_attributes = [a for a in self.edge_attributes if a != key]
+         for data in self.components:
+            data.edge_attr = torch.cat([data.edge_attr[:, :j], data.edge_attr[:, j + 1:]], 1)
+      else:
+         raise KeyError(f"no edge attribute named {key!r}; edge attributes: {list(self.edge_attributes) + list(self.qualitative_edge_attributes)}")
 
    def number_of_nodes(self, component = None):
       """
@@ -1221,7 +1271,10 @@ def _read(table, sep, header, text):
    Read a table, parsing some columns as strings and the others as numbers where possible.
 
    Columns whose non-missing values are all numeric are parsed directly as numbers, which needs a
-   few bytes per value instead of a Python string object per value. A
+   few bytes per value instead of a Python string object per value. The type of a column is
+   decided on the whole file (``low_memory = False``), not chunk by chunk: otherwise a column with
+   numbers and text gets numbers in some chunks and strings in others (``3`` and ``"3"``, two
+   values of a qualitative attribute), with a :class:`pandas.errors.DtypeWarning`. A
    :class:`pandas.DataFrame` is used as it is, without copying it.
 
    :param table: File path or :class:`pandas.DataFrame`.
@@ -1234,7 +1287,56 @@ def _read(table, sep, header, text):
       return table, [_column(table.columns, c) for c in text]
    columns = pd.read_csv(table, sep = sep, header = header, nrows = 0).columns
    names = [_column(columns, c) for c in text]
-   return pd.read_csv(table, sep = sep, header = header, dtype = {c: str for c in names}), names
+   return pd.read_csv(table, sep = sep, header = header, dtype = {c: str for c in names}, low_memory = False), names
+
+
+def _read_nodes(nodes, sep, header, columns, node_format, multilayer):
+   """
+   Read the node table, with its key columns first, in the order the loader expects: node id (or
+   entity, then layer, if multilayer), then the attributes (wide), or the attribute name and the
+   value (long).
+
+   :param nodes: File path or :class:`pandas.DataFrame`.
+   :param sep: Column separator.
+   :param header: Header row (0) or ``None``.
+   :param columns: Names or positions of the key columns (see :func:`load_network`), or ``None``
+      for the first ones.
+   :param node_format: ``"wide"`` or ``"long"``.
+   :param multilayer: Whether the network is multilayer.
+   :return: Table (a DataFrame given in that order is used as it is, without copying it).
+   :raises ValueError: If ``columns`` does not have one name or position per key column.
+   """
+   k = (2 if multilayer else 1) + (2 if node_format == "long" else 0)
+   cols = list(range(k)) if columns is None else [columns] if isinstance(columns, (str, int)) else list(columns)
+   if len(cols) != k:
+      what = ("entity, layer" if multilayer else "node id") + (", attribute name, value" if node_format == "long" else "")
+      raise ValueError(f"node_columns must give {k} column(s) ({what}), got {columns!r}")
+   if not isinstance(nodes, pd.DataFrame):
+      names = pd.read_csv(nodes, sep = sep, header = header, nrows = 0).columns
+   else:
+      names = nodes.columns
+   cols = [_column(names, c) for c in cols]
+   nodes = _read(nodes, sep, header, cols[:1] + cols[k - 2:k - 1] if node_format == "long" else cols[:1])[0]
+   if cols == list(nodes.columns[:k]):
+      return nodes
+   return nodes[cols] if node_format == "long" else nodes[cols + [c for c in nodes.columns if c not in cols]]
+
+
+def _same_ids(tables):
+   """
+   Tables whose node id columns mix integers and strings (e.g. an edge list read from a file,
+   whose ids are strings, and a node table given as a DataFrame with integer ids), with the
+   integer ids as strings, so that the same id matches in all of them.
+
+   :param tables: List of ``(table or None, id column names)``.
+   :return: The tables, those with integer ids converted as copies (the given ones are not
+      modified).
+   """
+   ids = [t[c] for t, cs in tables if t is not None for c in cs]
+   if all(pd.api.types.is_numeric_dtype(x) for x in ids) or not any(pd.api.types.is_integer_dtype(x) for x in ids):
+      return [t for t, _ in tables]
+   cast = lambda t, cs: {c: t[c].astype(str) for c in cs if pd.api.types.is_integer_dtype(t[c])}
+   return [t.assign(**cast(t, cs)) if t is not None and cast(t, cs) else t for t, cs in tables]
 
 
 def _numeric(df):
@@ -1649,7 +1751,7 @@ def _layered(edges, src, tgt, lcol, eattr, inter, iattr, nodes, node_format, dir
    return names, s, t, ea, cols, rows["key"].to_numpy(), (rows["attribute"], rows["value"]), ml, inter_mask
 
 
-def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None):
+def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None):
    """
    Body of :func:`load_network`, so that its temporary tables are freed when it returns.
    """
@@ -1676,7 +1778,8 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
       iattr = inter.drop(columns = inter.columns[:4]) if edge_attributes else inter[[]]
    (eattr, iattr), qcats = _encode_tables(eattr, iattr)   # qualitative edge attributes as codes
    if nodes is not None:
-      nodes = _read(nodes, sep, hdr, [0] if node_format == "wide" else [0, 2] if multilayer else [0, 1])[0]
+      nodes = _read_nodes(nodes, sep, hdr, node_columns, node_format, multilayer)
+   edges, inter, nodes = _same_ids([(edges, [src, tgt]), (inter, [] if inter is None else list(inter.columns[[0, 2]])), (nodes, [] if nodes is None else [nodes.columns[0]])])
    m = len(edges)
 
    # integer ids of the nodes (copies, in multilayer networks), edges and node table rows
@@ -1693,6 +1796,8 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
       ea, enames = eattr.to_numpy(np.float32), eattr.columns
       if nodes is not None:
          key = codes[2 * m:]
+         if m and len(key) and key.min() > max(s.max(), t.max()):
+            warnings.warn("no node of the node table appears in the edge table: check that both use the same ids (e.g. not 8593 and \"8593.0\")")
          feats, name, v = (nodes.iloc[:, 1:], None, None) if node_format == "wide" else (None, nodes.iloc[:, 1], nodes.iloc[:, 2])
    del edges, eattr, inter, iattr
    n = len(names)
@@ -1766,13 +1871,16 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
    return _build(s, t, names, ea, enames, table, attrs, directed, device, qtable, quals, node_format, types, labels, ml, qe)
 
 
-def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None):
+def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None):
    """
    Load a network from an edge list and a node attribute table, given as files or as
    :class:`pandas.DataFrame`.
 
    Node ids can be arbitrary strings. Ids read from files are strings; ids in a DataFrame are kept
-   as they are, so the edge and node tables must use the same type (e.g. both ``int``). DataFrames
+   as they are. If some tables have integer ids and others text ids (e.g. an edge file and a node
+   DataFrame with integer ids), the integer ids are converted to text, so that ``8593`` and
+   ``"8593"`` are the same node; other mismatches (e.g. ``"8593.0"``) are not fixed, and a
+   warning says so when no node of the node table appears in the edge table. DataFrames
    are not modified, and their column names play the role of the header row. Nodes are split by
    weakly connected component and remapped to ``(component, index)``, with ``index`` from 0 to
    n - 1. Nodes appearing only in the node table become isolated components. In undirected
@@ -1781,7 +1889,9 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
    and a ``node_attr`` tensor, with zero columns when there are no such attributes.
 
    Edge attributes whose column is numeric (or boolean) are numeric; the others (text, any value
-   that is not a number) are qualitative. Numeric ones are stored in ``edge_attr`` on ``device``,
+   that is not a number) are qualitative. In files, the type of a column is decided on the whole
+   column: a column with both numbers and text is qualitative, and all its values are text (``3``
+   and ``"3"`` are the same value). Numeric ones are stored in ``edge_attr`` on ``device``,
    qualitative ones in :attr:`Network.qualitative_edge_attr`, always in CPU memory, as for node
    attributes.
 
@@ -1859,6 +1969,10 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
    :param coupling_weight: Value of every edge attribute of the generated couplings: a positive
       number, or an ``L`` by ``L`` matrix indexed by layer positions.
    :param layers: Order of the layers, or ``None`` for their sort order.
+   :param node_columns: Names or positions of the key columns of the node table, in this order:
+      node id (wide), or node id, attribute name and value (long); in multilayer networks, entity
+      and layer first. Other columns are attributes (wide) or ignored (long). ``None`` for the
+      first columns of the table, in that order.
    :return: The loaded :class:`Network`.
    :raises ValueError: In bipartite networks, if there is no node table or no :data:`BIPARTITE`
       attribute, if it has more than two distinct values, if a node has no type or two different
@@ -1895,6 +2009,10 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
       nodes = pd.DataFrame({"id": ["alice", "carol"], "attribute": ["age", "city"], "value": [34, "Rome"]})
       net = gsk.load_network(edges, nodes, source = "from", target = "to", node_format = "long")
 
+      # long table with its columns in another order, named
+      nodes = pd.read_csv("nodes.tsv", sep = "\t")             # columns: band, value, attribute
+      net = gsk.load_network("edges.tsv", nodes, node_format = "long", node_columns = ["band", "attribute", "value"])
+
       # bipartite: users and the items they bought
       edges = pd.DataFrame({"user": ["u1", "u1", "u2"], "item": ["i1", "i2", "i1"]})
       nodes = pd.DataFrame({"id": ["u1", "u2", "i1", "i2", "i3"], "bipartite_type": ["user", "user", "item", "item", "item"]})
@@ -1911,7 +2029,7 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
       # temporal network: snapshots 1, 2, 3, couplings forward in time
       net = gsk.load_network("contacts.tsv", multilayer = True, layer = "time", coupling = "temporal", directed = True)
    """
-   net = _load(edges, nodes, sep, header, source, target, edge_attributes, directed, node_format, bipartite, device, multilayer, layer, interlayer_edges, coupling, coupling_weight, layers)
+   net = _load(edges, nodes, sep, header, source, target, edge_attributes, directed, node_format, bipartite, device, multilayer, layer, interlayer_edges, coupling, coupling_weight, layers, node_columns)
    _release_memory()
    return net
 
@@ -2218,7 +2336,7 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
    if bipartite:
       table[BIPARTITE] = np.r_[np.zeros(R, dtype = int), np.ones(C, dtype = int)]
    if nodes is not None:
-      extra = pd.read_csv(nodes, sep = node_sep) if not isinstance(nodes, pd.DataFrame) else nodes
+      extra = pd.read_csv(nodes, sep = node_sep, low_memory = False) if not isinstance(nodes, pd.DataFrame) else nodes
       if bipartite and BIPARTITE in extra.columns:
          raise ValueError(f"the node types of a bipartite matrix come from it: drop the {BIPARTITE} column")
       extra = extra.rename(columns = {extra.columns[0]: "id"})

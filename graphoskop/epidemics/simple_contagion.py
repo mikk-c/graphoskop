@@ -146,7 +146,7 @@ def _draw_immune(ptr, nbr, friend, k, excl, rng, out):
 
 
 @njit(cache = True, parallel = True)
-def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, decay, max_steps, window, tolerance, rng, total, square, ends, finals, last, ev, nev):
+def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, rng, total, square, ends, finals, last, ev, nev):
    """
    Runs of the SI, SIS or SIR model, in parallel: thread ``b`` simulates runs ``b``, ``b + B``,
    ... and adds the number of nodes in each state at each step to ``total[b]`` (and its square to
@@ -176,6 +176,9 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
       independent cascade, 4 decreasing cascade.
    :param need: Number of infected neighbors needed by each node to be infected (int32; kinds 1
       and 2), or an empty array.
+   :param stay: Non progressive threshold models: number of infected in-neighbors (its own self
+      loops included) an infected node needs to stay infected, or an empty array (recoveries at
+      rate ``mu``). An infected node below it becomes susceptible at the next step.
    :param pe: Infection probability of every out edge, in CSR order (kinds 3 and 4), or an empty
       array to use ``beta`` for all edges.
    :param decay: Factor of the probability for every earlier failed attempt on a node (kind 4).
@@ -195,7 +198,7 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
       the length of ``ev``.
    """
    R, B, n = rng.shape[0], total.shape[0], ptr.shape[0] - 1
-   complex_, ic = kind > 0, kind >= 3
+   complex_, ic, revert = kind > 0, kind >= 3, stay.shape[0] > 0
    need_ = complex_ and not ic    # listed only with enough infected neighbors
    counts = (mu > 0 or complex_) and not ic   # simple SI: exposed nodes stay exposed, no counts needed
    marks = mu > 0 or complex_     # nodes can be touched several times
@@ -242,6 +245,10 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
                   v = nbr[e]
                   if counts:
                      cnt[v] += 1
+                     if not mark[v]:   # its count is reset after the run, even if it never changes state
+                        mark[v] = True
+                        touched[nt] = v
+                        nt += 1
                   hit = state[v] == 0 and (not need_ or cnt[v] >= need[v])
                   if hit and ic:   # one attempt of u on v
                      q = pe[e] if pe.shape[0] > 0 else beta
@@ -288,7 +295,8 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
                m2 = (cum[t + 1] - cum[t + 1 - window]) / window
                m1 = (cum[t + 1 - window] - cum[t + 1 - 2 * window]) / window
                plateau = m2 > 0 and abs(m2 - m1) <= tolerance * m2
-            if plateau or (nf == 0 and (mu == 0 or ni == 0)) or t == max_steps:
+            fixed = revert and t > 0 and nn == 0 and nr == 0 and nf == 0   # nothing changed: nothing will
+            if plateau or fixed or (nf == 0 and ((mu == 0 and not revert) or ni == 0)) or t == max_steps:
                break
             t += 1
             nn, keep = 0, 0
@@ -303,11 +311,11 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
                   front[keep] = v
                   keep += 1
             nf, nr = keep, 0
-            if mu > 0:   # recoveries of the nodes infected at the start of the step
+            if mu > 0 or revert:   # recoveries of the nodes infected at the start of the step
                keep = 0
                for i in range(ni):
                   u = inf[i]
-                  if _random(st) < mu:
+                  if (cnt[u] < stay[u]) if revert else (_random(st) < mu):
                      rec[nr] = u
                      nr += 1
                   else:
@@ -333,7 +341,7 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
             state[v], cnt[v], mark[v], fail[v] = 0, 0, False, 0
 
 
-def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, decay, max_steps, window, tolerance, runs, seed, batch, record = False):
+def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, runs, seed, batch, record = False):
    """
    Runs of the SI, SIS or SIR model on the device of ``ptr``, all the runs of a batch at once:
    node ``v`` of run ``r`` is entry ``r * n + v`` of the state vectors, and every step draws all
@@ -351,6 +359,8 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
    :param sis: Whether recovered nodes become susceptible (SIS) or removed (SIR).
    :param kind: Reinforcement code, as in :func:`_run_numba`.
    :param need: Number of infected neighbors needed by each node (tensor), or an empty tensor.
+   :param stay: Infected neighbors an infected node needs to stay infected (tensor; non
+      progressive threshold models), or an empty tensor.
    :param pe: Infection probability of every out edge, in CSR order (tensor), or an empty tensor.
    :param decay: Factor of the probability for every earlier failed attempt (decreasing cascade).
    :param max_steps: Largest number of steps.
@@ -371,6 +381,7 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
    empty = torch.zeros(0, dtype = torch.long, device = dev)
    ic = kind >= 3
    counts = (mu > 0 or kind > 0) and not ic   # simple SI: exposed nodes stay exposed, no counts needed
+   revert = stay.shape[0] > 0
    need = need if need.shape[0] else torch.ones(n, dtype = torch.int32, device = dev)
 
    def neighbors(x):   # out-neighbors of (run, node) entries, as entries, the CSR positions of the edges, and their origins
@@ -405,7 +416,7 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
          nI += count(new) - count(rec)
          w, pos, org = neighbors(new)
          cand = torch.cat([w, rec]) if sis and not ic else w
-         if mu > 0:
+         if mu > 0 or revert:
             inf = torch.cat([inf, new])
          if counts:
             cnt.index_add_(0, w, torch.ones_like(w, dtype = torch.int32))
@@ -451,7 +462,8 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
                   last_end = t
                done |= stop
                inf, front = inf[~done[inf // n]], front[~done[front // n]]
-         if (front.shape[0] == 0 and (mu == 0 or inf.shape[0] == 0)) or t == max_steps:
+         fixed = revert and t > 0 and new.shape[0] == 0 and rec.shape[0] == 0 and front.shape[0] == 0   # nothing changed: nothing will
+         if fixed or (front.shape[0] == 0 and ((mu == 0 and not revert) or inf.shape[0] == 0)) or t == max_steps:
             break
          t += 1
          ok = state[front] == 0
@@ -464,8 +476,8 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, pe, 
          new, front = front[hit], front[~hit]
          inl[new] = False
          rec = empty
-         if mu > 0:
-            hit = torch.rand(inf.shape[0], generator = gen, device = dev) < mu
+         if mu > 0 or revert:
+            hit = cnt[inf] < stay[inf % n] if revert else torch.rand(inf.shape[0], generator = gen, device = dev) < mu
             rec, inf = inf[hit], inf[~hit]
          state[new] = 1
          if kind == 4:
@@ -570,7 +582,7 @@ def _immunization(net, comps, off, immunize, strategy, ptr, nbr, excl, runs, rs)
    return pos[~excl[pos]][None]   # when resuming, infected and removed nodes are not immunized
 
 
-def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window = None, tolerance = 0., reinforcement = None, threshold = None, decay = 1., forest = False, immunize = None, strategy = "random"):
+def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window = None, tolerance = 0., reinforcement = None, threshold = None, decay = 1., forest = False, immunize = None, strategy = "random", revert = False):
    """
    Body of the simple and complex contagion models.
 
@@ -586,6 +598,8 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
       (cascades only).
    :param immunize: Immunized nodes (see :func:`_immunization`).
    :param strategy: How to choose them.
+   :param revert: Non progressive threshold model (``model = "SIS"``, no ``mu``): an infected node
+      whose infected neighbors fall below its threshold becomes susceptible.
    :return: The table of the states over time, and the forest if asked.
    """
    pairwise = not isinstance(beta, (int, float, np.number))   # a table of probabilities per pair
@@ -597,7 +611,9 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
       raise ValueError("forest needs reinforcement 'independent' or 'decreasing', where each infection has one origin")
    if reinforcement == "decreasing" and not 0 < decay <= 1:
       raise ValueError(f"decay must be in (0, 1], got {decay}")
-   if model != "SI" and not 0 < mu <= 1:
+   if revert and reinforcement not in ("threshold", "cascade"):
+      raise ValueError(f"the non progressive model needs reinforcement 'threshold' or 'cascade', got {reinforcement!r}")
+   if model != "SI" and not revert and not 0 < mu <= 1:
       raise ValueError(f"mu must be in (0, 1], got {mu}")
    if selection not in ("top", "weighted"):
       raise ValueError(f"unknown selection: {selection}")
@@ -699,9 +715,12 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
             raise ValueError("cascade: thresholds must be shares of the neighbors in (0, 1]")
          x = np.maximum(x * torch.bincount(t, minlength = n).cpu().numpy() - 1e-9, 1)   # share of the in-degree, as a count
       need = np.minimum(np.ceil(x), 2 ** 31 - 1).astype(np.int32)
+   stay = np.zeros(0, dtype = np.int32)
+   if revert:   # own self loops are not infected neighbors: counted on top of the threshold
+      stay = np.minimum(need.astype(np.int64) + torch.bincount(s[s == t], minlength = n).cpu().numpy(), 2 ** 31 - 1).astype(np.int32)
 
    # simulation
-   mu, sis = (0., False) if model == "SI" else (float(mu), model == "SIS")
+   mu, sis = (0., False) if model == "SI" else (0. if revert else float(mu), model == "SIS")
    kind, beta = {None: 0, "classical": 1, "threshold": 2, "cascade": 2, "independent": 3, "decreasing": 4}[reinforcement], 0. if pairwise else float(beta)
    if engine == "numba":
       B = min(runs, numba.get_num_threads())
@@ -710,7 +729,7 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
       states = rs.integers(1, 2 ** 63, size = runs, dtype = np.uint64)
       ev, nev = np.zeros((n if forest else 0, 3), dtype = np.int64), np.zeros(1, dtype = np.int64)
       args = (ptr.numpy(), nbr.numpy())
-      rest = (beta, mu, sis, kind, need, pe, float(decay), int(max_steps), window, float(tolerance))
+      rest = (beta, mu, sis, kind, need, stay, pe, float(decay), int(max_steps), window, float(tolerance))
       last_state = states[-1:].copy()   # the kernel advances the states
       _run_numba(*args, out, removed, imm, *rest, states, total, square, ends, finals, last, ev, nev)
       if nev[0] > ev.shape[0]:   # SIS: more infections than nodes; the last run again, alone, with room for all
@@ -726,7 +745,7 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
       total, square = (total.sum(0)[:T + 1] + pad[0]) / n, (square.sum(0)[:T + 1] + pad[1]) / n ** 2
    else:
       tensor = lambda a: torch.as_tensor(a, device = dev)
-      total, square, last, ev = _run_torch(ptr, nbr, tensor(out), tensor(removed), tensor(imm), beta, mu, sis, kind, tensor(need), tensor(pe), float(decay), int(max_steps), window, float(tolerance), runs, int(rs.integers(2 ** 62)), batch or max(1, 2 ** 27 // n), forest)
+      total, square, last, ev = _run_torch(ptr, nbr, tensor(out), tensor(removed), tensor(imm), beta, mu, sis, kind, tensor(need), tensor(stay), tensor(pe), float(decay), int(max_steps), window, float(tolerance), runs, int(rs.integers(2 ** 62)), batch or max(1, 2 ** 27 // n), forest)
 
    # final states of the last run, and the table
    if attribute is not None:

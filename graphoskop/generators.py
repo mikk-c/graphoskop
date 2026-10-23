@@ -48,6 +48,7 @@ import torch
 from scipy.sparse.csgraph import connected_components
 
 from .network import BIPARTITE, _build, _explode, _membership, _memberships, _node_codes, _node_types, _subset, _take_edges
+from .progress import _bar
 
 
 # ------------------------------------------------------------------------------------------------
@@ -814,7 +815,7 @@ def configuration_model(degrees = None, net = None, directed = None, rounds = 10
    return _randomize(net, seed, make)
 
 
-def _swap_edges(s, t, swaps, oriented, gen):
+def _swap_edges(s, t, swaps, oriented, gen, progress = None):
    """
    Double edge swaps: see :func:`edge_swap`.
 
@@ -835,6 +836,7 @@ def _swap_edges(s, t, swaps, oriented, gen):
    :param oriented: Whether edges keep their sources as sources (directed, or bipartite with
       sources of type 0).
    :param gen: Random generator.
+   :param progress: Progress bar setting (see :mod:`~graphoskop.progress`), over the swaps.
    :return: New sources and targets, edge by edge (an edge keeps its position).
    """
    dev, m = s.device, s.shape[0]
@@ -844,56 +846,58 @@ def _swap_edges(s, t, swaps, oriented, gen):
    n = int(max(s.max(), t.max())) + 1
    key = lambda a, b: a * n + b if oriented else torch.minimum(a, b) * n + torch.maximum(a, b)
    done, h = 0, m // 2
-   while done < swaps:
-      k = key(s, t)
-      cur, where = torch.sort(k)   # current edges
-      dup = torch.zeros(m, dtype = torch.bool, device = dev)   # edges with a parallel copy
-      same = cur[1:] == cur[:-1]
-      dup[where[1:][same]] = True
-      dup[where[:-1][same]] = True
-      perm = torch.randperm(m, generator = gen, device = dev)
-      A, B = perm[0:2 * h:2], perm[1:2 * h:2]
-      a, b, c, d = s[A], t[A], s[B], t[B]
-      flip = torch.zeros(h, dtype = torch.bool, device = dev) if oriented else torch.rand(h, generator = gen, device = dev) < 0.5
-      s1, t1 = a, torch.where(flip, c, d)
-      s2, t2 = torch.where(flip, b, c), torch.where(flip, d, b)
-      new = torch.cat([key(s1, t1), key(s2, t2)])
-      shape = (s1 != t1) & (s2 != t2) & (new[:h] != new[h:])
-      new = torch.where(torch.cat([shape, shape]), new, -1 - torch.arange(2 * h, device = dev))   # invalid: distinct, no edge
-      ns, order = torch.sort(new)   # sorted queries: faster lookups, and repeated pairs side by side
-      pos = torch.empty_like(order)
-      pos[order] = torch.searchsorted(cur, ns).clamp(max = m - 1)
-      exists = cur[pos] == new
-      ok = shape & ~exists[:h] & ~exists[h:]
-      # proposals another one can affect: new pairs that are edges (which an earlier swap may
-      # remove), the swaps moving those edges, parallel edges, and new pairs made twice
-      moving = torch.zeros(m, dtype = torch.bool, device = dev)
-      moving[where[pos[exists]]] = True
-      moving |= dup
-      twice = torch.zeros(2 * h, dtype = torch.bool, device = dev)
-      same = ns[1:] == ns[:-1]
-      twice[order[1:][same]] = True
-      twice[order[:-1][same]] = True
-      twice = twice.view(2, h).any(0)
-      tangled = torch.nonzero((shape & (exists[:h] | exists[h:] | twice)) | moving[A] | moving[B]).squeeze(1)
-      if tangled.shape[0]:   # one by one, in order, against the edges as the earlier ones left them
-         keys = torch.stack([k[A[tangled]], k[B[tangled]], new[tangled], new[h + tangled]], 1)
-         flat = keys.flatten()
-         count = dict(zip(flat.tolist(), (torch.searchsorted(cur, flat, right = True) - torch.searchsorted(cur, flat)).tolist()))
-         for j, (k1, k2, k3, k4), v in zip(tangled.tolist(), keys.tolist(), shape[tangled].tolist()):
-            take = v and count[k3] == 0 and count[k4] == 0
-            if take:
-               count[k1] -= 1
-               count[k2] -= 1
-               count[k3], count[k4] = 1, 1
-            ok[j] = take
-      idx = torch.nonzero(ok[:swaps - done]).squeeze(1)   # stop at the attempt completing the swaps
-      s[A[idx]], t[A[idx]], s[B[idx]], t[B[idx]] = s1[idx], t1[idx], s2[idx], t2[idx]
-      done += min(h, swaps - done)
+   with _bar(swaps, "edge_swap", progress) as bar:
+      while done < swaps:
+         k = key(s, t)
+         cur, where = torch.sort(k)   # current edges
+         dup = torch.zeros(m, dtype = torch.bool, device = dev)   # edges with a parallel copy
+         same = cur[1:] == cur[:-1]
+         dup[where[1:][same]] = True
+         dup[where[:-1][same]] = True
+         perm = torch.randperm(m, generator = gen, device = dev)
+         A, B = perm[0:2 * h:2], perm[1:2 * h:2]
+         a, b, c, d = s[A], t[A], s[B], t[B]
+         flip = torch.zeros(h, dtype = torch.bool, device = dev) if oriented else torch.rand(h, generator = gen, device = dev) < 0.5
+         s1, t1 = a, torch.where(flip, c, d)
+         s2, t2 = torch.where(flip, b, c), torch.where(flip, d, b)
+         new = torch.cat([key(s1, t1), key(s2, t2)])
+         shape = (s1 != t1) & (s2 != t2) & (new[:h] != new[h:])
+         new = torch.where(torch.cat([shape, shape]), new, -1 - torch.arange(2 * h, device = dev))   # invalid: distinct, no edge
+         ns, order = torch.sort(new)   # sorted queries: faster lookups, and repeated pairs side by side
+         pos = torch.empty_like(order)
+         pos[order] = torch.searchsorted(cur, ns).clamp(max = m - 1)
+         exists = cur[pos] == new
+         ok = shape & ~exists[:h] & ~exists[h:]
+         # proposals another one can affect: new pairs that are edges (which an earlier swap may
+         # remove), the swaps moving those edges, parallel edges, and new pairs made twice
+         moving = torch.zeros(m, dtype = torch.bool, device = dev)
+         moving[where[pos[exists]]] = True
+         moving |= dup
+         twice = torch.zeros(2 * h, dtype = torch.bool, device = dev)
+         same = ns[1:] == ns[:-1]
+         twice[order[1:][same]] = True
+         twice[order[:-1][same]] = True
+         twice = twice.view(2, h).any(0)
+         tangled = torch.nonzero((shape & (exists[:h] | exists[h:] | twice)) | moving[A] | moving[B]).squeeze(1)
+         if tangled.shape[0]:   # one by one, in order, against the edges as the earlier ones left them
+            keys = torch.stack([k[A[tangled]], k[B[tangled]], new[tangled], new[h + tangled]], 1)
+            flat = keys.flatten()
+            count = dict(zip(flat.tolist(), (torch.searchsorted(cur, flat, right = True) - torch.searchsorted(cur, flat)).tolist()))
+            for j, (k1, k2, k3, k4), v in zip(tangled.tolist(), keys.tolist(), shape[tangled].tolist()):
+               take = v and count[k3] == 0 and count[k4] == 0
+               if take:
+                  count[k1] -= 1
+                  count[k2] -= 1
+                  count[k3], count[k4] = 1, 1
+               ok[j] = take
+         idx = torch.nonzero(ok[:swaps - done]).squeeze(1)   # stop at the attempt completing the swaps
+         s[A[idx]], t[A[idx]], s[B[idx]], t[B[idx]] = s1[idx], t1[idx], s2[idx], t2[idx]
+         bar.update(min(h, swaps - done))
+         done += min(h, swaps - done)
    return s, t
 
 
-def edge_swap(net, swaps = None, seed = None):
+def edge_swap(net, swaps = None, seed = None, progress = None):
    """
    Edge swap randomization (Maslov and Sneppen, 2002): a randomization of ``net`` that keeps the
    degree of every node exactly (out- and in-degrees if directed, and node types if bipartite),
@@ -924,6 +928,8 @@ def edge_swap(net, swaps = None, seed = None):
    :param swaps: Number of swaps tried; ``None`` for 10 per edge, enough to randomize most
       networks (Milo et al., 2003). In multilayer networks, a number per layer or a dictionary.
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param progress: Whether to show a progress bar over the swaps (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`); one bar per layer.
    :return: The randomized network, a new :class:`~graphoskop.Network`.
    :raises ValueError: For dictionaries as in :func:`gnm_random_graph`.
 
@@ -954,7 +960,7 @@ def edge_swap(net, swaps = None, seed = None):
       if n0 is not None and not net.directed:   # bipartite: sources of type 0 (first in nodes)
          a, b = torch.minimum(a, b), torch.maximum(a, b)
       q = _layer_value(swaps, 10 * count, net, l, "swaps", True)
-      a, b = _swap_edges(a, b, int(q), oriented, gen)
+      a, b = _swap_edges(a, b, int(q), oriented, gen, progress)
       return a, b, torch.arange(a.shape[0], device = a.device)
 
    return _randomize(net, seed, make)
@@ -4056,7 +4062,7 @@ def _bins(values, target = 20):
    return np.round(np.round(values / step) * step, digits)
 
 
-def randomization_test(net, statistic, model, n = 100, seed = None, **parameters):
+def randomization_test(net, statistic, model, n = 100, seed = None, progress = None, **parameters):
    """
    Test a statistic of a network against a null model: the statistic is computed on ``net`` and
    on ``n`` randomizations of it made by ``model``, and the observed value is compared with their
@@ -4080,6 +4086,8 @@ def randomization_test(net, statistic, model, n = 100, seed = None, **parameters
    :param model: Generator function, or fitted :class:`~graphoskop.ERGMFit`.
    :param n: Number of randomizations.
    :param seed: Seed of the random numbers (randomization ``k`` gets ``seed + k``), or ``None``.
+   :param progress: Whether to show a progress bar over the randomizations (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`); the generator shows none.
    :param parameters: Other arguments of the generator (e.g. ``swaps``, ``p``), or of
       :meth:`~graphoskop.ERGMFit.simulate` (``burnin``, ``interval``).
    :return: Dictionary with ``observed`` (the value on ``net``), ``samples``
@@ -4112,11 +4120,16 @@ def randomization_test(net, statistic, model, n = 100, seed = None, **parameters
          raise ValueError(f"the statistic must return a number, got {type(x).__name__}") from None
 
    observed = value(net)
-   if hasattr(model, "simulate"):
-      nets = model.simulate(n, seed = seed, **parameters)
-   else:
-      nets = (model(net = net, seed = None if seed is None else seed + k, **parameters) for k in range(n))
-   x = np.array([value(g) for g in nets])
+   with _bar(n, "randomization_test", progress) as bar:
+      if hasattr(model, "simulate"):
+         nets = model.simulate(n, seed = seed, **parameters)
+      else:
+         nets = (model(net = net, seed = None if seed is None else seed + k, **parameters) for k in range(n))
+      x = []
+      for g in nets:
+         x.append(value(g))
+         bar.update()
+   x = np.array(x)
    rounded = _bins(x)
    values, counts = np.unique(rounded, return_counts = True)
    ok = np.isfinite(x)

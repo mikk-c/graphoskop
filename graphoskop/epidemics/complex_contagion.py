@@ -60,6 +60,10 @@ numeric node attribute), so that, e.g., heterogeneous thresholds can be drawn fr
 distribution. Degrees count edges: parallel edges count several times, and a self loop counts in
 the in-degree (but never as an infected neighbor of a susceptible node).
 
+In :func:`complex_nonprogressive_model`, the non progressive threshold model, the thresholds
+also decide the way back: an infected node whose infected neighbors fall below its threshold is
+susceptible again at the next step, with no recovery rate ``mu``.
+
 Everything else (time steps, seeds, runs, engines, stored states, resuming, the plateau of SIS) is
 as in :mod:`~graphoskop.epidemics.simple_contagion`. A seed node of a threshold model is infected
 whatever its neighbors; a node whose threshold is above its in-degree can only be infected as a
@@ -264,3 +268,74 @@ def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = No
       sir = gsk.complex_sir_model(net, 0.2, 0.1, "decreasing", decay = 0.7, seeds = 5)
    """
    return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy)
+
+
+def complex_nonprogressive_model(net, beta, reinforcement = "threshold", threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
+   """
+   Simulate the non progressive threshold model, and return the fraction of nodes in each state
+   at every time step, averaged over independent runs.
+
+   A threshold or cascade model (``"threshold"`` or ``"cascade"``, see the module description) in
+   which the condition is checked again at every step for infected nodes too: an infected node
+   whose infected neighbors fall below its threshold becomes susceptible again, at the next step,
+   instead of recovering at rate ``mu`` (there is no ``mu``). A susceptible node meeting its
+   threshold is infected with probability ``beta``, as in the other models. This is the non
+   progressive version of the threshold models of Kempe, Kleinberg and Tardos (2003), where
+   adoption can be undone when the reasons for it go away: it is neither SI (nodes leave the
+   infected state) nor SIS (they leave it because of their neighbors, not at a rate). Both changes
+   are decided at the same time from the states at the start of the step, so seeds are treated as
+   any infected node: a seed without enough infected neighbors (e.g. a seed with no other seed
+   among its neighbors, with a threshold of at least 1) is susceptible again at step 1. A node's
+   own self loops never count as its infected neighbors.
+
+   A run stops when nothing can change any more: no infected node left, or a step in which no
+   node changed state (a fixed point, where every infected node meets its threshold and no
+   susceptible one can be infected). With ``beta = 1`` the dynamics are deterministic and can also
+   end in a cycle of two states (nodes switching back and forth at every step), which the plateau
+   test of :func:`~graphoskop.sis_model` stops (``window``, ``tolerance``), as it stops the
+   endemic regime of a random process.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param beta: Probability, in (0, 1], that a susceptible node meeting its threshold is infected.
+   :param reinforcement: ``"threshold"`` (a count of infected neighbors) or ``"cascade"`` (a share
+      of the in-degree).
+   :param threshold: Count (``"threshold"``) or share (``"cascade"``) of infected neighbors
+      needed, to be infected and to stay infected; one value, or one per node.
+   :param seeds: Number of seed nodes, or a fraction of the nodes if below 1.
+   :param ranking: Node values used to choose the seeds, or ``None`` for random seeds.
+   :param selection: ``"top"`` or ``"weighted"``.
+   :param runs: Number of independent runs.
+   :param max_steps: Largest number of steps of a run.
+   :param component: Index of the component, or ``None`` for the whole network.
+   :param seed: Seed of the random numbers, or ``None``.
+   :param engine: ``"numba"``, ``"torch"`` or ``None``.
+   :param batch: With the torch engine, the number of runs simulated at once, or ``None``.
+   :param attribute: Name of the qualitative node attribute holding the states (``"S"`` or
+      ``"I"``), or ``None``.
+   :param resume: Whether to start from the states in ``attribute`` instead of seeds.
+   :param window: Steps of each window of the plateau test, or ``None`` not to stop at the
+      plateau.
+   :param tolerance: Largest relative difference between the two windows at the plateau.
+   :param immunize: Nodes immunized at step 0, never infected (see
+      :mod:`~graphoskop.epidemics.simple_contagion`): a number of nodes (a fraction of them if
+      below 1), chosen by ``strategy``, or the node ids themselves; ``None`` for none.
+   :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
+      node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
+      attribute) whose largest ones are immunized. Ignored with node ids.
+   :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
+      ``S_high``, ``I``, ``I_low`` and ``I_high``.
+   :raises ValueError: As :func:`~graphoskop.sis_model`, if ``reinforcement`` is not
+      ``"threshold"`` or ``"cascade"``, or the thresholds are not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("contacts.tsv")
+      lost = gsk.complex_nonprogressive_model(net, 1, "threshold", 2, seeds = 10)   # isolated seeds revert
+      held = gsk.complex_nonprogressive_model(net, 1, "cascade", 0.3, seeds = 0.2, ranking = "age")
+      held["I"].iloc[-1]                                                           # share still infected
+   """
+   return _simulate(net, "SIS", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, immunize = immunize, strategy = strategy, revert = True)

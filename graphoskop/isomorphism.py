@@ -53,6 +53,7 @@ import torch
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import maximum_bipartite_matching
 
+from ._policy import _higher_order
 from . import _isomorphism as _k
 from .network import _quiet_sparse
 
@@ -138,18 +139,18 @@ def _arcs(net, edge_attributes):
 
 def _node_values(net, key):
    """
-   Values of a node attribute over all the nodes, in the network wide order, as a NumPy object
-   array; in long format, the set of the values of every node (multi-valued attributes).
+   Values of a node attribute over all the stored nodes, in the network wide order, as a NumPy
+   object array; in long format, the set of the values of every node (multi-valued attributes).
    """
    if key in net.qualitative_node_attributes and net.node_format == "long":
       Q = net.qualitative_node_attr
       Q = Q[(Q["attribute"] == key).to_numpy()]
-      v = np.empty(net.number_of_nodes(), dtype = object)
+      v = np.empty(int(net.node_offsets[-1]), dtype = object)
       v[:] = [frozenset()] * len(v)
       for node, vals in Q.groupby("node", observed = True)["value"]:
          v[node] = frozenset(vals.tolist())
       return v
-   vals = net.get_node_attribute(key, None)
+   vals = [net._node_vector(key, c) for c in range(len(net.components))]   # all stored rows (hyperedges and facets of higher-order networks included)
    if key in net.qualitative_node_attributes:
       return np.concatenate(vals) if vals else np.empty(0, dtype = object)
    return np.concatenate([x.double().cpu().numpy() for x in vals]).astype(object)
@@ -532,6 +533,7 @@ def _run(G, mode, extra, first, limit):
    return len(out), out
 
 
+@_higher_order()
 def is_isomorphic(net1, net2, subgraph = False, induced = True, exact = True, node_attributes = None, edge_attributes = None):
    """
    Whether two networks are isomorphic or, with ``subgraph = True``, whether ``net1`` contains
@@ -596,6 +598,7 @@ def is_isomorphic(net1, net2, subgraph = False, induced = True, exact = True, no
    return _run(G, mode, extra, True, None)[0] > 0
 
 
+@_higher_order()
 def isomorphisms(net1, net2, subgraph = False, induced = True, node_attributes = None, edge_attributes = None, max_matches = None):
    """
    The mappings of the nodes of ``net2`` onto nodes of ``net1`` found by the exact test of

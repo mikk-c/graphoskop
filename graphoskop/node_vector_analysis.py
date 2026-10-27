@@ -1,21 +1,33 @@
 """
-Analysis of vectors defined on the nodes of a network: generalized Euclidean distance, network
-correlation, variance and entropy.
+Analysis of vectors defined on the nodes of a network (graph signals): generalized Euclidean
+distance, annihilation distance, earth mover's distance, network correlation, variance and
+entropy, and the graph Fourier transform.
 
 In multilayer networks, vectors are defined on the copies ``(entity, layer)`` of a component, and
 distances use the supra-Laplacian (see :doc:`laplacians`): this is the multilayer generalized
 Euclidean distance (Coscia, 2022). An attribute given for a whole entity has its value on every
 copy; for the probability distributions of :func:`network_variance` and :func:`network_entropy`,
 this gives more mass to the entities present in more layers.
+
+In hypergraphs and simplicial complexes, vectors are defined on the nodes, and all functions use
+the network of the random walk of Zhou et al. on a hypergraph (``weight`` naming a hyperedge
+attribute), or the 1-skeleton of a complex, as the Laplacians do (see :doc:`laplacians`). Signals
+on the edges, triangles and higher simplices of a complex have their own Hodge decomposition and
+Fourier transform (see :ref:`topological-signals`).
 """
 
+import numpy as np
 import torch
 
+from ._policy import _higher_order
+from ._views import _incidence, _walk_view
 from .network import _quiet_sparse
-from .utils import _vector, effective_resistance, laplacian_pinv, laplacian_solver
+from .utils import _vector, effective_resistance, laplacian, laplacian_pinv, laplacian_solver
 
 
 _BLOCK_ELEMENTS = 2 ** 23   # entries of each n by b (or k by b) block handled at once by the pairwise functions
+
+_DENSE = 2000   # largest component whose Fourier basis is always computed densely
 
 
 class _Attributes:
@@ -125,6 +137,7 @@ def _pairwise(attrs, apply, finish, output_device, output_dtype):
    return out, d
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Generalized Euclidean distance :math:`\\sqrt{(a - b)^H L^+ (a - b)}` between two node vectors,
@@ -167,6 +180,8 @@ def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse 
       d = gsk.generalized_euclidean(net, x, y, lpinv = lp)      # vectors, cached pseudoinverse
       ds = gsk.generalized_euclidean(net, "age", component = None)
    """
+   if not ((callable(lpinv) or (sparse and lpinv is None)) and _incidence(net, weight)):   # a solver on the incidence matrix needs no walk network
+      net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [generalized_euclidean(net, pick(a, c), pick(b, c), c, pick(lpinv, c), sparse, weight, kind, q, alpha) for c in range(len(net.components))]
@@ -187,6 +202,7 @@ def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse 
    return float(v.sqrt())
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = None, weight = None, kind = "out", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64):
    """
    Generalized Euclidean distances between all pairs of node attributes.
@@ -234,6 +250,7 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
       D = gsk.pairwise_generalized_euclidean(net, weight = "weight")
       D = gsk.pairwise_generalized_euclidean(net, weight = "weight", output_device = "cpu")
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [pairwise_generalized_euclidean(net, c, pick(lpinv, c), sparse, weight, kind, q, alpha, output_device, output_dtype) for c in range(len(net.components))]
@@ -259,6 +276,7 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
    return D
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Network Pearson correlation (Coscia, 2021; Coscia and Devriendt, 2024,
@@ -316,6 +334,7 @@ def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None,
       W = torch.exp(-2 * gsk.effective_resistance(net))         # cached weights, k = 2
       r = gsk.network_correlation(net, "age", "height", W = W)
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [network_correlation(net, pick(a, c), pick(b, c), c, pick(W, c), k, pick(lpinv, c), weight, kind, q, alpha) for c in range(len(net.components))]
@@ -327,6 +346,7 @@ def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None,
    return float(G[0, 1] / (G[0, 0] * G[1, 1]).sqrt())
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64):
    """
    Network Pearson correlations between all pairs of node attributes.
@@ -366,6 +386,7 @@ def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = No
       C = gsk.pairwise_network_correlation(net, weight = "weight")
       C = gsk.pairwise_network_correlation(net, weight = "weight", output_device = "cpu")
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [pairwise_network_correlation(net, c, pick(W, c), k, pick(lpinv, c), weight, kind, q, alpha, output_device, output_dtype) for c in range(len(net.components))]
@@ -397,6 +418,7 @@ def _distribution(net, component, a, name):
    return p / p.sum()
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def network_variance(net, a, component = 0, R = None, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Network variance of a node vector interpreted as a probability distribution (Devriendt,
@@ -444,6 +466,7 @@ def network_variance(net, a, component = 0, R = None, lpinv = None, weight = Non
       R = gsk.effective_resistance(net)
       v = gsk.network_variance(net, "income", R = R)       # cached resistances
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [network_variance(net, pick(a, c), c, pick(R, c), pick(lpinv, c), weight, kind, q, alpha) for c in range(len(net.components))]
@@ -453,6 +476,7 @@ def network_variance(net, a, component = 0, R = None, lpinv = None, weight = Non
    return float(p @ (R @ p.to(R.dtype)).double() / 2)
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Network entropy of a node vector interpreted as a probability distribution:
@@ -502,6 +526,7 @@ def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight
       net = gsk.load_network("edges.tsv", "nodes.tsv")
       h = gsk.network_entropy(net, "population")
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [network_entropy(net, pick(a, c), c, pick(W, c), k, pick(lpinv, c), weight, kind, q, alpha) for c in range(len(net.components))]
@@ -511,3 +536,481 @@ def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight
    s = (W @ p.to(W.dtype)).double()
    m = p != 0
    return float(-(p[m] * s[m].log()).sum()) + 0.0   # + 0.0 turns -0.0 into 0.0
+
+
+def _signals(net, component, a):
+   """
+   Node vector, matrix of node vectors (one column per signal), or list of node attributes stacked
+   as columns.
+   """
+   if isinstance(a, (list, tuple)):
+      return torch.stack([_vector(net, component, x) for x in a], 1)
+   return _vector(net, component, a)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+   """
+   Graph Fourier basis: the eigenvalues (frequencies) and eigenvectors (Fourier modes) of the
+   Laplacian, :math:`L = U \\Lambda U^H`, in increasing order of frequency (Shuman, Narang,
+   Frossard, Ortega and Vandergheynst, 2013). Low frequencies vary little across edges (the
+   first one, 0, is constant on a connected undirected network), high frequencies change sign
+   between neighbors. Used by :func:`graph_fourier_transform` and
+   :func:`inverse_graph_fourier_transform`; compute it once and pass it as their ``basis`` to
+   transform many signals.
+
+   The Laplacian must be Hermitian: undirected, or ``kind = "magnetic"`` or ``"chung"`` on
+   directed networks (see :func:`~graphoskop.laplacian`; the magnetic one has complex modes). With
+   ``normalized``, the Laplacian is :math:`D^{-1 / 2} L D^{-1 / 2}` (with :math:`D` its diagonal),
+   e.g. :math:`I - D^{-1 / 2} A D^{-1 / 2}` on undirected networks, whose frequencies are between 0
+   and 2.
+
+   With ``k = None``, all ``n`` modes, from a dense eigendecomposition on the device of the
+   network (:math:`O(n^3)` time, :math:`n^2` memory: up to some tens of thousands of nodes on a
+   GPU). With ``k``, only the ``k`` lowest frequencies: dense if ``n`` is up to 2,000 or ``k`` more
+   than a quarter of ``n``, otherwise sparse (Lanczos, on the CPU, with ``n k`` memory), for large
+   networks. The phase of every mode is fixed (its largest entry, in modulus, is real and
+   positive), so the basis is reproducible; modes of repeated frequencies are any orthonormal basis
+   of their eigenspace. Computed in double precision.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param component: Index of the component (0 is the largest), or ``None`` for all components
+      (returns a list).
+   :param k: Number of modes (lowest frequencies), or ``None`` for all.
+   :param normalized: Whether to use the normalized Laplacian.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"`` (``"out"`` is not
+      Hermitian).
+   :param q: Charge of the magnetic Laplacian.
+   :param alpha: Teleportation probability of the Chung Laplacian.
+   :return: ``(frequencies, modes)``: vector of length ``k`` and ``n`` by ``k`` matrix (one mode per
+      column), or a list of them if ``component`` is ``None``.
+   :raises ValueError: If the Laplacian is not Hermitian or ``k`` is not between 1 and ``n``.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      freq, U = gsk.graph_fourier_basis(net)                     # all modes
+      freq, U = gsk.graph_fourier_basis(net, k = 100, normalized = True)
+   """
+   if k is not None and _incidence(net, weight):   # large hyperedges: Lanczos on the incidence matrix (see set_hypergraph_route)
+      if component is None:
+         return [graph_fourier_basis(net, c, k, normalized, weight, kind, q, alpha) for c in range(len(net.components))]
+      n = net.number_of_nodes(component)
+      if not 1 <= int(k) <= n:
+         raise ValueError(f"graph_fourier_basis: k must be between 1 and {n}, got {k}")
+      if n > _DENSE and 4 * int(k) <= n:
+         return _incidence_basis(net, component, int(k), normalized, weight)
+   net, weight = _walk_view(net, weight)
+   if component is None:
+      return [graph_fourier_basis(net, c, k, normalized, weight, kind, q, alpha) for c in range(len(net.components))]
+   if net.directed and kind == "out":
+      raise ValueError("graph_fourier_basis: the out-degree Laplacian is not Hermitian, use kind = 'magnetic' or 'chung'")
+   L = None
+   if k is not None:
+      try:
+         L = laplacian(net, component, weight, kind, q, alpha, sparse = True)
+      except ValueError:   # dense Chung Laplacian
+         pass
+      if L is not None and (L.shape[0] <= _DENSE or 4 * k > L.shape[0]):
+         L = None
+   dense = L is None
+   if dense:
+      L = laplacian(net, component, weight, kind, q, alpha)
+   n = L.shape[0]
+   k = n if k is None else int(k)
+   if not 1 <= k <= n:
+      raise ValueError(f"graph_fourier_basis: k must be between 1 and {n}, got {k}")
+   dev = L.device
+   if dense:
+      L = L.to(torch.complex128 if L.is_complex() else torch.float64)
+      if normalized:
+         h = _inv_sqrt(L.diagonal().real)
+         L = h[:, None] * L * h[None]
+      val, vec = torch.linalg.eigh(L)
+      val, vec = val[:k], vec[:, :k]
+   else:
+      import scipy.sparse as sp
+      from scipy.sparse.linalg import eigsh
+      x = L.values().cpu().numpy()
+      S = sp.csr_matrix((x.astype(np.complex128 if np.iscomplexobj(x) else np.float64), L.col_indices().cpu().numpy(), L.crow_indices().cpu().numpy()), shape = (n, n))
+      if normalized:
+         h = _inv_sqrt(torch.as_tensor(S.diagonal().real)).numpy()
+         S = sp.diags(h) @ S @ sp.diags(h)
+      top = float(abs(S).sum(1).max()) * 1.001 + 1e-12   # bound on the largest frequency
+      val, vec = eigsh(top * sp.identity(n, dtype = S.dtype, format = "csr") - S, k = k, which = "LA", v0 = np.random.default_rng(0).normal(size = n).astype(S.dtype))
+      order = np.argsort(-val)
+      val, vec = torch.as_tensor(top - val[order], device = dev), torch.as_tensor(vec[:, order], device = dev)
+   big = vec.abs().argmax(0)
+   p = vec[big, torch.arange(vec.shape[1], device = dev)]
+   return val, vec * torch.where(p == 0, 1, p / p.abs().clamp(min = 1e-300)).conj()
+
+
+def _incidence_basis(net, component, k, normalized, weight):
+   """
+   The ``k`` lowest Fourier modes of a component of a hypergraph, by Lanczos with products with its
+   incidence matrix (see :func:`graph_fourier_basis` and :func:`~graphoskop.set_hypergraph_route`).
+   """
+   from scipy.sparse.linalg import LinearOperator, eigsh
+   from .higher_order import _incidence_operator
+   n, mv, diag, _, _ = _incidence_operator(net, component, weight)
+   dev = diag.device
+   h = _inv_sqrt(diag) if normalized else torch.ones_like(diag)
+   top = (2. if normalized else 2 * float(diag.max())) * 1.001 + 1e-12   # bound on the largest frequency
+   op = lambda x: top * x - (h[:, None] * mv(h[:, None] * torch.as_tensor(np.asarray(x).reshape(n, -1), device = dev))).cpu().numpy().reshape(np.shape(x))   # top I - D^-1/2 L D^-1/2 (normalized) or top I - L
+   val, vec = eigsh(LinearOperator((n, n), matvec = op, dtype = np.float64), k = k, which = "LA", v0 = np.random.default_rng(0).normal(size = n))
+   order = np.argsort(-val)
+   val, vec = torch.as_tensor(top - val[order], device = dev), torch.as_tensor(vec[:, order], device = dev)
+   big = vec.abs().argmax(0)
+   p = vec[big, torch.arange(vec.shape[1], device = dev)]
+   return val, vec * torch.where(p == 0, 1, p / p.abs().clamp(min = 1e-300)).conj()
+
+
+def _inv_sqrt(d):
+   """:math:`1 / \\sqrt{d}`, with 0 where ``d`` is 0."""
+   return torch.where(d > 0, d.clamp(min = 1e-300).rsqrt(), 0.)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def graph_fourier_transform(net, a, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+   """
+   Graph Fourier transform of a signal on the nodes, :math:`\\hat{a} = U^H a`: its coefficients on
+   the Fourier modes of :func:`graph_fourier_basis`, from the lowest frequency to the highest. A
+   signal that varies little across edges (smooth) has most of its energy in the first
+   coefficients; :math:`\\sum_l \\lambda_l |\\hat{a}_l|^2 = a^H L a` is its total variation. With
+   all ``n`` modes the transform is invertible (:func:`inverse_graph_fourier_transform`) and keeps
+   the norm (Parseval); with ``k`` modes, it gives the ``k`` lowest frequencies only.
+
+   ``basis`` (from :func:`graph_fourier_basis`) is used as given; if ``None``, it is computed with
+   ``k``, ``normalized`` and the Laplacian arguments (see there). Pass it to transform many
+   signals. Missing values (NaN) make all coefficients of their signal NaN.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param a: Node attribute (position in ``net.node_attributes`` or name), list of node
+      attributes, vector of length ``n`` or ``n`` by ``s`` matrix of ``s`` signals
+      (:class:`numpy.ndarray` or :class:`torch.Tensor`).
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      With ``None``, vectors and ``basis`` are given as lists with one entry per component.
+   :param basis: ``(frequencies, modes)`` from :func:`graph_fourier_basis`, or ``None``.
+   :param k: Number of modes, if ``basis`` is ``None`` (``None`` for all).
+   :param normalized: Whether to use the normalized Laplacian, if ``basis`` is ``None``.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"``.
+   :param q: Charge of the magnetic Laplacian.
+   :param alpha: Teleportation probability of the Chung Laplacian.
+   :return: Coefficients: vector of length ``k`` (or ``k`` by ``s`` matrix), in double precision
+      (complex for the magnetic Laplacian), on the device of the network; or a list of them if
+      ``component`` is ``None``. The frequencies are ``basis[0]``.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      freq, U = basis = gsk.graph_fourier_basis(net)
+      c = gsk.graph_fourier_transform(net, "income", basis = basis)
+      C = gsk.graph_fourier_transform(net, ["income", "age"], basis = basis)   # one column each
+      low = (c[:10] ** 2).sum() / (c ** 2).sum()                   # energy in the 10 lowest frequencies
+   """
+   if not (_incidence(net, weight) and (basis is not None or k is not None)):   # the basis on the incidence matrix needs no walk network
+      net, weight = _walk_view(net, weight)
+   if component is None:
+      each = isinstance(a, list) and len(a) > 0 and not isinstance(a[0], (str, int, np.integer))   # one signal per component
+      return [graph_fourier_transform(net, a[c] if each else a, c, basis[c] if isinstance(basis, list) else basis, k, normalized, weight, kind, q, alpha) for c in range(len(net.components))]
+   if basis is None:
+      basis = graph_fourier_basis(net, component, k, normalized, weight, kind, q, alpha)
+   U = basis[1]
+   x = _signals(net, component, a)
+   if x.shape[0] != U.shape[0]:
+      raise ValueError(f"graph_fourier_transform: the signal has {x.shape[0]} entries, the component {U.shape[0]} nodes")
+   return U.mH @ x.to(U.dtype)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+   """
+   Inverse graph Fourier transform, :math:`a = U \\hat{a}`: the signal on the nodes with the given
+   coefficients on the Fourier modes of :func:`graph_fourier_basis`. With all ``n`` modes, it
+   recovers the signal of :func:`graph_fourier_transform`; with ``k`` modes, its projection on the
+   ``k`` lowest frequencies (a low pass filter). Changing the coefficients in between filters the
+   signal, e.g. ``h(freq) * c`` for a filter ``h``.
+
+   ``basis`` is used as given, or computed as in :func:`graph_fourier_transform`; its number of
+   modes must match the number of coefficients.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param coefficients: Vector of ``k`` coefficients, or ``k`` by ``s`` matrix of ``s`` signals
+      (:class:`numpy.ndarray` or :class:`torch.Tensor`).
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      With ``None``, coefficients and ``basis`` are given as lists with one entry per component.
+   :param basis: ``(frequencies, modes)`` from :func:`graph_fourier_basis`, or ``None``.
+   :param k: Number of modes, if ``basis`` is ``None`` (``None`` for all).
+   :param normalized: Whether to use the normalized Laplacian, if ``basis`` is ``None``.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"``.
+   :param q: Charge of the magnetic Laplacian.
+   :param alpha: Teleportation probability of the Chung Laplacian.
+   :return: Node vector of length ``n`` (or ``n`` by ``s`` matrix) in double precision, real
+      unless the modes are complex, on the device of the network; or a list of them if
+      ``component`` is ``None``. Store it with :meth:`~graphoskop.Network.set_node_attribute`.
+   :raises ValueError: If the number of coefficients is not the number of modes.
+
+   Example:
+
+   .. code-block:: python
+
+      import torch
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      freq, U = basis = gsk.graph_fourier_basis(net)
+      c = gsk.graph_fourier_transform(net, "income", basis = basis)
+      smooth = gsk.inverse_graph_fourier_transform(net, c * (freq < 0.5), basis = basis)
+      heat = gsk.inverse_graph_fourier_transform(net, c * torch.exp(-2 * freq), basis = basis)
+   """
+   if not (_incidence(net, weight) and (basis is not None or k is not None)):   # the basis on the incidence matrix needs no walk network
+      net, weight = _walk_view(net, weight)
+   if component is None:
+      return [inverse_graph_fourier_transform(net, coefficients[c], c, basis[c] if isinstance(basis, list) else basis, k, normalized, weight, kind, q, alpha) for c in range(len(net.components))]
+   if basis is None:
+      basis = graph_fourier_basis(net, component, k, normalized, weight, kind, q, alpha)
+   U = basis[1]
+   c = torch.as_tensor(coefficients, device = U.device)
+   if c.shape[0] != U.shape[1]:
+      raise ValueError(f"inverse_graph_fourier_transform: {c.shape[0]} coefficients for {U.shape[1]} modes")
+   return U @ c.to(U.dtype)
+
+
+def _masses(x, y, normalize, name):
+   """
+   Two non negative NumPy vectors rescaled to the same total mass: both to 1 (``True``), to the
+   smaller (``"min"``) or larger (``"max"``) of their sums, or checked to be equal (``False``).
+
+   :raises ValueError: If a vector has negative entries, sums to zero when rescaled, the sums differ
+      with ``False``, or ``normalize`` is not valid.
+   """
+   if (x < 0).any() or (y < 0).any():
+      raise ValueError(f"{name}: the vectors have negative entries, so they are not masses")
+   if normalize not in (True, False, "min", "max"):
+      raise ValueError(f"{name}: normalize must be True, False, 'min' or 'max', got {normalize!r}")
+   if normalize is not False:
+      if x.sum() == 0 or y.sum() == 0:
+         raise ValueError(f"{name}: a vector sums to zero, so it cannot be normalized")
+      t = 1. if normalize is True else (min if normalize == "min" else max)(x.sum(), y.sum())
+      return x * (t / x.sum()), y * (t / y.sum())
+   if not np.isclose(x.sum(), y.sum(), rtol = 1e-9, atol = 0):
+      raise ValueError(f"{name}: the vectors sum to {x.sum()} and {y.sum()}: use normalize = True")
+   return x, y
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def earth_movers_distance(net, a, b, component = 0, weight = None, inverse = False, normalize = True, flow = False):
+   """
+   Earth mover's distance between two node vectors: the least total cost of moving the mass of
+   ``a`` (the amount on every node) so that it becomes ``b``, moving a unit of mass from node
+   :math:`i` to node :math:`j` costing the length of the shortest path between them (Wasserstein-1
+   distance with the shortest path metric).
+
+   On a network, the optimal transport moves mass along edges, so the distance is the minimum cost
+   flow :math:`\\min_f \\sum_e l_e f_e` subject to :math:`f \\geq 0` and, for every node, inflow
+   minus outflow :math:`= b_i - a_i` (Beckmann's formulation): a sparse linear program with one
+   variable per edge, instead of one per pair of nodes, solved exactly with HiGHS (on the CPU). On
+   directed networks mass moves only along the direction of the edges, and the distance is
+   infinite if some mass cannot reach where it is needed; undirected edges carry mass both ways.
+   Self loops are ignored. In multilayer networks, mass moves between copies through couplings,
+   which cost their length like any edge.
+
+   The solver takes about a second on 10,000 nodes and 30,000 edges, and one to two minutes on
+   100,000 nodes and 300,000 edges (one call, without a progress bar).
+
+   ``normalize`` makes the two masses equal: ``True`` rescales both vectors to sum to 1
+   (probability distributions: the distance is then an average path length); ``"min"`` rescales the
+   vector with the larger sum to the smaller sum, and ``"max"`` the one with the smaller sum to the
+   larger sum (keeping the units of the vectors: the distance is in units of mass times length);
+   with ``False``, the sums must already be equal.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param a: Node attribute (position in ``net.node_attributes`` or name), or vector of length
+      ``n`` (:class:`numpy.ndarray` or :class:`torch.Tensor`), with non negative entries.
+   :param b: Second node vector, same modalities as ``a``.
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      With ``None``, vectors are given as lists with one entry per component (or as attributes).
+   :param weight: Name of the edge attribute used as edge length, or ``None`` for unit lengths.
+   :param inverse: Use the reciprocal of ``weight`` as length (for weights measuring proximity, a
+      zero weight then being no edge).
+   :param normalize: ``True`` (both to sum 1), ``"min"`` (both to the smaller sum), ``"max"``
+      (both to the larger sum) or ``False`` (no rescaling).
+   :param flow: Whether to return the optimal transport too.
+   :return: Distance (``inf`` if impossible, NaN if a vector has missing values); with ``flow``,
+      ``(distance, flows)``: the mass moved along every edge of the component, from its source to
+      its target, as a vector aligned with the edges (store it with
+      :meth:`~graphoskop.Network.set_edge_attribute`). A list of them if ``component`` is ``None``.
+   :raises ValueError: If a vector has negative entries, sums to zero with ``normalize``, the sums
+      differ without it, ``normalize`` is not valid, or some lengths are negative.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      d = gsk.earth_movers_distance(net, "supply", "demand")
+      d, f = gsk.earth_movers_distance(net, "supply", "demand", weight = "km", flow = True)
+      d = gsk.earth_movers_distance(net, "supply", "demand", normalize = "max")   # demand to the supply total
+      net.set_edge_attribute("shipped", f)
+   """
+   net, weight = _walk_view(net, weight)
+   if component is None:
+      pick = lambda x, c: x[c] if isinstance(x, list) else x
+      return [earth_movers_distance(net, pick(a, c), pick(b, c), c, weight, inverse, normalize, flow) for c in range(len(net.components))]
+   import scipy.sparse as sp
+   from scipy.optimize import linprog
+   from .shortest_paths import _lengths
+   d = net.components[component]
+   u, v = d.edge_index.cpu().numpy()
+   x, y = (_vector(net, component, z).double().cpu().numpy() for z in (a, b))
+   if len(x) != d.num_nodes or len(y) != d.num_nodes:
+      raise ValueError(f"earth_movers_distance: the vectors must have {d.num_nodes} entries")
+   f = np.zeros(len(u))
+   out = lambda dist, f: (dist, torch.as_tensor(f, device = d.edge_index.device)) if flow else dist
+   if np.isnan(x).any() or np.isnan(y).any():
+      return out(float("nan"), f * np.nan)
+   x, y = _masses(x, y, normalize, "earth_movers_distance")
+   if x.sum() == 0:
+      return out(0., f)
+   s = len(x) / x.sum()   # masses of 1 on average, for the tolerances of the solver
+   w = _lengths(net, component, weight, inverse)
+   keep = (u != v) & np.isfinite(w)
+   e = np.arange(keep.sum())
+   A = sp.csr_matrix((np.r_[-np.ones(len(e)), np.ones(len(e))], (np.r_[u[keep], v[keep]], np.r_[e, e])), shape = (len(x), len(e)))
+   res = linprog(w[keep], A_eq = A, b_eq = (y - x) * s, bounds = (0, None), method = "highs")
+   if res.status == 2:   # infeasible: some mass cannot reach its destination
+      return out(float("inf"), f * np.nan)
+   if res.status != 0:
+      raise RuntimeError(f"earth_movers_distance: the solver failed ({res.message})")
+   f[keep] = res.x / s
+   return out(float(res.fun / s), f)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def annihilation_distance(net, a, b, component = 0, F = None, sparse = None, weight = None, alpha = 0., normalize = True, tol = 1e-10):
+   """
+   Annihilation distance between two node vectors (Coscia, Gomez-Lievano, McNerney and Neffke,
+   2020, section 3.1.3): the mass of ``a`` spreads by random walks with positive sign, the mass of
+   ``b`` with negative sign, and wherever they meet they annihilate. After :math:`k` steps the net
+   mass is :math:`W^k (a - b)`, which vanishes as both reach the stationary distribution: the
+   faster, the closer the vectors. The distance is the norm of the net mass summed over all steps,
+
+   .. math::
+
+      \\delta(a, b) = \\| S \\|_2, \\quad S = \\sum_{k \\geq 0} W^k (a - b) = F (a - b),
+
+   with :math:`W` the column stochastic transition matrix of the walk (:math:`W_{ji}` the
+   probability of a step from :math:`i` to :math:`j`, i.e. :math:`E D^{-1}` on undirected
+   networks) and :math:`F = (I - W + W^\\infty)^{-1}` its fundamental matrix (see
+   :func:`~graphoskop.fundamental_matrix`), so :math:`\\delta = \\sqrt{(a - b)^T F^T F (a - b)}`.
+   It is a metric on vectors of equal mass (the norm of an invertible linear map).
+
+   The paper writes the step as :math:`P a` with the row stochastic :math:`P = D^{-1} E`; for the
+   mass to move along the edges and :math:`P^k a` to reach the stationary distribution (as the paper
+   states), the step must be :math:`P^T a = W a`, which is used here (the two agree on regular
+   networks). The series converges only if the two vectors have the same mass (otherwise the net
+   mass tends to a multiple of the stationary distribution and the sum grows without bound), so
+   they are rescaled by ``normalize`` as in :func:`earth_movers_distance`; and only on aperiodic
+   walks: on periodic ones (bipartite networks without teleportation, e.g. a chain) the closed form
+   is the Cesaro limit of the series. On undirected networks :math:`(a - b)^T D^{-1} F (a - b)` is
+   exactly :math:`(a - b)^T L^+ (a - b)`, the square of :func:`generalized_euclidean`: the
+   annihilation distance weighs the same summed net mass :math:`S` without dividing it by the
+   degree. In the chain test of the paper (all the mass at one end, then at the other) it is not
+   :math:`\\sqrt{n - 1}` (the generalized Euclidean distance) but grows faster: 4.0, 14.4 and 46.0
+   for chains of 5, 10 and 20 nodes.
+
+   :math:`F` is used as given in ``F`` (from :func:`~graphoskop.fundamental_matrix`; pass it to
+   reuse it across many pairs of vectors), or computed densely (``sparse = False``), or :math:`S`
+   is obtained without any ``n`` by ``n`` matrix (``sparse = True``): on undirected networks
+   without teleportation, exactly as :math:`S = D L^+ \\delta - \\pi \\, d^T L^+ \\delta` (with
+   :math:`\\delta = a - b`, :math:`d` the strengths and :math:`\\pi = d / \\sum_i d_i`), with the
+   conjugate gradient of :func:`~graphoskop.laplacian_solver` on the device of the network;
+   otherwise with GMRES on the CPU, which needs many iterations if the walk mixes slowly (long
+   directed chains or cycles without teleportation). By default (``sparse = None``), dense up to
+   2,000 nodes, sparse above. On two CPU threads, sparse takes about 0.05 seconds on 5,000 nodes
+   and 15,000 edges (0.4 seconds on a chain of 3,000 nodes) and 0.7 seconds on 100,000 nodes and
+   300,000 edges, dense 4 seconds on 5,000 nodes. The walk must have a unique stationary distribution (see
+   :func:`~graphoskop.fundamental_matrix`).
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param a: Node attribute (position in ``net.node_attributes`` or name), or vector of length
+      ``n`` (:class:`numpy.ndarray` or :class:`torch.Tensor`), with non negative entries.
+   :param b: Second node vector, same modalities as ``a``.
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      With ``None``, vectors and ``F`` are given as lists with one entry per component.
+   :param F: Cached fundamental matrix, or ``None``.
+   :param sparse: Use GMRES (``True``) or the dense fundamental matrix (``False``) when ``F`` is
+      ``None``; ``None`` to choose by size.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param alpha: Teleportation probability of the walk (needed on directed networks that are not
+      strongly connected).
+   :param normalize: ``True`` (both to sum 1), ``"min"`` (both to the smaller sum), ``"max"``
+      (both to the larger sum) or ``False`` (sums already equal).
+   :param tol: Relative tolerance of GMRES.
+   :return: Distance, or list of distances if ``component`` is ``None``; NaN if a vector has
+      missing values.
+   :raises ValueError: If a vector has negative entries, the masses cannot be made equal, or the
+      walk has no unique stationary distribution.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      d = gsk.annihilation_distance(net, "y2000", "y2010")
+      F = gsk.fundamental_matrix(net)
+      ds = [gsk.annihilation_distance(net, x, y, F = F) for x, y in pairs]   # cached
+      d = gsk.annihilation_distance(big, "y2000", "y2010", sparse = True)
+   """
+   net, weight = _walk_view(net, weight)
+   if component is None:
+      pick = lambda x, c: x[c] if isinstance(x, list) else x
+      return [annihilation_distance(net, pick(a, c), pick(b, c), c, pick(F, c), sparse, weight, alpha, normalize, tol) for c in range(len(net.components))]
+   from .utils import _single_class, _transition, fundamental_matrix
+   dev = net.components[component].edge_index.device
+   x, y = (_vector(net, component, z).double().cpu().numpy() for z in (a, b))
+   if np.isnan(x).any() or np.isnan(y).any():
+      return float("nan")
+   x, y = _masses(x, y, normalize, "annihilation_distance")
+   delta = torch.as_tensor(x - y, device = dev)
+   if sparse is None:
+      sparse = net.components[component].num_nodes > _DENSE
+   if F is not None or not sparse:
+      F = fundamental_matrix(net, component, weight, alpha) if F is None else F
+      return float(torch.linalg.vector_norm(F @ delta.to(F.dtype)))
+   import scipy.sparse as sps
+   from scipy.sparse.linalg import LinearOperator, gmres
+   W0, j, d = _transition(net, component, weight, alpha)
+   _single_class(net, component, d, alpha)
+   if not net.directed and alpha == 0:   # S = D L^+ delta - pi (d^T L^+ delta), by conjugate gradient
+      y = laplacian_solver(net, component, weight, tol = tol)(delta)
+      return float(torch.linalg.vector_norm(d * y - d * (d @ y) / d.sum()))
+   n = W0.shape[0]
+   i = W0.indices().cpu().numpy()
+   A = sps.csr_matrix((W0.values().cpu().numpy(), (i[0], i[1])), shape = (n, n))
+   j = j.cpu().numpy()
+
+   def solve(u, rhs):   # (I - W + u 1^T)^{-1} rhs
+      M = LinearOperator((n, n), matvec = lambda v: v - A @ v - (j @ v) / n + u * v.sum(), dtype = np.float64)
+      x, info = gmres(M, rhs, rtol = tol, atol = 0, restart = 100, maxiter = 10 * n)
+      if info != 0:
+         raise RuntimeError("annihilation_distance: GMRES did not converge")
+      return x
+
+   pi = solve(np.full(n, 1 / n), np.full(n, 1 / n))   # exact also on periodic walks, unlike power iteration
+   return float(np.linalg.norm(solve(pi, delta.cpu().numpy())))

@@ -21,6 +21,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from ._policy import _higher_order
 from .network import LAYER, _quiet_sparse
 from .multilayer import _tables, _flat_tables, _rebuild, _entity_nodes
 from .network_statistics import _skeleton, _paths
@@ -51,6 +52,7 @@ def _conflicts(edges, signs, directed):
       raise ValueError(f"{len(both)} edges are both positive and negative, e.g. {example}")
 
 
+@_higher_order()
 def signed_network(net, positive = None, negative = None, weight = None, threshold = 0, sign = SIGN):
    """
    Signed network, from two layers of a multilayer network or by thresholding an edge attribute.
@@ -154,6 +156,7 @@ def _signed_edges(net, component, sign):
    return key // n, key % n, hi.to(torch.int8)
 
 
+@_higher_order()
 def signed_adjacency(net, component = 0, sign = SIGN):
    """
    Signed adjacency matrix of a component of a signed network.
@@ -325,6 +328,7 @@ def _null_moments(patterns, edges, negative, total, share, flips):
    return float(total * p), float(var)
 
 
+@_higher_order()
 def signed_triangle_counts(net, component = None, sign = SIGN, batch_size = 2 ** 22):
    """
    Number of triangles of each sign pattern, compared with randomly shuffled signs.
@@ -485,6 +489,7 @@ def _trace_exp(s, t, v, n, beta, probes, steps, batch_size, tr3):
    return shift, (n + beta ** 2 * tr2 / 2 + beta ** 3 * tr3 / 6) * np.exp(-shift) + rest
 
 
+@_higher_order()
 def structural_balance(net, component = None, sign = SIGN, beta = None, exact = None, samples = 60, steps = 40, seed = 0, batch_size = 2 ** 22):
    """
    Structural balance of a signed network, over its triangles or over all its closed walks.

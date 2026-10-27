@@ -3,11 +3,17 @@ Graph neural networks: node attributes predicted from the other node attributes 
 with the layers of PyTorch Geometric. Four models share the same parameters and output:
 :func:`gcn` (graph convolutions), :func:`graphsage` (own features kept apart from the mean of the
 neighbors'), :func:`gat` and :func:`gatv2` (attention weighted averages of the neighbors).
-:func:`node2vec`, :func:`laplacian_eigenmaps` and :func:`locally_linear_embedding` are shallow
-embeddings instead: unsupervised, they give one vector per node from the structure alone, with
-no target and no features, learned from random walks or computed as eigenvectors.
+:func:`gae` and :func:`vgae`, graph autoencoders, learn node vectors without a target, from the
+node attributes and the edges, by reconstructing the edges.
+:func:`node2vec`, :func:`struc2vec`, :func:`metapath2vec`, :func:`laplacian_eigenmaps` and
+:func:`locally_linear_embedding` are shallow embeddings instead: unsupervised, they give one vector
+per node from the structure alone, with no target and no features, learned from random walks
+(similar vectors for nearby nodes, for nodes with similar roles with :func:`struc2vec`, or along
+chains of node types with :func:`metapath2vec`) or computed as eigenvectors.
 :func:`diffpool` gives one vector per graph (per component), pooling the nodes of each graph into
-clusters, with or without a graph attribute to predict.
+clusters, with or without a graph attribute to predict. On hypergraphs and simplicial complexes,
+:func:`hgnn` predicts node attributes through the hyperedges (or facets), and :func:`scnn` predicts
+attributes of the edges, triangles... of a complex, with the same parameters and output.
 
 A model is a stack of graph convolution layers, given by the number of output channels of each
 layer: ``[32, 16, 2]`` is three layers, from the input features to 32, then 16, then 2 channels,
@@ -31,15 +37,18 @@ without a target are predicted too. The whole network is one graph: all componen
 (GPU if there).
 """
 
+import contextlib
 import math
+import random
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn.functional as F
 
+from ._policy import _higher_order
 from .isomorphism import _node_values
-from .network import _quiet_sparse
+from .network import BIPARTITE, _quiet_sparse
 from .progress import _bar
 
 #: Activations by name.
@@ -81,7 +90,24 @@ def _dummies(net, a):
    return pairs[0], pairs[1], [f"{a}={v}" for v in values]
 
 
-def _features(net, target, features, qualitative, standardize):
+@contextlib.contextmanager
+def _deterministic(dev, seed):
+   """
+   Deterministic algorithms of PyTorch while training on the CPU with a seed, so that runs repeat
+   exactly (parallel sparse products otherwise sum in varying orders); the caller's setting is
+   restored after. On a GPU, where they can need extra configuration, results repeat up to
+   rounding.
+   """
+   before, warn = torch.are_deterministic_algorithms_enabled(), torch.is_deterministic_algorithms_warn_only_enabled()
+   if seed is not None and dev.type == "cpu":
+      torch.use_deterministic_algorithms(True)
+   try:
+      yield
+   finally:
+      torch.use_deterministic_algorithms(before, warn_only = warn)
+
+
+def _features(net, target, features, qualitative, standardize, rows = None):
    """
    Feature matrix of all the nodes, in the network wide order, built on the device of the network:
    dense, or sparse CSR when the dense matrix would have more than :data:`_SPARSE` entries and
@@ -90,9 +116,17 @@ def _features(net, target, features, qualitative, standardize):
    attribute. Standardized numeric attributes have zero mean and unit variance in a dense matrix;
    in a sparse one they are only scaled to unit variance, so that zeros stay zeros.
 
+   :param rows: Network wide positions of the rows to keep (the nodes of a hypergraph or
+      simplicial complex, without its hyperedges or facets), or ``None`` for all.
    :return: ``(x, names)``: float32 tensor and column names.
    """
-   dev, n = net.components[0].edge_index.device, net.number_of_nodes()
+   dev, n = net.components[0].edge_index.device, int(net.node_offsets[-1])
+   pos = None
+   if rows is not None:   # position of every stored row among the kept ones, -1 if dropped
+      rows = torch.as_tensor(rows, device = dev)
+      pos = torch.full((n,), -1, dtype = torch.long, device = dev)
+      pos[rows] = torch.arange(len(rows), device = dev)
+      n = len(rows)
    keep = [j for j, a in enumerate(net.node_attributes) if a != target and (features is None or a in features)]
    new = torch.full((len(net.node_attributes),), -1, dtype = torch.long, device = dev)
    new[keep] = torch.arange(len(keep), device = dev)
@@ -106,13 +140,17 @@ def _features(net, target, features, qualitative, standardize):
          m = c >= 0
          parts.append((C.indices()[0][m] + int(o), c[m], C.values()[m].double()))
       r, c, v = (torch.cat([p[q] for p in parts]) for q in range(3)) if parts else (torch.zeros(0, dtype = torch.long, device = dev),) * 2 + (torch.zeros(0, dtype = torch.float64, device = dev),)
+      if pos is not None:
+         r = pos[r]
+         r, c, v = r[r >= 0], c[r >= 0], v[r >= 0]
       bad = torch.isnan(v)
       tot = torch.zeros(k, dtype = torch.float64, device = dev).index_add_(0, c[~bad], v[~bad])
       mean = tot / (n - torch.bincount(c[bad], minlength = k)).clamp(min = 1)
       v = torch.where(bad, mean[c], v)
       dense = None
    else:
-      dense = torch.cat([d.node_attr[:, keep] for d in net.components]).double() if k else torch.zeros((n, 0), dtype = torch.float64, device = dev)
+      dense = torch.cat([d.node_attr[:, keep] for d in net.components]).double() if k else torch.zeros((int(net.node_offsets[-1]), 0), dtype = torch.float64, device = dev)
+      dense = dense if rows is None else dense[rows]
       some = ~torch.isnan(dense).all(0)   # attributes without any value are left out
       dense, keep = dense[:, some], [j for j, x in zip(keep, some.tolist()) if x]
       dense = torch.where(torch.isnan(dense), torch.nanmean(dense, 0), dense)
@@ -122,8 +160,13 @@ def _features(net, target, features, qualitative, standardize):
    if qualitative:
       rows, cols = [], []
       for a in net.qualitative_node_attributes:
-         if a != target and (features is None or a in features):
+         if a != target and (features is None or a in features) and not (rows is not None and a == BIPARTITE):   # nodes of a higher-order network: all of one type
             x, y, nm = _dummies(net, a)
+            if pos is not None:   # values of the dropped rows only: no column
+               x = pos.cpu().numpy()[x]
+               x, y = x[x >= 0], y[x >= 0]
+               used = np.unique(y)
+               y, nm = np.searchsorted(used, y), [nm[j] for j in used]
             rows.append(x)
             cols.append(y + len(names))
             names += nm
@@ -164,11 +207,12 @@ def _features(net, target, features, qualitative, standardize):
    return X, names
 
 
-def _target(net, target, task):
+def _target(net, target, task, rows = None):
    """
    Target of all the nodes: class codes (classification) or values (regression), and which nodes
    have one.
 
+   :param rows: Network wide positions of the nodes to keep (see :func:`_features`), or ``None``.
    :return: ``(y, known, classes, task)``.
    """
    if target in net.qualitative_node_attributes:
@@ -181,8 +225,18 @@ def _target(net, target, task):
       if task != "classification":
          raise ValueError(f"target {target!r} is qualitative: only classification is possible")
    else:
-      vals = np.concatenate([x.double().cpu().numpy() for x in net.get_node_attribute(target, None)])
+      vals = np.concatenate([net._node_vector(target, c).double().cpu().numpy() for c in range(len(net.components))])
       task = task or "regression"
+   if rows is not None:
+      vals = vals[rows]
+   return _labels(vals, task)
+
+
+def _labels(vals, task):
+   """
+   Class codes (classification) or values (regression) of a target given by its values, and which
+   items have one (see :func:`_target`).
+   """
    known = ~pd.isna(pd.Series(vals, dtype = object)).to_numpy()
    if task == "regression":
       return vals.astype(np.float64), known, None, task
@@ -299,6 +353,20 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
    out_channels)`` called as ``conv(x, *graph)``, with the tuple ``graph = prepare(edge_index,
    edge_weight, number of nodes)`` computed once.
    """
+   y, known, classes, task = _target(net, target, task)
+   x, names = _features(net, target, features, qualitative, standardize)
+   ei = torch.cat([d.edge_index + int(o) for d, o in zip(net.components, net.node_offsets)], 1)   # the whole network as one graph, nodes in the network wide order
+   w = None if weight is None else torch.cat(net._numeric_edge(weight, None)).float()
+   graph = prepare(ei, w, net.number_of_nodes())
+   return _fit(layer, graph, x, names, y, known, classes, task, np.concatenate(net.node_ids), channels, activations, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, name)
+
+
+def _fit(layer, graph, X, names, y, known, classes, task, ids, channels, activations, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, name, key = "node"):
+   """
+   Training and evaluation of a stack of layers ``layer(in_channels, out_channels)``, called as
+   ``conv(x, *graph)``, predicting ``y`` (from :func:`_target`) from the features ``X``, for
+   items (nodes, simplices) with ids ``ids``, named ``key`` in the predictions.
+   """
    channels = [int(c) for c in channels]
    if not channels or min(channels) < 1:
       raise ValueError(f"channels must be a non-empty list of positive integers, got {channels}")
@@ -316,11 +384,9 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
    ftrain, fval = split
    if ftrain <= 0 or fval < 0 or ftrain + fval > 1 + 1e-12:
       raise ValueError(f"split must be (training, validation) fractions with a positive training fraction and a sum of at most 1, got {split}")
-   y, known, classes, task = _target(net, target, task)
    out = len(classes) if task == "classification" else 1
    if channels[-1] != out:
       raise ValueError(f"the last layer must have {out} channels ({'one per class' if task == 'classification' else 'one number'}), got {channels[-1]}")
-   x, names = _features(net, target, features, qualitative, standardize)
    if loss is None:
       loss = "cross_entropy" if task == "classification" else "mse"
    if isinstance(loss, str):
@@ -332,12 +398,7 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
          raise ValueError(f"unknown optimizer {optimizer!r}; known: {sorted(_OPTIMIZERS)}")
       optimizer = _OPTIMIZERS[optimizer]
 
-   # the whole network as one graph, nodes in the network wide order
-   dev = net.components[0].edge_index.device
-   ei = torch.cat([d.edge_index + int(o) for d, o in zip(net.components, net.node_offsets)], 1)
-   w = None if weight is None else torch.cat(net._numeric_edge(weight, None)).float()
-   graph = prepare(ei, w, net.number_of_nodes())
-   X = x
+   dev = X.device
    Y = torch.as_tensor(y, dtype = torch.long if task == "classification" else torch.float32, device = dev)
 
    # split of the nodes with a target
@@ -346,7 +407,7 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
    ntr = int(round(ftrain * len(lab)))
    nva = min(int(round(fval * len(lab))), len(lab) - ntr)
    if ntr == 0:
-      raise ValueError("no node to train on: the target is missing everywhere, or the training fraction is too small")
+      raise ValueError(f"no {key} to train on: the target is missing everywhere, or the training fraction is too small")
    tr, va = lab[:ntr], lab[ntr:ntr + nva]
    part = np.full(len(y), "unlabeled", dtype = object)
    part[known] = "unused"
@@ -354,7 +415,7 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
    trt, vat = torch.as_tensor(tr, device = dev), torch.as_tensor(va, device = dev)
 
    devices = [dev] if dev.type == "cuda" else []
-   with torch.random.fork_rng(devices = devices):   # seeded weights and dropout, global state untouched
+   with torch.random.fork_rng(devices = devices), _deterministic(dev, seed):   # seeded weights and dropout, global state untouched
       if seed is not None:
          torch.manual_seed(seed)
       model = _Stack(layer, [X.shape[1]] + channels, acts, dropout).to(dev)
@@ -384,9 +445,8 @@ def _train(net, layer, prepare, target, channels, activations, features, qualita
    else:
       pred = out_all[:, 0].numpy().astype(np.float64)
       score = {s: _scores(task, pred[i], y[i], None) for s, i in (("training", tr), ("validation", va))}
-   ids = np.concatenate(net.node_ids)
    truth = classes[np.where(y >= 0, y, 0)] if task == "classification" else y
-   predictions = pd.DataFrame({"node": ids, "set": part, "target": np.where(known, truth, np.nan) if task == "regression" else np.where(known, truth.astype(object), np.nan), "prediction": pred})
+   predictions = pd.DataFrame({key: ids, "set": part, "target": np.where(known, truth, np.nan) if task == "regression" else np.where(known, truth.astype(object), np.nan), "prediction": pred})
    if task == "classification":
       prob = torch.softmax(out_all, 1).numpy()
       for j, c in enumerate(classes):
@@ -432,7 +492,9 @@ _COMMON = """
    :param loss: ``"cross_entropy"``, ``"nll"``, ``"mse"``, ``"l1"``, ``"huber"``, a function
       ``loss(output, target)``, or ``None`` (cross entropy for classification, mean squared error
       for regression).
-   :param seed: Seed of the split, the initial weights and dropout, or ``None``.{extra}
+   :param seed: Seed of the split, the initial weights and dropout, or ``None``. With a seed, runs
+      repeat exactly on the CPU (PyTorch's deterministic algorithms, during training), and up to
+      rounding on a GPU.{extra}
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
       :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: Dictionary with ``"scores"`` (:class:`pandas.DataFrame`, rows ``training`` and
@@ -464,21 +526,25 @@ _HEADS = """
       each layer keeps the number of channels given in ``channels``."""
 
 
+@_higher_order()
 def gcn(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, progress = None):
    from torch_geometric.nn import GCNConv
    return _train(net, lambda a, b: GCNConv(a, b, normalize = False), _gcn_adjacency, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "gcn")
 
 
+@_higher_order()
 def graphsage(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, progress = None):
    from torch_geometric.nn import SAGEConv
    return _train(net, lambda a, b: _SAGE(SAGEConv(a, b, aggr = "sum")), _mean_adjacency, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "graphsage")
 
 
+@_higher_order()
 def gat(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, heads = 1, progress = None):
    from torch_geometric.nn import GATConv
    return _train(net, lambda a, b: GATConv(a, b, heads = heads, concat = False, edge_dim = None if weight is None else 1), _edge_list, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "gat")
 
 
+@_higher_order()
 def gatv2(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, heads = 1, progress = None):
    from torch_geometric.nn import GATv2Conv
    return _train(net, lambda a, b: GATv2Conv(a, b, heads = heads, concat = False, edge_dim = None if weight is None else 1), _edge_list, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "gatv2")
@@ -516,6 +582,324 @@ gatv2.__doc__ = """
    neighbor can depend on the node (dynamic attention), which the attention of :func:`gat`
    cannot express.
 """ + _COMMON.format(extra = _HEADS, name = "gatv2")
+
+
+class _HyperConv(torch.nn.Module):
+   """
+   Hypergraph convolution, :math:`D^{-1} H W B^{-1} H^T X \\Theta + b`, as two products with
+   sparse matrices computed once: the mean of the features of the nodes of every hyperedge, then
+   the weighted mean of the hyperedges of every node.
+   """
+
+   def __init__(self, a, b):
+      from torch_geometric.nn.dense.linear import Linear
+      super().__init__()
+      self.lin = Linear(a, b, bias = False, weight_initializer = "glorot")   # as HypergraphConv
+      self.bias = torch.nn.Parameter(torch.zeros(b))
+
+   def forward(self, x, to_edges, to_nodes):
+      return to_nodes @ (to_edges @ self.lin(x)) + self.bias
+
+
+def _hyperedges(net, weight):
+   """
+   The two matrices of :class:`_HyperConv` for a hypergraph or simplicial complex, nodes and
+   hyperedges (or facets) numbered network wide: :math:`B^{-1} H^T` (hyperedges by nodes) and
+   :math:`D^{-1} H W` (nodes by hyperedges), with :math:`D = H W 1`. A node in no hyperedge gets
+   one holding it alone, so that it keeps its own features.
+
+   :return: ``(to_edges, to_nodes)``, sparse CSR float32 tensors.
+   :raises ValueError: If a weight is negative or missing.
+   """
+   dev = net.components[0].edge_index.device
+   k = np.asarray(net.bipartite_split, dtype = np.int64)
+   h = np.array([d.num_nodes for d in net.components], dtype = np.int64) - k
+   n, H = int(k.sum()), int(h.sum())
+   nodes, edges = [], []
+   for c, (ko, ho) in enumerate(zip(np.r_[0, np.cumsum(k)[:-1]], np.r_[0, np.cumsum(h)[:-1]])):
+      s, t = net._input_edges(c)[0]
+      nodes.append(torch.minimum(s, t) + int(ko))
+      edges.append(torch.maximum(s, t) - int(k[c]) + int(ho))
+   node, edge = torch.cat(nodes), torch.cat(edges)
+   alone = torch.nonzero(torch.bincount(node, minlength = n) == 0).reshape(-1)
+   node, edge = torch.cat([node, alone]), torch.cat([edge, H + torch.arange(len(alone), device = dev)])
+   E = H + len(alone)
+   w = torch.ones(E, device = dev)
+   if weight is not None:
+      get = net.get_hyperedge_attribute if net.higher_order == "hypergraph" else net.get_facet_attribute
+      x = torch.cat([v.float() for v in get(weight, None)])
+      if not (torch.isfinite(x) & (x >= 0)).all():
+         raise ValueError(f"the weights {weight!r} must be given and non negative on every hyperedge")
+      w[:H] = x
+   size = torch.bincount(edge, minlength = E).float()
+   deg = torch.zeros(n, device = dev).index_add_(0, node, w[edge])
+   with _quiet_sparse():
+      to_edges = torch.sparse_coo_tensor(torch.stack([edge, node]), 1 / size[edge], (E, n)).coalesce().to_sparse_csr()
+      to_nodes = torch.sparse_coo_tensor(torch.stack([node, edge]), torch.where(deg[node] > 0, w[edge] / deg[node].clamp(min = 1e-30), 0.), (n, E)).coalesce().to_sparse_csr()
+   return to_edges, to_nodes
+
+
+def _higher_order_net(net, what):
+   """
+   Check that a network is a hypergraph or a simplicial complex.
+
+   :raises ValueError: If it is not.
+   """
+   if net.higher_order is None:
+      raise ValueError(f"{what} is for hypergraphs and simplicial complexes (gsk.load_hypergraph, gsk.load_simplicial_complex); on a network, use gcn, graphsage, gat or gatv2")
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def hgnn(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, progress = None):
+   """
+   Hypergraph neural network predicting a node attribute of a hypergraph or a simplicial complex,
+   with the hypergraph convolution of Feng et al. (2019) and Bai, Zhang and Torr (2021), the
+   ``HypergraphConv`` layer of PyTorch Geometric. Each layer averages the features of the nodes of
+   every hyperedge, then gives every node the weighted average of its hyperedges and transforms
+   it linearly, :math:`D^{-1} H W B^{-1} H^T X \\Theta`, with :math:`H` the incidence matrix,
+   :math:`W` the hyperedge weights, :math:`B` the hyperedge sizes and :math:`D = H W 1`. A group
+   counts once whatever its size, where in the clique expansion a large group adds many edges;
+   a node keeps a large share of its own features (through the means of its hyperedges), so the
+   layer smooths less than :func:`gcn` on the clique expansion. On a simplicial complex the
+   hyperedges are its facets: its faces add no group beyond them. A node in no hyperedge gets
+   one holding it alone, so that it keeps its own features. Directions of directed hypergraphs
+   are ignored.
+
+   Each layer is two products with sparse matrices computed once, as in :func:`gcn`, rather than
+   ``HypergraphConv`` itself, whose hyperedge weights enter the node degrees only, not the
+   averages (same layer and initialization otherwise; without weights, the outputs are the
+   same). Its attention variant, which scores nodes against hyperedge features, is left out.
+
+   With ``weight``, a numeric hyperedge (or facet) attribute weights the hyperedges in the average
+   of every node; the hyperedges added for nodes in none weigh 1. Features, target, split,
+   training and the returned dictionary are those of :func:`gcn`: features and target are node
+   attributes (of the nodes only, not of the hyperedges or facets).
+
+   :param net: A hypergraph or a simplicial complex.
+   :param target: Name of the node attribute to predict.
+   :param channels: Output channels of each layer, e.g. ``[32, 16, 2]`` (see :func:`gcn`).
+   :param activations: One activation per layer (names, functions or ``None``), or ``None`` for
+      the default (see :func:`gcn`).
+   :param qualitative: Whether to include the qualitative node attributes as dummy variables.
+   :param features: Names of the node attributes to use as features (``None``: all but the
+      target).
+   :param standardize: Whether to standardize the numeric features (zero mean, unit variance).
+   :param task: ``"classification"``, ``"regression"`` or ``None`` (from the type of the target).
+   :param weight: Name of a numeric hyperedge (facet) attribute weighting the hyperedges, or
+      ``None``.
+   :param split: Fractions of the nodes with a target in the training and validation sets.
+   :param epochs: Number of training epochs.
+   :param optimizer: ``"adam"``, ``"adamw"``, ``"sgd"``, ``"rmsprop"``, or a
+      :class:`torch.optim.Optimizer` class.
+   :param learning_rate: Learning rate.
+   :param weight_decay: Weight decay (L2 penalty).
+   :param dropout: Dropout probability before each layer.
+   :param loss: Loss name or function, or ``None`` (see :func:`gcn`).
+   :param seed: Seed of the split, the initial weights and dropout, or ``None`` (see :func:`gcn`).
+   :param progress: Whether to show a progress bar over the epochs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+   :return: Dictionary with ``"scores"``, ``"predictions"`` (one row per node), ``"history"``,
+      ``"model"``, ``"features"`` and ``"task"``, as :func:`gcn`.
+   :raises ValueError: If ``net`` is a plain network, a weight is negative or missing, and as
+      :func:`gcn`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph("authorships.tsv", "authors.tsv")       # papers and their authors
+      out = gsk.hgnn(net, "field", [32, 5], seed = 1)                   # 5 fields
+      out["scores"]
+      out = gsk.hgnn(net, "field", [32, 5], weight = "citations", seed = 1)
+   """
+   _higher_order_net(net, "hgnn")
+   from .higher_order import _node_rows
+   rows = _node_rows(net)[0]
+   y, known, classes, task = _target(net, target, task, rows)
+   x, names = _features(net, target, features, qualitative, standardize, rows)
+   ids = np.concatenate([i[:k] for i, k in zip(net.node_ids, net.bipartite_split)])
+   return _fit(_HyperConv, _hyperedges(net, weight), x, names, y, known, classes, task, ids, channels, activations, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "hgnn")
+
+
+class _SimplicialConv(torch.nn.Module):
+   """
+   Simplicial convolution of order :math:`K` (Yang, Isufi and Leus, 2022):
+   :math:`X W_0 + \\sum_{p = 1}^K L_d^p X W_{d, p} + \\sum_{p = 1}^K L_u^p X W_{u, p}`, with the lower
+   and upper Laplacians :math:`L_d` and :math:`L_u` (``None``: absent).
+   """
+
+   def __init__(self, a, b, order):
+      super().__init__()
+      self.lin = torch.nn.Linear(a, b)
+      self.down = torch.nn.ModuleList([torch.nn.Linear(a, b, bias = False) for _ in range(order)])
+      self.up = torch.nn.ModuleList([torch.nn.Linear(a, b, bias = False) for _ in range(order)])
+
+   def forward(self, x, down, up):
+      out = self.lin(x)
+      for L, lins in ((down, self.down), (up, self.up)):
+         z = x
+         for lin in (lins if L is not None else ()):
+            z = L @ z
+            out = out + lin(z)
+      return out
+
+
+def _laplacians(net, k, oriented):
+   """
+   Lower and upper Laplacians of the k-simplices of all the components (block diagonal),
+   :math:`B_k^T B_k` and :math:`B_{k + 1} B_{k + 1}^T`, in absolute value unless ``oriented``,
+   each divided by its largest absolute row sum (so that its powers stay bounded), as sparse CSR
+   float32 tensors, ``None`` when absent.
+   """
+   from .higher_order import _boundary, _simplices
+   dev = net.components[0].edge_index.device
+   out = []
+   for j, up in ((k, False), (k + 1, True)):
+      rows, cols, vals, off_lo, off_hi = [], [], [], 0, 0
+      for c in range(len(net.components)):
+         r, s, v, shape = _boundary(net, c, j)
+         rows.append(r + off_lo)
+         cols.append(s + off_hi)
+         vals.append(v)
+         off_lo, off_hi = off_lo + shape[0], off_hi + shape[1]
+      if not off_lo or not off_hi:
+         out.append(None)
+         continue
+      with _quiet_sparse():
+         B = torch.sparse_coo_tensor(torch.stack([torch.cat(rows), torch.cat(cols)]), torch.cat(vals).float(), (off_lo, off_hi)).coalesce()
+         L = (B @ B.t() if up else B.t() @ B).coalesce()
+         v = L.values() if oriented else L.values().abs()
+         bound = torch.zeros(L.shape[0], device = dev).index_add_(0, L.indices()[0], v.abs()).max().clamp(min = 1)
+         out.append(torch.sparse_coo_tensor(L.indices(), v / bound, L.shape).coalesce().to_sparse_csr())
+   return tuple(out)
+
+
+def _simplex_features(net, k, target, features, qualitative, standardize):
+   """
+   Feature matrix of all the k-simplices (components in order, simplices as in
+   :meth:`~graphoskop.Network.simplices`): the other simplex attributes of dimension k, numeric
+   ones with missing values replaced by the mean and standardized, qualitative ones as dummies.
+
+   :return: ``(x, names)``.
+   """
+   dev = net.components[0].edge_index.device
+   comps = range(len(net.components))
+   cols, names = [], []
+   for a, d in net.simplex_attributes.items():
+      if d != k or a == target or (features is not None and a not in features):
+         continue
+      if net._simplex_attr[a]["qualitative"]:
+         if qualitative:
+            vals = pd.Series(np.concatenate([net.get_simplex_attribute(a, c) for c in comps]), dtype = object)
+            for value in sorted(set(vals.dropna().tolist()), key = str):
+               cols.append(torch.as_tensor((vals == value).to_numpy(), dtype = torch.float32, device = dev))
+               names.append(f"{a}={value}")
+         continue
+      v = torch.cat([net.get_simplex_attribute(a, c) for c in comps]).double()
+      if torch.isnan(v).all():
+         continue
+      v = torch.where(torch.isnan(v), torch.nanmean(v), v)
+      sd = v.std(unbiased = False)
+      cols.append(((v - v.mean()) / (sd if sd > 0 else 1.) if standardize else v).float())
+      names.append(a)
+   n = sum(len(net.simplices(k, c)) for c in comps)
+   if not cols:
+      return torch.ones((n, 1), device = dev), ["constant"]
+   return torch.stack(cols, 1), names
+
+
+@_higher_order(simplicial = True)
+def scnn(net, target, channels, order = 1, oriented = False, activations = None, qualitative = False, features = None, standardize = True, task = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, progress = None):
+   """
+   Simplicial convolutional neural network (Yang, Isufi and Leus, 2022; after Ebli, Defferrard and
+   Spreemann, 2020) predicting a simplex attribute of a simplicial complex, such as a value or a
+   class of its edges or triangles (see :meth:`~graphoskop.Network.set_simplex_attribute`), from
+   the other simplex attributes of the same dimension. Each layer combines, for every
+   :math:`k`-simplex, its own features with those of the simplices sharing a face with it (lower
+   neighbors, through the lower Laplacian :math:`L_d = B_k^T B_k`) and those sharing a coface
+   with it (upper neighbors, through :math:`L_u = B_{k + 1} B_{k + 1}^T`), each with its own weights:
+   :math:`X W_0 + \\sum_{p = 1}^K (L_d^p X W_{d, p} + L_u^p X W_{u, p})`. With ``order`` :math:`K`,
+   it reaches up to :math:`K` steps away along faces and cofaces. Two edges are lower neighbors
+   when they share a node, upper neighbors when they share a filled triangle: the layer tells the
+   two apart, which a graph network on the line graph cannot. PyTorch Geometric has no such
+   layer: it is implemented here, as sparse matrix products.
+
+   With ``oriented``, the attributes are oriented signals (flows: a value on the edge from ``u`` to
+   ``v`` is minus the value from ``v`` to ``u``, in the reference orientation of
+   :meth:`~graphoskop.Network.set_simplex_attribute`), and the Laplacians keep the signs of the
+   boundary matrices, so that the layers see how flows add up or cancel around nodes and
+   triangles. Without it (the default), the attributes are values of the simplices whatever their
+   orientation (a weight, a type), and the Laplacians are taken in absolute value, so that the
+   arbitrary reference orientation does not matter. Each Laplacian is divided by its largest
+   absolute row sum.
+
+   Features are the other numeric simplex attributes of the dimension of the target (missing
+   values replaced by the mean, then standardized) and, with ``qualitative``, the qualitative ones
+   as dummies; without any, a constant feature. All components are used. Split, training and
+   the returned dictionary are those of :func:`gcn`, with simplices instead of nodes: the
+   predictions have a ``simplex`` column (:class:`~graphoskop.Simplex` ids) instead of ``node``.
+
+   :param net: A simplicial complex.
+   :param target: Name of the simplex attribute to predict (its dimension sets that of the model,
+      at least 1).
+   :param channels: Output channels of each layer, e.g. ``[32, 2]`` (see :func:`gcn`).
+   :param order: Number of powers :math:`K` of each Laplacian in a layer.
+   :param oriented: Whether the attributes are oriented signals (see above).
+   :param activations: One activation per layer (names, functions or ``None``), or ``None`` for
+      the default (see :func:`gcn`).
+   :param qualitative: Whether to include the qualitative simplex attributes as dummies.
+   :param features: Names of the simplex attributes to use as features (``None``: all those of the
+      same dimension but the target).
+   :param standardize: Whether to standardize the numeric features.
+   :param task: ``"classification"``, ``"regression"`` or ``None`` (from the type of the target).
+   :param split: Fractions of the simplices with a target in the training and validation sets.
+   :param epochs: Number of training epochs.
+   :param optimizer: ``"adam"``, ``"adamw"``, ``"sgd"``, ``"rmsprop"``, or a
+      :class:`torch.optim.Optimizer` class.
+   :param learning_rate: Learning rate.
+   :param weight_decay: Weight decay (L2 penalty).
+   :param dropout: Dropout probability before each layer.
+   :param loss: Loss name or function, or ``None`` (see :func:`gcn`).
+   :param seed: Seed of the split, the initial weights and dropout, or ``None`` (see :func:`gcn`).
+   :param progress: Whether to show a progress bar over the epochs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+   :return: Dictionary with ``"scores"``, ``"predictions"`` (one row per simplex), ``"history"``,
+      ``"model"``, ``"features"`` and ``"task"``, as :func:`gcn`.
+   :raises ValueError: If ``net`` is not a simplicial complex, ``target`` is not a simplex
+      attribute, ``order`` is below 1, and as :func:`gcn`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      net = gsk.load_simplicial_complex("cliques.tsv")
+      net.set_simplex_attribute(pd.read_csv("edges.tsv", sep = "\\t"), dimension = 1)   # node_0, node_1, kind, weight
+      out = gsk.scnn(net, "kind", [32, 3], seed = 1)                  # edge types from edge weights
+      out["predictions"].query("set == 'unlabeled'")                  # one row per edge
+   """
+   from .higher_order import _simplicial
+   _simplicial(net, "scnn")
+   if target not in net.simplex_attributes:
+      raise ValueError(f"scnn predicts a simplex attribute; simplex attributes: {net.simplex_attributes} (node attributes: use hgnn)")
+   if order < 1:
+      raise ValueError(f"order must be at least 1, got {order}")
+   k = net.simplex_attributes[target]
+   comps = range(len(net.components))
+   vals = np.concatenate([net.get_simplex_attribute(target, c) if net._simplex_attr[target]["qualitative"] else net.get_simplex_attribute(target, c).double().cpu().numpy() for c in comps])
+   qual = net._simplex_attr[target]["qualitative"]
+   task = task or ("classification" if qual else "regression")
+   if qual and task != "classification":
+      raise ValueError(f"target {target!r} is qualitative: only classification is possible")
+   y, known, classes, task = _labels(vals, task)
+   x, names = _simplex_features(net, k, target, features, qualitative, standardize)
+   graph = _laplacians(net, k, oriented)
+   ids = np.concatenate([net.simplices(k, c, labels = True) for c in comps])
+   return _fit(lambda a, b: _SimplicialConv(a, b, int(order)), graph, x, names, y, known, classes, task, ids, channels, activations, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "scnn", "simplex")
 
 
 #: Standard deviation of the initial vectors, times the square root of their dimension.
@@ -587,6 +971,50 @@ class _Walker:
       return W
 
 
+def _skipgram(walker, n, dev, dimensions, walk_length, context_size, walks_per_node, negative_samples, epochs, batch_size, learning_rate, gen, progress, name, starts = None, sampler = None):
+   """
+   Node vectors trained by skip-gram with negative sampling on walks (see :func:`node2vec`):
+   ``walker.walks(start, length, gen)`` gives the walks from the nodes of ``start``, one row per
+   walk, -1 after a walk stopped. ``starts``: the nodes walks start from (``None``: all);
+   ``sampler(rows, gen)``: the random nodes of the negative examples, ``rows`` by ``walk_length``
+   (``None``: uniform over all the nodes).
+
+   :return: Tensor of the vectors, one row per node, on ``dev``.
+   """
+   devices = [dev] if dev.type == "cuda" else []
+   with torch.random.fork_rng(devices = devices):
+      torch.manual_seed(int(torch.randint(2 ** 62, (1,), generator = gen, device = dev)))
+      emb = torch.nn.Embedding(n, dimensions, sparse = True).to(dev)
+      torch.nn.init.normal_(emb.weight, std = _INIT / math.sqrt(dimensions))
+   opt = torch.optim.SparseAdam(list(emb.parameters()), lr = learning_rate)
+   m = n if starts is None else len(starts)
+   steps = -(-m // batch_size)
+   I, J = (x.reshape(-1).to(dev) for x in torch.meshgrid(torch.arange(walk_length - context_size + 1), torch.arange(1, context_size), indexing = "ij"))
+   J = I + J   # pairs (i, i + k) of the stretches of context_size nodes starting at i
+   with _bar(epochs * steps, name, progress) as bar:
+      for _ in range(epochs):
+         order = torch.randperm(m, device = dev, generator = gen)
+         if starts is not None:
+            order = starts[order]
+         for b in range(steps):
+            W = walker.walks(order[b * batch_size:(b + 1) * batch_size].repeat(walks_per_node), walk_length, gen)
+            ok = W >= 0
+            H = emb(W.clamp(min = 0))   # each node of a walk once, all its dot products at once
+            v = ok[:, I] & ok[:, J]
+            loss = -F.logsigmoid(torch.bmm(H, H.transpose(1, 2))[:, I, J][v]).sum()
+            if negative_samples:   # the same pairs, with the second node random
+               rows = len(W) * negative_samples
+               Hn = emb(torch.randint(n, (rows, walk_length), device = dev, generator = gen) if sampler is None else sampler(rows, gen))
+               dots = torch.bmm(H.repeat(negative_samples, 1, 1), Hn.transpose(1, 2))[:, I, J]
+               loss = loss - F.logsigmoid(-dots[ok[:, I].repeat(negative_samples, 1)]).sum() / negative_samples
+            opt.zero_grad()
+            (loss / v.sum().clamp(min = 1)).backward()   # no value read from the device
+            opt.step()
+            bar.update()
+   return emb.weight.detach()
+
+
+@_higher_order()
 def node2vec(net, dimensions = 128, walk_length = 20, context_size = 10, walks_per_node = 10, p = 1., q = 1., negative_samples = 1, weight = None, epochs = 1, batch_size = 128, learning_rate = 0.025, seed = None, attribute = None, progress = None):
    """
    node2vec node embeddings (Grover and Leskovec, 2016): a vector of ``dimensions`` numbers per
@@ -663,33 +1091,8 @@ def node2vec(net, dimensions = 128, walk_length = 20, context_size = 10, walks_p
    walker = _Walker(net, weight, p, q)
    gen = torch.Generator(device = dev)
    gen.manual_seed(int(np.random.default_rng(seed).integers(2 ** 62)))
-   devices = [dev] if dev.type == "cuda" else []
-   with torch.random.fork_rng(devices = devices):
-      torch.manual_seed(int(torch.randint(2 ** 62, (1,), generator = gen, device = dev)))
-      emb = torch.nn.Embedding(n, dimensions, sparse = True).to(dev)
-      torch.nn.init.normal_(emb.weight, std = _INIT / math.sqrt(dimensions))
-   opt = torch.optim.SparseAdam(list(emb.parameters()), lr = learning_rate)
-   steps = -(-n // batch_size)
-   I, J = (x.reshape(-1).to(dev) for x in torch.meshgrid(torch.arange(walk_length - context_size + 1), torch.arange(1, context_size), indexing = "ij"))
-   J = I + J   # pairs (i, i + k) of the stretches of context_size nodes starting at i
-   with _bar(epochs * steps, "node2vec", progress) as bar:
-      for _ in range(epochs):
-         order = torch.randperm(n, device = dev, generator = gen)
-         for b in range(steps):
-            W = walker.walks(order[b * batch_size:(b + 1) * batch_size].repeat(walks_per_node), walk_length, gen)
-            ok = W >= 0
-            H = emb(W.clamp(min = 0))   # each node of a walk once, all its dot products at once
-            v = ok[:, I] & ok[:, J]
-            loss = -F.logsigmoid(torch.bmm(H, H.transpose(1, 2))[:, I, J][v]).sum()
-            if negative_samples:   # the same pairs, with the second node random
-               Hn = emb(torch.randint(n, (len(W) * negative_samples, walk_length), device = dev, generator = gen))
-               dots = torch.bmm(H.repeat(negative_samples, 1, 1), Hn.transpose(1, 2))[:, I, J]
-               loss = loss - F.logsigmoid(-dots[ok[:, I].repeat(negative_samples, 1)]).sum() / negative_samples
-            opt.zero_grad()
-            (loss / v.sum().clamp(min = 1)).backward()   # no value read from the device
-            opt.step()
-            bar.update()
-   return _embedding(net, emb.weight.detach(), attribute)
+   X = _skipgram(walker, n, dev, dimensions, walk_length, context_size, walks_per_node, negative_samples, epochs, batch_size, learning_rate, gen, progress, "node2vec")
+   return _embedding(net, X, attribute)
 
 
 def _embedding(net, X, attribute):
@@ -768,6 +1171,7 @@ def _spectral(net, dimensions, weight, lle):
    return X
 
 
+@_higher_order()
 def laplacian_eigenmaps(net, dimensions = 16, weight = None, attribute = None):
    """
    Laplacian eigenmaps (Belkin and Niyogi, 2003): node vectors that keep neighbors close, the
@@ -815,6 +1219,7 @@ def laplacian_eigenmaps(net, dimensions = 16, weight = None, attribute = None):
    return _embedding(net, _spectral(net, dimensions, weight, False), attribute)
 
 
+@_higher_order()
 def locally_linear_embedding(net, dimensions = 16, weight = None, attribute = None):
    """
    Locally linear embedding of a network (Roweis and Saul, 2000; in the graph form of Goyal and
@@ -862,6 +1267,10 @@ def locally_linear_embedding(net, dimensions = 16, weight = None, attribute = No
    """
    return _embedding(net, _spectral(net, dimensions, weight, True), attribute)
 
+
+#: Largest number of entries of the dense pooled matrices of all the graphs (graphs times clusters
+#: squared) that diffpool accepts: about 8 GB with the matrices derived from them and gradients.
+_POOLED = 2 ** 28
 
 #: Largest number of products (nodes times clusters squared) of the first pooling level computed
 #: at once; above it, graph by graph, whose memory grows with nodes times clusters only.
@@ -942,6 +1351,7 @@ class _DiffPool(torch.nn.Module):
       return h, None if self.head is None else self.head(h), Z0, S0, link, ent
 
 
+@_higher_order()
 def diffpool(net, target = None, clusters = (0.25,), channels = 64, features = None, qualitative = False, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 100, optimizer = "adam", learning_rate = 0.01, weight_decay = 0., loss = None, seed = None, progress = None):
    """
    Graph embeddings by differentiable pooling (DiffPool; Ying, You, Morris, Ren, Hamilton and
@@ -991,7 +1401,10 @@ def diffpool(net, target = None, clusters = (0.25,), channels = 64, features = N
    the vectors of other graphs computed in the same call; to embed the nodes of one network, use
    :func:`node2vec`, :func:`laplacian_eigenmaps` or :func:`locally_linear_embedding`. Since the
    default number of clusters is a share of the largest graph, a dataset with one large component
-   gives every graph that many clusters: give counts in ``clusters`` instead. A graph label given as the name of a node attribute must have one value per
+   gives every graph that many clusters, each pooled into a dense matrix of clusters by clusters:
+   with many graphs (isolated nodes are graphs too) this needs a lot of memory, so ``diffpool``
+   refuses more than :math:`2^{28}` entries in all (graphs times clusters squared), with a
+   :class:`ValueError` that suggests a count of clusters to give in ``clusters`` instead. A graph label given as the name of a node attribute must have one value per
    component (missing on some nodes allowed). With ``weight``, edges are weighted in the
    neighborhood means and in :math:`A`.
 
@@ -1050,6 +1463,10 @@ def diffpool(net, target = None, clusters = (0.25,), channels = 64, features = N
       ks.append(prev)
    if not ks or channels < 1 or epochs < 0:
       raise ValueError("diffpool: clusters must have at least one level, channels and epochs must be positive")
+   if G * ks[0] ** 2 > _POOLED:   # every graph is pooled into a dense matrix of its clusters
+      raise ValueError(f"diffpool: {G:,} graphs (components) of {ks[0]:,} clusters each need dense pooled matrices of {G * ks[0] ** 2:,} numbers (about {G * ks[0] ** 2 * 32 / 2 ** 30:.0f} GB with their gradients); "
+                       f"the default number of clusters is a share of the largest graph ({int(sizes_np.max()):,} nodes): give fewer clusters as a count, e.g. clusters = ({max(2, int(math.sqrt(_POOLED / G)) // 2)},), "
+                       f"or keep only the components to embed (e.g. without isolated nodes, which are graphs too)")
 
    # graph targets
    y, known, classes = None, np.zeros(G, dtype = bool), None
@@ -1173,3 +1590,478 @@ def diffpool(net, target = None, clusters = (0.25,), channels = 64, features = N
          predictions[f"p_{c}"] = prob[:, j]
    result.update(scores = pd.DataFrame(score).T, predictions = predictions, task = task)
    return result
+
+
+class _LayerWalker:
+   """
+   Walks on the multilayer graph of :func:`struc2vec` (compiled, on the CPU), in the interface of
+   :func:`_skipgram`.
+   """
+
+   def __init__(self, L, lptr, lnbr, lcw, up, stay, dev):
+      self.args, self.stay, self.dev = (L, lptr, lnbr, lcw, up), stay, dev
+
+   def walks(self, start, length, gen):
+      from ._struc2vec import _walks
+      seeds = torch.randint(0, 2 ** 62, (len(start),), generator = gen, device = gen.device).cpu().numpy().astype(np.uint64)
+      out = np.empty((len(start), length), dtype = np.int64)
+      _walks(start.cpu().numpy(), length, *self.args, self.stay, seeds, out)
+      return torch.as_tensor(out, device = self.dev)
+
+
+@_higher_order()
+def struc2vec(net, dimensions = 128, walk_length = 80, context_size = 10, walks_per_node = 10, layers = 3, stay = 0.3, candidates = None, negative_samples = 1, epochs = 1, batch_size = 128, learning_rate = 0.025, seed = None, attribute = None, progress = None):
+   """
+   struc2vec node embeddings (Ribeiro, Saverese and Figueiredo, 2017): vectors that are similar for
+   nodes with similar structural roles (hubs, bridges, peripheral nodes...), wherever they are in
+   the network, even in different components. :func:`node2vec` instead gives similar vectors to
+   nodes that are close to each other.
+
+   The structural distance of two nodes :math:`u` and :math:`v` compares their neighborhoods ring
+   by ring: :math:`R_k(u)` is the set of nodes at distance exactly :math:`k` from :math:`u`, and
+   :math:`f_k(u, v) = f_{k - 1}(u, v) + g(s(R_k(u)), s(R_k(v)))`, where :math:`s` is the sorted
+   degree sequence of a ring and :math:`g` the dynamic time warping distance of two sequences,
+   matching degrees :math:`a` and :math:`b` at cost :math:`(\\max(a, b) + 0.5) / (\\min(a, b) +
+   0.5) - 1` (the 0.5 lets isolated nodes, of degree 0, be compared). Layer :math:`k` of a
+   multilayer graph joins nodes with weight :math:`e^{-f_k(u, v)}`, for :math:`k = 0` (the degrees
+   of the two nodes) to ``layers``; a node is joined to itself in the layers above and below, with
+   weight :math:`\\log(\\Gamma_k(u) + e)` up, where :math:`\\Gamma_k(u)` is the number of its
+   edges in layer :math:`k` heavier than the mean edge of the layer, and 1 down. Random walks
+   start at layer 0 of every node; at every step a walk moves within its layer with probability
+   ``stay``, to a neighbor drawn by edge weight, or else changes layer, up or down by these
+   weights. The vectors are then trained on the walks as in :func:`node2vec` (skip-gram with
+   negative sampling).
+
+   As in the paper, three approximations make this feasible on large networks: degree sequences
+   are compressed into distinct degrees with their counts (a match then costs the cost above
+   times the larger count); only ``layers`` layers are used (rings up to that distance); and each
+   node is compared only with the ``candidates`` nodes closest to it in the order of the degrees
+   (half with lower or equal degree, half with higher or equal), :math:`2 \\lceil \\log_2 n \\rceil`
+   by default, or with all the other nodes when the network has at most 2,000 nodes. Rings come
+   from breadth first searches from every node, and distances from dynamic time warping of every
+   pair of candidates, both compiled and in parallel on the CPU threads; walks are drawn on the
+   CPU too, and the vectors are trained on the device of the network. Training takes most of the
+   time, and grows with ``walk_length``: the default, 80 as in the paper, gives slightly better
+   vectors than 20 (the default of :func:`node2vec`), which is about 4 times faster.
+
+   The network is used as undirected and simple (directions, weights, self loops and parallel
+   edges ignored): roles here are made of degrees. Rings of a node never leave its component, but
+   nodes of different components are compared like any others.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param dimensions: Number of numbers of each vector.
+   :param walk_length: Number of nodes of each walk, the start included.
+   :param context_size: Number of consecutive nodes of a walk in each positive example.
+   :param walks_per_node: Number of walks from every node, every epoch.
+   :param layers: Largest ring distance compared (layers 0 to ``layers``).
+   :param stay: Probability that a walk moves within its layer at each step.
+   :param candidates: Number of nodes each node is compared with (the closest in degree), or
+      ``None`` for :math:`2 \\lceil \\log_2 n \\rceil` (all nodes with at most 2,000 nodes).
+   :param negative_samples: Number of negative examples per positive one.
+   :param epochs: Number of passes over all the nodes, each with new walks.
+   :param batch_size: Number of starting nodes per training step.
+   :param learning_rate: Learning rate.
+   :param seed: Seed of the walks, the negative examples and the initial vectors, or ``None``.
+   :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
+      where to store the vectors, or ``None`` to only return them.
+   :param progress: Whether to show progress bars over the rings, the distances and the training
+      steps (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
+   :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
+      wide node order, and one column per dimension.
+   :raises ValueError: If a size or parameter is not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("airports.tsv")
+      roles = gsk.struc2vec(net, seed = 1)                            # hubs near hubs, wherever they are
+      roles = gsk.struc2vec(net, layers = 5, candidates = 50, attribute = "s2v")
+   """
+   from ._struc2vec import _distances, _ring_fill, _ring_lengths
+   if min(dimensions, walk_length, context_size, walks_per_node, epochs, batch_size) < 1 or negative_samples < 0 or layers < 0 or not 0 < stay <= 1:
+      raise ValueError("struc2vec: sizes and epochs must be positive, layers and negative_samples non negative, stay in (0, 1]")
+   if context_size > walk_length:
+      raise ValueError(f"context_size ({context_size}) cannot be larger than walk_length ({walk_length})")
+   dev, n, L = net.components[0].edge_index.device, net.number_of_nodes(), layers + 1
+
+   # undirected simple graph, network wide
+   ei = torch.cat([d.edge_index + int(o) for d, o in zip(net.components, net.node_offsets)], 1).cpu().numpy()
+   a, b = np.minimum(ei[0], ei[1]), np.maximum(ei[0], ei[1])
+   key = np.unique(a[a != b] * n + b[a != b])
+   s, t = np.r_[key // n, key % n], np.r_[key % n, key // n]
+   o = np.argsort(s, kind = "stable")
+   nbr = t[o]
+   ptr = np.zeros(n + 1, dtype = np.int64)
+   ptr[1:] = np.cumsum(np.bincount(s, minlength = n))
+   deg = np.diff(ptr)
+
+   # compressed degree sequences of the rings, then distances of the candidate pairs
+   chunks = lambda m: max(1, min(100, m // 1000))
+   nodes = np.arange(n, dtype = np.int64)
+   lens = np.zeros((n, L), dtype = np.int64)
+   with _bar(2 * n, "struc2vec: rings", progress) as bar:
+      for part in np.array_split(nodes, chunks(n)):   # contiguous ranges: slices are views
+         _ring_lengths(ptr, nbr, deg, part, L, lens[part[0]:part[-1] + 1])
+         bar.update(len(part))
+      sptr = np.zeros(n * L + 1, dtype = np.int64)
+      sptr[1:] = np.cumsum(lens.reshape(-1))
+      sdeg, scnt = np.empty(sptr[-1], dtype = np.int64), np.empty(sptr[-1], dtype = np.int64)
+      for part in np.array_split(nodes, chunks(n)):
+         _ring_fill(ptr, nbr, deg, part, L, sptr[part[0] * L:(part[-1] + 1) * L + 1].copy() if len(part) else sptr[:1], sdeg, scnt)
+         bar.update(len(part))
+   order = np.lexsort((nodes, deg))   # by degree
+   if candidates is None and n <= 2000:
+      h = n - 1   # all pairs
+   else:   # h before and h after in the degree order
+      h = max(1, min(math.ceil((2 * math.ceil(math.log2(max(n, 2))) if candidates is None else int(candidates)) / 2), n - 1))
+   us = np.concatenate([order[:n - j] for j in range(1, h + 1)]) if n > 1 else np.zeros(0, dtype = np.int64)
+   vs = np.concatenate([order[j:] for j in range(1, h + 1)]) if n > 1 else np.zeros(0, dtype = np.int64)
+   D = np.empty((len(us), L))
+   with _bar(len(us), "struc2vec: distances", progress) as bar:
+      for part in np.array_split(np.arange(len(us)), chunks(len(us))):
+         if len(part):
+            _distances(us[part], vs[part], L, sptr, sdeg, scnt, D[part[0]:part[-1] + 1])
+         bar.update(len(part))
+
+   # layer graphs: weights exp(-f), each node's row relative to its closest neighbor (no underflow)
+   lptr = np.zeros((L, n + 1), dtype = np.int64)
+   lnbr, lcw, up, base = [], [], np.zeros((L, n)), 0
+   has = np.zeros((L, n), dtype = bool)
+   for k in range(L):
+      ok = np.isfinite(D[:, k])
+      x, y, f = np.r_[us[ok], vs[ok]], np.r_[vs[ok], us[ok]], np.r_[D[ok, k], D[ok, k]]
+      o = np.lexsort((y, x))
+      x, y, f = x[o], y[o], f[o]
+      cnt = np.bincount(x, minlength = n)
+      lptr[k, 1:] = base + np.cumsum(cnt)
+      lptr[k, 0] = base
+      first = np.r_[0, np.cumsum(cnt)[:-1]][x]
+      rowmin = np.full(n, np.inf)
+      np.minimum.at(rowmin, x, f)
+      w = np.exp(-(f - rowmin[x]))
+      cw = np.cumsum(w)
+      lcw.append(cw - np.r_[0., cw][first])   # cumulative within each row
+      lnbr.append(y)
+      wt = np.exp(-f)   # true weights, for the heavier-than-average counts
+      if len(wt):
+         up[k] = np.log(np.bincount(x, weights = wt > wt.mean(), minlength = n) + math.e)
+      has[k] = cnt > 0
+      base += len(y)
+   up[:-1] *= has[1:]   # up only into a layer where the node has edges
+   up[-1] = 0.
+   lnbr = np.concatenate(lnbr) if lnbr else np.zeros(0, dtype = np.int64)
+   lcw = np.concatenate(lcw) if lcw else np.zeros(0)
+
+   walker = _LayerWalker(L, lptr, lnbr.astype(np.int64), lcw, up, float(stay), dev)
+   gen = torch.Generator(device = dev)
+   gen.manual_seed(int(np.random.default_rng(seed).integers(2 ** 62)))
+   X = _skipgram(walker, n, dev, dimensions, walk_length, context_size, walks_per_node, negative_samples, epochs, batch_size, learning_rate, gen, progress, "struc2vec")
+   return _embedding(net, X, attribute)
+
+
+class _MetaWalker:
+   """
+   Walks that follow a metapath (see :func:`metapath2vec`), all advancing together on the device:
+   out edges sorted by ``source * C + code``, where ``code`` identifies the type of the target and
+   (with edge types) the relation, so the edges a step can follow from a node are a contiguous
+   range, found by binary search; the next node is drawn uniformly in it.
+   """
+
+   def __init__(self, s, t, ntype, etype, steps, T, C):
+      code = ntype[t] if etype is None else etype * T + ntype[t]   # T node types (the last: none)
+      self.C = C   # number of codes, so that keys of different nodes never overlap
+      self.key, order = torch.sort(s * self.C + code)
+      self.t, self.steps = t[order], steps   # steps: code of every step of the metapath
+
+   def walks(self, start, length, gen):
+      W = torch.full((len(start), length), -1, dtype = torch.long, device = start.device)
+      W[:, 0] = start
+      for j in range(1, length):
+         cur = W[:, j - 1]
+         q = cur.clamp(min = 0) * self.C + int(self.steps[(j - 1) % len(self.steps)])
+         lo, hi = torch.searchsorted(self.key, q), torch.searchsorted(self.key, q, right = True)
+         ok = (cur >= 0) & (hi > lo)
+         pick = lo + (torch.rand(len(cur), device = cur.device, generator = gen) * (hi - lo)).long()
+         W[:, j] = torch.where(ok, self.t[pick.clamp(max = max(len(self.t) - 1, 0))], -1)
+      return W
+
+
+@_higher_order()
+def metapath2vec(net, node_type, metapath, edge_type = None, dimensions = 128, walk_length = 20, context_size = 10, walks_per_node = 10, plus = False, negative_samples = 1, epochs = 1, batch_size = 128, learning_rate = 0.025, seed = None, attribute = None, progress = None):
+   """
+   metapath2vec node embeddings of heterogeneous networks (Dong, Chawla and Swami, 2017), whose
+   nodes (and possibly edges) have types: authors, papers and venues, users and items... The
+   walks follow a metapath, a sequence of node types such as author, paper, venue, paper, author:
+   from a node of the type at one position, the walk moves to a neighbor (out-neighbor in directed
+   networks) of the type at the next position, uniformly among them, so that it relates nodes
+   through a meaningful chain of relations (two authors through a venue where both published).
+   The vectors are then trained on the walks as in :func:`node2vec` (skip-gram with negative
+   sampling), with all the types in a single space.
+
+   The node types are a qualitative node attribute, ``node_type``, and the metapath a sequence of
+   its values. With ``edge_type``, a qualitative edge attribute, the metapath alternates node types
+   and edge types (relations), e.g. ``["author", "writes", "paper", "cites", "paper", "written_by",
+   "author"]``, and a step follows only edges of its relation, for networks with several kinds of
+   edges between the same types; without it, any edge to a node of the next type will do. The
+   metapath must start and end with the same node type, so that walks repeat it (for
+   ``walk_length`` nodes); walks start from every node of that type, ``walks_per_node`` times per
+   epoch, and stop at a node without a neighbor of the next type (or relation). Nodes of types not
+   in the metapath, and nodes no walk reaches, keep their random initial vectors.
+
+   With ``plus = True``, this is metapath2vec++: the random nodes of every negative example are
+   drawn among the nodes of the type expected at their position in the walk, instead of among all
+   the nodes, so that a vector is contrasted with nodes of its own kind.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param node_type: Name of the qualitative node attribute with the type of every node (one per
+      node).
+   :param metapath: Sequence of node types (and, with ``edge_type``, edge types between them),
+      starting and ending with the same node type.
+   :param edge_type: Name of the qualitative edge attribute with the type of every edge, or
+      ``None`` (the metapath has only node types).
+   :param dimensions: Number of numbers of each vector.
+   :param walk_length: Number of nodes of each walk, the start included.
+   :param context_size: Number of consecutive nodes of a walk in each positive example.
+   :param walks_per_node: Number of walks from every node of the first type, every epoch.
+   :param plus: Whether to draw negative examples among the nodes of the expected type
+      (metapath2vec++).
+   :param negative_samples: Number of negative examples per positive one.
+   :param epochs: Number of passes over the starting nodes, each with new walks.
+   :param batch_size: Number of starting nodes per training step.
+   :param learning_rate: Learning rate.
+   :param seed: Seed of the walks, the negative examples and the initial vectors, or ``None``.
+   :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
+      where to store the vectors, or ``None`` to only return them.
+   :param progress: Whether to show a progress bar over the training steps (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+   :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
+      wide node order, and one column per dimension.
+   :raises KeyError: If ``node_type`` or ``edge_type`` is not a qualitative attribute.
+   :raises ValueError: If the metapath is too short, does not start and end with the same node type,
+      does not alternate node and edge types with ``edge_type``, names a type that no node or edge
+      has, if a node has several types, or a size is not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("bibliography.tsv", "entities.tsv")   # node attribute "kind"
+      emb = gsk.metapath2vec(net, "kind", ["author", "paper", "venue", "paper", "author"], seed = 1)
+      emb = gsk.metapath2vec(net, "kind", ["author", "paper", "author"], plus = True)
+      emb = gsk.metapath2vec(net, "kind", ["author", "writes", "paper", "written_by", "author"], edge_type = "relation")
+   """
+   if min(dimensions, walk_length, context_size, walks_per_node, epochs, batch_size) < 1 or negative_samples < 0:
+      raise ValueError("metapath2vec: sizes and epochs must be positive, negative_samples non negative")
+   if context_size > walk_length:
+      raise ValueError(f"context_size ({context_size}) cannot be larger than walk_length ({walk_length})")
+   if node_type not in net.qualitative_node_attributes:
+      raise KeyError(f"no qualitative node attribute named {node_type!r}")
+   if edge_type is not None and edge_type not in net.qualitative_edge_attributes:
+      raise KeyError(f"no qualitative edge attribute named {edge_type!r}")
+   path = list(metapath)
+   types, rels = (path, None) if edge_type is None else (path[::2], path[1::2])
+   if len(types) < 2 or (edge_type is not None and len(path) % 2 == 0):
+      raise ValueError("the metapath needs at least two node types" + ("" if edge_type is None else ", alternating with edge types (an odd number of entries)"))
+   if types[0] != types[-1]:
+      raise ValueError(f"the metapath must start and end with the same node type, so that walks can repeat it: {types[0]!r} and {types[-1]!r}")
+   dev, n = net.components[0].edge_index.device, net.number_of_nodes()
+
+   # node types and edge types as codes
+   vals = _node_values(net, node_type)
+   if net.node_format == "long":
+      if any(len(x) > 1 for x in vals):
+         raise ValueError(f"node attribute {node_type!r} gives several types to some nodes")
+      vals = np.array([next(iter(x)) if len(x) else np.nan for x in vals] + [None], dtype = object)[:-1]
+   nt = pd.Index(pd.unique(pd.Series(vals, dtype = object).dropna()), dtype = object)
+   for x in types:
+      if x not in nt:
+         raise ValueError(f"no node has type {x!r}; types: {list(nt)[:10]}")
+   ntype = torch.as_tensor(nt.get_indexer(pd.Series(vals, dtype = object)), device = dev)   # -1: no type
+   T = len(nt) + 1
+   ntype = torch.where(ntype < 0, T - 1, ntype)
+   s = torch.cat([d.edge_index[0] + int(o) for d, o in zip(net.components, net.node_offsets)])
+   t = torch.cat([d.edge_index[1] + int(o) for d, o in zip(net.components, net.node_offsets)])
+   etype = None
+   if edge_type is not None:
+      ev = pd.Series(np.concatenate(net.get_edge_attribute(edge_type, None)), dtype = object)
+      et = pd.Index(pd.unique(ev.dropna()), dtype = object)
+      for r in rels:
+         if r not in et:
+            raise ValueError(f"no edge has type {r!r}; types: {list(et)[:10]}")
+      etype = torch.as_tensor(et.get_indexer(ev), device = dev)
+      etype = torch.where(etype < 0, len(et), etype)
+   steps = [int(nt.get_loc(x)) if edge_type is None else int(et.get_loc(r)) * T + int(nt.get_loc(x)) for x, r in zip(types[1:], rels or [None] * (len(types) - 1))]
+   walker = _MetaWalker(s, t, ntype, etype, steps, T, T if edge_type is None else (len(et) + 1) * T)
+   starts = torch.nonzero(ntype == int(nt.get_loc(types[0]))).squeeze(1)
+
+   sampler = None
+   if plus:   # negatives of the type of their position in the walk
+      period = [int(nt.get_loc(x)) for x in types[:-1]]
+      pools = {c: torch.nonzero(ntype == c).squeeze(1) for c in set(period)}
+
+      def sampler(rows, gen):
+         cols = [pools[period[j % len(period)]] for j in range(walk_length)]
+         return torch.stack([p[torch.randint(len(p), (rows,), device = dev, generator = gen)] for p in cols], 1)
+
+   gen = torch.Generator(device = dev)
+   gen.manual_seed(int(np.random.default_rng(seed).integers(2 ** 62)))
+   X = _skipgram(walker, n, dev, dimensions, walk_length, context_size, walks_per_node, negative_samples, epochs, batch_size, learning_rate, gen, progress, "metapath2vec", starts, sampler)
+   return _embedding(net, X, attribute)
+
+
+class _VariationalEncoder(torch.nn.Module):
+   """
+   Encoder of a variational graph autoencoder: GCN layers, then two GCN layers giving the mean and
+   the log standard deviation of every node vector.
+   """
+
+   def __init__(self, trunk, mu, logstd):
+      super().__init__()
+      self.trunk, self.mu, self.logstd = trunk, mu, logstd
+
+   def forward(self, x, graph):
+      h = self.trunk(x, graph) if self.trunk is not None else x
+      return self.mu(h, *graph), self.logstd(h, *graph)
+
+
+def _autoencoder(net, channels, variational, features, qualitative, standardize, weight, epochs, optimizer, learning_rate, weight_decay, dropout, seed, attribute, progress):
+   """
+   Body of :func:`gae` and :func:`vgae`.
+   """
+   from torch_geometric.nn import GAE, GCNConv, VGAE
+   channels = [int(c) for c in channels]
+   if not channels or min(channels) < 1 or epochs < 0 or not 0 <= dropout < 1:
+      raise ValueError("graph autoencoders: channels must be a non-empty list of positive integers, epochs non negative, dropout in [0, 1)")
+   if isinstance(optimizer, str):
+      if optimizer not in _OPTIMIZERS:
+         raise ValueError(f"unknown optimizer {optimizer!r}; known: {sorted(_OPTIMIZERS)}")
+      optimizer = _OPTIMIZERS[optimizer]
+   dev, n = net.components[0].edge_index.device, net.number_of_nodes()
+   X, names = _features(net, None, features, qualitative, standardize)
+   if names == ["constant"]:   # no features: one-hot node ids, as in the paper (sparse)
+      with _quiet_sparse():
+         X = torch.sparse_coo_tensor(torch.arange(n, device = dev).repeat(2, 1), torch.ones(n, device = dev), (n, n)).to_sparse_csr()
+      names = ["identity"]
+   ei = torch.cat([d.edge_index + int(o) for d, o in zip(net.components, net.node_offsets)], 1)
+   w = None if weight is None else torch.cat(net._numeric_edge(weight, None)).float()
+   graph = _gcn_adjacency(ei, w, n)
+   pos = ei[:, ei[0] != ei[1]]   # the edges to reconstruct
+   layer = lambda a, b: GCNConv(a, b, normalize = False)
+   sizes = [X.shape[1]] + channels
+   devices = [dev] if dev.type == "cuda" else []
+   history = []
+   state = random.getstate()   # PyTorch Geometric draws the negative pairs with Python's generator
+   with torch.random.fork_rng(devices = devices), _deterministic(dev, seed):   # seeded weights, dropout and negative pairs
+      if seed is not None:
+         torch.manual_seed(seed)
+         random.seed(seed)
+      if variational:
+         trunk = _Stack(layer, sizes[:-1], [torch.relu] * (len(sizes) - 2), dropout) if len(sizes) > 2 else None
+         model = VGAE(_VariationalEncoder(trunk, layer(sizes[-2], sizes[-1]), layer(sizes[-2], sizes[-1]))).to(dev)
+      else:
+         model = GAE(_Stack(layer, sizes, [torch.relu] * (len(sizes) - 2) + [None], dropout)).to(dev)
+      opt = optimizer(model.parameters(), lr = learning_rate, weight_decay = weight_decay)
+      with _bar(epochs, "vgae" if variational else "gae", progress) as bar:
+         for epoch in range(epochs):
+            model.train()
+            opt.zero_grad()
+            z = model.encode(X, graph)
+            loss = model.recon_loss(z, pos)
+            if variational:
+               loss = loss + model.kl_loss() / n
+            loss.backward()
+            opt.step()
+            history.append((epoch, loss.item()))
+            bar.update()
+   random.setstate(state)   # the caller's random numbers are untouched
+   model.eval()
+   with torch.no_grad():
+      z = model.encode(X, graph)   # VGAE in evaluation: the means
+   return {"embeddings": _embedding(net, z, attribute), "history": pd.DataFrame(history, columns = ["epoch", "loss"]), "model": model, "features": names}
+
+
+#: Parameters, return value and errors common to the graph autoencoders.
+_AUTOENCODER = """
+   The encoder is a stack of GCN layers (as in :func:`gcn`, with the normalized adjacency
+   computed once as a sparse matrix), with ``channels`` giving the output size of each layer, the
+   last one being the size of the node vectors (``[32, 16]`` as in the paper), ReLU between them
+   and dropout before each. The features are the node attributes, prepared as in :func:`gcn`;
+   without any, the features are the one-hot node ids (the identity matrix, sparse), as in the
+   paper. The decoder is the inner product: the probability of an edge between :math:`u` and
+   :math:`v` is :math:`\\sigma(z_u^T z_v)`, and the loss is the binary cross entropy of all the
+   edges (self loops excluded) against as many random pairs of nodes, drawn anew at every epoch,
+   with PyTorch Geometric's ``{cls}``. Training is unsupervised and uses all the nodes and edges at
+   every epoch: to test the vectors on link prediction, train on the training network of
+   :func:`~graphoskop.link_prediction_split` and score the pairs with the dot product of their
+   vectors, or with :func:`~graphoskop.embedding_lp`.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param channels: Output channels of each layer, the last one being the size of the node vectors.
+   :param features: Names of the node attributes to use as features (``None``: all).
+   :param qualitative: Whether to include the qualitative node attributes as dummy variables.
+   :param standardize: Whether to standardize the numeric features.
+   :param weight: Name of a numeric edge attribute weighting the edges in the GCN layers, or
+      ``None``.
+   :param epochs: Number of training epochs (full passes over the network).
+   :param optimizer: ``"adam"``, ``"adamw"``, ``"sgd"``, ``"rmsprop"``, or a
+      :class:`torch.optim.Optimizer` class.
+   :param learning_rate: Learning rate.
+   :param weight_decay: Weight decay (L2 penalty).
+   :param dropout: Dropout probability before each layer.
+   :param seed: Seed of the initial weights, dropout and random pairs, or ``None``. With a seed, runs
+      repeat exactly on the CPU, and up to rounding on a GPU.
+   :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
+      where to store the vectors, or ``None`` to only return them.
+   :param progress: Whether to show a progress bar over the epochs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+   :return: Dictionary with ``"embeddings"`` (:class:`pandas.DataFrame`, one row per node,
+      indexed by node id, one column per dimension{vec}), ``"history"`` (loss at each epoch),
+      ``"model"`` (the trained ``{cls}`` of PyTorch Geometric, whose ``decoder`` scores pairs) and
+      ``"features"`` (feature names).
+   :raises ValueError: If ``channels``, ``epochs``, ``dropout`` or ``optimizer`` are not valid.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      train, validation = gsk.link_prediction_split(net, seed = 1)
+      out = gsk.{name}(train, seed = 1, attribute = "z")
+      z = out["embeddings"]
+      validation["score"] = (z.loc[validation["source"]].to_numpy() * z.loc[validation["target"]].to_numpy()).sum(1)
+      gsk.link_prediction_evaluation(validation)["auc"]
+"""
+
+
+@_higher_order()
+def gae(net, channels = (32, 16), features = None, qualitative = False, standardize = True, weight = None, epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 0., dropout = 0., seed = None, attribute = None, progress = None):
+   return _autoencoder(net, channels, False, features, qualitative, standardize, weight, epochs, optimizer, learning_rate, weight_decay, dropout, seed, attribute, progress)
+
+
+@_higher_order()
+def vgae(net, channels = (32, 16), features = None, qualitative = False, standardize = True, weight = None, epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 0., dropout = 0., seed = None, attribute = None, progress = None):
+   return _autoencoder(net, channels, True, features, qualitative, standardize, weight, epochs, optimizer, learning_rate, weight_decay, dropout, seed, attribute, progress)
+
+
+gae.__doc__ = """
+   Graph autoencoder (Kipf and Welling, 2016): node vectors learned by a graph neural network
+   (the encoder) so that the edges of the network can be reconstructed from them (the decoder),
+   from the node attributes and the edges, without any target.
+""" + _AUTOENCODER.format(cls = "GAE", name = "gae", vec = "")
+
+vgae.__doc__ = """
+   Variational graph autoencoder (Kipf and Welling, 2016): as :func:`gae`, but the encoder gives a
+   distribution of every node vector, a Gaussian with a mean and a standard deviation per
+   dimension (the last layer is two GCN layers, one for the means and one for the log standard
+   deviations, after the shared ones), and the decoder reconstructs the edges from vectors drawn
+   from them. The loss adds the Kullback-Leibler divergence of the distributions from the
+   standard normal, divided by the number of nodes, which keeps the vectors in a smooth space
+   around the origin.
+""" + _AUTOENCODER.format(cls = "VGAE", name = "vgae", vec = ": the means of the distributions")

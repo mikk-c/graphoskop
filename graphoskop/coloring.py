@@ -22,6 +22,7 @@ import warnings
 import numpy as np
 import torch
 
+from ._policy import _higher_order
 from .communities import _bron_kerbosch
 
 
@@ -145,6 +146,7 @@ def _color_component(adj, deadline):
    return [best[v] for v in range(n)], ub, lb, proven
 
 
+@_higher_order()
 def graph_coloring(net, component = None, time_limit = 60):
    """
    Coloring of the nodes with as few colors as possible, as a division of the nodes into
@@ -298,6 +300,7 @@ def _greedy_mis(adj):
    return out
 
 
+@_higher_order()
 def maximum_independent_set(net, component = None, time_limit = 60):
    """
    Largest independent set: the largest set of nodes no two of which are joined (see the module

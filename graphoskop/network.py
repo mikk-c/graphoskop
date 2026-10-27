@@ -35,12 +35,132 @@ import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import connected_components
 from torch_geometric.data import Data
+from ._policy import _higher_order
 
 #: Name of the node attribute holding the node type in bipartite networks.
 BIPARTITE = "bipartite_type"
 
 #: Default name of the edge table column holding the layer of each edge in multilayer networks.
 LAYER = "layer"
+
+
+class _HigherOrderId:
+   """
+   Base of the ids of hyperedges and simplices (see :doc:`higher_order`): objects of their own
+   type, so that they never equal a node id.
+   """
+   __slots__ = ()
+
+
+class Hyperedge(_HigherOrderId):
+   """
+   Id of a hyperedge: ``Hyperedge(label)`` never equals a node id, so a node ``3`` and the
+   hyperedge ``Hyperedge(3)`` can coexist. Two hyperedges with the same label are the same
+   hyperedge. Hyperedges without a label in input get their position, from 0.
+
+   :param label: Any hashable value.
+   :ivar label: The label.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph([["a", "b", "c"], ["b", "d"]])
+      net.node_map[gsk.Hyperedge(1)]       # (component, index) of the second hyperedge
+      gsk.Hyperedge(1).label               # 1
+   """
+   __slots__ = ("label",)
+
+   def __init__(self, label):
+      if isinstance(label, _HigherOrderId):
+         raise ValueError(f"the label of a hyperedge cannot be a {type(label).__name__}")
+      self.label = label
+
+   def __eq__(self, other):
+      return type(other) is Hyperedge and self.label == other.label
+
+   def __hash__(self):
+      return hash((Hyperedge, self.label))
+
+   def __repr__(self):
+      return f"Hyperedge({self.label!r})"
+
+   def __reduce__(self):
+      return Hyperedge, (self.label,)
+
+   def _text(self):
+      """
+      The same id with its label as text, as read from files.
+      """
+      return Hyperedge(str(self.label))
+
+
+class Simplex(_HigherOrderId):
+   """
+   Id of a simplex: the set of its nodes, so ``Simplex(["a", "b"]) == Simplex(("b", "a"))``. It
+   never equals a node id. It names a facet (a maximal simplex, stored in the network) as well as
+   any of its faces.
+
+   :param members: Iterable of node ids (or a :class:`Simplex`), not empty.
+   :ivar members: The node ids, as a :class:`frozenset`.
+   :ivar dimension: Number of nodes minus one.
+   :raises ValueError: If ``members`` is empty, or a string (give the nodes as a list).
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d"]])
+      net.node_map[gsk.Simplex(["c", "d"])]   # (component, index) of the facet {c, d}
+      gsk.Simplex(["a", "b", "c"]).dimension  # 2
+   """
+   __slots__ = ("members",)
+
+   def __init__(self, members):
+      if isinstance(members, str):
+         raise ValueError(f"give the nodes of a simplex as a list, not as the string {members!r}")
+      self.members = members.members if isinstance(members, Simplex) else frozenset(members)
+      if not self.members:
+         raise ValueError("a simplex needs at least one node")
+
+   @property
+   def dimension(self):
+      return len(self.members) - 1
+
+   def __eq__(self, other):
+      return type(other) is Simplex and self.members == other.members
+
+   def __hash__(self):
+      return hash((Simplex, self.members))
+
+   def __repr__(self):
+      try:
+         m = sorted(self.members)
+      except TypeError:
+         m = list(self.members)
+      return f"Simplex({m!r})"
+
+   def __reduce__(self):
+      return Simplex, (tuple(self.members),)
+
+   def _text(self):
+      """
+      The same id with its nodes as text, as read from files.
+      """
+      return Simplex(str(m) for m in self.members)
+
+   @staticmethod
+   def _of(members):
+      """
+      Simplex from a frozenset of node ids, without checks (for loaders: many simplices).
+      """
+      x = Simplex.__new__(Simplex)
+      x.members = members
+      return x
 
 
 class Network:
@@ -91,6 +211,12 @@ class Network:
    :ivar entity_ids: In multilayer networks, the input ids of the entities; ``None`` otherwise.
    :ivar entity_map: In multilayer networks, maps each entity to the list of the internal ids
       ``(component, index)`` of its copies, in layer order; ``None`` otherwise.
+   :ivar higher_order: ``"hypergraph"`` or ``"simplicial"`` for hypergraphs and simplicial
+      complexes, ``None`` otherwise (see :doc:`higher_order`). They are stored as bipartite
+      networks of nodes (type 0, first in every component) and hyperedges or facets (type 1, ids
+      :class:`Hyperedge` or :class:`Simplex`); :meth:`number_of_nodes` and
+      :meth:`get_node_attribute` then cover the nodes only, and :meth:`edges` gives the
+      memberships.
 
    Example, reading and setting attributes by name:
 
@@ -114,6 +240,9 @@ class Network:
 
    qualitative_edge_attributes = ()   # defaults of networks pickled before 0.11.2
    qualitative_edge_attr = None
+   higher_order = None   # before 0.12.0
+   _simplex_attr = None   # before 0.12.6: no simplex attributes
+   _is_network = True   # recognized by the guard of public functions (_policy)
 
    def __init__(self, components, node_map, node_ids, node_attributes, edge_attributes, directed, qualitative_node_attr, qualitative_node_attributes, node_format = "wide", bipartite_labels = None, bipartite_split = None, layer_labels = None, entity_ids = None, qualitative_edge_attributes = None, qualitative_edge_attr = None):
       self.components = components
@@ -157,7 +286,7 @@ class Network:
       """
       pair = isinstance(node, tuple) and len(node) == 2
       found = None
-      for key in (node, (str(node[0]), node[1]) if pair else str(node)):
+      for key in (node, node._text() if isinstance(node, _HigherOrderId) else (str(node[0]), node[1]) if pair else str(node)):
          if key in self.node_map:
             found = [self.node_map[key]]
          elif self.entity_map is not None and key in self.entity_map:
@@ -245,6 +374,11 @@ class Network:
       index, on the device of the component. Qualitative attributes are returned as a NumPy object
       array, with NaN for missing values.
 
+      In hypergraphs and simplicial complexes, the vector covers the nodes only (the first
+      :meth:`number_of_nodes` of the component); hyperedge and facet values are read with
+      :meth:`get_hyperedge_attribute` and :meth:`get_facet_attribute`. Nodes, hyperedges and
+      facets share attribute names: an attribute has values on both sides, missing where not given.
+
       :param key: Attribute name, or position in :attr:`node_attributes`.
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
       :return: Vector of length ``n``, or a list of them if ``component`` is ``None``.
@@ -252,6 +386,61 @@ class Network:
       """
       if component is None:
          return [self.get_node_attribute(key, c) for c in range(len(self.components))]
+      v = self._node_vector(key, component)
+      return v if self.higher_order is None else v[:self.bipartite_split[component]]
+
+   def _side(self, kind):
+      """
+      Check that the network is a hypergraph or a simplicial complex.
+
+      :param kind: ``"hypergraph"`` or ``"simplicial"``.
+      :raises ValueError: If the network is not of that kind.
+      """
+      if self.higher_order != kind:
+         raise ValueError(f"the network is not a {'hypergraph' if kind == 'hypergraph' else 'simplicial complex'}: it is {'a ' + ('hypergraph' if self.higher_order == 'hypergraph' else 'simplicial complex') if self.higher_order else 'a plain network'}")
+
+   def get_hyperedge_attribute(self, key, component = 0):
+      """
+      Attribute of the hyperedges of a hypergraph, as a vector over the hyperedges of a component,
+      in their internal order (hyperedge ``h`` of component ``c`` is node
+      ``number_of_nodes(c) + h`` of the component), as :meth:`get_node_attribute`.
+
+      :param key: Attribute name, or position in :attr:`node_attributes`.
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Vector of length :meth:`number_of_hyperedges` of the component, or a list of them.
+      :raises KeyError: If there is no attribute with that name.
+      :raises ValueError: If the network is not a hypergraph.
+      """
+      self._side("hypergraph")
+      if component is None:
+         return [self.get_hyperedge_attribute(key, c) for c in range(len(self.components))]
+      return self._node_vector(key, component)[self.bipartite_split[component]:]
+
+   def get_facet_attribute(self, key, component = 0):
+      """
+      Attribute of the facets of a simplicial complex, as a vector over the facets of a
+      component, in their internal order (facet ``f`` of component ``c`` is node
+      ``number_of_nodes(c) + f`` of the component), as :meth:`get_node_attribute`.
+
+      :param key: Attribute name, or position in :attr:`node_attributes`.
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Vector of length :meth:`number_of_facets` of the component, or a list of them.
+      :raises KeyError: If there is no attribute with that name.
+      :raises ValueError: If the network is not a simplicial complex.
+      """
+      self._side("simplicial")
+      if component is None:
+         return [self.get_facet_attribute(key, c) for c in range(len(self.components))]
+      return self._node_vector(key, component)[self.bipartite_split[component]:]
+
+   def _node_vector(self, key, component):
+      """
+      Node attribute over all the stored nodes of a component (hyperedges and facets included).
+
+      :param key: Attribute name, or position in :attr:`node_attributes`.
+      :param component: Component index.
+      :return: Vector of length ``num_nodes`` (see :meth:`get_node_attribute`).
+      """
       if isinstance(key, str) and key in self.qualitative_node_attributes:
          return self._get_qualitative(key, component)
       j = self._column(self.node_attributes, key, "node")
@@ -351,8 +540,135 @@ class Network:
          raise ValueError(f"{BIPARTITE!r} cannot be changed: node types fix the node order of a bipartite network")
       if self.layer_labels is not None and key == LAYER:
          raise ValueError(f"{LAYER!r} cannot be a node attribute of a multilayer network: the layer is part of the node id")
+      self._set_vector(key, values if self.higher_order is None else self._padded(key, values, component, True), component)
+
+   def _padded(self, key, values, component, nodes):
+      """
+      Vectors over all the stored nodes of components, from values given for one side of a
+      hypergraph or simplicial complex: the nodes, or the hyperedges (facets). The other side
+      keeps its values (missing for a new attribute).
+
+      :param key: Attribute name, or position in :attr:`node_attributes`.
+      :param values: Vector over the side, or a list of them if ``component`` is ``None``.
+      :param component: Component index, or ``None`` for all components.
+      :param nodes: Whether the values are for the nodes (else for the hyperedges or facets).
+      :return: Vector, or list of vectors, over all the stored nodes.
+      :raises ValueError: If a vector does not have one value per item of the side, or if
+         non-numeric values are given for a numeric attribute.
+      """
+      if component is None:
+         return [self._padded(key, v, c, nodes) for c, v in enumerate(values)]
+      k, n = self.bipartite_split[component], self.components[component].num_nodes
+      side = slice(0, k) if nodes else slice(k, n)
+      if isinstance(values, torch.Tensor):
+         values = values.cpu() if values.ndim else values   # placed on the device below
+      if len(values) != side.stop - side.start:
+         raise ValueError(f"expected a vector of length {side.stop - side.start}, got {len(values)}")
+      X = self.components[component].node_attr
+      numeric = not (isinstance(key, str) and key in self.qualitative_node_attributes) and (not isinstance(key, str) or key in self.node_attributes or _is_numeric(values))
+      if numeric:
+         if not _is_numeric(values):
+            raise ValueError(f"node attribute {key!r} is numeric, got non-numeric values")
+         old = self._node_vector(key, component) if not isinstance(key, str) or key in self.node_attributes else torch.full((n,), 0. if X.layout == torch.sparse_csr else float("nan"), dtype = X.dtype, device = X.device)
+         old[side] = torch.as_tensor(values, dtype = old.dtype).to(old.device)
+         return old
+      old = self._node_vector(key, component) if key in self.qualitative_node_attributes else np.full(n, np.nan, dtype = object)
+      for i, x in enumerate(values):   # element by element: cells can be lists
+         old[side.start + i] = x
+      return old
+
+   def set_hyperedge_attribute(self, key = None, values = None, component = 0, hyperedge_column = None):
+      """
+      Set an attribute of the hyperedges of a hypergraph, as :meth:`set_node_attribute` does for
+      the nodes: ``values`` ordered as in :meth:`get_hyperedge_attribute`, or a table with the
+      hyperedge labels (not wrapped in :class:`Hyperedge`) in ``hyperedge_column``. The nodes keep
+      their values of the attribute (missing for a new one).
+
+      :param key: Attribute name, or position in :attr:`node_attributes`; ``None`` for a table.
+      :param values: Vector over the hyperedges of the component, or a list of them if
+         ``component`` is ``None``; without ``key``, the table.
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :param hyperedge_column: With a table, the column with the hyperedge labels.
+      :raises ValueError: If the network is not a hypergraph, and as :meth:`set_node_attribute`.
+      :raises KeyError: As :meth:`set_node_attribute`.
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+         import pandas as pd
+
+         net = gsk.load_hypergraph({"m1": ["a", "b", "c"], "m2": ["b", "d"]})
+         net.set_hyperedge_attribute("hours", [2., 1.])                     # component 0
+         table = pd.DataFrame({"meeting": ["m1", "m2"], "room": ["A", "B"]})
+         net.set_hyperedge_attribute(table, hyperedge_column = "meeting")
+      """
+      self._side("hypergraph")
+      self._set_side(key, values, component, hyperedge_column, Hyperedge)
+
+   def set_facet_attribute(self, key = None, values = None, component = 0, facet_column = None):
+      """
+      Set an attribute of the facets of a simplicial complex, as :meth:`set_node_attribute` does
+      for the nodes: ``values`` ordered as in :meth:`get_facet_attribute`, or a table with the
+      facets in ``facet_column``, each as the collection of its nodes (a list, tuple, set or
+      :class:`Simplex`). The nodes keep their values of the attribute (missing for a new one).
+
+      :param key: Attribute name, or position in :attr:`node_attributes`; ``None`` for a table.
+      :param values: Vector over the facets of the component, or a list of them if
+         ``component`` is ``None``; without ``key``, the table.
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :param facet_column: With a table, the column with the facets.
+      :raises ValueError: If the network is not a simplicial complex, and as
+         :meth:`set_node_attribute`.
+      :raises KeyError: If a simplex of the table is not a facet, and as
+         :meth:`set_node_attribute`.
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+         import pandas as pd
+
+         net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d"]])
+         table = pd.DataFrame({"facet": [("a", "b", "c")], "weight": [0.5]})
+         net.set_facet_attribute(table, facet_column = "facet")
+      """
+      self._side("simplicial")
+      self._set_side(key, values, component, facet_column, Simplex)
+
+   def _set_side(self, key, values, component, column, kind):
+      """
+      Body of :meth:`set_hyperedge_attribute` and :meth:`set_facet_attribute`.
+
+      :param kind: :class:`Hyperedge` or :class:`Simplex`, the id of the hyperedges or facets.
+      """
+      if isinstance(key, pd.DataFrame) and values is None:
+         key, values = None, key
+      if key is None:
+         if column is None:
+            raise ValueError(f"a table of {'hyperedge' if kind is Hyperedge else 'facet'} attributes needs the column with their ids")
+         c = values.columns[column] if isinstance(column, (int, np.integer)) and column not in values.columns else column
+         self._set_node_table(values.assign(**{c: [x if isinstance(x, kind) else kind(x) for x in values[c]]}), c, None)
+         return
+      if key == BIPARTITE:
+         raise ValueError(f"{BIPARTITE!r} cannot be changed: node types fix the node order of a bipartite network")
+      self._set_vector(key, self._padded(key, values, component, False), component)
+
+   def _set_vector(self, key, values, component):
+      """
+      Set one node attribute over all the stored nodes of components (see
+      :meth:`set_node_attribute`).
+
+      :param key: Attribute name, or position in :attr:`node_attributes`.
+      :param values: Vector of length ``num_nodes``, or a list of them if ``component`` is ``None``.
+      :param component: Component index, or ``None`` for all components.
+      """
       first = values[0] if component is None and len(values) > 0 else values
       new = isinstance(key, str) and key not in self.node_attributes and key not in self.qualitative_node_attributes
+      if new and key in (self._simplex_attr or {}):
+         raise ValueError(f"{key!r} is a simplex attribute: node and facet attributes have names of their own")
       if new and not _is_numeric(first):
          self.qualitative_node_attributes.append(key)
          if self.node_format == "wide":
@@ -376,7 +692,7 @@ class Network:
          raise KeyError(f"no node attribute at position {j}; node attributes: {self.node_attributes}")
       if component is None:
          for c, v in enumerate(values):
-            self.set_node_attribute(j, v, c)
+            self._set_vector(j, v, c)
          return
       data = self.components[component]
       X = data.node_attr
@@ -454,6 +770,9 @@ class Network:
       col = lambda c: table.columns[c] if isinstance(c, (int, np.integer)) and c not in table.columns else c
       idc = [col(node_column)] + ([] if layer_column is None else [col(layer_column)])
       keys = table[idc[0]].tolist() if layer_column is None else list(zip(table[idc[0]].tolist(), table[idc[1]].tolist()))
+      for a in table.columns:
+         if a not in idc and ((self.bipartite_labels is not None and a == BIPARTITE) or (self.layer_labels is not None and a == LAYER)):
+            raise ValueError(f"{a!r} cannot be set: it fixes the node order or is part of the node id")
       rows, comp, local = [], [], []
       for r, x in enumerate(keys):
          for c, i in self._nodes(x):
@@ -468,16 +787,16 @@ class Network:
          v = table[a].to_numpy()[rows]
          qual = a in self.qualitative_node_attributes or (a not in self.node_attributes and not _is_numeric(table[a].dropna().to_numpy()))
          if qual:
-            old = np.concatenate(self.get_node_attribute(a, None)) if a in self.qualitative_node_attributes else np.full(self.node_offsets[-1], np.nan, dtype = object)
+            old = np.concatenate([self._node_vector(a, c) for c in range(len(self.components))]) if a in self.qualitative_node_attributes else np.full(self.node_offsets[-1], np.nan, dtype = object)
             for p, x in zip(pos, v):   # element by element: cells can be lists
                old[p] = x
          else:
             if not _is_numeric(table[a].dropna().to_numpy()):
                raise ValueError(f"node attribute {a!r} is numeric, got non-numeric values")
             fill = 0. if self.node_format == "long" else np.nan
-            old = torch.cat(self.get_node_attribute(a, None)).cpu().double().numpy() if a in self.node_attributes else np.full(self.node_offsets[-1], fill)
+            old = torch.cat([self._node_vector(a, c) for c in range(len(self.components))]).cpu().double().numpy() if a in self.node_attributes else np.full(self.node_offsets[-1], fill)
             old[pos] = np.nan_to_num(v.astype(np.float64), nan = fill)   # long tables: missing means no value
-         self.set_node_attribute(a, [old[self.node_offsets[c]:self.node_offsets[c + 1]] for c in range(len(self.components))], None)
+         self._set_vector(a, [old[self.node_offsets[c]:self.node_offsets[c + 1]] for c in range(len(self.components))], None)
 
    def _set_qualitative(self, key, values, component):
       """
@@ -728,19 +1047,314 @@ class Network:
 
    def number_of_nodes(self, component = None):
       """
-      Number of nodes, isolated nodes included.
+      Number of nodes, isolated nodes included. In hypergraphs and simplicial complexes, the
+      hyperedges and facets are not counted (see :meth:`number_of_hyperedges` and
+      :meth:`number_of_facets`).
 
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
       :return: Number of nodes.
       """
       if component is None:
-         return sum(d.num_nodes for d in self.components)
-      return self.components[component].num_nodes
+         return sum(self.number_of_nodes(c) for c in range(len(self.components)))
+      return self.components[component].num_nodes if self.higher_order is None else int(self.bipartite_split[component])
+
+   def number_of_hyperedges(self, component = None):
+      """
+      Number of hyperedges of a hypergraph, empty ones included.
+
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Number of hyperedges.
+      :raises ValueError: If the network is not a hypergraph.
+      """
+      self._side("hypergraph")
+      return self._other(component)
+
+   def number_of_facets(self, component = None):
+      """
+      Number of facets (maximal simplices) of a simplicial complex. Isolated nodes, maximal
+      simplices of dimension 0, are nodes and are not counted.
+
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Number of facets.
+      :raises ValueError: If the network is not a simplicial complex.
+      """
+      self._side("simplicial")
+      return self._other(component)
+
+   def simplices(self, dimension, component = 0, labels = False):
+      """
+      The simplices of one dimension of a simplicial complex, faces of the facets included: for
+      ``dimension = 1`` the edges of the complex, for 2 its triangles. They are enumerated from the
+      facets the first time they are asked for and cached (only that dimension: the complex never
+      stores all its faces); results over the simplices of a dimension, such as
+      :func:`~graphoskop.generalized_degree`, are aligned with these rows.
+
+      :param dimension: Dimension of the simplices (0 for the nodes).
+      :param component: Index of the component (0 is the largest).
+      :param labels: Whether to give the simplices as :class:`Simplex` ids instead of node indices.
+      :return: int64 tensor ``[n, dimension + 1]`` of node indices of the component (each row
+         increasing, rows in lexicographic order), on the device of the network; with ``labels``,
+         a NumPy object array of :class:`Simplex` ids in the same order.
+      :raises ValueError: If the network is not a simplicial complex, or ``dimension`` is negative.
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+
+         net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d"]])
+         net.simplices(1)                        # tensor([[0, 1], [0, 2], [1, 2], [2, 3]])
+         net.simplices(1, labels = True)         # the four edges as Simplex ids
+         net.number_of_simplices(2)              # 1 triangle
+      """
+      from .higher_order import _simplices
+      self._side("simplicial")
+      if dimension < 0:
+         raise ValueError(f"the dimension of a simplex is at least 0, got {dimension}")
+      S = _simplices(self, component, dimension)
+      if not labels:
+         return S
+      ids = self.node_ids[component]
+      return _objects([Simplex._of(frozenset(ids[row].tolist())) for row in S.cpu().numpy()])
+
+   def number_of_simplices(self, dimension, component = None):
+      """
+      Number of simplices of one dimension of a simplicial complex, faces of the facets included
+      (see :meth:`simplices`).
+
+      :param dimension: Dimension of the simplices (0 for the nodes).
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Number of simplices.
+      :raises ValueError: If the network is not a simplicial complex.
+      """
+      comps = range(len(self.components)) if component is None else [component]
+      return sum(len(self.simplices(dimension, c)) for c in comps)
+
+   @property
+   def simplex_attributes(self):
+      """
+      Attributes of the simplices of a simplicial complex (see :meth:`set_simplex_attribute`): a
+      dictionary from name to the dimension of the simplices carrying it, empty for other
+      networks.
+      """
+      return {k: e["dimension"] for k, e in (self._simplex_attr or {}).items()}
+
+   def get_simplex_attribute(self, key, component = 0):
+      """
+      Attribute of the simplices of one dimension of a simplicial complex (an edge flow, the area
+      of triangles), as a vector over the simplices of that dimension of a component, aligned with
+      :meth:`simplices`. Values given with an orientation (``oriented`` in
+      :meth:`set_simplex_attribute`) refer to the reference orientation of each simplex: its nodes
+      in increasing internal index, as in a row of :meth:`simplices`.
+
+      :param key: Attribute name (see :attr:`simplex_attributes`).
+      :param component: Index of the component (0 is the largest), or ``None`` for all components.
+      :return: Numeric attributes: float32 tensor on the device of the network, NaN where no value
+         was set; qualitative attributes: NumPy object array, NaN where no value was set. A list
+         of them if ``component`` is ``None``.
+      :raises KeyError: If there is no simplex attribute with that name.
+      :raises ValueError: If the network is not a simplicial complex.
+      """
+      self._side("simplicial")
+      if component is None:
+         return [self.get_simplex_attribute(key, c) for c in range(len(self.components))]
+      e = self._simplex_entry(key)
+      v = e["values"].get(component)
+      if v is not None:
+         return v.copy() if e["qualitative"] else v.clone()
+      n = len(self.simplices(e["dimension"], component))
+      return np.full(n, np.nan, dtype = object) if e["qualitative"] else torch.full((n,), float("nan"), device = self.components[component].edge_index.device)
+
+   def _simplex_entry(self, key):
+      """
+      Stored simplex attribute: dictionary with ``dimension``, ``qualitative`` and ``values`` (one
+      vector per component that has values).
+
+      :raises KeyError: If there is no simplex attribute with that name.
+      """
+      if key not in (self._simplex_attr or {}):
+         raise KeyError(f"no simplex attribute named {key!r}; simplex attributes: {self.simplex_attributes}")
+      return self._simplex_attr[key]
+
+   def set_simplex_attribute(self, key = None, values = None, dimension = None, component = 0, oriented = False):
+      """
+      Set an attribute of the simplices of one dimension of a simplicial complex: values on its
+      edges (flows, weights), triangles, and so on, faces of the facets included. Node values are
+      node attributes (:meth:`set_node_attribute`); a value of a facet as a whole (a meeting and
+      its date) is a facet attribute (:meth:`set_facet_attribute`). A simplex attribute has one
+      dimension and values on all its simplices (missing where not given); its name is not shared
+      with node or facet attributes. Only the dimensions with attributes are enumerated (see
+      :meth:`simplices`), never the whole complex.
+
+      Values are given as a vector over the simplices of the dimension of a component, aligned with
+      :meth:`simplices`, or as a table (:class:`pandas.DataFrame`, wide format): its first
+      ``dimension + 1`` columns hold the nodes of a simplex, the other columns its attributes.
+      With ``oriented``, numeric values of the table are those of the simplex oriented as its
+      nodes are listed, and are stored for the reference orientation (nodes in increasing
+      internal index, as in :meth:`simplices`): with a sign change if the two orders differ by an
+      odd permutation, as for a flow from ``v`` to ``u`` given on the edge ``(v, u)``.
+
+      Simplex attributes are kept by :func:`~graphoskop.save_network`, which writes those of
+      dimension :math:`d` to ``prefix + "_simplices_d.tsv"`` as such a table, in reference
+      orientation (``node_0``, ``node_1``, ... then the attributes).
+
+      :param key: Attribute name; ``None`` for a table.
+      :param values: Vector over the simplices (:class:`torch.Tensor`, :class:`numpy.ndarray` or
+         list; numeric or not), or a list of them if ``component`` is ``None``; without ``key``,
+         the table.
+      :param dimension: Dimension of the simplices, at least 1; for an existing attribute, ``None``
+         or its dimension.
+      :param component: Index of the component (0 is the largest), or ``None`` for all
+         components; ignored for a table.
+      :param oriented: Whether the numeric values of a table change sign with the orientation of
+         their simplices.
+      :raises ValueError: If the network is not a simplicial complex, the dimension is missing or
+         below 1, a vector has the wrong length, the name is a node attribute, a numeric attribute
+         gets non-numeric values (or the reverse), or a table repeats a simplex or a node in a row.
+      :raises KeyError: If a row of the table is not a simplex of the complex.
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+         import pandas as pd
+
+         net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d"]])
+         net.set_simplex_attribute("width", [1., 2., 1., 3.], dimension = 1)   # the 4 edges
+         flows = pd.DataFrame({"from": ["b", "d"], "to": ["a", "c"], "flow": [2., 5.]})
+         net.set_simplex_attribute(flows, dimension = 1, oriented = True)
+         net.get_simplex_attribute("flow")       # [-2, nan, nan, -5]: a -> b and c -> d
+      """
+      from .isomorphism import _row_codes
+      self._side("simplicial")
+      if isinstance(key, pd.DataFrame) and values is None:
+         key, values = None, key
+      if key is not None and key in self._simplex_attr_names():
+         dimension = self._simplex_attr[key]["dimension"] if dimension is None else dimension
+         if dimension != self._simplex_attr[key]["dimension"]:
+            raise ValueError(f"simplex attribute {key!r} is on dimension {self._simplex_attr[key]['dimension']}, not {dimension}")
+      if dimension is None or int(dimension) != dimension or dimension < 1:
+         raise ValueError(f"simplex attributes need a dimension of at least 1 (node values are node attributes), got {dimension}")
+      d = int(dimension)
+      if key is not None:
+         if component is None:
+            for c, v in enumerate(values):
+               self.set_simplex_attribute(key, v, d, c)
+            return
+         self._store_simplex(key, d, component, None, values)
+         return
+      table = values
+      if table.shape[1] < d + 1:
+         raise ValueError(f"a table of {d}-simplices needs {d + 1} node columns, got {table.shape[1]} columns")
+      pairs = [[self._nodes(x)[0] for x in row] for row in table.iloc[:, :d + 1].itertuples(index = False)]
+      ids = np.array(pairs, dtype = np.int64).reshape(len(table), d + 1, 2)
+      comp, idx = ids[:, 0, 0], ids[:, :, 1]
+      bad = (ids[:, :, 0] != comp[:, None]).any(1) | (idx >= np.asarray(self.bipartite_split)[comp][:, None]).any(1)   # nodes of two components, or a facet id
+      if bad.any():
+         raise KeyError(f"row {int(np.argmax(bad))} of the table is not a simplex of the complex")
+      sign = np.ones(len(table))
+      for i in range(d + 1):
+         for j in range(i + 1, d + 1):
+            sign[idx[:, i] > idx[:, j]] *= -1
+      idx = np.sort(idx, 1)
+      if (idx[:, 1:] == idx[:, :-1]).any():
+         raise ValueError(f"row {int(np.argmax((idx[:, 1:] == idx[:, :-1]).any(1)))} of the table repeats a node")
+      for c in np.unique(comp).tolist():
+         rows = np.flatnonzero(comp == c)
+         S = self.simplices(d, c)
+         R = torch.as_tensor(idx[rows], device = S.device)
+         code = _row_codes([torch.cat([S[:, j], R[:, j]]) for j in range(d + 1)]).cpu().numpy()
+         where = np.full(int(code.max()) + 1, -1)
+         where[code[:len(S)]] = np.arange(len(S))
+         code = where[code[len(S):]]   # position of each row in S
+         if (code < 0).any():
+            raise KeyError(f"row {int(rows[np.argmax(code < 0)])} of the table is not a simplex of the complex")
+         if len(np.unique(code)) < len(code):
+            raise ValueError("a simplex appears in two rows of the table")
+         for a in table.columns[d + 1:]:
+            v = table[a].to_numpy()[rows]
+            numeric = _is_numeric(table[a].dropna().to_numpy()) and not (a in self._simplex_attr_names() and self._simplex_attr[a]["qualitative"])
+            self._store_simplex(a, d, c, code, v.astype(np.float64) * (sign[rows] if oriented else 1.) if numeric else v)
+
+   def _simplex_attr_names(self):
+      """Names of the simplex attributes."""
+      return self._simplex_attr or {}
+
+   def _store_simplex(self, key, d, component, rows, values):
+      """
+      Store values of a simplex attribute in a component: all of them (``rows`` is ``None``) or
+      those of some simplices (positions in :meth:`simplices`).
+
+      :raises ValueError: As :meth:`set_simplex_attribute`.
+      """
+      if key in self.node_attributes or key in self.qualitative_node_attributes:
+         raise ValueError(f"{key!r} is a node (or facet) attribute: simplex attributes have names of their own")
+      qualitative = not _is_numeric(values)
+      e = (self._simplex_attr or {}).get(key)
+      if e is not None and e["qualitative"] != qualitative:
+         raise ValueError(f"simplex attribute {key!r} is {'qualitative' if e['qualitative'] else 'numeric'}, got {'non-numeric' if qualitative else 'numeric'} values")
+      n = len(self.simplices(d, component))
+      if rows is None and len(values) != n:
+         raise ValueError(f"expected a vector of length {n} (the {d}-simplices of component {component}), got {len(values)}")
+      if self._simplex_attr is None:
+         self._simplex_attr = {}
+      e = self._simplex_attr.setdefault(key, {"dimension": d, "qualitative": qualitative, "values": {}})
+      device = self.components[component].edge_index.device
+      if rows is None:
+         v = _objects(list(values)) if qualitative else torch.as_tensor(values, dtype = torch.float32).to(device).clone()
+      else:
+         v = self.get_simplex_attribute(key, component)
+         if qualitative:
+            for r, x in zip(rows, values):   # element by element: cells can be lists
+               v[r] = x
+         else:
+            v[torch.as_tensor(rows, device = device)] = torch.as_tensor(values, dtype = torch.float32, device = device)
+      e["values"][component] = v
+
+   def remove_simplex_attribute(self, key):
+      """
+      Remove a simplex attribute (see :meth:`set_simplex_attribute`), in place.
+
+      :param key: Attribute name.
+      :raises KeyError: If there is no simplex attribute with that name.
+      """
+      self._simplex_entry(key)
+      self._simplex_attr = {k: e for k, e in self._simplex_attr.items() if k != key}   # a new dictionary: never shared with another network
+
+   def _simplex_table(self, d):
+      """
+      Table of the attributes of the d-simplices, in reference orientation, with the simplices
+      that have a value (see :meth:`set_simplex_attribute`).
+      """
+      names = [k for k, e in self._simplex_attr_names().items() if e["dimension"] == d]
+      parts = []
+      for c in sorted({c for k in names for c in self._simplex_attr[k]["values"]}):
+         S = self.simplices(d, c).cpu().numpy()
+         part = pd.DataFrame({f"node_{j}": self.node_ids[c][S[:, j]] for j in range(d + 1)})
+         for k in names:
+            v = self.get_simplex_attribute(k, c)
+            part[k] = v if isinstance(v, np.ndarray) else v.cpu().numpy()
+         parts.append(part[part[names].notna().any(axis = 1).to_numpy()])
+      return pd.concat(parts, ignore_index = True)
+
+   def _other(self, component):
+      """
+      Number of hyperedges or facets (stored nodes of type 1).
+
+      :param component: Component index, or ``None`` for all components.
+      :return: Count.
+      """
+      if component is None:
+         return sum(self._other(c) for c in range(len(self.components)))
+      return self.components[component].num_nodes - int(self.bipartite_split[component])
 
    def number_of_edges(self, component = None, kind = "all"):
       """
       Number of edges, as given in input: in undirected networks each edge counts once, although it
-      is stored in both directions. Parallel edges and self loops count.
+      is stored in both directions. Parallel edges and self loops count. In hypergraphs and
+      simplicial complexes, the edges are the memberships of nodes in hyperedges or facets.
 
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
       :param kind: In multilayer networks, ``"all"`` edges, ``"intra"`` (intra-layer edges only)
@@ -763,7 +1377,9 @@ class Network:
       """
       Iterate over the edges, as given in input: in undirected networks each edge comes once
       (the reverse copies stored by :func:`load_network` are left out); parallel edges and self
-      loops come as they are.
+      loops come as they are. In hypergraphs and simplicial complexes, the edges are the
+      memberships: (node, hyperedge or facet), or (hyperedge, node) for the heads of directed
+      hyperedges, with their attributes.
 
       * By default, an edge is a pair ``(i, j)`` of the indices of its endpoints in the component,
         the internal ids of the nodes, as in ``edge_index``; with ``component = None``, the edges
@@ -857,6 +1473,8 @@ class Network:
       :param component: Index of the component (0 is the largest), or ``None`` for the whole
          network.
       :return: ``True`` if planar.
+      :raises ValueError: For hypergraphs and simplicial complexes (test their incidence graph,
+         :func:`~graphoskop.incidence_network`, or their clique expansion).
 
       Example:
 
@@ -869,6 +1487,8 @@ class Network:
          net.is_planar(component = 0)   # largest component only
       """
       from .planarity import _planar_edges
+      if self.higher_order is not None:
+         raise ValueError("planarity is not defined for hypergraphs and simplicial complexes: test gsk.incidence_network(net) or gsk.clique_expansion(net)")
       for c in range(len(self.components)) if component is None else [component]:
          s, t = self.components[c].edge_index.cpu().numpy()
          if not _planar_edges(s, t):
@@ -906,8 +1526,25 @@ class Network:
         attributes as above. In long format, a copy without any value gets a row with a missing
         attribute and value, so that copies without edges are not lost.
 
+      Hypergraphs and simplicial complexes (see :doc:`higher_order`) always give three tables,
+      ``(memberships, nodes, hyperedges)`` or ``(memberships, nodes, simplices)``, which load back
+      with :func:`~graphoskop.load_hypergraph` (directed hypergraphs with ``directed = True``) or
+      :func:`~graphoskop.load_simplicial_complex`, in the same ``node_format``:
+
+      * ``memberships``: columns ``node`` and ``hyperedge`` (the label) or ``simplex`` (the position
+        of the facet, from 0, in the network wide order), then ``direction`` (``"tail"`` or
+        ``"head"``) in directed hypergraphs, then the membership attributes;
+      * ``nodes``: the node table, without :data:`BIPARTITE`, with the attributes that have values
+        on some node;
+      * ``hyperedges`` (``simplices``): the same for the hyperedges (facets), with their label
+        (position) in a first column ``hyperedge`` (``simplex``).
+
+      In long format, a node, hyperedge or facet without any value gets a row with a missing
+      attribute and value, so that isolated nodes and empty hyperedges are not lost.
+
       :return: The edge table, or ``(edges, nodes)`` if there are node attributes, or
-         ``(edges, interlayer, nodes)`` for multilayer networks.
+         ``(edges, interlayer, nodes)`` for multilayer networks, or three tables for hypergraphs
+         and simplicial complexes.
       :raises ValueError: If an attribute is named like one of the id columns.
 
       Example:
@@ -921,6 +1558,8 @@ class Network:
          edges, nodes = net.to_pandas_dataframes()
          edges.to_csv("scored_edges.tsv", sep = "\\t", index = False)
       """
+      if self.higher_order is not None:
+         return self._higher_order_tables()
       ml = self.layer_labels is not None
       src, tgt, attr, ls, lt = [], [], [], [], []
       for c, data in enumerate(self.components):
@@ -985,6 +1624,74 @@ class Network:
       if not self.qualitative_node_attributes:
          nodes["value"] = nodes["value"].astype(np.float32)
       return (edges, interlayer, nodes) if ml else (edges, nodes)
+
+   def _higher_order_tables(self):
+      """
+      Tables of a hypergraph or simplicial complex (see :meth:`to_pandas_dataframes`).
+
+      :return: ``(memberships, nodes, hyperedges)`` or ``(memberships, nodes, simplices)``.
+      """
+      from .higher_order import incidence_network
+      edges, nodes = incidence_network(self).to_pandas_dataframes()
+      name, labels = _side_label(self)
+      node, other, tail = [], [], []
+      ho = np.cumsum([0] + [d.num_nodes - k for d, k in zip(self.components, self.bipartite_split)])
+      for c, k in enumerate(self.bipartite_split):
+         s, t = self._input_edges(c)[0].cpu().numpy()
+         first = s < k   # the node is the source: undirected memberships, and tails
+         node.append(self.node_ids[c][np.where(first, s, t)])
+         other.append(np.where(first, t, s) - k + ho[c])
+         tail.append(first)
+      edges = edges.drop(columns = ["source", "target"])
+      edges.insert(0, name, labels[np.concatenate(other)] if len(labels) else np.zeros(0, dtype = object))
+      edges.insert(0, "node", np.concatenate(node))
+      if self.directed:
+         edges.insert(2, "direction", np.where(np.concatenate(tail), "tail", "head"))
+      if self.node_format == "wide":
+         kind = _node_types(self).astype(bool)
+         nodes = nodes.drop(columns = [BIPARTITE])
+         sides = [nodes[~kind].reset_index(drop = True), nodes[kind].reset_index(drop = True)]
+         sides = [x[[x.columns[0]] + [a for a in x.columns[1:] if x[a].notna().any()]] for x in sides]   # attributes with values on that side
+      else:
+         sides = list(_long_sides(self, nodes))
+      if len(sides[1]):
+         pos = dict(zip(np.concatenate([x[k:] for x, k in zip(self.node_ids, self.bipartite_split)]).tolist(), range(len(labels))))
+         sides[1]["node"] = labels[[pos[x] for x in sides[1]["node"].tolist()]]
+      sides[1] = sides[1].rename(columns = {"node": name})
+      return edges, sides[0], sides[1]
+
+
+def _side_label(net):
+   """
+   Name of the type 1 items of a hypergraph or simplicial complex, and their label in tables.
+
+   :param net: Hypergraph or simplicial complex.
+   :return: ``"hyperedge"`` or ``"simplex"``, and the label of each type 1 node in the network
+      wide order of the type 1 nodes (hyperedge labels, or facet positions).
+   """
+   other = np.concatenate([x[k:] for x, k in zip(net.node_ids, net.bipartite_split)])
+   if net.higher_order == "hypergraph":
+      return "hyperedge", _objects([h.label for h in other])
+   return "simplex", np.arange(len(other))
+
+
+def _long_sides(net, nodes):
+   """
+   Long node table of the incidence graph split into nodes and hyperedges (facets), without
+   :data:`BIPARTITE`, with a declaration row (missing attribute and value) for every item without
+   values.
+
+   :param net: Hypergraph or simplicial complex.
+   :param nodes: Long node table of the incidence graph (column ``node`` with the ids).
+   :return: The two tables, with the ids as in the network (``Hyperedge``, ``Simplex``).
+   """
+   kind = nodes["attribute"].to_numpy(object) == BIPARTITE
+   ids = nodes["node"]
+   bare = kind & ~ids.isin(set(ids[~kind].tolist())).to_numpy()
+   nodes = nodes[~kind | bare].copy()
+   nodes.loc[bare[~kind | bare], ["attribute", "value"]] = np.nan
+   other = np.fromiter((isinstance(x, _HigherOrderId) for x in nodes["node"]), bool, len(nodes))
+   return nodes[~other].reset_index(drop = True), nodes[other].reset_index(drop = True)
 
 
 @contextlib.contextmanager
@@ -1325,17 +2032,18 @@ def _read_nodes(nodes, sep, header, columns, node_format, multilayer):
 def _same_ids(tables):
    """
    Tables whose node id columns mix integers and strings (e.g. an edge list read from a file,
-   whose ids are strings, and a node table given as a DataFrame with integer ids), with the
-   integer ids as strings, so that the same id matches in all of them.
+   whose ids are strings, and a node table given as a DataFrame with integer ids, or a column with
+   both), with the integer ids as strings, so that the same id matches in all of them.
 
    :param tables: List of ``(table or None, id column names)``.
    :return: The tables, those with integer ids converted as copies (the given ones are not
       modified).
    """
    ids = [t[c] for t, cs in tables if t is not None for c in cs]
-   if all(pd.api.types.is_numeric_dtype(x) for x in ids) or not any(pd.api.types.is_integer_dtype(x) for x in ids):
+   ints = lambda x: pd.api.types.is_integer_dtype(x) or (x.dtype == object and x.map(lambda v: isinstance(v, (int, np.integer))).any())
+   if all(pd.api.types.is_numeric_dtype(x) for x in ids) or not any(ints(x) for x in ids):
       return [t for t, _ in tables]
-   cast = lambda t, cs: {c: t[c].astype(str) for c in cs if pd.api.types.is_integer_dtype(t[c])}
+   cast = lambda t, cs: {c: t[c].map(lambda v: str(v) if isinstance(v, (int, np.integer)) else v) for c in cs if ints(t[c])}
    return [t.assign(**cast(t, cs)) if t is not None and cast(t, cs) else t for t, cs in tables]
 
 
@@ -1548,7 +2256,7 @@ def _subset(net, s, t, ea, rows, qe = None):
    return _build(s, t, names, ea, net.edge_attributes, lambda perm: _node_table(net, rows[perm]), net.node_attributes, net.directed, device, lambda perm: _qualitative_rows(net, rows[perm]), net.qualitative_node_attributes, net.node_format, None if types is None else types[rows], net.bipartite_labels, ml, qe)
 
 
-def _bipartite_types(key, val, names, s, t, inter = None, entity = None):
+def _bipartite_types(key, val, names, s, t, inter = None, entity = None, order = None):
    """
    Node types of a bipartite network, checked against its edges.
 
@@ -1561,6 +2269,7 @@ def _bipartite_types(key, val, names, s, t, inter = None, entity = None):
       the same type (the other edges must join nodes of different types); ``None`` otherwise.
    :param entity: In multilayer networks, entity of each integer id: all the copies of an entity
       must have the same type.
+   :param order: Values of type 0 and type 1, or ``None`` for their sort order.
    :return: Type (0 or 1) of each integer id, as int8 :class:`numpy.ndarray`, and the values of
       type 0 and type 1.
    :raises ValueError: If there are more than two values, if a node has no type or more than one,
@@ -1571,7 +2280,7 @@ def _bipartite_types(key, val, names, s, t, inter = None, entity = None):
    ok = ~pd.isna(val)
    key, val = key[ok], val[ok]
    try:
-      labels = sorted(pd.unique(val))
+      labels = list(order) if order is not None else sorted(pd.unique(val))
    except TypeError:
       raise ValueError(f"the values of {BIPARTITE!r} cannot be ordered: {list(pd.unique(val))[:5]}") from None
    if len(labels) > 2:
@@ -1751,9 +2460,13 @@ def _layered(edges, src, tgt, lcol, eattr, inter, iattr, nodes, node_format, dir
    return names, s, t, ea, cols, rows["key"].to_numpy(), (rows["attribute"], rows["value"]), ml, inter_mask
 
 
-def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None):
+def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None, order = None):
    """
    Body of :func:`load_network`, so that its temporary tables are freed when it returns.
+
+   ``order`` gives the values of :data:`BIPARTITE` of type 0 and type 1 (instead of their sort
+   order) for tables built by the loaders of :doc:`higher_order`, whose ids are already
+   consistent (integers).
    """
    if bipartite and nodes is None:
       raise ValueError(f"a bipartite network needs a node table with a {BIPARTITE!r} attribute")
@@ -1779,7 +2492,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
    (eattr, iattr), qcats = _encode_tables(eattr, iattr)   # qualitative edge attributes as codes
    if nodes is not None:
       nodes = _read_nodes(nodes, sep, hdr, node_columns, node_format, multilayer)
-   edges, inter, nodes = _same_ids([(edges, [src, tgt]), (inter, [] if inter is None else list(inter.columns[[0, 2]])), (nodes, [] if nodes is None else [nodes.columns[0]])])
+   edges, inter, nodes = (edges, inter, nodes) if order is not None else _same_ids([(edges, [src, tgt]), (inter, [] if inter is None else list(inter.columns[[0, 2]])), (nodes, [] if nodes is None else [nodes.columns[0]])])
    m = len(edges)
 
    # integer ids of the nodes (copies, in multilayer networks), edges and node table rows
@@ -1867,10 +2580,11 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
             Q = pd.DataFrame({"node": _positions(perm)[key[qrow]], "attribute": name[qrow].to_numpy(), "value": qval})
             return _categorize(_merge_values(Q.drop_duplicates()))
 
-   types, labels = _bipartite_types(tkey, tval, names, s, t, inter_mask, None if ml is None else ml[1]) if bipartite else (None, None)
+   types, labels = _bipartite_types(tkey, tval, names, s, t, inter_mask, None if ml is None else ml[1], order) if bipartite else (None, None)
    return _build(s, t, names, ea, enames, table, attrs, directed, device, qtable, quals, node_format, types, labels, ml, qe)
 
 
+@_higher_order()
 def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None):
    """
    Load a network from an edge list and a node attribute table, given as files or as
@@ -2076,21 +2790,22 @@ def _multivalued(net):
    return list(pd.unique(np.asarray(Q["attribute"], dtype = object)[multi]))
 
 
-def _to_long(nodes, ids = 1):
+def _to_long(nodes, ids = 1, bare = False):
    """
    Long node table from a wide one, node by node; missing values are left out. With two id
-   columns (multilayer networks), a node without any value gets a row with a missing attribute and
-   value, so that it is not lost.
+   columns (multilayer networks), or with ``bare``, a node without any value gets a row with a
+   missing attribute and value, so that it is not lost.
 
    :param nodes: Wide node table, with ``ids`` id columns first (``node``, and ``layer``).
    :param ids: Number of id columns.
+   :param bare: Whether to keep nodes without values with a single id column.
    :return: :class:`pandas.DataFrame` with the id columns, ``attribute`` and ``value``.
    """
    nodes = nodes.reset_index(drop = True)
    idc = list(nodes.columns[:ids])
    long = nodes.drop(columns = idc).melt(var_name = "attribute", value_name = "value", ignore_index = False)
    long = long[long["value"].notna().to_numpy()]
-   if ids > 1:
+   if ids > 1 or bare:
       bare = np.setdiff1d(np.arange(len(nodes)), long.index.to_numpy())
       long = pd.concat([long, pd.DataFrame({"attribute": np.nan, "value": np.nan}, index = bare)])
    long = long.sort_index(kind = "stable").explode("value")   # one row per community of a node
@@ -2122,6 +2837,7 @@ def _table_sizes(net, nodes, sep, sample = 1000):
    return {"wide": size(_wide_rows(net, pick(n)), n), "long": size(nodes.iloc[pick(len(nodes))], len(nodes))}
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, warn_size = 1e8, max_size = 1e9):
    """
    Write a network to disk, as an edge table and a node table, or as a Python object.
@@ -2143,6 +2859,17 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    A node with several values of an attribute (see :ref:`overlapping-communities`) gets one row per
    value in a long table, which loads back as several values. A wide table cannot hold them: the
    long format is then the default, and asking for the wide one raises :class:`ValueError`.
+
+   A hypergraph or simplicial complex (see :doc:`higher_order`) writes the three tables of
+   :meth:`Network.to_pandas_dataframes` to ``prefix + "_memberships.tsv"``,
+   ``prefix + "_nodes.tsv"`` and ``prefix + "_hyperedges.tsv"`` (or ``"_simplices.tsv"``), which
+   load back with :func:`~graphoskop.load_hypergraph` or
+   :func:`~graphoskop.load_simplicial_complex` (same ``sep``, ``node_format`` and ``directed``);
+   the size estimates below are not made for them. Hyperedge labels read back as text, as node
+   ids. The attributes of the :math:`d`-simplices of a complex
+   (:meth:`Network.set_simplex_attribute`) go to ``prefix + "_simplices_d.tsv"``, one row per
+   simplex with a value, its nodes first: after loading the complex, set them back with
+   ``net.set_simplex_attribute(pd.read_csv(prefix + "_simplices_1.tsv", sep = "\\t"), dimension = 1)``.
 
    A multilayer network also writes its interlayer edges (couplings included) to
    ``prefix + "_interlayer.tsv"``, and always writes the node table (one row per copy, with the
@@ -2197,6 +2924,9 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    if pickle:
       torch.save(net, prefix + ".pt")
       return
+   if net.higher_order is not None:
+      _save_higher_order(net, prefix, sep, node_format)
+      return
    multi = _multivalued(net)
    node_format = ("long" if multi else net.node_format) if node_format is None else node_format
    if node_format not in ("wide", "long"):
@@ -2229,6 +2959,42 @@ def save_network(net, prefix, sep = "\t", node_format = None, pickle = False, wa
    nodes.to_csv(prefix + "_nodes" + ext, sep = sep, index = False)
 
 
+def _save_higher_order(net, prefix, sep, node_format):
+   """
+   Body of :func:`save_network` for hypergraphs and simplicial complexes.
+
+   :param net: Hypergraph or simplicial complex.
+   :param prefix: Path and file name prefix.
+   :param sep: Column separator.
+   :param node_format: ``"wide"``, ``"long"`` or ``None`` (see :func:`save_network`).
+   :raises ValueError: As :func:`save_network`.
+   """
+   multi = _multivalued(net)
+   node_format = ("long" if multi else net.node_format) if node_format is None else node_format
+   if node_format not in ("wide", "long"):
+      raise ValueError(f"unknown node format: {node_format}")
+   if node_format == "wide" and multi:
+      raise ValueError(f"node attributes {multi} have several values for some nodes, which a wide table cannot hold: use node_format = 'long' (one row per value) or pickle = True")
+   ext = ".tsv" if sep == "\t" else ".csv"
+   memberships, nodes, other = net.to_pandas_dataframes()
+   name = other.columns[0]
+   if node_format != net.node_format:
+      if node_format == "long":
+         nodes, other = _to_long(nodes, bare = True), _to_long(other, bare = True).rename(columns = {"node": name})
+      else:
+         kind = _node_types(net).astype(bool)
+         wide = [_wide_rows(net, np.flatnonzero(k)).drop(columns = [BIPARTITE]) for k in (~kind, kind)]
+         wide = [x[[x.columns[0]] + [a for a in x.columns[1:] if x[a].notna().any()]] for x in wide]
+         nodes, other = wide[0], wide[1].rename(columns = {"node": name})
+         other[name] = _side_label(net)[1]
+   memberships.to_csv(prefix + "_memberships" + ext, sep = sep, index = False)
+   nodes.to_csv(prefix + "_nodes" + ext, sep = sep, index = False)
+   other.to_csv(prefix + ("_hyperedges" if name == "hyperedge" else "_simplices") + ext, sep = sep, index = False)
+   for d in sorted(set(net.simplex_attributes.values())):
+      net._simplex_table(d).to_csv(prefix + f"_simplices_{d}" + ext, sep = sep, index = False)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
 def load_pickled_network(path, device = None):
    """
    Read a network written by :func:`save_network` with ``pickle = True``.
@@ -2243,6 +3009,7 @@ def load_pickled_network(path, device = None):
    return torch.load(path, map_location = device, weights_only = False)
 
 
+@_higher_order()
 def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = None, weight = "weight", sep = None, node_sep = "\t", device = "cpu"):
    """
    Load a network from its adjacency matrix, or the biadjacency matrix of a bipartite network: a
@@ -2344,6 +3111,7 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
    return load_network(edges, table, directed = bool(directed), bipartite = bool(bipartite), device = device)
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def save_matrix(net, path = None, weight = "weight", sparse = False, sep = "\t"):
    """
    The adjacency matrix of a network, or the biadjacency matrix of a bipartite network, optionally

@@ -10,6 +10,10 @@ between them, :func:`to_strongly_connected` the edges within strongly connected 
 :func:`remove_edges` add or remove nodes and edges, one or many at once.
 :func:`flip_edge_direction` reverses some or all of the edges of a directed network.
 
+:func:`clique_promotion` makes a simplicial complex or a hypergraph from the cliques of a network,
+and :func:`~graphoskop.clique_expansion` goes back: the network of the nodes sharing a hyperedge or
+a facet (see :doc:`higher_order`).
+
 :func:`network_union`, :func:`network_difference` and :func:`network_intersection` combine the
 edges of two networks with the same node ids. :func:`quotient_network` collapses sets of nodes into
 single nodes, and :func:`network_condensation` the strongly connected components of a directed
@@ -23,6 +27,7 @@ import pandas as pd
 import torch
 from torch_geometric.data import Data
 
+from ._policy import _higher_order
 from .network import BIPARTITE, LAYER, Network, _distinct, _edge_frame, _load, _release_memory, _take_edges, _to_long, _wide_rows
 from .multilayer import _flat_tables
 from .network_statistics import _strong_labels, connected_components_nodes
@@ -89,6 +94,7 @@ def _with_edges(net, edges, qualitative = None):
    return Network(comps, dict(net.node_map), list(net.node_ids), list(net.node_attributes), list(net.edge_attributes), net.directed, net.qualitative_node_attr.copy(), list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, None if net.bipartite_split is None else list(net.bipartite_split), net.layer_labels, net.entity_ids, net.qualitative_edge_attributes, net.qualitative_edge_attr if qualitative is None else qualitative)
 
 
+@_higher_order()
 def to_undirected(net, combine = "sum", sign = SIGN, disagree = "zero"):
    """
    Undirected version of a directed network.
@@ -149,6 +155,7 @@ def to_undirected(net, combine = "sum", sign = SIGN, disagree = "zero"):
    return _reload(net, edges, inter, nodes, directed = False)
 
 
+@_higher_order()
 def remove_isolates(net):
    """
    Network without its isolated nodes.
@@ -197,6 +204,7 @@ def remove_isolates(net):
    return Network([net.components[c].clone() for c in keep], node_map, node_ids, list(net.node_attributes), list(net.edge_attributes), net.directed, Q, list(net.qualitative_node_attributes), net.node_format, net.bipartite_labels, split, net.layer_labels, net.entity_ids, net.qualitative_edge_attributes, QE)
 
 
+@_higher_order()
 def remove_self_loops(net):
    """
    Network without its self loops (edges from a node to itself).
@@ -230,6 +238,7 @@ def remove_self_loops(net):
    return _with_edges(net, edges, QE)
 
 
+@_higher_order()
 def remove_parallel_edges(net, combine = "sum", sign = SIGN, disagree = "zero"):
    """
    Network without parallel edges: all the edges between the same two nodes become one edge,
@@ -396,6 +405,7 @@ def _restrict(net, nodes, edges):
    return _reload(net, E, inter, N)
 
 
+@_higher_order()
 def subgraph(net, nodes):
    """
    Subgraph induced by a set of nodes: those nodes, with their attributes, and the edges between
@@ -432,6 +442,7 @@ def subgraph(net, nodes):
    return _restrict(net, keep, edges)
 
 
+@_higher_order()
 def ego_network(net, ego, include_ego = True, direction = "out"):
    """
    Ego network: the subgraph induced by a node (the ego) and its neighbors, with all the edges
@@ -482,6 +493,7 @@ def ego_network(net, ego, include_ego = True, direction = "out"):
    return _restrict(net, keep, edges)
 
 
+@_higher_order()
 def to_strongly_connected(net):
    """
    Directed network split into its strongly connected components: the edges between different
@@ -582,6 +594,7 @@ def _endpoints(net, edges):
    return pairs, edges.drop(columns = ids).reset_index(drop = True)
 
 
+@_higher_order()
 def add_nodes(net, nodes):
    """
    Network with new nodes, without edges (use :func:`add_edges` to connect them).
@@ -649,6 +662,7 @@ def add_nodes(net, nodes):
    return _reload(net, E, inter, pd.concat([N, new], ignore_index = True))
 
 
+@_higher_order()
 def add_edges(net, edges, weight = "weight"):
    """
    Network with new edges.
@@ -734,6 +748,7 @@ def add_edges(net, edges, weight = "weight"):
    return _reload(net, pd.concat([E, intra], ignore_index = True), pd.concat([inter, cross], ignore_index = True), N)
 
 
+@_higher_order()
 def remove_nodes(net, nodes):
    """
    Network without some nodes and their edges: the subgraph induced by all the other nodes (see
@@ -779,6 +794,7 @@ def remove_nodes(net, nodes):
    return _restrict(net, keep, edges)
 
 
+@_higher_order()
 def remove_edges(net, edges):
    """
    Network without some edges.
@@ -833,6 +849,7 @@ def remove_edges(net, edges):
    return _restrict(net, nodes, keep)
 
 
+@_higher_order()
 def flip_edge_direction(net, edges = None):
    """
    Directed network with some or all of its edges reversed: an edge from ``a`` to ``b`` becomes
@@ -1001,6 +1018,7 @@ def _edge_sets(net, other):
    return (E1, I1, N1), (E2, I2), keys[:h], keys[h:]
 
 
+@_higher_order()
 def network_union(net, other):
    """
    Union of two networks: the nodes and the edges of either.
@@ -1047,6 +1065,7 @@ def network_union(net, other):
    return _reload(net, E, I, _merge_nodes(net, N1, other, False))
 
 
+@_higher_order()
 def network_difference(net, other):
    """
    Difference of two networks: ``net`` without the edges of ``other``.
@@ -1080,6 +1099,7 @@ def network_difference(net, other):
    return _reload(net, E1[~np.isin(k1[0], seen)], None if I1 is None else I1[~np.isin(k1[1], seen)], N1)
 
 
+@_higher_order()
 def network_intersection(net, other):
    """
    Intersection of two networks: the nodes of both, and the edges of ``net`` joining two nodes
@@ -1151,6 +1171,7 @@ def _collapse_nodes(net, N, node_combine):
    return N
 
 
+@_higher_order()
 def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loops = True):
    """
    Quotient network: the nodes of each set collapse into a single node.
@@ -1239,6 +1260,7 @@ def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loo
    return remove_parallel_edges(q, combine)
 
 
+@_higher_order()
 def network_condensation(net, combine = "sum", node_combine = "mean"):
    """
    Condensation of a directed network: each strongly connected component collapses into a single
@@ -1274,3 +1296,72 @@ def network_condensation(net, combine = "sum", node_combine = "mean"):
    if net.layer_labels is not None:
       raise ValueError("the condensation is not defined for multilayer networks: strongly connected components mix copies of different layers")
    return quotient_network(net, connected_components_nodes(net, type = "strong"), combine, node_combine, self_loops = False)
+
+
+@_higher_order()
+def clique_promotion(net, kind = "simplicial", batch_size = 2 ** 22):
+   """
+   Higher-order network from the cliques of a network: every maximal clique (a set of nodes all
+   joined to each other, not contained in a larger one) becomes a facet of a simplicial complex
+   (``kind = "simplicial"``, the clique complex, or flag complex, of the network) or a hyperedge
+   of a hypergraph (``kind = "hypergraph"``). Edges in no triangle are cliques of two nodes, and
+   nodes without edges stay isolated nodes, so :func:`~graphoskop.clique_expansion` gives back the
+   edges of the network. Only maximal cliques are promoted: in a simplicial complex the smaller
+   cliques are their faces; in a hypergraph they would repeat the same interactions.
+
+   Cliques are those of :func:`~graphoskop.maximal_cliques`: edges are taken as undirected and
+   unweighted, self loops and parallel edges are ignored. Node attributes are kept; edge
+   attributes are not (a clique has many edges). Hyperedges are labeled by their positions, from
+   0, largest cliques first; the result is on the device of ``net``. The number of maximal
+   cliques can grow exponentially with the size of dense networks.
+
+   :param net: A :class:`~graphoskop.Network`, neither multilayer nor bipartite (a bipartite network
+      has no triangles: load it as a hypergraph instead, with :func:`~graphoskop.load_hypergraph`).
+   :param kind: ``"simplicial"`` or ``"hypergraph"``.
+   :param batch_size: Number of 2-paths expanded at once in the triangle enumeration.
+   :return: New :class:`~graphoskop.Network`, a simplicial complex or a hypergraph.
+   :raises ValueError: If ``kind`` is not valid, or ``net`` is multilayer or bipartite.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      # a square with one diagonal, and a pendant edge
+      edges = pd.DataFrame({"s": ["a", "b", "c", "d", "a", "d"], "t": ["b", "c", "d", "a", "c", "e"]})
+      net = gsk.load_network(edges)
+      sc = gsk.clique_promotion(net)                      # facets {a, b, c}, {a, c, d}, {d, e}
+      sc.number_of_facets()                                # 3
+      gsk.generalized_degree(sc, 2, 1, ["a", "c"])         # 2: the diagonal is in both triangles
+      hg = gsk.clique_promotion(net, kind = "hypergraph")
+      gsk.hyperedge_size(hg)                               # sizes 2 (once) and 3 (twice)
+   """
+   from .communities import _cliques
+   from .higher_order import load_hypergraph, load_simplicial_complex
+   if kind not in ("simplicial", "hypergraph"):
+      raise ValueError(f"unknown kind: {kind}")
+   if net.layer_labels is not None:
+      raise ValueError("clique_promotion does not take multilayer networks: promote one layer, from gsk.layer_network")
+   if net.bipartite_labels is not None:
+      raise ValueError("a bipartite network has no triangles: load it as a hypergraph with gsk.load_hypergraph, one node type as the hyperedges")
+   cliques = []
+   for c in range(len(net.components)):
+      ids = net.node_ids[c]
+      big, u, v = _cliques(net, c, 3, batch_size)
+      cliques += [ids[np.array(q)] for q in big] + [ids[np.array(p)] for p in zip(u.tolist(), v.tolist())]
+   cliques.sort(key = len, reverse = True)
+   size = np.array([len(q) for q in cliques], dtype = np.int64)
+   memberships = pd.DataFrame({"node": np.concatenate(cliques) if cliques else np.zeros(0, dtype = object), "clique": np.repeat(np.arange(len(cliques)), size)})
+   out = net.to_pandas_dataframes()
+   ids = np.concatenate(net.node_ids)
+   if isinstance(out, tuple):   # node attributes; long tables: every node declared, so that none is lost
+      nodes = out[1]
+      if net.node_format == "long":
+         nodes = pd.concat([nodes, pd.DataFrame({"node": ids, "attribute": np.nan, "value": np.nan})], ignore_index = True)
+   else:
+      nodes = pd.DataFrame({"node": ids}) if net.node_format == "wide" else pd.DataFrame({"node": ids, "attribute": np.nan, "value": np.nan})
+   device = net.components[0].edge_index.device
+   load = load_simplicial_complex if kind == "simplicial" else load_hypergraph
+   return load(memberships, nodes, node_format = net.node_format, device = device)

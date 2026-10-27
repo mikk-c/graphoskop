@@ -39,6 +39,7 @@ import pandas as pd
 import torch
 from numba import njit, prange
 
+from ._policy import _higher_order
 from .network import _memberships
 
 
@@ -1160,6 +1161,7 @@ class ERGMFit:
       return text
 
 
+@_higher_order()
 def ergm(net, formula, method = "mcmc", covariates = None, samplesize = 1024, burnin = 16384, interval = 1024, max_iterations = 20, tolerance = 0.1, chains = None, seed = None):
    """
    Fit an exponential random graph model (ERGM), as R's ``ergm()``.
@@ -1333,6 +1335,7 @@ def ergm(net, formula, method = "mcmc", covariates = None, samplesize = 1024, bu
    return ERGMFit(names, theta, Iinv, Iinv @ V @ Iinv, obs, mple, "MCMC MLE", it, converged, pd.DataFrame(S, columns = names), None, d.dyads)._keep(net, model, X, y, w)
 
 
+@_higher_order()
 def ergm_statistics(net, formula, covariates = None):
    """
    Network statistics of an ERGM formula: the values of the statistics :math:`g(y)` of the

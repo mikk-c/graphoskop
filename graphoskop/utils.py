@@ -1,5 +1,6 @@
 """
-Laplacians of network components, their pseudoinverses, and Laplacian solvers.
+Laplacians of network components, their pseudoinverses, and Laplacian solvers; random walks
+(stationary distribution, fundamental matrix).
 
 All functions take a :class:`~graphoskop.Network` and a component index (default 0,
 the largest component; ``None`` applies the function to every component and returns a list).
@@ -29,6 +30,21 @@ a component is connected through them; infinitely strong couplings give the Lapl
 :func:`~graphoskop.laplacian_solver`. The random walks of :func:`stationary_distribution` and of
 the Chung Laplacian move along couplings like along any edge, with probability proportional to
 their weight.
+
+Hypergraphs (see :doc:`higher_order`) use the random walk of Zhou, Huang and Schölkopf (2006):
+from a node, a hyperedge containing it with probability proportional to its weight :math:`w(e)`
+(``weight`` names a hyperedge attribute; 1 without it), then a node of that hyperedge uniformly,
+itself included. Every function here works on the network of that walk
+(:func:`~graphoskop.hypergraph_walk_network`), with weights
+:math:`A_{uv} = \\sum_{e \\ni u, v} w(e) / |e|`: the Laplacian :math:`D - A` is the hypergraph
+Laplacian of Zhou et al., effective resistances are those of the incidence graph between nodes,
+and the stationary distribution (without teleportation) is proportional to
+:math:`\\sum_{e \\ni u} w(e)`. Building that network takes memory and time growing with the
+squares of the hyperedge sizes. Other walk models (Carletti et al., 2020; edge-dependent vertex
+weights, Chitra and Raphael, 2019) are networks of :func:`~graphoskop.hypergraph_walk_network`
+to pass to these functions. Directed hypergraphs are not supported yet. Simplicial complexes use
+their 1-skeleton, unweighted: its Laplacian is the Hodge Laplacian :math:`L_0 = B_1 B_1^T` (see
+:func:`~graphoskop.hodge_laplacian` for the Laplacians of edges and higher simplices).
 """
 
 import math
@@ -39,6 +55,8 @@ import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import breadth_first_order, connected_components
 
+from ._policy import _higher_order
+from ._views import _incidence, _walk_view
 from .network import _quiet_sparse
 
 
@@ -88,6 +106,7 @@ def _walk(ei, w, n, alpha, tol, max_iter, v = None):
    return phi, p, dangling
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def stationary_distribution(net, component = 0, weight = None, alpha = 0.15, tol = 1e-12, max_iter = 10000):
    """
    Stationary distribution of the random walk with teleportation on network components.
@@ -117,10 +136,136 @@ def stationary_distribution(net, component = 0, weight = None, alpha = 0.15, tol
       phi = gsk.stationary_distribution(net)                 # PageRank, damping 0.85
       phi = gsk.stationary_distribution(net, alpha = 0)      # plain random walk
    """
+   if not _incidence(net, weight):
+      net, weight = _walk_view(net, weight)
    if component is None:
       return [stationary_distribution(net, c, weight, alpha, tol, max_iter) for c in range(len(net.components))]
+   if net.higher_order == "hypergraph":   # large hyperedges: the walk through the incidence matrix (see set_hypergraph_route)
+      from .higher_order import _incidence_operator
+      n, _, _, step, d = _incidence_operator(net, component, weight)
+      dangling = d == 0
+      phi = torch.full((n,), 1 / n, dtype = torch.float64, device = d.device)
+      for _ in range(max_iter):
+         new = (1 - alpha) * step(phi) + (alpha + (1 - alpha) * phi[dangling].sum()) / n
+         done = (new - phi).abs().sum() < tol
+         phi = new
+         if done:
+            return phi
+      warnings.warn("stationary distribution: power iteration did not converge")
+      return phi
    data = net.components[component]
    return _walk(data.edge_index, _weights(net, component, weight), data.num_nodes, alpha, tol, max_iter)[0]
+
+
+def _transition(net, component, weight, alpha):
+   """
+   Column stochastic transition matrix of the random walk with teleportation (mass moves from
+   column to row): :math:`W = W_0 + \\frac{1}{n} 1 j^T`, with :math:`W_0` the moves along the edges
+   (probability proportional to the weight, times :math:`1 - \\alpha`) and :math:`j_s` the probability
+   of jumping from node :math:`s` to a uniformly random node (:math:`\\alpha`, or 1 from dangling
+   nodes). Self loops are moves that stay.
+
+   :return: ``(W0, j, d)``: sparse float64 COO tensor, jump vector and out strength of every node.
+   :raises ValueError: If some weights are negative or NaN.
+   """
+   data = net.components[component]
+   (s, t), n = data.edge_index, data.num_nodes
+   w = _weights(net, component, weight).double()
+   if bool(torch.isnan(w).any()) or bool((w < 0).any()):
+      raise ValueError("random walk: edge weights must be non negative numbers")
+   d = torch.zeros(n, dtype = torch.float64, device = w.device).index_add_(0, s, w)
+   with _quiet_sparse():
+      W0 = torch.sparse_coo_tensor(torch.stack([t, s]), (1 - alpha) * w / d[s], (n, n)).coalesce()
+   return W0, alpha + (1 - alpha) * (d == 0).double(), d
+
+
+def _single_class(net, component, d, alpha):
+   """
+   Checks that the random walk has a unique stationary distribution: on directed components
+   without teleportation, a single closed class (a strongly connected component that the walk
+   cannot leave; dangling nodes jump, so they leave).
+
+   :raises ValueError: If there are several closed classes.
+   """
+   if not net.directed or alpha > 0:
+      return
+   data = net.components[component]
+   s, t = data.edge_index.cpu().numpy()
+   n = data.num_nodes
+   _, lab = connected_components(sp.csr_matrix((np.ones(len(s)), (s, t)), shape = (n, n)), directed = True, connection = "strong")
+   leaves = np.zeros(lab.max() + 1, dtype = bool)
+   leaves[lab[s[lab[s] != lab[t]]]] = True
+   leaves[lab[(d == 0).cpu().numpy()]] = True
+   if (~leaves).sum() > 1:
+      raise ValueError(f"random walk: {(~leaves).sum()} groups of nodes the walk cannot leave, so no unique stationary distribution (use alpha > 0)")
+
+
+def _stationary(net, W, d, alpha):
+   """
+   Stationary distribution of a dense column stochastic matrix ``W``: proportional to the strength
+   on undirected networks without teleportation, otherwise from :math:`(I - W + 1 1^T / n) \\pi = 1 / n`
+   (exact also on periodic chains).
+   """
+   if not net.directed and alpha == 0:
+      return d / d.sum()
+   n = W.shape[0]
+   return torch.linalg.solve(torch.eye(n, dtype = W.dtype, device = W.device) - W + 1 / n, torch.full((n,), 1 / n, dtype = W.dtype, device = W.device))
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def fundamental_matrix(net, component = 0, weight = None, alpha = 0.):
+   """
+   Fundamental matrix of the random walk on network components (Kemeny and Snell, 1960):
+
+   .. math::
+
+      F = (I - W + W^\\infty)^{-1} = \\sum_{k \\geq 0} (W - W^\\infty)^k,
+
+   with :math:`W` the column stochastic transition matrix (:math:`W_{ji}` the probability of a step
+   from :math:`i` to :math:`j`, so that :math:`W^k a` is where the mass :math:`a` is after
+   :math:`k` steps) and :math:`W^\\infty = \\pi 1^T` its limit, every column being the stationary
+   distribution :math:`\\pi`. For a vector :math:`\\delta` summing to zero,
+   :math:`F \\delta = \\sum_k W^k \\delta`. Used by :func:`~graphoskop.annihilation_distance`.
+
+   At each step the walker follows an out edge with probability proportional to its weight (self
+   loops make it stay), or, with probability ``alpha``, jumps to a uniformly random node; dangling
+   nodes always jump. The walk must have a unique stationary distribution: always on undirected
+   components and with ``alpha > 0``; on directed components without teleportation, there must be
+   a single group of nodes that the walk cannot leave (nodes outside it are left forever, and get
+   no stationary mass). On periodic walks (e.g. bipartite networks without teleportation) :math:`F`
+   exists, and the series converges in the Cesaro sense (averages of its partial sums).
+
+   Dense: :math:`O(n^3)` time and a few :math:`n^2` matrices, on the device of the component.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param component: Index of the component (0 is the largest), or ``None`` for all components.
+   :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
+   :param alpha: Teleportation probability.
+   :return: Float64 ``n`` by ``n`` tensor, or a list of them if ``component`` is ``None``.
+   :raises ValueError: If the walk has no unique stationary distribution, or some weights are
+      negative.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      F = gsk.fundamental_matrix(net)
+      d = gsk.annihilation_distance(net, "y2000", "y2010", F = F)
+   """
+   net, weight = _walk_view(net, weight)
+   if component is None:
+      return [fundamental_matrix(net, c, weight, alpha) for c in range(len(net.components))]
+   W0, j, d = _transition(net, component, weight, alpha)
+   _single_class(net, component, d, alpha)
+   n = W0.shape[0]
+   W = W0.to_dense() + j[None] / n
+   pi = _stationary(net, W, d, alpha)
+   W.neg_().diagonal().add_(1)
+   W += pi[:, None]
+   return torch.linalg.inv(W)
 
 
 def _gauge(u, v, th, n):
@@ -236,6 +381,7 @@ def _pinv_null(L, g):
    return L
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def laplacian(net, component = 0, weight = None, kind = "out", q = 0.25, alpha = 0.15, sparse = False):
    """
    Laplacian of network components (see the module description for the available kinds).
@@ -261,6 +407,7 @@ def laplacian(net, component = 0, weight = None, kind = "out", q = 0.25, alpha =
       L = gsk.laplacian(net)                                   # largest component, out-degree
       L = gsk.laplacian(net, kind = "magnetic", sparse = True)
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       return [laplacian(net, c, weight, kind, q, alpha, sparse) for c in range(len(net.components))]
    S, g, _, _ = _operator(net, component, weight, kind, q, alpha, net.components[component].edge_attr.dtype)
@@ -272,6 +419,7 @@ def laplacian(net, component = 0, weight = None, kind = "out", q = 0.25, alpha =
       return S.to_sparse_csr()
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def laplacian_pinv(net, component = 0, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Moore-Penrose pseudoinverse of the Laplacian of network components.
@@ -308,6 +456,7 @@ def laplacian_pinv(net, component = 0, weight = None, kind = "out", q = 0.25, al
       lp = gsk.laplacian_pinv(net, kind = "magnetic", q = 0.1)
       lp = gsk.laplacian_pinv(net, kind = "chung", alpha = 0.1)
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       return [laplacian_pinv(net, c, weight, kind, q, alpha) for c in range(len(net.components))]
    S, g, null, hermitian = _operator(net, component, weight, kind, q, alpha, net.components[component].edge_attr.dtype)
@@ -316,6 +465,7 @@ def laplacian_pinv(net, component = 0, weight = None, kind = "out", q = 0.25, al
    return _pinv_null(L, null) if hermitian else torch.linalg.pinv(L)
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def effective_resistance(net, component = 0, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
    """
    Effective resistance between all pairs of nodes,
@@ -351,6 +501,7 @@ def effective_resistance(net, component = 0, lpinv = None, weight = None, kind =
       c, j = net.node_map["bob"]
       r = R[i, j]                                     # if both are in component 0
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [effective_resistance(net, c, pick(lpinv, c), weight, kind, q, alpha) for c in range(len(net.components))]
@@ -370,6 +521,7 @@ def effective_resistance(net, component = 0, lpinv = None, weight = None, kind =
    return R
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def hitting_time(net, component = 0, lpinv = None, weight = None, alpha = 0):
    """
    Hitting times between all pairs of nodes: :math:`H_{ij}` is the expected number of steps a
@@ -423,6 +575,7 @@ def hitting_time(net, component = 0, lpinv = None, weight = None, alpha = 0):
       net = gsk.load_network("follows.tsv", directed = True)
       H = gsk.hitting_time(net, alpha = 0.15)  # PageRank walk
    """
+   net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
       return [hitting_time(net, c, pick(lpinv, c), weight, alpha) for c in range(len(net.components))]
@@ -541,6 +694,7 @@ def _cgls(mv, mvt, b, tol, max_iter):
    return x
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def laplacian_solver(net, component = 0, weight = None, kind = "out", q = 0.25, alpha = 0.15, tol = 1e-8, max_iter = None):
    """
    Solver computing :math:`L^+ b` without forming the pseudoinverse :math:`L^+`.
@@ -582,31 +736,40 @@ def laplacian_solver(net, component = 0, weight = None, kind = "out", q = 0.25, 
       x = solve(0)                                              # node attribute by position
       x = solve(np.random.rand(net.components[0].num_nodes))
    """
-   if component is None:
-      return [laplacian_solver(net, c, weight, kind, q, alpha, tol, max_iter) for c in range(len(net.components))]
-   data = net.components[component]
-   n = data.num_nodes
-   max_iter = 10 * n if max_iter is None else max_iter
-   S, g, null, hermitian = _operator(net, component, weight, kind, q, alpha, torch.float64)
-   with _quiet_sparse():
-      A = S.to_sparse_csr()
-      At = None if hermitian else S.t().coalesce().to_sparse_csr()
-   if g is None:
-      mv = lambda x: A @ x
+   if _incidence(net, weight):   # large hyperedges: products with the incidence matrix (see set_hypergraph_route)
+      if component is None:
+         return [laplacian_solver(net, c, weight, kind, q, alpha, tol, max_iter) for c in range(len(net.components))]
+      from .higher_order import _incidence_operator
+      n, mv, d, _, _ = _incidence_operator(net, component, weight)   # d: the diagonal of L
+      dtype, At, hermitian = torch.float64, None, True
+      null = torch.ones(n, dtype = dtype, device = d.device)
    else:
-      mv = lambda x: A @ x - (g[:, None] * x.sum(0) + (g @ x)[None]) / 2
-   i = S.indices()
-   d = torch.zeros(n, dtype = torch.float64, device = A.device).index_add_(0, i[0][i[0] == i[1]], S.values()[i[0] == i[1]].real)
-   if g is not None:
-      d -= g
-   dinv = torch.where(d > 0, 1 / d, 1).to(S.dtype)[:, None]
+      net, weight = _walk_view(net, weight)
+      if component is None:
+         return [laplacian_solver(net, c, weight, kind, q, alpha, tol, max_iter) for c in range(len(net.components))]
+      n = net.components[component].num_nodes
+      S, g, null, hermitian = _operator(net, component, weight, kind, q, alpha, torch.float64)
+      dtype = S.dtype
+      with _quiet_sparse():
+         A = S.to_sparse_csr()
+         At = None if hermitian else S.t().coalesce().to_sparse_csr()
+      if g is None:
+         mv = lambda x: A @ x
+      else:
+         mv = lambda x: A @ x - (g[:, None] * x.sum(0) + (g @ x)[None]) / 2
+      i = S.indices()
+      d = torch.zeros(n, dtype = torch.float64, device = A.device).index_add_(0, i[0][i[0] == i[1]], S.values()[i[0] == i[1]].real)
+      if g is not None:
+         d -= g
+   max_iter = 10 * n if max_iter is None else max_iter
+   dinv = torch.where(d > 0, 1 / d, 1).to(dtype)[:, None]
 
    def solver(transpose):
       def solve(b):
          numpy = isinstance(b, np.ndarray)
          b = _vector(net, component, b)
          vector = b.dim() == 1
-         b = b.reshape(n, -1).to(S.dtype)
+         b = b.reshape(n, -1).to(dtype)
          if hermitian:
             x = _cg(mv, b.conj(), dinv, null, tol, max_iter).conj() if transpose else _cg(mv, b, dinv, null, tol, max_iter)
          elif transpose:   # (L^+)^T b = (L^T)^+ b: CGLS with the roles of L and L^T swapped

@@ -83,6 +83,7 @@ from numba import njit, prange
 from scipy.sparse.linalg import eigsh
 from scipy.stats import rankdata
 
+from ._policy import _higher_order
 from .ergms import _logistic, _random
 from .network import _quiet_sparse
 from .signed import SIGN
@@ -256,6 +257,7 @@ def _pairs(net, keys, N, types):
    return pd.DataFrame({"source": ids[s], "target": ids[t]})
 
 
+@_higher_order()
 def link_prediction_split(net, fraction = 0.1, negatives = 1, seed = None, sign = SIGN):
    """
    Training network and validation set for link prediction.
@@ -387,6 +389,7 @@ def _scored(pairs, score, name):
    return pd.DataFrame({"source": s, "target": t, name: score})
 
 
+@_higher_order()
 def preferential_attachment_lp(net, pairs, weight = None, name = "score"):
    """
    Preferential attachment score of node pairs: the product of the degrees of the two nodes,
@@ -630,6 +633,7 @@ def _neighborhood_score(net, pairs, weight, name, kind):
    return _scored(pairs, score.cpu().numpy(), name)
 
 
+@_higher_order()
 def adamic_adar_lp(net, pairs, weight = None, name = "score"):
    """
    Adamic-Adar score of node pairs: the common neighbors, each counting
@@ -660,6 +664,7 @@ def adamic_adar_lp(net, pairs, weight = None, name = "score"):
    return _neighborhood_score(net, pairs, weight, name, "adamic_adar_lp")
 
 
+@_higher_order()
 def car_index_lp(net, pairs, name = "score"):
    """
    CAR index of node pairs (Cannistraci, Alanis-Lobato and Ravasi, 2013): the number of common
@@ -689,6 +694,7 @@ def car_index_lp(net, pairs, name = "score"):
    return _neighborhood_score(net, pairs, None, name, "car")
 
 
+@_higher_order()
 def common_neighbors_lp(net, pairs, weight = None, name = "score"):
    """
    Common neighbors score of node pairs: the number of neighbors that the two nodes share,
@@ -726,6 +732,7 @@ def common_neighbors_lp(net, pairs, weight = None, name = "score"):
    return _neighborhood_score(net, pairs, weight, name, "common_neighbors_lp")
 
 
+@_higher_order()
 def common_neighbors_jaccard_lp(net, pairs, weight = None, name = "score"):
    """
    Jaccard score of node pairs: the common neighbors as a fraction of all the neighbors of the two
@@ -754,6 +761,7 @@ def common_neighbors_jaccard_lp(net, pairs, weight = None, name = "score"):
    return _neighborhood_score(net, pairs, weight, name, "jaccard")
 
 
+@_higher_order()
 def resource_allocation_lp(net, pairs, weight = None, name = "score"):
    """
    Resource allocation score of node pairs: the amount of a resource that ``u`` sends to ``v``
@@ -833,6 +841,7 @@ def _mi_node_information(ptr, nbr, deg, M, clustering, out):
       out[z] = total / (k * (k - 1) / 2) + (math.log2(clustering[z]) if clustering[z] > 0 else -np.inf)
 
 
+@_higher_order()
 def mutual_information_index_lp(net, pairs, name = "score"):
    """
    Mutual information score of node pairs (Tan, Xia and Zhu, 2014): how much knowing their common
@@ -919,6 +928,7 @@ def _transition(net, weight):
    return P, k
 
 
+@_higher_order()
 def local_random_walk_lp(net, pairs, steps = 3, superposed = False, weight = None, name = "score"):
    """
    Local random walk score of node pairs (Liu and Lü, 2010): how likely a random walker started
@@ -1026,6 +1036,7 @@ def _simrank_walks(iptr, inn, us, vs, decay, walks, length, seed, out):
       out[p] = total / walks
 
 
+@_higher_order()
 def simrank_lp(net, pairs, decay = 0.8, walks = 100, length = 10, seed = None, name = "score"):
    """
    SimRank similarity of node pairs (Jeh and Widom, 2002): two nodes are similar if they are
@@ -1117,6 +1128,7 @@ def _block_cg(matvec, B, tol, max_iter):
    raise ValueError(f"vertex similarity: conjugate gradients did not converge in {max_iter} iterations")
 
 
+@_higher_order()
 def vertex_similarity_lp(net, pairs, phi = 0.9, weight = None, name = "score", tol = 1e-10, max_iter = 10000):
    """
    Vertex similarity of node pairs (Leicht, Holme and Newman, 2006): two nodes are similar if
@@ -1381,6 +1393,7 @@ def _hrg_run(n, ptr, nbr, parent, left, right, size, e, lo, leafat, states, ll, 
       ll[c] = x
 
 
+@_higher_order()
 def hierarchical_random_graph_lp(net, pairs, name = "score", samples = 100, burnin = 5000, interval = 1, chains = None, seed = None):
    """
    Hierarchical random graph score of node pairs (Clauset, Moore and Newman, 2008): the
@@ -1639,6 +1652,7 @@ def _sbm_run(n, K, ptr, nbr, states, start, burnin, interval, samples, us, vs, o
             out[c, p] += (l[a, b] + 1) / (r + 2)
 
 
+@_higher_order()
 def block_model_reliability_lp(net, pairs, name = "score", samples = 100, burnin = 1000, interval = 10, groups = None, chains = None, seed = None):
    """
    Stochastic block model reliability of node pairs (Guimerà and Sales-Pardo, 2009): the
@@ -1748,6 +1762,7 @@ def _local_kemeny(R, order):
    return out
 
 
+@_higher_order()
 def ensemble_link_prediction(net, pairs, methods = None, aggregation = "borda", columns = None, name = "score"):
    """
    Ensemble of link prediction scores: several scores rank the pairs, and their rankings are
@@ -1857,6 +1872,7 @@ def ensemble_link_prediction(net, pairs, methods = None, aggregation = "borda", 
    return table
 
 
+@_higher_order()
 def link_prediction_sign_evaluation(net, validation, sign = SIGN, predictions = False):
    """
    How well social balance and social status predict the signs of the hidden edges of a signed
@@ -1984,6 +2000,7 @@ def _curves(tp, n, p, q, points):
    return roc, pr
 
 
+@_higher_order()
 def link_prediction_evaluation(validation, score = "score", label = "label", curves = False, points = 101):
    """
    How well a score separates the positives from the negatives of a validation set.
@@ -2081,6 +2098,7 @@ def _rule_graph(net, ncode, ecode, node_label, edge_label):
    return lab, ptr, y[o], el[o], key[o], L, ndecode, edecode
 
 
+@_higher_order()
 def association_rules_lp(net, pairs, patterns, rules, node_label = None, edge_label = None, measure = "confidence", combine = "max", new_nodes = False, name = "score"):
    """
    Association rule score of node pairs: the rules of :func:`~graphoskop.graph_association_rules`
@@ -2231,6 +2249,7 @@ def association_rules_lp(net, pairs, patterns, rules, node_label = None, edge_la
 _OPERATORS = {"average": lambda a, b: (a + b) / 2, "hadamard": lambda a, b: a * b, "weighted_l1": lambda a, b: np.abs(a - b), "weighted_l2": lambda a, b: (a - b) ** 2}
 
 
+@_higher_order()
 def embedding_lp(net, pairs, attributes, operator = "hadamard", negatives = 1, samples = 100000, ridge = 1., seed = None, name = "score"):
    """
    Link prediction from node embeddings (Grover and Leskovec, 2016): the numeric node attributes

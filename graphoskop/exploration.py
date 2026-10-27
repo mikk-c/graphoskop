@@ -30,6 +30,15 @@ Only the component of the source is explored. A source can be given as an iterab
 list, set, range, NumPy array or pandas Series or Index; a tuple is always one node): each is then
 explored on its own, and the result gains a first column ``source``, with the node as given.
 
+In hypergraphs (see :doc:`higher_order`), a step of a random walk follows Zhou et al. (2006): a
+hyperedge of the current node, drawn in proportion to its weight :math:`w(e)` (the hyperedge
+attribute ``weight``, or uniformly), then a node of that hyperedge, uniformly, the current one
+included. In a directed hypergraph the step goes from a tail to a head (``direction = "out"``).
+Walks run as walks of twice the length on the incidence graph, and also report the hyperedge of
+every step. Metropolis-Hastings walks run on :func:`~graphoskop.hypergraph_walk_network`, and
+explorations of simplicial complexes on their 1-skeleton (their nodes and edges); other walk models
+are walks on :func:`~graphoskop.hypergraph_walk_network`. Searches do not support them.
+
 In directed networks ``direction`` chooses the edges followed: ``"out"`` (along their direction),
 ``"in"`` (against it) or ``"both"``. In multilayer networks the exploration runs on the supra-graph
 (couplings are edges like the others). An entity given as source stands for all its copies: a
@@ -42,6 +51,8 @@ import pandas as pd
 import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import breadth_first_order, depth_first_order
+from ._policy import _higher_order
+from ._views import _walk_view
 
 _ITERABLE = (list, set, frozenset, range, np.ndarray, pd.Series, pd.Index)
 
@@ -102,6 +113,7 @@ def _search(net, source, direction, depth_first):
    return pd.concat(parts, ignore_index = True)
 
 
+@_higher_order()
 def bfs(net, source, direction = "out", max_depth = None):
    """
    Breadth first search: the nodes reachable from ``source``, by increasing number of edges from
@@ -136,6 +148,7 @@ def bfs(net, source, direction = "out", max_depth = None):
    return _each(source, one)
 
 
+@_higher_order()
 def dfs(net, source, direction = "out"):
    """
    Depth first search: the nodes reachable from ``source``, each followed by all the nodes reached
@@ -266,6 +279,7 @@ def _walks(net, source, length, walks, weight, direction, metropolis, seed):
    return out
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def random_walk(net, source, length, walks = 1, weight = None, direction = "out", seed = None):
    """
    Random walks: from ``source``, ``length`` steps, each to a neighbor of the current node drawn
@@ -278,12 +292,14 @@ def random_walk(net, source, length, walks = 1, weight = None, direction = "out"
    :param length: Number of steps of each walk.
    :param walks: Number of walks from each source.
    :param weight: Name of the edge attribute used as edge weight (neighbors are drawn in proportion
-      to it), or ``None`` for uniform choices.
+      to it), or ``None`` for uniform choices; in hypergraphs, a hyperedge attribute :math:`w(e)`.
    :param direction: In directed networks, ``"out"``, ``"in"`` or ``"both"``; ignored otherwise.
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :return: :class:`pandas.DataFrame` with one row per visit, by walk and step: columns ``walk``
       (0 to ``walks - 1``), ``step`` (0 for the source) and ``node`` (input id); first ``source``
-      with an iterable. In directed networks a walk ends early at a node without edges to follow.
+      with an iterable; for hypergraphs, last ``hyperedge`` (the :class:`~graphoskop.Hyperedge`
+      taken to reach the node, ``None`` at step 0). In directed networks a walk ends early at a
+      node without edges to follow.
    :raises ValueError: If ``direction`` is not valid, ``length`` is negative, ``walks`` is below
       1, or some weights are negative or NaN.
    :raises KeyError: If there is no such node or edge attribute.
@@ -299,10 +315,48 @@ def random_walk(net, source, length, walks = 1, weight = None, direction = "out"
       w = gsk.random_walk(net, "alice", 10, walks = 100)    # 100 walks from alice
       visits = w.node.value_counts()
       gsk.random_walk(net, ["alice", "bob"], 10, weight = "weight", seed = 1)
+
+      net = gsk.load_hypergraph({"m1": ["a", "b", "c"], "m2": ["b", "d"]})
+      w = gsk.random_walk(net, "a", 10, seed = 1)           # walk, step, node, hyperedge
    """
+   if net.higher_order == "hypergraph":
+      return _hypergraph_walks(net, source, length, walks, weight, direction, seed)
+   net, weight = _walk_view(net, weight)
    return _walks(net, source, length, walks, weight, direction, False, seed)
 
 
+def _hypergraph_walks(net, source, length, walks, weight, direction, seed):
+   """
+   Random walks of Zhou et al. on a hypergraph (see :func:`random_walk`), as walks of twice the
+   length on its incidence graph: node, hyperedge, node, ...
+
+   :return: As :func:`random_walk`, with a column ``hyperedge``.
+   """
+   from .higher_order import incidence_network
+   sources = list(source) if isinstance(source, _ITERABLE) else [source]
+   for x in sources:
+      if any(i >= net.bipartite_split[c] for c, i in net._nodes(x)):
+         raise ValueError(f"random walks start from nodes, not from {x!r}")
+   inc = incidence_network(net)
+   if weight is not None:   # every membership of a hyperedge weighs w(e): hyperedges drawn in proportion to w(e), nodes uniformly
+      vectors = []
+      for c, k in enumerate(net.bipartite_split):
+         w = inc._node_vector(weight, c)[k:]
+         s, t = inc.components[c].edge_index
+         vectors.append(w[torch.maximum(s, t) - k])
+      weight = "__hyperedge_weight__"
+      inc.set_edge_attribute(weight, vectors, None)
+   out = _walks(inc, source, 2 * length, walks, weight, direction, False, seed)
+   step = out["step"].to_numpy()
+   ids = out["node"].to_numpy()
+   prev = np.r_[np.empty(1, dtype = object), ids[:-1]]   # rows are by walk, then step: the hyperedge just before each node
+   out["hyperedge"] = pd.Series(np.where(step > 0, prev, None), dtype = object)
+   out = out[step % 2 == 0].reset_index(drop = True)   # nodes only; a walk ending on a hyperedge stops at its last node
+   out["step"] //= 2
+   return out
+
+
+@_higher_order(hypergraph = True, simplicial = True)
 def metropolis_hastings_random_walk(net, source, length, walks = 1, weight = None, direction = "out", seed = None):
    """
    Metropolis-Hastings random walks: as :func:`random_walk`, but a move from :math:`u` to the
@@ -338,4 +392,5 @@ def metropolis_hastings_random_walk(net, source, length, walks = 1, weight = Non
       w = gsk.metropolis_hastings_random_walk(net, "alice", 1000, walks = 10, seed = 0)
       share = w.groupby("node").duration.sum() / w.duration.sum()   # about uniform
    """
+   net, weight = _walk_view(net, weight)
    return _walks(net, source, length, walks, weight, direction, True, seed)

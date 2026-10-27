@@ -36,6 +36,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from ._policy import _higher_order
 from .network import _explode, _memberships
 from .network_statistics import _skeleton, _paths
 
@@ -128,6 +129,7 @@ def _drop_nested(node, code):
    return node[~drop], code[~drop]
 
 
+@_higher_order()
 def modularity(net, partition, weight = None, resolution = 1, component = None, overlap = "shen"):
    """
    Modularity of a partition of the nodes into communities: the weight of the edges within
@@ -311,6 +313,7 @@ def _bron_kerbosch(adj, min_size):
             X = X | {w}
 
 
+@_higher_order()
 def maximal_cliques(net, component = None, min_size = 3, batch_size = 2 ** 22):
    """
    Maximal cliques: sets of nodes all joined to each other, not contained in a larger such set.
@@ -349,27 +352,43 @@ def maximal_cliques(net, component = None, min_size = 3, batch_size = 2 ** 22):
       raise ValueError("min_size must be at least 3 (smaller cliques are single nodes and edges)")
    out = []
    for c in range(len(net.components)) if component is None else [component]:
-      data = net.components[c]
-      n = data.num_nodes
-      s, t = data.edge_index
-      keep = s != t
-      if net.layer_labels is not None:
-         keep &= ~net.interlayer_mask(c)
-      key = torch.unique(s[keep] * n + t[keep])
-      if not key.shape[0]:
-         continue
-      src, dst, _, _ = _skeleton(key // n, key % n, n)
-      tri = torch.zeros(src.shape[0], dtype = torch.bool, device = src.device)
-      for ab, bc, ac in _paths(src, dst, n, batch_size):   # edges in at least one triangle
-         tri[ab] = tri[bc] = tri[ac] = True
-      a, b = src[tri].cpu().numpy(), dst[tri].cpu().numpy()
-      adj = {}
-      for x, y in zip(a.tolist(), b.tolist()):
-         adj.setdefault(x, set()).add(y)
-         adj.setdefault(y, set()).add(x)
       ids = net.node_ids[c]
-      out += [ids[np.array(R)] for R in _bron_kerbosch(adj, min_size)]
+      out += [ids[np.array(R)] for R in _cliques(net, c, min_size, batch_size)[0]]
    return sorted(out, key = len, reverse = True)
+
+
+def _cliques(net, component, min_size, batch_size):
+   """
+   Maximal cliques of a component (see :func:`maximal_cliques`), and the edges in no triangle
+   (the maximal cliques of two nodes).
+
+   :param net: Network.
+   :param component: Component index.
+   :param min_size: Smallest clique returned (at least 3).
+   :param batch_size: Number of 2-paths expanded at once in the triangle enumeration.
+   :return: List of lists of node indices (one per clique), and the two endpoints (NumPy arrays of
+      node indices, smaller first) of the edges in no triangle, each pair once.
+   """
+   data = net.components[component]
+   n = data.num_nodes
+   s, t = data.edge_index
+   keep = s != t
+   if net.layer_labels is not None:
+      keep &= ~net.interlayer_mask(component)
+   key = torch.unique(s[keep] * n + t[keep])
+   if not key.shape[0]:
+      return [], np.zeros(0, dtype = np.int64), np.zeros(0, dtype = np.int64)
+   src, dst, _, _ = _skeleton(key // n, key % n, n)
+   tri = torch.zeros(src.shape[0], dtype = torch.bool, device = src.device)
+   for ab, bc, ac in _paths(src, dst, n, batch_size):   # edges in at least one triangle
+      tri[ab] = tri[bc] = tri[ac] = True
+   a, b = src[tri].cpu().numpy(), dst[tri].cpu().numpy()
+   adj = {}
+   for x, y in zip(a.tolist(), b.tolist()):
+      adj.setdefault(x, set()).add(y)
+      adj.setdefault(y, set()).add(x)
+   u, v = src[~tri].cpu().numpy(), dst[~tri].cpu().numpy()
+   return list(_bron_kerbosch(adj, min_size)), np.minimum(u, v), np.maximum(u, v)
 
 
 def _mixed_membership(N, s, t, K, b, directed, max_iter, device):
@@ -419,6 +438,7 @@ def _mixed_membership(N, s, t, K, b, directed, max_iter, device):
       return pi, B, -float(nll())
 
 
+@_higher_order()
 def block_model_communities(net, model = "nested_block_model", groups = None, attribute = "community", threshold = None, max_blocks = 4096, sweeps = 10, max_iter = 500, seed = None):
    """
    Communities from the stochastic blockmodels of the generators (see
@@ -589,7 +609,8 @@ def _infomap_flows(net, weight, directed, teleportation, raw = False):
    return N, s, t, f, np.bincount(t, f, minlength = N)
 
 
-def infomap_communities(net, attribute = "community", weight = None, directed = None, hierarchical = True, teleportation = 0.15, max_communities = 1, trials = 1, sweeps = 50, seed = None):
+@_higher_order()
+def infomap_communities(net, attribute = "community", weight = None, directed = None, hierarchical = True, teleportation = 0.15, max_communities = 1, trials = 1, sweeps = 50, seed = None, physical = None):
    """
    Infomap (Rosvall and Bergstrom, 2008): the modules that compress the description of a random
    walk on the network the most, by the map equation. The walker's steps are described with one
@@ -624,6 +645,12 @@ def infomap_communities(net, attribute = "community", weight = None, directed = 
      copy ``(entity, layer)`` has its own module, but the copies of an entity in the same module
      share one codeword (the physical node), so that entities active in several layers are not
      penalized for being in a module through several of them.
+   * Memory (``physical``; Rosvall et al., 2014): the nodes are states of a walker with memory
+     (:func:`~graphoskop.memory_network`, :func:`~graphoskop.higher_order_dependency_network`),
+     and the node attribute ``physical`` gives the place of each (``"first_order_node"``). As for
+     layers, the states of a place in the same module share its codeword, and a place belongs to
+     every module of its states: overlapping modules of places, found without the overlapping
+     search.
 
    The map equation is minimized as in the Infomap software: greedy moves of nodes between
    modules, in random order, then the modules found move as nodes and merge while it shortens the
@@ -668,6 +695,8 @@ def infomap_communities(net, attribute = "community", weight = None, directed = 
    :param trials: Number of independent runs of the two-level search, keeping the shortest.
    :param sweeps: Maximum number of sweeps of node moves in each round.
    :param seed: Seed of the random numbers, or ``None``.
+   :param physical: Name of the node attribute giving the physical node of every node (states
+      of a network with memory), or ``None`` (in multilayer networks, the entities).
    :return: A dictionary with the ``codelength`` (bits per step of the walker) of the whole
       hierarchy, the same as :func:`codelength` of the list of all the levels
       (``[attribute, attribute + "_1", ...]``; a single level alone is scored as a two-level
@@ -678,7 +707,8 @@ def infomap_communities(net, attribute = "community", weight = None, directed = 
       ``overlapping`` nodes is added.
    :raises ValueError: If weights are negative, ``directed`` is ``True`` for an undirected
       network, ``teleportation`` is not between 0 and 1, or ``max_communities`` is not a positive
-      integer (or above 1 in a multilayer network).
+      integer (or above 1 in a multilayer network or with ``physical``), or ``physical`` has
+      missing values.
 
    Example:
 
@@ -691,20 +721,21 @@ def infomap_communities(net, attribute = "community", weight = None, directed = 
       res["modules"], res["codelength"]
       res = gsk.infomap_communities(net, hierarchical = False, directed = False, trials = 10)
       res = gsk.infomap_communities(net, max_communities = 2, attribute = "cover")   # overlapping
+      mem = gsk.memory_network("paths.txt")                      # states "k|j": at k, from j
+      gsk.infomap_communities(mem, weight = "weight", physical = "first_order_node")
    """
    from ._infomap import _Items, _two_level, _split, _coarsen, _tree_codelength, _leaves, _pl
    if directed and not net.directed:
       raise ValueError("an undirected network has no directions to follow")
    if not 0 <= teleportation < 1:
       raise ValueError("teleportation must be between 0 and 1")
-   if int(max_communities) != max_communities or max_communities < 1 or (max_communities > 1 and net.layer_labels is not None):
-      raise ValueError("max_communities must be a positive integer, 1 in multilayer networks")
+   if int(max_communities) != max_communities or max_communities < 1 or (max_communities > 1 and (net.layer_labels is not None or physical is not None)):
+      raise ValueError("max_communities must be a positive integer, 1 in multilayer networks or with physical nodes")
    directed = net.directed if directed is None else directed
    rng = np.random.default_rng(seed)
    N, s, t, f, p = _infomap_flows(net, weight, directed, teleportation)
-   ml = net.layer_labels is not None
-   ent = np.concatenate([d.entity.cpu().numpy() for d in net.components]) if ml else np.arange(N)
-   ent = np.unique(ent, return_inverse = True)[1]
+   ml = net.layer_labels is not None or physical is not None
+   ent = _physical(net, physical, N)
    nent = int(ent.max()) + 1 if N else 1
    items = _Items(p, s, t, f, np.zeros(N), np.zeros(N), np.arange(N), ent, p)
    assign, _ = _two_level(items, ml, nent, 0., trials, sweeps, rng) if N else (np.zeros(0, dtype = np.int64), 0.)
@@ -751,6 +782,21 @@ def infomap_communities(net, attribute = "community", weight = None, directed = 
    return {"codelength": _tree_codelength(items, tree) if N else 0., "codelength_one_module": one, "modules": counts}
 
 
+def _physical(net, physical, N):
+   """
+   Physical node of every node, numbered from 0, network wide order: the values of the node
+   attribute ``physical``, the entities of a multilayer network, or the nodes themselves.
+   """
+   if physical is not None:
+      v = [net.get_node_attribute(physical, c) for c in range(len(net.components))]
+      code = pd.factorize(np.concatenate([x.cpu().numpy() if torch.is_tensor(x) else np.asarray(x, dtype = object) for x in v]) if v else [])[0]
+      if (code < 0).any():
+         raise ValueError(f"node attribute {physical!r} has missing values: every node needs a physical node")
+      return code
+   ent = np.concatenate([d.entity.cpu().numpy() for d in net.components]) if net.layer_labels is not None else np.arange(N)
+   return np.unique(ent, return_inverse = True)[1]
+
+
 def _hierarchy_tree(paths, nodes, d):
    """
    Tree of modules from the module of every node at every level (``paths``, one column per level,
@@ -761,7 +807,8 @@ def _hierarchy_tree(paths, nodes, d):
    return [_hierarchy_tree(paths, nodes[paths[nodes, d] == g], d + 1) for g in np.unique(paths[nodes, d])]
 
 
-def codelength(net, partition, weight = None, directed = None, teleportation = 0.15, normalized = False):
+@_higher_order()
+def codelength(net, partition, weight = None, directed = None, teleportation = 0.15, normalized = False, physical = None):
    """
    Codelength of a partition by the map equation (see :func:`infomap_communities`): the average
    number of bits per step needed to describe a random walk on the network with the modules of
@@ -770,7 +817,7 @@ def codelength(net, partition, weight = None, directed = None, teleportation = 0
 
    The walk is that of :func:`infomap_communities`, with the same ``weight``, ``directed`` and
    ``teleportation``, and in multilayer networks the copies of an entity in the same module share
-   a codeword. A hierarchy of modules is given as a list of node attribute names, top level first,
+   a codeword (as do the nodes of the same ``physical`` node). A hierarchy of modules is given as a list of node attribute names, top level first,
    each level refining the one above (as written by :func:`infomap_communities`); its codelength is
    that of the hierarchical map equation. A single level is always scored as a two-level partition:
    to compare with the codelength returned by :func:`infomap_communities`, give all its levels.
@@ -792,6 +839,8 @@ def codelength(net, partition, weight = None, directed = None, teleportation = 0
       the network.
    :param teleportation: Probability of teleporting at each step, in directed networks.
    :param normalized: Whether to divide by the codelength of a single module.
+   :param physical: Name of the node attribute giving the physical node of every node, whose
+      nodes in the same module share a codeword (see :func:`infomap_communities`), or ``None``.
    :return: The codelength in bits (or its ratio to that of a single module); NaN normalized for a
       network without edges.
    :raises ValueError: If a node has no community, a hierarchy has overlapping communities, or as
@@ -824,11 +873,12 @@ def codelength(net, partition, weight = None, directed = None, teleportation = 0
       if len(node) != n:
          if len(levels) > 1:
             raise ValueError("a hierarchy of overlapping communities is not supported")
+         if physical is not None:
+            raise ValueError("overlapping communities with physical nodes are not supported")
          return _overlapping_codelength(net, node, code, n, weight, directed, teleportation, normalized)
       paths.append(code)
    N, s, t, f, p = _infomap_flows(net, weight, directed, teleportation)
-   ent = np.concatenate([d.entity.cpu().numpy() for d in net.components]) if net.layer_labels is not None else np.arange(N)
-   ent = np.unique(ent, return_inverse = True)[1]
+   ent = _physical(net, physical, N)
    items = _Items(p, s, t, f, np.zeros(N), np.zeros(N), np.arange(N), ent, p)
    L = _tree_codelength(items, _hierarchy_tree(np.stack(paths, 1), np.arange(N), 0)) + 0.
    if not normalized:
@@ -864,6 +914,7 @@ def _overlapping_codelength(net, node, code, n, weight, directed, teleportation,
    return L / one if one > 0 else float("nan")
 
 
+@_higher_order()
 def label_propagation_communities(net, attribute = "community", weight = None, strategy = "semisynchronous", max_communities = 1, max_iter = 100, seed = None):
    """
    Label propagation (Raghavan, Albert and Kumara, 2007): every node starts with its own label and
@@ -1005,6 +1056,7 @@ def label_propagation_communities(net, attribute = "community", weight = None, s
    return {"communities": K, "iterations": int(it), "converged": bool(ok)}
 
 
+@_higher_order()
 def leiden_communities(net, attribute = "community", weight = None, quality = "modularity", resolution = 1, randomness = 0.01, initial = None, max_iter = 100, seed = None):
    """
    Leiden algorithm (Traag, Waltman and van Eck, 2019): communities of high quality, every one of
@@ -1233,6 +1285,7 @@ def _summarize(values, st, community, aggregate):
    return float(np.average(values[ok], weights = st["size"][ok] if aggregate == "size" else None))
 
 
+@_higher_order()
 def conductance(net, partition, community = None, weight = None, aggregate = "mean", component = None):
    """
    Conductance of communities: the weight of the edges leaving a community (its cut) over the
@@ -1278,6 +1331,7 @@ def conductance(net, partition, community = None, weight = None, aggregate = "me
    return _summarize(phi, st, community, aggregate)
 
 
+@_higher_order()
 def internal_density(net, partition, community = None, weight = None, aggregate = "mean", component = None):
    """
    Internal density of communities: the weight of the edges within a community over the number of
@@ -1315,6 +1369,7 @@ def internal_density(net, partition, community = None, weight = None, aggregate 
    return _summarize(d, st, community, aggregate)
 
 
+@_higher_order()
 def out_degree_fraction(net, partition, kind = "average", community = None, weight = None, aggregate = "mean", component = None):
    """
    Out-degree fraction of communities (Yang and Leskovec, 2012): how much of the degree of the
@@ -1399,6 +1454,7 @@ def _mean(x, y, average):
    return {"arithmetic": (x + y) / 2, "geometric": np.sqrt(x * y), "max": max(x, y), "min": min(x, y)}[average]
 
 
+@_higher_order()
 def normalized_mutual_information(net, partition1, partition2, average = "arithmetic", overlap = "mcdaid"):
    """
    Normalized mutual information between two partitions of the nodes (or covers, with overlapping
@@ -1512,6 +1568,7 @@ def _expected_mutual_information(a, b, n):
    return emi
 
 
+@_higher_order()
 def adjusted_mutual_information(net, partition1, partition2, average = "arithmetic"):
    """
    Adjusted mutual information between two partitions of the nodes (Vinh, Epps and Bailey, 2010):
@@ -1557,6 +1614,7 @@ def adjusted_mutual_information(net, partition1, partition2, average = "arithmet
    return float((mi - emi) / den)
 
 
+@_higher_order()
 def adjusted_rand_index(net, partition1, partition2):
    """
    Adjusted Rand index between two partitions of the nodes (Hubert and Arabie, 1985): the fraction
@@ -1642,6 +1700,7 @@ def _omega(n, n1, c1, n2, c2):
    return float((obs - exp) / (1 - exp)) if exp < 1 else 1.
 
 
+@_higher_order()
 def hierarchical_random_graph_communities(net, attribute = "community", samples = 100, burnin = 20000, interval = 10, consensus = 0.5, chains = None, seed = None):
    """
    Hierarchical communities from hierarchical random graphs (Clauset, Moore and Newman, 2008): the
@@ -1848,6 +1907,7 @@ def _bigclam_init(N, ptr, nbr, deg, tri, K, gen):
    return F
 
 
+@_higher_order()
 def bigclam_communities(net, attribute = "community", groups = None, max_groups = 100, max_iter = 2000, seed = None):
    """
    BigCLAM (Yang and Leskovec, 2013): overlapping communities from a community affiliation model,
@@ -2061,6 +2121,7 @@ def _write_links(net, attribute, N, a, b, lab):
    return K, multi
 
 
+@_higher_order()
 def hierarchical_link_communities(net, attribute = "link_community", weight = None, threshold = None):
    """
    Link communities by hierarchical link clustering (Ahn, Bagrow and Lehmann, 2010): the links,
@@ -2145,6 +2206,7 @@ def hierarchical_link_communities(net, attribute = "link_community", weight = No
    return {"communities": K, "partition_density": D, "threshold": float(threshold), "overlapping": multi}
 
 
+@_higher_order()
 def line_graph_communities(net, attribute = "link_community", weight = None, line_graph = "random_walk", resolution = 1, seed = None):
    """
    Link communities from the line graph (Evans and Lambiotte, 2009, 2010): the communities of the
@@ -2227,6 +2289,7 @@ def line_graph_communities(net, attribute = "link_community", weight = None, lin
    return {"communities": K, "modularity": float(r["quality"]), "overlapping": multi}
 
 
+@_higher_order()
 def demon_communities(net, attribute = "community", epsilon = 0.25, min_size = 3, weight = None, max_iter = 100, seed = None):
    """
    DEMON (Coscia, Rossetti, Giannotti and Pedreschi, 2012): overlapping communities from the local
@@ -2323,6 +2386,7 @@ def demon_communities(net, attribute = "community", epsilon = 0.25, min_size = 3
    return {"communities": int(K), "local": local, "overlapping": multi}
 
 
+@_higher_order()
 def oslom_communities(net, attribute = "community", tolerance = 0.1, iterations = 10, runs = 10, union = 0.7, seed = None):
    """
    OSLOM (Lancichinetti, Radicchi, Ramasco and Fortunato, 2011): overlapping communities that are

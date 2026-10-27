@@ -68,6 +68,56 @@ Non progressive threshold model
 
 .. autofunction:: graphoskop.complex_nonprogressive_model
 
+Higher-order contagion
+----------------------
+
+.. automodule:: graphoskop.epidemics.higher_order_contagion
+   :no-members:
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_simplicial_complex("groups.tsv")                     # e.g. cliques of contacts
+   sis = gsk.higher_order_sis_model(net, [0.01, 0.1], 0.05, seeds = 0.2)   # beta_1 (edges), beta_2 (triangles)
+
+   # the rescaled infectivities of Iacopini et al.: lambda = beta_1 <k> / mu, lambda_D = beta_2 <k_D> / mu
+   mu, k = 0.05, gsk.average_degree(net)
+   kd = 3 * net.number_of_simplices(2) / net.number_of_nodes()          # mean triangles per node
+   beta = [0.8 * mu / k, 2.5 * mu / kd]                                 # lambda = 0.8, lambda_D = 2.5: bistable
+   gsk.higher_order_sis_model(net, beta, mu, seeds = 0.01, window = 0)["I"].iloc[-1]   # dies out
+   gsk.higher_order_sis_model(net, beta, mu, seeds = 0.4)["I"].iloc[-1]    # endemic
+
+   hg = gsk.load_hypergraph("meetings.tsv")                             # hyperedges of any size
+   sir = gsk.higher_order_sir_model(hg, 0.1, 0.1, threshold = 0.5, seeds = 5)   # half of a group infects
+
+On a random simplicial complex with the parameters of Iacopini et al. (2,000 nodes, mean degree
+20, 6 triangles per node, :math:`\lambda_\Delta = 2.5`, ``mu = 0.05``), 20 runs of the SIS model
+take 2.4 s for four settings on two CPU threads, and reproduce the bistable region of the mean
+field: at :math:`\lambda = 0.8`, the epidemic dies out from 1% of seeds and is endemic from 40%
+(46.5% of infected nodes, against 52.9% in the homogeneous mean field, which neglects the
+correlations between neighbors and the spread of degrees); at :math:`\lambda = 0.5`, below the critical point :math:`2 \sqrt{\lambda_\Delta} -
+\lambda_\Delta = 0.66`, it dies out from 40%. Pairs are counted as in pairwise contagion: with
+edges only, the model takes about as long as :func:`~graphoskop.complex_sis_model` with
+``"classical"`` reinforcement (9.4 s against 8.0 s, 20 runs on 100,000 nodes and 900,000 edges).
+With 100,000 nodes, 900,000 edges and 200,000 triangles, 100 runs of an endemic SIS model (87% of
+the nodes infected, 214 steps to the plateau) take 72 s.
+
+Higher-order SI model
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.higher_order_si_model
+
+Higher-order SIR model
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.higher_order_sir_model
+
+Higher-order SIS model
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: graphoskop.higher_order_sis_model
+
 Simple contagion
 ----------------
 

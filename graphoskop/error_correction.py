@@ -43,6 +43,7 @@ import pandas as pd
 import torch
 from numba import njit, prange
 from numba.typed import List
+from ._policy import _higher_order
 
 _LN2 = math.log(2.)
 _Q_EXACT = 1000   # partition counts q(m, n) computed exactly up to m = _Q_EXACT
@@ -2287,6 +2288,7 @@ def _write_levels(net, b0, par, Bs, attribute):
       net.set_node_attribute(key, [g[offs[c]:offs[c + 1]].astype(np.float64) for c in range(len(net.components))], None)
 
 
+@_higher_order()
 def fit_nested_block_model(net, attribute = "community", max_blocks = 4096, sweeps = 10, seed = None):
    """
    Fit the nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): the hierarchy of
@@ -2465,6 +2467,7 @@ def _corrected(net, N, uk, prob, s, t, attrs):
                  lambda perm: _qualitative_rows(net, rows[perm]), net.qualitative_node_attributes, net.node_format, types, net.bipartite_labels)
 
 
+@_higher_order()
 def measured_network_correction(net, measurements = None, positives = None, default_measurements = 1, default_positives = 0, heterogeneous = False, priors = None,
                                 false_negative_rate = None, false_positive_rate = None, model = "nested_block_model", groups = None,
                                 samples = 200, burnin = 200, interval = 5, chains = 4, max_blocks = 4096, seed = None):
@@ -2675,6 +2678,7 @@ def measured_network_correction(net, measurements = None, positives = None, defa
    return _corrected(net, N, uk, cnt / max(ns, 1), s, t, attrs), summary
 
 
+@_higher_order()
 def uncertain_network_correction(net, probability = "probability", default_probability = 0., model = "nested_block_model", groups = None,
                                  samples = 200, burnin = 200, interval = 5, chains = 4, max_blocks = 4096, seed = None):
    """

@@ -1,6 +1,6 @@
 """
-Simple network statistics: connected components, degree of nodes, degree distributions, average
-degree, power law fits of the degree distribution, degree centralization, density,
+Simple network statistics: connected components, degree of nodes, degree distributions, sizes of
+hyperedges, average degree, power law fits of the degree distribution, degree centralization, density,
 reciprocity, average shortest path length, clustering coefficients,
 assortativity.
 
@@ -14,6 +14,14 @@ do. The degree of a copy ``(entity, layer)`` is its degree within its layer; an 
 given on its own, and its degree is then the sum over its copies (the overlapping degree, parallel
 edges in different layers counting separately). The number of distinct neighbors of an entity
 across layers is its degree in :func:`~graphoskop.aggregate_network`.
+
+In hypergraphs and simplicial complexes (see :doc:`higher_order`), :func:`degree`,
+:func:`average_degree` and :func:`degree_power_law` use the degrees of the nodes: their numbers of
+hyperedges, or their numbers of edges in the complex; the generalized degrees of simplicial
+complexes are given by :func:`~graphoskop.generalized_degree`, and the sizes of hyperedges and
+facets by :func:`hyperedge_size`. Connected components leave hyperedges and facets out; simplicial
+complexes also have the :math:`q`-connected components of Q-analysis (``dimension`` in
+:func:`connected_components_count` and :func:`connected_components_nodes`).
 
 Clustering coefficients count the triangles around nodes. Edges are taken as unweighted, parallel
 edges count once and self loops are ignored. For node :math:`i`, with :math:`A` the adjacency
@@ -50,6 +58,7 @@ import scipy.sparse as sp
 from scipy import integrate, optimize, special, stats
 from scipy.sparse.csgraph import connected_components
 
+from ._policy import _higher_order
 from .network import _multivalued
 from .shortest_paths import _source_stats
 
@@ -80,7 +89,55 @@ def _check_type(net, type):
    return type == "strong" and net.directed
 
 
-def connected_components_count(net, type = "weak"):
+def _higher_components(net, type, dimension, batch_size):
+   """
+   Nodes of the connected components of a hypergraph or simplicial complex (see
+   :func:`connected_components_count`).
+
+   :param net: Hypergraph or simplicial complex.
+   :param type: ``"weak"`` or ``"strong"``.
+   :param dimension: Dimension of the connectivity (0 for the usual components).
+   :param batch_size: Number of node-sharing pairs of facets generated at once.
+   :return: List of arrays of input node ids, one per component, largest first.
+   """
+   if dimension == 0:
+      out = []
+      for c in range(len(net.components)):
+         k = int(net.bipartite_split[c])
+         if not _check_type(net, type):
+            out.append(net.node_ids[c][:k].copy())
+            continue
+         n, labels = _strong_labels(net, c)
+         labels = labels[:k]   # the nodes of each strongly connected component of the incidence graph
+         order = np.argsort(labels, kind = "stable")
+         out += np.split(net.node_ids[c][:k][order], np.cumsum(np.bincount(labels, minlength = n))[:-1])
+      return sorted([x for x in out if len(x)], key = len, reverse = True)   # empty hyperedges are not components
+   if not net.number_of_facets():
+      return []
+   from .bipartite_projections import _paths
+   from .higher_order import _facet_lists, incidence_network
+   inc = incidence_network(net)
+   rows, _, i, j, v = _paths(inc, "simplex", None, lambda wa, wb, c, strength: wa * wb, batch_size)   # nodes shared by facets
+   near = v >= dimension + 1   # sharing a face of the dimension
+   i, j = i[near].cpu().numpy(), j[near].cpu().numpy()
+   members = [_facet_lists(net, c) for c in range(len(net.components))]
+   size = np.concatenate([np.diff(p) for p, _ in members])
+   f = len(size)
+   labels = connected_components(sp.csr_matrix((np.ones(len(i)), (i, j)), shape = (f, f)), directed = False)[1]
+   node = np.concatenate([m + net.node_offsets[c] for c, (_, m) in enumerate(members)])   # network wide positions
+   facet = np.repeat(np.arange(f), size)
+   big = size[facet] >= dimension + 1   # memberships of the facets of at least that dimension
+   n = int(net.node_offsets[-1])
+   key = np.sort(labels[facet[big]].astype(np.int64) * n + node[big])   # (component, node), sorted: no loop over components
+   key = key[np.r_[True, key[1:] != key[:-1]]] if len(key) else key
+   comp, pos = key // n, key % n
+   ids = np.concatenate(net.node_ids)
+   out = np.split(ids[pos], np.flatnonzero(comp[1:] != comp[:-1]) + 1) if len(key) else []
+   return sorted(out, key = len, reverse = True)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def connected_components_count(net, type = "weak", dimension = 0, batch_size = 2 ** 24):
    """
    Number of connected components.
 
@@ -91,10 +148,30 @@ def connected_components_count(net, type = "weak"):
    one or more of them. In undirected networks the two coincide. In multilayer networks the
    components are those of the supra-graph, interlayer edges included.
 
+   In hypergraphs (see :doc:`higher_order`), two nodes are connected if a sequence of hyperedges
+   leads from one to the other, each sharing a node with the next (in a directed hypergraph, for
+   strong components, from tails to heads); empty hyperedges are not components.
+
+   In simplicial complexes, ``dimension`` :math:`q` gives the :math:`q`-connected components of
+   Atkin's Q-analysis (1974): two simplices are :math:`q`-near if they share a :math:`q`-face
+   (:math:`q + 1` nodes), and :math:`q`-connected if a chain of simplices, each :math:`q`-near the
+   next, joins them; the :math:`q`-connected components are the classes of the simplices of
+   dimension at least :math:`q`. Components for :math:`q = 0` are the usual ones; for
+   :math:`q = 1`, two edges are connected only through filled triangles (or larger simplices)
+   sharing edges, so a hollow triangle is three 1-connected components. Each simplex is
+   :math:`q`-near the facets containing it, so the components are found among the facets: those
+   with at least :math:`q + 1` nodes, joined when they share at least :math:`q + 1` nodes (the
+   pairs of facets sharing nodes are generated as in the bipartite projections, ``batch_size`` at a
+   time). For :math:`q > 0`, a node can be in several components, or in none (if it is in no
+   simplex of dimension :math:`q`).
+
    :param net: A :class:`~graphoskop.Network`.
    :param type: ``"weak"`` or ``"strong"``.
+   :param dimension: In simplicial complexes, :math:`q`; 0 otherwise.
+   :param batch_size: For :math:`q > 0`, number of pairs of facets sharing a node generated at once.
    :return: Number of components.
-   :raises ValueError: If ``type`` is not valid.
+   :raises ValueError: If ``type`` is not valid, or if ``dimension`` is not 0 outside simplicial
+      complexes (or negative).
 
    Example:
 
@@ -105,22 +182,50 @@ def connected_components_count(net, type = "weak"):
       net = gsk.load_network("follows.tsv", directed = True)
       gsk.connected_components_count(net)                    # weakly connected
       gsk.connected_components_count(net, type = "strong")
+
+      # two filled triangles sharing a node, and a hollow triangle
+      net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d", "e"], ["x", "y"], ["y", "z"], ["x", "z"]])
+      gsk.connected_components_count(net)                    # 2
+      gsk.connected_components_count(net, dimension = 1)     # 5: two triangles, three edges
+      gsk.connected_components_count(net, dimension = 2)     # 2
    """
+   _check_dimension(net, dimension)
+   if net.higher_order is not None:
+      return len(_higher_components(net, type, dimension, batch_size))
    if not _check_type(net, type):
       return len(net.components)
    return sum(_strong_labels(net, c)[0] for c in range(len(net.components)))
 
 
-def connected_components_nodes(net, type = "weak"):
+def _check_dimension(net, dimension):
    """
-   Nodes of each connected component (see :func:`connected_components_count` for the types).
+   Check the dimension of the connectivity of :func:`connected_components_count`.
+
+   :raises ValueError: If it is negative, or not 0 outside simplicial complexes.
+   """
+   if dimension != 0 and net.higher_order != "simplicial":
+      raise ValueError("dimension is for simplicial complexes: other networks have only the usual components (dimension 0)")
+   if dimension < 0:
+      raise ValueError(f"dimension must be at least 0, got {dimension}")
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def connected_components_nodes(net, type = "weak", dimension = 0, batch_size = 2 ** 24):
+   """
+   Nodes of each connected component (see :func:`connected_components_count` for the types and,
+   in simplicial complexes, the dimension). In hypergraphs and simplicial complexes the hyperedges
+   and facets are left out; for :math:`q`-connected components with :math:`q > 0`, each component
+   gives the nodes of its simplices, so a node can be in several components, or in none.
 
    :param net: A :class:`~graphoskop.Network`.
    :param type: ``"weak"`` or ``"strong"``.
+   :param dimension: In simplicial complexes, :math:`q`; 0 otherwise.
+   :param batch_size: As in :func:`connected_components_count`.
    :return: List of arrays of input node ids, one per component, largest first (for weakly
-      connected components, the same order as the components of the network, and the same as
-      :attr:`~graphoskop.Network.node_ids`).
-   :raises ValueError: If ``type`` is not valid.
+      connected components of plain networks, the same order as the components of the network,
+      and the same as :attr:`~graphoskop.Network.node_ids`).
+   :raises ValueError: If ``type`` is not valid, or ``dimension`` as in
+      :func:`connected_components_count`.
 
    Example:
 
@@ -128,7 +233,14 @@ def connected_components_nodes(net, type = "weak"):
 
       sccs = gsk.connected_components_nodes(net, type = "strong")
       core = gsk.subgraph(net, sccs[0])            # the largest strongly connected component
+
+      net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d", "e"], ["x", "y"], ["y", "z"], ["x", "z"]])
+      gsk.connected_components_nodes(net, dimension = 1)
+      # [array(['a', 'b', 'c']), array(['c', 'd', 'e']), array(['x', 'y']), array(['y', 'z']), array(['x', 'z'])]
    """
+   _check_dimension(net, dimension)
+   if net.higher_order is not None:
+      return _higher_components(net, type, dimension, batch_size)
    if not _check_type(net, type):
       return [ids.copy() for ids in net.node_ids]
    out = []
@@ -169,6 +281,49 @@ def _degrees(net, component, direction, weight = None):
    if direction == "in":
       return count(t)
    return count(s) + count(t)
+
+
+def _node_degrees(net, component, direction, weight = None):
+   """
+   Degree of the nodes of a component (see :func:`degree`): as :func:`_degrees`, except in
+   hypergraphs (number of hyperedges containing each node, or of their tails or heads) and
+   simplicial complexes (number of edges of the complex at each node).
+
+   :param net: Network.
+   :param component: Component index.
+   :param direction: ``"out"``, ``"in"`` or ``"total"``.
+   :param weight: Edge (membership) attribute summed instead of counting, or ``None``.
+   :return: Vector over the nodes of the component.
+   :raises ValueError: If ``direction`` is not valid, or ``weight`` is given for a simplicial
+      complex.
+   """
+   if net.higher_order is None:
+      return _degrees(net, component, direction, weight)
+   k = int(net.bipartite_split[component])
+   if net.higher_order == "hypergraph":
+      return _degrees(net, component, direction, weight)[:k]
+   if direction not in ("out", "in", "total"):
+      raise ValueError(f"unknown direction: {direction}")
+   if weight is not None:
+      raise ValueError("the degree of a simplicial complex is not weighted: its memberships have no attributes")
+   from .higher_order import _simplices
+   E = _simplices(net, component, 1)
+   return torch.bincount(E.reshape(-1), minlength = k)
+
+
+def _degree_node(net, x):
+   """
+   Internal ids of a node given to the degree functions, refusing hyperedges and facets.
+
+   :param net: Network.
+   :param x: Node.
+   :return: List of internal ids.
+   :raises ValueError: If ``x`` is a hyperedge or a facet.
+   """
+   ids = net._nodes(x)
+   if net.higher_order is not None and any(i >= net.bipartite_split[c] for c, i in ids):
+      raise ValueError(f"{x!r} is not a node: the size of a hyperedge or facet is its degree in gsk.incidence_network(net)")
+   return ids
 
 
 def _skeleton(s, t, n):
@@ -248,6 +403,7 @@ def _table(values, distribution):
    return pd.DataFrame({"degree": values, distribution: p if distribution == "pdf" else p[::-1].cumsum()[::-1]})
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def degree(net, node = None, distribution = "count", direction = "out", component = None, by = "layer", weight = None):
    """
    Degree of nodes, or degree distribution.
@@ -269,6 +425,15 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
      list of them if ``component`` is ``None``, as the centralities (e.g. to rank the nodes, see
      :func:`~graphoskop.si_model`). In multilayer networks, the degree of each copy, counting
      intra-layer edges only.
+
+   In a hypergraph (see :doc:`higher_order`), the degree of a node is the number of hyperedges
+   containing it (repeated hyperedges count separately); in a directed hypergraph, the out-degree
+   counts the hyperedges whose tail has the node, the in-degree those whose head has it. With
+   ``weight``, a membership attribute is summed instead (e.g. the weight of a node in each of its
+   hyperedges). In a simplicial complex, it is the number of edges of the complex at the node
+   (its number of neighbors, :math:`k_{1,0}` of :func:`~graphoskop.generalized_degree`), counting
+   the edges of all the facets; ``weight`` is not allowed. Only nodes have a degree: the sizes of
+   hyperedges and facets are their degrees in :func:`~graphoskop.incidence_network`.
 
    In multilayer networks (see the module description), ``by`` chooses the distribution:
    ``"layer"`` gives the distribution of each layer, over its copies, in one table with a first
@@ -314,25 +479,30 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
       k = gsk.degree(net, "alice")                                # summed over the layers
       pdf = gsk.degree(net, distribution = "pdf")                 # one distribution per layer
       pdf = gsk.degree(net, distribution = "pdf", by = "entity")
+
+      net = gsk.load_hypergraph([["a", "b", "c"], ["b", "d"]])
+      k = gsk.degree(net, "b")                                    # 2 hyperedges
+      net = gsk.load_simplicial_complex([["a", "b", "c"], ["b", "d"]])
+      k = gsk.degree(net, "b")                                    # 3 edges: a, c, d
    """
    ml = net.layer_labels is not None
    if node is not None and not isinstance(node, (list, np.ndarray, pd.Series, pd.Index)):
       cast = int if weight is None else float
-      return cast(sum(_degrees(net, c, direction, weight)[i].item() for c, i in net._nodes(node)))
+      return cast(sum(_node_degrees(net, c, direction, weight)[i].item() for c, i in _degree_node(net, node)))
    if node is not None:
-      ids = [net._nodes(x) for x in node]
-      deg = {c: _degrees(net, c, direction, weight).cpu().numpy() for c in set(c for x in ids for c, _ in x)}
+      ids = [_degree_node(net, x) for x in node]
+      deg = {c: _node_degrees(net, c, direction, weight).cpu().numpy() for c in set(c for x in ids for c, _ in x)}
       cast = int if weight is None else float
       return pd.DataFrame({"node": list(node), "degree": [cast(sum(deg[c][i] for c, i in x)) for x in ids]})
    comps = range(len(net.components)) if component is None else [component]
    if distribution is None:
-      out = [_degrees(net, c, direction, weight) for c in comps]
+      out = [_node_degrees(net, c, direction, weight) for c in comps]
       return out if component is None else out[0]
    if distribution not in ("count", "pdf", "ccdf"):
       raise ValueError(f"unknown distribution: {distribution}")
    if ml and by not in ("layer", "entity"):
       raise ValueError(f"unknown by: {by}")
-   values = np.concatenate([_degrees(net, c, direction, weight).cpu().numpy() for c in comps])
+   values = np.concatenate([_node_degrees(net, c, direction, weight).cpu().numpy() for c in comps])
    if not ml:
       return _table(values, distribution)
    codes = np.concatenate([getattr(net.components[c], "layer" if by == "layer" else "entity").cpu().numpy() for c in comps])
@@ -347,6 +517,88 @@ def degree(net, node = None, distribution = "count", direction = "out", componen
    return pd.concat(tables, ignore_index = True)
 
 
+@_higher_order(hypergraph = True, simplicial = True)
+def hyperedge_size(net, hyperedge = None, distribution = "count", part = "all", component = None, weight = None):
+   """
+   Size of hyperedges (their numbers of nodes), or the distribution of sizes, in a hypergraph; in a
+   simplicial complex, of its facets (dimension plus one). This is the degree of the hyperedges in
+   :func:`~graphoskop.incidence_network`, and the outputs are those of :func:`degree`:
+
+   * ``hyperedge`` given: its size, as an ``int`` (a ``float`` with ``weight``). A hyperedge is
+     given by its label (or its :class:`~graphoskop.Hyperedge` id), a facet by the collection of
+     its nodes (or its :class:`~graphoskop.Simplex` id).
+   * ``hyperedge`` a list of them: a :class:`pandas.DataFrame` with columns ``hyperedge`` (as
+     given) and ``size``.
+   * ``hyperedge = None``: the distribution of sizes (columns ``size`` and ``count``, ``pdf`` or
+     ``ccdf``), over all the hyperedges, empty ones included (size 0).
+   * ``hyperedge = None`` and ``distribution = None``: a vector over the hyperedges of the
+     component, in the order of :meth:`~graphoskop.Network.get_hyperedge_attribute`, or a list of
+     them if ``component`` is ``None``.
+
+   In a directed hypergraph, ``part`` counts the tail (``"tail"``), the head (``"head"``) or both
+   (``"all"``; a node in both counts twice). With ``weight``, a membership attribute is summed
+   instead of counting nodes.
+
+   :param net: A hypergraph or simplicial complex.
+   :param hyperedge: Hyperedge (facet), list of them, or ``None``.
+   :param distribution: ``"count"``, ``"pdf"``, ``"ccdf"``, or ``None`` for the size of every
+      hyperedge; used when ``hyperedge`` is ``None``.
+   :param part: ``"all"``, ``"tail"`` or ``"head"``; only ``"all"`` in undirected hypergraphs and
+      simplicial complexes.
+   :param component: For the distribution or the vectors, index of the component (0 is the
+      largest), or ``None`` for the whole network.
+   :param weight: Name of a numeric membership attribute, or ``None``.
+   :return: Size, :class:`pandas.DataFrame`, or vector (list of vectors) of sizes.
+   :raises ValueError: If ``net`` is not a hypergraph or a simplicial complex, if ``part`` or
+      ``distribution`` is not valid, or if ``hyperedge`` is a node.
+   :raises KeyError: If a hyperedge does not exist.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph({"m1": ["a", "b", "c"], "m2": ["b", "d"]})
+      gsk.hyperedge_size(net, "m1")                       # 3
+      gsk.hyperedge_size(net)                             # sizes 2 and 3, one hyperedge each
+      gsk.hyperedge_size(net, distribution = None, component = 0)   # tensor([3, 2])
+
+      net = gsk.load_hypergraph({"r": (["a", "b"], ["c"])}, directed = True)
+      gsk.hyperedge_size(net, "r", part = "tail")        # 2
+   """
+   from .network import Hyperedge, Simplex
+   if net.higher_order is None:
+      raise ValueError("hyperedge_size is for hypergraphs and simplicial complexes: use degree for networks")
+   if part not in ("all", "tail", "head"):
+      raise ValueError(f"unknown part: {part}")
+   if part != "all" and not net.directed:
+      raise ValueError("tails and heads are for directed hypergraphs")
+   direction = {"all": "total", "tail": "in", "head": "out"}[part]   # tails point to the hyperedge, heads away from it
+   sizes = lambda c: _degrees(net, c, direction, weight)[int(net.bipartite_split[c]):]
+   cast = int if weight is None else float
+   kind = Hyperedge if net.higher_order == "hypergraph" else Simplex
+   if hyperedge is not None:
+      many = isinstance(hyperedge, (list, np.ndarray, pd.Series, pd.Index)) and not (kind is Simplex and len(hyperedge) and not isinstance(hyperedge[0], (list, tuple, set, frozenset, Simplex, np.ndarray)))
+      items = list(hyperedge) if many else [hyperedge]
+      got = []
+      for x in items:
+         (c, i), = net._nodes(x if isinstance(x, kind) else kind(x))
+         k = int(net.bipartite_split[c])
+         if i < k:
+            raise ValueError(f"{x!r} is a node: its degree is given by degree")
+         got.append(cast(sizes(c)[i - k].item()))
+      return pd.DataFrame({"hyperedge": items, "size": got}) if many else got[0]
+   comps = range(len(net.components)) if component is None else [component]
+   if distribution is None:
+      out = [sizes(c) for c in comps]
+      return out if component is None else out[0]
+   if distribution not in ("count", "pdf", "ccdf"):
+      raise ValueError(f"unknown distribution: {distribution}")
+   return _table(np.concatenate([sizes(c).cpu().numpy() for c in comps]), distribution).rename(columns = {"degree": "size"})
+
+
+@_higher_order(hypergraph = True, simplicial = True)
 def average_degree(net, direction = "out", component = None, by = "layer"):
    """
    Average degree: the mean of the degrees of all nodes, as given by :func:`degree`.
@@ -356,7 +608,10 @@ def average_degree(net, direction = "out", component = None, by = "layer"):
    one out-degree and one in-degree, so the two averages are equal), :math:`2m / n` for the total
    degree. Here :math:`m` counts edges as :meth:`~graphoskop.Network.number_of_edges` does
    (parallel edges and self loops included) and :math:`n` counts all nodes, isolated nodes
-   included. NaN if there are no nodes.
+   included. NaN if there are no nodes. In hypergraphs and simplicial complexes, the mean of the
+   degrees of the nodes as defined in :func:`degree`: the mean number of hyperedges per node
+   (:math:`\\sum_e |e| / n`), or of edges of the complex (:math:`2 m_1 / n`, :math:`m_1` its number
+   of edges).
 
    In multilayer networks only intra-layer edges count, and ``by`` chooses the average:
    ``"layer"`` gives the average degree of the copies of each layer (:math:`2 m_l / n_l` in
@@ -388,7 +643,7 @@ def average_degree(net, direction = "out", component = None, by = "layer"):
    if ml and by not in ("layer", "entity"):
       raise ValueError(f"unknown by: {by}")
    comps = range(len(net.components)) if component is None else [component]
-   values = np.concatenate([_degrees(net, c, direction).cpu().numpy() for c in comps]).astype(np.float64)
+   values = np.concatenate([_node_degrees(net, c, direction).cpu().numpy() for c in comps]).astype(np.float64)
    if not ml:
       return float(values.mean()) if len(values) else float("nan")
    codes = np.concatenate([getattr(net.components[c], by).cpu().numpy() for c in comps])
@@ -497,6 +752,7 @@ def _vuong(l1, l2, nested = False):
    return R, float(special.erfc(abs(R) / (np.sqrt(2 * len(d)) * sd))) if sd > 0 else 1.
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def degree_power_law(net, direction = "out", component = None, layer = None, k_min = None, significance = 0.1, ccdf = False):
    """
    Fit of a power law to the degree distribution, with the tests needed to decide whether it is
@@ -529,7 +785,8 @@ def degree_power_law(net, direction = "out", component = None, layer = None, k_m
 
    A test is significant when its p-value is below ``significance`` (0.1 as in Clauset et al.).
    The goodness-of-fit p-value of Clauset et al. (by bootstrap) is not computed. Weighted degrees
-   are not integers, so they are not supported.
+   are not integers, so they are not supported. In hypergraphs and simplicial complexes the
+   degrees are those of the nodes, as defined in :func:`degree`.
 
    :param net: A :class:`~graphoskop.Network`.
    :param direction: In directed networks, ``"out"``, ``"in"`` or ``"total"`` degree.
@@ -582,7 +839,7 @@ def degree_power_law(net, direction = "out", component = None, layer = None, k_m
       fit["ccdf"].plot(x = "degree", y = ["ccdf", "fit"], loglog = True)
    """
    comps = range(len(net.components)) if component is None else [component]
-   values = np.concatenate([_degrees(net, c, direction).cpu().numpy() for c in comps])
+   values = np.concatenate([_node_degrees(net, c, direction).cpu().numpy() for c in comps])
    if net.layer_labels is not None:
       codes = np.concatenate([(net.components[c].entity if layer is None else net.components[c].layer).cpu().numpy() for c in comps])
       if layer is None:
@@ -691,6 +948,7 @@ def _minimum_entropy(n, m):
    return _share_entropy(np.array(d))
 
 
+@_higher_order()
 def degree_centralization(net, component = None, mode = "all"):
    """
    Degree centralization from the entropy of the degree sequence, adjusted for the size and density
@@ -778,6 +1036,7 @@ def degree_centralization(net, component = None, mode = "all"):
    return {"centralization": float(1 - np.exp(H - E)), "relative_centralization": float(rel), "entropy": H, "expected_entropy": E, "minimum_entropy": float(hmin)}
 
 
+@_higher_order()
 def density(net, component = None, by = "layer"):
    """
    Density: the fraction of the possible edges that are present.
@@ -850,6 +1109,7 @@ def density(net, component = None, by = "layer"):
    return pd.DataFrame(rows, columns = ["layer", "density"])
 
 
+@_higher_order()
 def reciprocity(net, normalized = False, component = None, by = "layer"):
    """
    Reciprocity of a directed network: the fraction of edges whose reverse edge is also present,
@@ -923,6 +1183,7 @@ def reciprocity(net, normalized = False, component = None, by = "layer"):
    return pd.DataFrame([(label, float(r[l])) for l, label in enumerate(net.layer_labels) if edges[l] > 0], columns = ["layer", "reciprocity"])
 
 
+@_higher_order()
 def average_shortest_path_length(net, component = 0, weight = None, inverse = False, samples = None, seed = 0, n_jobs = None, lengths = None):
    """
    Average shortest path length: the mean length of the shortest paths between all ordered pairs
@@ -1024,6 +1285,7 @@ def _clustering(net, component, batch_size):
    return num, (d * (d - 1) - 2 * recip).long()
 
 
+@_higher_order()
 def local_clustering(net, node = None, component = 0, batch_size = 2 ** 22):
    """
    Local clustering coefficient of nodes (see the module description).
@@ -1095,6 +1357,7 @@ def _per_layer(net, component, batch_size, reduce):
    return pd.DataFrame([(label, reduce(num[lay == l], den[lay == l])) for l, label in enumerate(net.layer_labels) if (lay == l).any()], columns = ["layer", "clustering"])
 
 
+@_higher_order()
 def global_clustering(net, component = None, batch_size = 2 ** 22):
    """
    Global clustering coefficient (transitivity, see the module description).
@@ -1119,6 +1382,7 @@ def global_clustering(net, component = None, batch_size = 2 ** 22):
    return _per_layer(net, component, batch_size, lambda num, den: float(num.sum() / den.sum()) if den.sum() else float("nan"))
 
 
+@_higher_order()
 def average_clustering(net, component = None, skip_undefined = False, batch_size = 2 ** 22):
    """
    Average clustering coefficient: the mean of the local clustering coefficients
@@ -1150,7 +1414,8 @@ def average_clustering(net, component = None, skip_undefined = False, batch_size
    return _per_layer(net, component, batch_size, reduce)
 
 
-def assortativity(net, attribute = None, component = None, weight = None, direction = ("out", "in")):
+@_higher_order(hypergraph = True, simplicial = True)
+def assortativity(net, attribute = None, component = None, weight = None, direction = ("out", "in"), kind = "uniform"):
    """
    Assortativity: the tendency of nodes to connect to nodes with similar attribute values
    (Newman, 2002 and 2003).
@@ -1177,6 +1442,16 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
    In multilayer networks only intra-layer edges count, degrees are within layers (as in
    :func:`degree`), and the result is given per layer.
 
+   On hypergraphs and simplicial complexes, this is the degree assortativity of Chodrow (2020): in
+   every hyperedge (facet), a pair of its nodes is taken, and the Pearson correlation of their
+   degrees (numbers of hyperedges or facets, both ways) is computed over the hyperedges of two
+   nodes or more, each weighing 1 (or its ``weight``, a hyperedge or facet attribute). ``kind``
+   chooses the pair: ``"uniform"``, a pair drawn uniformly (computed exactly, as the average over
+   all the pairs of the hyperedge, without sampling); ``"top-2"``, the two nodes of largest degree;
+   ``"top-bottom"``, those of largest and smallest degree. Node attributes are not supported there.
+   To compare with a null model, use :func:`~graphoskop.randomization_test` with
+   :func:`~graphoskop.hypergraph_configuration_model`.
+
    All the work runs on the device of the network, in one pass over the edges.
 
    :param net: A :class:`~graphoskop.Network`.
@@ -1186,6 +1461,8 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
    :param weight: Edge attribute used as weight, or ``None`` for unit weights.
    :param direction: For degree assortativity in directed networks, the degree at the source and
       at the target: each ``"out"``, ``"in"`` or ``"total"``.
+   :param kind: On hypergraphs and simplicial complexes, the pair of nodes of every hyperedge:
+      ``"uniform"``, ``"top-2"`` or ``"top-bottom"`` (see above).
    :return: A float; in multilayer networks, a :class:`pandas.DataFrame` with columns ``layer``
       and ``assortativity``, one row per layer with edges.
    :raises KeyError: If there is no such node or edge attribute.
@@ -1204,6 +1481,10 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
       gsk.assortativity(net, weight = "weight")
    """
    comps = range(len(net.components)) if component is None else [component]
+   if net.higher_order is not None:
+      if attribute is not None:
+         raise ValueError("on hypergraphs and simplicial complexes, assortativity is degree assortativity (attribute = None)")
+      return _higher_assortativity(net, comps, weight, kind)
    qual = isinstance(attribute, str) and attribute in net.qualitative_node_attributes
    if qual:   # category codes, consistent over components
       if attribute in _multivalued(net):
@@ -1270,3 +1551,256 @@ def assortativity(net, attribute = None, component = None, weight = None, direct
       return coef(0)
    rows = [(label, coef(l)) for l, label in enumerate(net.layer_labels) if stats is not None and float(stats[1 if qual else 0][l]) > 0]
    return pd.DataFrame(rows, columns = ["layer", "assortativity"])
+
+
+def _higher(net, what):
+   """
+   Check that a network is a hypergraph or a simplicial complex.
+
+   :raises ValueError: If it is not.
+   """
+   if net.higher_order is None:
+      raise ValueError(f"{what} is for hypergraphs and simplicial complexes (gsk.load_hypergraph, gsk.load_simplicial_complex); on a network, see local_clustering and global_clustering")
+
+
+def _closure_counts(net, component, batch_size):
+   """
+   Triangles of the projection at every node of a component of a hypergraph or simplicial complex
+   (triples of nodes pairwise sharing a hyperedge or facet), and how many of them are closed
+   (the three nodes in one hyperedge or facet).
+
+   :return: ``(closed, triangles)``, int64 vectors over the nodes of the component.
+   """
+   from .higher_order import _simplices
+   k = int(net.bipartite_split[component])
+   E, T = _simplices(net, component, 1), _simplices(net, component, 2)   # distinct pairs and triples sharing a hyperedge
+   dev = E.device
+   closed = torch.bincount(T.reshape(-1), minlength = k)
+   triangles = torch.zeros(k, dtype = torch.long, device = dev)
+   if len(E):
+      src, dst, _, _ = _skeleton(E[:, 0], E[:, 1], k)
+      for ab, bc, ac in _paths(src, dst, k, batch_size):
+         for v in (src[ab], dst[ab], dst[bc]):
+            triangles.index_add_(0, v, torch.ones_like(v))
+   return closed, triangles
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def local_triangle_closure(net, node = None, component = 0, batch_size = 2 ** 22):
+   """
+   Local triangle closure of the nodes of a hypergraph or simplicial complex: among the triangles
+   of the projection at a node (two other nodes with which it shares a hyperedge, and which share
+   one with each other), the share that are closed, with the three nodes together in one
+   hyperedge (Benson, Abebe, Schaub, Jadbabaie and Kleinberg, 2018, open and closed triangles). In
+   a simplicial complex, the closed triangles are the filled ones, its 2-simplices: the share of
+   the triangles of the 1-skeleton at a node that are filled. It is 1 when all the clustering of
+   the projection comes from groups (the clique expansion of any hypergraph has a large
+   clustering), and lower when triangles form across different groups. NaN for nodes in no
+   triangle.
+
+   Pairs and triples sharing a hyperedge are enumerated from the hyperedges (see
+   :meth:`~graphoskop.Network.simplices`), so this is for hyperedges of moderate size: one of
+   :math:`s` nodes holds :math:`s (s - 1) (s - 2) / 6` triples.
+
+   :param net: A hypergraph or simplicial complex.
+   :param node: Node (input id), list of nodes, or ``None``.
+   :param component: With ``node = None``, index of the component (0 is the largest), or ``None``
+      for a list with one vector per component; ignored when ``node`` is given.
+   :param batch_size: Number of 2-paths expanded at once when counting the triangles.
+   :return: With ``node``, a float; with a list, a :class:`pandas.DataFrame` with columns ``node``
+      and ``closure``; with ``node = None``, a float64 vector over the nodes of the component.
+   :raises ValueError: If ``net`` is a plain network.
+   :raises KeyError: If a node does not exist.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph([["a", "b", "c"], ["c", "d"], ["d", "a"]])
+      gsk.local_triangle_closure(net, "a")       # 0.5: a-b-c is closed, a-c-d is open
+   """
+   _higher(net, "local_triangle_closure")
+   if node is None:
+      if component is None:
+         return [local_triangle_closure(net, None, c, batch_size) for c in range(len(net.components))]
+      closed, triangles = _closure_counts(net, component, batch_size)
+      return torch.where(triangles > 0, closed.double() / triangles.clamp(min = 1), torch.nan)
+   return _node_values_of(net, node, lambda c: local_triangle_closure(net, None, c, batch_size), "closure")
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def global_triangle_closure(net, component = None, batch_size = 2 ** 22):
+   """
+   Global triangle closure of a hypergraph or simplicial complex: the share of the triangles of
+   its projection that are closed, with their three nodes in one hyperedge (in a simplicial
+   complex, the share of the triangles of the 1-skeleton that are filled); see
+   :func:`local_triangle_closure`. NaN without triangles.
+
+   :param net: A hypergraph or simplicial complex.
+   :param component: Index of the component (0 is the largest), or ``None`` for the whole network.
+   :param batch_size: Number of 2-paths expanded at once when counting the triangles.
+   :return: A float.
+   :raises ValueError: If ``net`` is a plain network.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_simplicial_complex([["a", "b", "c"], ["c", "d"], ["d", "a"]])
+      gsk.global_triangle_closure(net)            # 0.5: one filled triangle, one hollow
+   """
+   _higher(net, "global_triangle_closure")
+   comps = range(len(net.components)) if component is None else [component]
+   parts = [_closure_counts(net, c, batch_size) for c in comps]
+   closed, triangles = sum(int(x.sum()) for x, _ in parts), sum(int(y.sum()) for _, y in parts)
+   return closed / triangles if triangles else float("nan")
+
+
+def _node_values_of(net, node, vector, name):
+   """
+   Values of a node statistic for one node or a list of nodes, from a function giving its vector
+   over the nodes of a component.
+   """
+   single = not isinstance(node, (list, np.ndarray, pd.Series, pd.Index))
+   ids = []
+   for x in [node] if single else node:
+      c, i = net._nodes(x)[0]
+      if i >= int(net.bipartite_split[c]):
+         raise ValueError(f"{x!r} is a hyperedge or facet, not a node")
+      ids.append((c, i))
+   vec = {c: vector(c).cpu().numpy() for c in set(c for c, _ in ids)}
+   values = [float(vec[c][i]) for c, i in ids]
+   return values[0] if single else pd.DataFrame({"node": list(node), name: values})
+
+
+def _shared(net, component, batch_size):
+   """
+   Pairs of nodes of a component sharing hyperedges (or facets), with the number they share.
+
+   :return: ``(u, v, count)``: tensors, one entry per pair ``u < v``, on the device of the network.
+   """
+   import math
+   from .higher_order import _facet_lists, _subsets
+   dev = net.components[component].edge_index.device
+   k = int(net.bipartite_split[component])
+   ptr, members = _facet_lists(net, component)
+   size = np.diff(ptr)
+   facets = np.flatnonzero(size >= 2)
+   counts = np.array([math.comb(int(z), 2) for z in size[facets]], dtype = np.int64)
+   keys, start = [], 0
+   while start < len(facets):   # batches of whole hyperedges
+      stop = start + max(1, int(np.searchsorted(np.cumsum(counts[start:]), batch_size, "right")))
+      offsets = np.r_[0, np.cumsum(counts[start:stop])]
+      rows = np.empty((int(offsets[-1]), 2), dtype = np.int64)
+      _subsets(ptr, members, facets[start:stop], offsets, 2, rows)
+      key, cnt = torch.unique(torch.from_numpy(rows[:, 0] * k + rows[:, 1]).to(dev), return_counts = True)
+      keys.append((key, cnt))
+      start = stop
+   if not keys:
+      empty = torch.zeros(0, dtype = torch.long, device = dev)
+      return empty, empty, empty
+   key, inv = torch.unique(torch.cat([x for x, _ in keys]), return_inverse = True)
+   cnt = torch.zeros(len(key), dtype = torch.long, device = dev).index_add_(0, inv, torch.cat([y for _, y in keys]))
+   return key // k, key % k, cnt
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def two_node_clustering(net, node = None, kind = "union", component = 0, batch_size = 2 ** 24):
+   """
+   Two-node clustering coefficient of the nodes of a hypergraph or simplicial complex (Gallagher
+   and Goldberg, 2013): for two nodes :math:`u` and :math:`v` sharing a hyperedge, the overlap of
+   their sets of hyperedges :math:`E(u)` and :math:`E(v)`,
+
+   .. math:: C_{uv} = \\frac{|E(u) \\cap E(v)|}{|E(u) \\cup E(v)|}
+
+   (``kind = "union"``; ``"min"`` and ``"max"`` divide by the smaller or larger of :math:`|E(u)|`
+   and :math:`|E(v)|`), and for a node, its mean over the nodes it shares a hyperedge with. It is 1
+   when a node meets each of its neighbors in all their groups, and low when its neighbors are met
+   in one group each. In a simplicial complex the hyperedges are its facets. NaN for nodes in no
+   hyperedge with another node.
+
+   :param net: A hypergraph or simplicial complex.
+   :param node: Node (input id), list of nodes, or ``None``.
+   :param kind: ``"union"``, ``"min"`` or ``"max"``.
+   :param component: With ``node = None``, index of the component (0 is the largest), or ``None``
+      for a list with one vector per component; ignored when ``node`` is given.
+   :param batch_size: Number of pairs of nodes enumerated at once.
+   :return: With ``node``, a float; with a list, a :class:`pandas.DataFrame` with columns ``node``
+      and ``clustering``; with ``node = None``, a float64 vector over the nodes of the component.
+   :raises ValueError: If ``net`` is a plain network or ``kind`` is unknown.
+   :raises KeyError: If a node does not exist.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph([["a", "b"], ["a", "b", "c"], ["c", "d"]])
+      gsk.two_node_clustering(net, "a")              # 2/3: the mean of 1 (b, met in both its hyperedges) and 1/3 (c)
+      gsk.two_node_clustering(net, "c", kind = "min")
+   """
+   _higher(net, "two_node_clustering")
+   if kind not in ("union", "min", "max"):
+      raise ValueError(f"unknown kind {kind!r}: use 'union', 'min' or 'max'")
+   if node is not None:
+      return _node_values_of(net, node, lambda c: two_node_clustering(net, None, kind, c, batch_size), "clustering")
+   if component is None:
+      return [two_node_clustering(net, None, kind, c, batch_size) for c in range(len(net.components))]
+   from .higher_order import _facet_lists
+   u, v, shared = _shared(net, component, batch_size)
+   d = torch.bincount(torch.as_tensor(_facet_lists(net, component)[1], device = u.device), minlength = int(net.bipartite_split[component])).double()   # hyperedges (facets) of every node
+   du, dv = d[u], d[v]
+   den = {"union": du + dv - shared, "min": torch.minimum(du, dv), "max": torch.maximum(du, dv)}[kind]
+   C = shared / den
+   k = len(d)
+   tot = torch.zeros(k, dtype = torch.float64, device = d.device).index_add_(0, u, C).index_add_(0, v, C)
+   num = torch.bincount(torch.cat([u, v]), minlength = k)
+   return torch.where(num > 0, tot / num.clamp(min = 1), torch.nan)
+
+
+def _higher_assortativity(net, comps, weight, kind):
+   """
+   Degree assortativity of a hypergraph or simplicial complex (see :func:`assortativity`).
+   """
+   if kind not in ("uniform", "top-2", "top-bottom"):
+      raise ValueError(f"unknown kind {kind!r}: use 'uniform', 'top-2' or 'top-bottom'")
+   x = [], [], [], []   # per hyperedge: weight, then the moments of its pair(s)
+   for c in comps:
+      k = int(net.bipartite_split[c])
+      s, t = net._input_edges(c)[0]
+      node, e = torch.minimum(s, t), torch.maximum(s, t) - k
+      E = net.components[c].num_nodes - k
+      deg = torch.bincount(node, minlength = k).double()[node]   # degree of the node of every membership
+      size = torch.bincount(e, minlength = E).double()
+      w = torch.ones(E, dtype = torch.float64, device = s.device)
+      if weight is not None:
+         get = net.get_hyperedge_attribute if net.higher_order == "hypergraph" else net.get_facet_attribute
+         w = get(weight, c).double()
+      if kind == "uniform":   # every ordered pair of distinct members, each hyperedge weighing w in all
+         s1 = torch.zeros(E, dtype = torch.float64, device = s.device).index_add_(0, e, deg)
+         s2 = torch.zeros(E, dtype = torch.float64, device = s.device).index_add_(0, e, deg * deg)
+         m1, m2, m12 = s1 / size.clamp(min = 1), s2 / size.clamp(min = 1), (s1 * s1 - s2) / (size * (size - 1)).clamp(min = 1)
+      else:   # the two largest degrees, or the largest and the smallest, both ways
+         if not len(e):
+            continue
+         order = torch.argsort(e * (deg.max() + 1) - deg, stable = True)   # by hyperedge, then decreasing degree
+         ds, es, top = deg[order], e[order], len(deg) - 1
+         first = torch.searchsorted(es, torch.arange(E, device = s.device)).clamp(max = top)
+         a = ds[first]
+         b = ds[(first + 1).clamp(max = top)] if kind == "top-2" else ds[(first + size.long() - 1).clamp(min = 0, max = top)]
+         m1, m2, m12 = (a + b) / 2, (a * a + b * b) / 2, a * b
+      ok = size >= 2
+      for lst, val in zip(x, (w, m1, m2, m12)):
+         lst.append(val[ok])
+   w, m1, m2, m12 = (torch.cat(v) for v in x)
+   W = w.sum()
+   if not len(w) or W <= 0:
+      return float("nan")
+   m1, m2, m12 = (float((w * v).sum() / W) for v in (m1, m2, m12))
+   var = m2 - m1 * m1
+   return (m12 - m1 * m1) / var if var > 1e-15 * max(m2, 1.) else float("nan")

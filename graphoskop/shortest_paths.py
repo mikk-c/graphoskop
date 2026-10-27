@@ -39,6 +39,7 @@ import pandas as pd
 import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import dijkstra
+from ._policy import _higher_order
 
 _PARALLEL_WORK = 1e8   # sources times edges above which searches are split across processes
 _POOL = None           # (number of processes, executor), kept between parallel searches
@@ -199,6 +200,7 @@ def _paths(pred, source, ids):
    return {ids[t]: p for t, p in memo.items()}
 
 
+@_higher_order()
 def shortest_path(net, source, target, weight = None, inverse = False):
    """
    Shortest path between two nodes.
@@ -237,6 +239,7 @@ def shortest_path(net, source, target, weight = None, inverse = False):
    return path
 
 
+@_higher_order()
 def shortest_path_length(net, source, target, weight = None, inverse = False):
    """
    Length of the shortest path between two nodes.
@@ -262,6 +265,7 @@ def shortest_path_length(net, source, target, weight = None, inverse = False):
    return float(min((_from(net, c, S[c], weight, inverse, False)[T[c]].min() for c in S.keys() & T.keys()), default = np.inf))
 
 
+@_higher_order()
 def single_source_shortest_paths(net, source, weight = None, inverse = False):
    """
    Shortest paths from one node to every node it reaches.
@@ -289,6 +293,7 @@ def single_source_shortest_paths(net, source, weight = None, inverse = False):
    return out
 
 
+@_higher_order()
 def single_source_shortest_path_lengths(net, source, weight = None, inverse = False):
    """
    Lengths of the shortest paths from one node to every node it reaches.
@@ -316,6 +321,7 @@ def single_source_shortest_path_lengths(net, source, weight = None, inverse = Fa
    return out
 
 
+@_higher_order()
 def all_pairs_shortest_paths(net, component = 0, weight = None, inverse = False, n_jobs = None):
    """
    Shortest paths between all pairs of nodes of a component.
@@ -350,6 +356,7 @@ def all_pairs_shortest_paths(net, component = 0, weight = None, inverse = False,
    return {ids[s]: _paths(pred[s], s, ids) for s in range(g.shape[0])}
 
 
+@_higher_order()
 def all_pairs_shortest_path_lengths(net, component = 0, weight = None, inverse = False, matrix = True, n_jobs = None):
    """
    Lengths of the shortest paths between all pairs of nodes of a component.
@@ -501,6 +508,7 @@ def _hist_worker(args):
    return np.bincount(d[np.isfinite(d)].astype(np.int64))
 
 
+@_higher_order()
 def shortest_path_length_distribution(net, component = None, samples = None, seed = 0, n_jobs = None, lengths = None):
    """
    Distribution of the lengths of shortest paths, in number of edges: how many pairs of nodes
@@ -624,6 +632,7 @@ def _bounding_diameter(g, unweighted):
    return dlo, k
 
 
+@_higher_order()
 def diameter(net, component = 0, weight = None, inverse = False, n_jobs = None, lengths = None):
    """
    Diameter: the length of the longest shortest path, :math:`\\max_{s, t} d(s, t)` over the pairs

@@ -24,6 +24,7 @@ Graphoskop
    generators
    gnn
    hierarchy
+   higher_order
    isomorphism
    laplacians
    link_prediction
@@ -34,3 +35,4 @@ Graphoskop
    robustness
    shortest_paths
    signed
+   synchronization

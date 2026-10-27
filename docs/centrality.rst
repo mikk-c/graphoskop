@@ -46,6 +46,8 @@ Centrality
 
 .. autofunction:: graphoskop.katz_centrality
 
+.. autofunction:: graphoskop.node_edge_centrality
+
 .. autofunction:: graphoskop.pagerank
 
 .. autofunction:: graphoskop.reach_centrality

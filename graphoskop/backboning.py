@@ -49,6 +49,7 @@ from scipy.optimize import minimize_scalar
 from scipy.sparse.csgraph import connected_components, dijkstra, minimum_spanning_tree
 from scipy.special import betainc
 
+from ._policy import _higher_order
 from .network import _quiet_sparse, _subset, _take_edges
 from .planarity import _lr_planar
 from .shortest_paths import _map
@@ -126,6 +127,7 @@ def _noise_corrected(ei, w, n, total):
    return score, sdev
 
 
+@_higher_order()
 def noise_corrected(net, weight = "weight", prefix = "nc"):
    """
    Noise-corrected backbone scores of all edges (Coscia and Neffke, 2017).
@@ -347,6 +349,7 @@ def _convex_skeleton(n, src, dst, rank, target):
    return order, R if R >= 0 else step
 
 
+@_higher_order()
 def convex_skeleton(net, weight = None, seed = None, prefix = "cs"):
    """
    Convex skeleton scores of all edges (Šubelj, 2018): the order in which edges are removed to
@@ -475,6 +478,7 @@ def _disparity(p, k):
    return torch.where(k > 1, -torch.expm1((k - 1) * torch.log1p(-p)), 0)
 
 
+@_higher_order()
 def disparity_filter(net, weight = "weight", policy = "max", prefix = "df"):
    """
    Disparity filter backbone scores of all edges (Serrano, Boguna and Vespignani, 2009).
@@ -776,6 +780,7 @@ def _polya_pvalues(w, s, k, a, exact_max, engine, discrete):
    return p
 
 
+@_higher_order()
 def polya_filter(net, a = None, weight = "weight", policy = "max", exact_max = 10000, prefix = "pf", bonferroni = False, engine = None):
    """
    Pólya filter backbone scores of all edges (Marcaccioli and Livan, 2019).
@@ -1055,6 +1060,7 @@ def _balance(mv, n, tol, max_iter, x0 = None):
    return x, float(rk.abs().max()) <= tol
 
 
+@_higher_order()
 def doubly_stochastic(net, weight = "weight", pseudocount = 0.001, tol = 1e-12, max_iter = 1000, prefix = "ds"):
    """
    Doubly stochastic backbone scores of all edges (Slater, 2009).
@@ -1198,6 +1204,7 @@ def _hss_task(args):
    return _hss_counts(*args, "cpu", 1)
 
 
+@_higher_order()
 def high_salience_skeleton(net, weight = "weight", n_jobs = 1, prefix = "hss"):
    """
    Link salience of all edges, for the high salience skeleton (Grady, Thiemann and Brockmann,
@@ -1360,6 +1367,7 @@ def _isolate_edges(s, t, keep, sig, n):
    return np.array(add, dtype = np.int64)
 
 
+@_higher_order()
 def extract_backbone(net, threshold, score = "nc_score", keep_isolates = False, reconnect_components = False, reconnect_isolates = False):
    """
    Backbone of a network: the edges whose score is above a threshold.
@@ -1479,6 +1487,7 @@ def _subnetwork(net, s, t, keep, eoffset, keep_isolates, inter = None):
    return _subset(net, s, t, ea, rows, qe)
 
 
+@_higher_order()
 def spanning_tree(net, weight = "weight", kind = "maximum"):
    """
    Maximum or minimum spanning tree of every component (a spanning forest), as a new network.
@@ -1633,6 +1642,7 @@ def _planar_filter(a, b, w, n):
    return cand[np.array(kept, dtype = np.int64)]
 
 
+@_higher_order()
 def maximally_filtered_graph(net, weight = "weight", kind = "maximum"):
    """
    Planar maximally filtered graph (PMFG; Tumminello et al., 2005) of a network, as a new network:
@@ -1792,6 +1802,7 @@ def _bb_rows(arrays, thresholds, directed):
    return rows
 
 
+@_higher_order()
 def test_bb_thresholds(net, min_threshold, max_threshold, step, score = "nc_score"):
    """
    Size of the backbones given by a regular grid of thresholds, to help choosing one.
@@ -1838,6 +1849,7 @@ def test_bb_thresholds(net, min_threshold, max_threshold, step, score = "nc_scor
    return pd.DataFrame(_bb_rows(_edge_arrays(net, score, _sdev(net, score)), thresholds, net.directed), columns = _COLUMNS)
 
 
+@_higher_order()
 def find_bb_thresholds(net, target_degree = None, score = "nc_score"):
    """
    Thresholds at which the backbone changes qualitatively.
@@ -1999,6 +2011,7 @@ def _tmfg(W, P):
    return np.array(pairs)
 
 
+@_higher_order()
 def triangulated_filtered_graph(net, weight = "weight", kind = "maximum"):
    """
    Triangulated maximally filtered graph (TMFG; Massara et al., 2016) of a network, as a new

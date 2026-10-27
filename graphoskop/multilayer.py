@@ -20,6 +20,7 @@ layers flattened into one network of entities.
 import numpy as np
 import pandas as pd
 
+from ._policy import _higher_order
 from .network import LAYER, _distinct, _load, _release_memory
 
 
@@ -68,6 +69,7 @@ def _rebuild(net, edges, nodes):
    return new
 
 
+@_higher_order()
 def layer_network(net, layer):
    """
    One layer of a multilayer network, as an ordinary network of entities.
@@ -103,6 +105,7 @@ def layer_network(net, layer):
    return _rebuild(net, edges[(edges[LAYER] == layer).to_numpy()].drop(columns = LAYER), nodes)
 
 
+@_higher_order()
 def aggregate_network(net, merge = True):
    """
    Aggregate (flattened) network of a multilayer network: one node per entity, with the edges of

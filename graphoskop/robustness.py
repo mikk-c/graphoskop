@@ -56,6 +56,7 @@ import torch
 from numba import njit, prange
 from scipy.stats import t as student
 
+from ._policy import _higher_order
 from .ergms import _random
 from .progress import _bar
 
@@ -530,6 +531,7 @@ def _ids(net, comps, off, strategy, nodes, src, dst):
    return np.asarray(list(dict.fromkeys(order)), dtype = np.int64)
 
 
+@_higher_order()
 def node_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False, progress = None):
    """
    Robustness of a network to node failures or attacks: remove its nodes one by one, with their
@@ -585,6 +587,7 @@ def node_removal(net, strategy = "random", selection = "top", quality = "lcc", r
    return _curves(net, True, strategy, selection, quality, runs, points, component, samples, seed, recompute, progress, "node_removal")
 
 
+@_higher_order()
 def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", runs = 10, points = 100, component = None, samples = None, seed = None, recompute = False, progress = None):
    """
    Robustness of a network to edge failures or attacks: remove its edges one by one (all nodes
@@ -779,6 +782,7 @@ def _load_values(net, comps, x, nodes, total, runs, rs, name):
    return np.repeat(v[None], runs, 0)
 
 
+@_higher_order()
 def cascade_failures(net, load = "random", capacity = "random", failures = 1, strategy = "random", selection = "top", elements = "nodes", distribution = "equal", margin = 0.5, quality = "lcc", runs = 10, max_steps = 1000, component = None, samples = None, seed = None, interdependent = True, progress = None):
    """
    Cascading failures with load redistribution, as in the overload models of power grids and

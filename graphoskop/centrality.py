@@ -5,8 +5,10 @@ shortest paths, random walk (current flow) betweenness (:func:`flow_centrality`)
 centrality (:func:`eigenvector_centrality`), Katz centrality (:func:`katz_centrality`), alpha
 centrality (:func:`alpha_centrality`), PageRank (:func:`pagerank`), hubs and authorities
 (:func:`hits`), k-core centrality (:func:`k_core_centrality`) and the SpringRank hierarchy of
-directed networks (:func:`springrank`). Any of them can be turned into a
-centralization of the whole network with :func:`centralization`.
+directed networks (:func:`springrank`). On hypergraphs and simplicial complexes, the nonlinear
+node and edge eigenvector centrality (:func:`node_edge_centrality`) scores nodes and hyperedges
+together. Any of them can be turned into a centralization of the whole network with
+:func:`centralization` (against a star, or a sunflower for higher-order networks).
 
 Paths are those of :mod:`~graphoskop.shortest_paths`: lengths are the values of an edge attribute
 (``weight``) or 1, with ``inverse = True`` for attributes measuring affinity; directed networks are
@@ -37,6 +39,7 @@ import scipy.sparse as sp
 import torch
 from scipy.sparse.csgraph import connected_components
 
+from ._policy import _higher_order
 from .network import _quiet_sparse
 from .shortest_paths import _graph, _lengths, _dijkstra, _check_lengths, _source_stats
 
@@ -70,6 +73,7 @@ def _directional(net, direction):
    return net.directed and direction == "in"
 
 
+@_higher_order()
 def closeness_centrality(net, component = 0, weight = None, inverse = False, direction = "out", lin = False, lengths = None, n_jobs = None):
    """
    Closeness centrality: how close a node is to the nodes it reaches.
@@ -125,6 +129,7 @@ def closeness_centrality(net, component = 0, weight = None, inverse = False, dir
    return out if component is None else out[0]
 
 
+@_higher_order()
 def harmonic_centrality(net, component = 0, weight = None, inverse = False, direction = "out", normalized = True, lengths = None, n_jobs = None):
    """
    Harmonic centrality (Marchiori and Latora, 2000; Boldi and Vigna, 2014): the reciprocal of the
@@ -363,6 +368,7 @@ def _accumulate(net, c, L, weight, inverse, batch_size, n_jobs, edges):
    return bc, torch.as_tensor(out, dtype = torch.float64, device = dev)
 
 
+@_higher_order()
 def betweenness_centrality(net, component = 0, weight = None, inverse = False, normalized = True, lengths = None, batch_size = 2 ** 24, n_jobs = None):
    """
    Betweenness centrality (Freeman, 1977): the fraction of shortest paths between other nodes that
@@ -423,6 +429,7 @@ def betweenness_centrality(net, component = 0, weight = None, inverse = False, n
    return out if component is None else out[0]
 
 
+@_higher_order()
 def edge_betweenness_centrality(net, component = 0, weight = None, inverse = False, normalized = True, lengths = None, batch_size = 2 ** 24, n_jobs = None):
    """
    Edge betweenness centrality (Girvan and Newman, 2002): the fraction of shortest paths between
@@ -482,6 +489,7 @@ def edge_betweenness_centrality(net, component = 0, weight = None, inverse = Fal
    return out if component is None else out[0]
 
 
+@_higher_order()
 def flow_centrality(net, component = 0, weight = None, normalized = True, endpoints = False, batch_size = 2 ** 24):
    """
    Random walk betweenness centrality (Newman, 2005), also known as current flow betweenness: as
@@ -573,6 +581,7 @@ def flow_centrality(net, component = 0, weight = None, normalized = True, endpoi
    return out if component is None else out[0]
 
 
+@_higher_order()
 def reach_centrality(net, component = 0, direction = "out", lengths = None, n_jobs = None):
    """
    Local reaching centrality (Mones, Vicsek and Vicsek, 2012): the fraction of the other nodes
@@ -629,6 +638,7 @@ def reach_centrality(net, component = 0, direction = "out", lengths = None, n_jo
 
 
 
+@_higher_order()
 def eigenvector_centrality(net, component = 0, weight = None, direction = "in", tol = 1e-10, max_iter = 10000):
    """
    Eigenvector centrality (Bonacich, 1972): a node is central if its neighbors are,
@@ -696,6 +706,7 @@ def eigenvector_centrality(net, component = 0, weight = None, direction = "in", 
    return out if component is None else out[0]
 
 
+@_higher_order()
 def pagerank(net, component = 0, weight = None, damping = 0.85, personalization = None, tol = 1e-12, max_iter = 10000):
    """
    PageRank (Brin and Page, 1998): the stationary distribution of a random walker who, at each
@@ -761,6 +772,7 @@ def pagerank(net, component = 0, weight = None, damping = 0.85, personalization 
    return out if component is None else out[0]
 
 
+@_higher_order()
 def hits(net, component = 0, weight = None, tol = 1e-10, max_iter = 10000):
    """
    Hubs and authorities (HITS; Kleinberg, 1999): a good authority is pointed to by good hubs, a
@@ -860,6 +872,7 @@ def _katz_iter(s, t, w, b, alpha, tol, max_iter):
    return None
 
 
+@_higher_order()
 def katz_centrality(net, component = 0, weight = None, alpha = 0.1, beta = 1., direction = "in", normalized = True, tol = 1e-10, max_iter = 10000):
    """
    Katz centrality (Katz, 1953): the walks reaching a node, those of :math:`k` edges discounted by
@@ -937,6 +950,7 @@ def katz_centrality(net, component = 0, weight = None, alpha = 0.1, beta = 1., d
    return out if component is None else out[0]
 
 
+@_higher_order()
 def alpha_centrality(net, component = 0, weight = None, alpha = 1., exo = 1., direction = "in", loops = False, tol = 1e-10, max_iter = 10000):
    """
    Alpha centrality (Bonacich and Lloyd, 2001): status received from the neighbors plus an
@@ -1028,6 +1042,7 @@ def alpha_centrality(net, component = 0, weight = None, alpha = 1., exo = 1., di
    return out if component is None else out[0]
 
 
+@_higher_order()
 def springrank(net, component = 0, weight = None, alpha = 0., tol = 1e-10, max_iter = None):
    """
    SpringRank (De Bacco, Larremore and Moore, 2018): the ranks :math:`s` of the nodes of a
@@ -1130,6 +1145,7 @@ def springrank(net, component = 0, weight = None, alpha = 0., tol = 1e-10, max_i
    return out if component is None else out[0]
 
 
+@_higher_order()
 def k_core_centrality(net, component = 0, mode = "all"):
    """
    k-core centrality, or core number (Seidman, 1983): the largest :math:`k` such that the node
@@ -1226,6 +1242,146 @@ def _values(x):
    return np.asarray(x, dtype = np.float64).ravel()
 
 
+@_higher_order(hypergraph = True, simplicial = True)
+def node_edge_centrality(net, model = "linear", component = 0, weight = None, node_weight = None, tol = 1e-8, max_iter = 10000, hyperedges = False):
+   """
+   Nonlinear node and edge eigenvector centrality of a hypergraph or simplicial complex (Tudisco
+   and Higham, 2021): node scores :math:`x` and hyperedge scores :math:`y`, each made of the other,
+
+   .. math:: \\lambda x = g(B W f(y)), \\qquad \\mu y = \\psi(B^T N \\varphi(x)),
+
+   with :math:`B` the incidence matrix (nodes by hyperedges), :math:`W` the hyperedge weights and
+   :math:`N` the node weights. A node is central if it is in central hyperedges, a hyperedge if it
+   holds central nodes, and the functions say how scores combine. ``model`` chooses them, among
+   the three of the paper:
+
+   * ``"linear"``: all four the identity. Node scores add the scores of their hyperedges, and
+     hyperedge scores the scores of their nodes: the eigenvector centrality of the bipartite
+     incidence graph, which counts every hyperedge once whatever its size.
+   * ``"log-exp"``: :math:`f(y) = y`, :math:`g(z) = \\sqrt{z}`, :math:`\\varphi(x) = \\ln x`,
+     :math:`\\psi(z) = e^z`: a hyperedge scores the product of the scores of its nodes, so it is
+     central only if all its nodes are; on uniform hypergraphs (hyperedges of one size), with unit
+     node weights, a solution is the tensor Z-eigenvector centrality of Benson (2019). The paper
+     proves neither existence nor convergence for this model, and on sparse hypergraphs the
+     iteration often ends with some scores driven to zero instead of on a solution: a warning
+     says so.
+   * ``"max"``: :math:`f`, :math:`g` the identity, :math:`\\varphi(x) = x^{10}`,
+     :math:`\\psi(z) = z^{1 / 10}`: a hyperedge scores about the largest score of its nodes (a soft
+     maximum), so a group with one central node is central.
+
+   The scores are computed by the nonlinear power method of the paper (each step the geometric
+   mean of the previous scores and the new ones, which converges for the linear and max models on
+   connected hypergraphs, the max model sometimes slowly), in double precision on the device of
+   the network, products of the log-exp model in logarithms. After convergence, the scores are
+   checked against the equations, with a warning if they do not solve them. Scores are normalized to sum 1 over the nodes of the component (and
+   over its hyperedges). In a simplicial complex, the hyperedges are its facets.
+
+   :param net: A hypergraph or simplicial complex.
+   :param model: ``"linear"``, ``"log-exp"`` or ``"max"``.
+   :param component: Index of the component (0 is the largest), or ``None`` for a list with one
+      result per component.
+   :param weight: Name of the hyperedge (facet) attribute weighting the hyperedges, or ``None``.
+   :param node_weight: Name of the node attribute weighting the nodes, or ``None``.
+   :param tol: Convergence threshold, on the L1 change of both score vectors.
+   :param max_iter: Largest number of iterations.
+   :param hyperedges: Whether to return the hyperedge scores too.
+   :return: Float64 vector over the nodes of the component (internal order); with ``hyperedges``,
+      a pair of it and the vector over its hyperedges (facets), in their internal order.
+   :raises ValueError: If ``net`` is a plain network, ``model`` is unknown, or weights are not
+      positive.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_hypergraph("papers.tsv")                  # papers and their authors
+      x = gsk.node_edge_centrality(net)                        # authors
+      x, y = gsk.node_edge_centrality(net, "max", hyperedges = True)   # authors and papers
+      gsk.centralization(net, gsk.node_edge_centrality, model = "max")
+   """
+   from .higher_order import _check_weights
+   if net.higher_order is None:
+      raise ValueError("node_edge_centrality is for hypergraphs and simplicial complexes; on a network, see eigenvector_centrality")
+   if model not in ("linear", "log-exp", "max"):
+      raise ValueError(f"unknown model {model!r}: use 'linear', 'log-exp' or 'max'")
+   if component is None:
+      return [node_edge_centrality(net, model, c, weight, node_weight, tol, max_iter, hyperedges) for c in range(len(net.components))]
+   k = int(net.bipartite_split[component])
+   E = net.components[component].num_nodes - k
+   s, t = net._input_edges(component)[0]
+   node, edge = torch.minimum(s, t), torch.maximum(s, t) - k
+   dev = node.device
+   one = lambda m: torch.ones(m, dtype = torch.float64, device = dev)
+   get = net.get_hyperedge_attribute if net.higher_order == "hypergraph" else net.get_facet_attribute
+   w = one(E) if weight is None else get(weight, component).double()
+   nu = one(k) if node_weight is None else net.get_node_attribute(node_weight, component).double()
+   _check_weights(w, "hyperedge weights")
+   _check_weights(nu, "node weights")
+   x, y = one(k) / k, one(E) / max(E, 1)
+   if E == 0:
+      return (x, y) if hyperedges else x
+   to_nodes = lambda z: torch.zeros(k, dtype = torch.float64, device = dev).index_add_(0, node, z[edge])     # B z
+   to_edges = lambda z: torch.zeros(E, dtype = torch.float64, device = dev).index_add_(0, edge, z[node])    # B^T z
+   for _ in range(max_iter):
+      a = to_nodes(w * y)
+      u = (x * (a.sqrt() if model == "log-exp" else a)).sqrt()
+      if model == "linear":
+         v = (y * to_edges(nu * x)).sqrt()
+      elif model == "max":
+         m = x.max()
+         v = (y * to_edges(nu * (x / m) ** 10) ** 0.1).sqrt()
+      else:   # exp(B^T N ln x), in logarithms: sqrt(y e^l) = sqrt(y) e^(l / 2), up to a common factor
+         l = to_edges(nu * torch.log(x))
+         v = y.sqrt() * torch.exp((l - l[torch.isfinite(l)].max()) / 2) if torch.isfinite(l).any() else torch.zeros_like(y)
+      nx, ny = u / u.sum(), v / v.sum()
+      done = float((nx - x).abs().sum() + (ny - y).abs().sum()) < tol
+      x, y = nx, ny
+      if done:
+         break
+   else:
+      warnings.warn(f"node_edge_centrality: the power method did not converge in {max_iter} iterations; raise max_iter")
+      return (x, y) if hyperedges else x
+   # a solution has the same ratios lambda = g(B W f(y)) / x and mu = psi(B^T N phi(x)) / y everywhere (in logarithms)
+   a = torch.log(to_nodes(w * y))
+   if model == "linear":
+      rx, ry = a, torch.log(to_edges(nu * x))
+   elif model == "max":
+      rx, ry = a, torch.log(to_edges(nu * (x / x.max()) ** 10)) / 10
+   else:
+      rx, ry = a / 2, to_edges(nu * torch.log(x))
+   rx, ry = rx - torch.log(x), ry - torch.log(y)
+   spread = float(rx.max() - rx.min() + ry.max() - ry.min())
+   if not spread < 1e-4:
+      warnings.warn(f"node_edge_centrality: the {model} model reached no positive solution of its equations (some scores driven to zero); the paper guarantees one for the linear and max models on connected hypergraphs, none for log-exp")
+   return (x, y) if hyperedges else x
+
+
+def _sunflower(net, comps, n):
+   """
+   Reference of the centralization of a hypergraph or simplicial complex: a sunflower of ``n``
+   nodes, hyperedges (facets) of the mean size of those of ``net`` (rounded, at least 2) all
+   sharing one center node, the other nodes split among them (the last one smaller), with the mean
+   value of every numeric hyperedge attribute of ``net``.
+   """
+   from .higher_order import _facet_lists, load_hypergraph, load_simplicial_complex
+   sizes = np.concatenate([np.diff(_facet_lists(net, c)[0]) for c in comps])
+   z = int(min(max(round(float(sizes.mean())) if len(sizes) else 2, 2), n))
+   petals = [[0] + list(range(i, min(i + z - 1, n))) for i in range(1, n, z - 1)]
+   get = net.get_hyperedge_attribute if net.higher_order == "hypergraph" else net.get_facet_attribute
+   table = pd.DataFrame({"hyperedge": range(len(petals))})
+   for name in net.node_attributes:
+      v = np.concatenate([get(name, c).double().cpu().numpy() for c in comps])
+      if np.isfinite(v).any():
+         table[name] = float(np.nanmean(v))
+   dev = net.components[0].edge_index.device
+   if net.higher_order == "simplicial":
+      return load_simplicial_complex(dict(enumerate(petals)), simplex_table = table if table.shape[1] > 1 else None, device = dev)
+   return load_hypergraph(dict(enumerate(petals)), hyperedge_table = table if table.shape[1] > 1 else None, device = dev)
+
+
+@_higher_order(hypergraph = True, simplicial = True)
 def centralization(net, centrality = "degree", component = 0, maximum = None, **kwargs):
    """
    Centralization of a network for a centrality measure (Freeman, 1979): how much the most central
@@ -1257,7 +1413,15 @@ def centralization(net, centrality = "degree", component = 0, maximum = None, **
    Euclidean norm, while igraph scales it to a largest value of 1, which gives a different
    centralization (pass a function rescaling the vector to reproduce it).
 
-   :param net: A :class:`~graphoskop.Network`.
+   On a hypergraph or simplicial complex, the reference is a sunflower of the same number of
+   nodes: hyperedges (facets) of the mean size of those of ``net`` (rounded, at least 2), all
+   sharing one center node and nothing else, the other nodes split among them (the last one
+   smaller); its hyperedges have the mean value of every numeric hyperedge attribute of ``net``.
+   ``"degree"`` is then :func:`~graphoskop.degree` (hyperedges of a node; edges in a complex), and
+   the centrality can be :func:`node_edge_centrality` or any function taking these networks.
+   Directed hypergraphs need ``maximum``.
+
+   :param net: A :class:`~graphoskop.Network`, hypergraph or simplicial complex.
    :param centrality: A centrality function of this module (or any function taking the network,
       ``component`` and the options, and returning one value per node, or a list of vectors for
       ``component = None``), or ``"degree"`` for the degree (options ``direction``, ``"out"``,
@@ -1280,17 +1444,29 @@ def centralization(net, centrality = "degree", component = 0, maximum = None, **
       gsk.centralization(net, gsk.closeness_centrality, weight = "weight")
       dnet = gsk.load_network("edges.tsv", directed = True)
       gsk.centralization(dnet, "degree", direction = "in")
+      hg = gsk.load_hypergraph("meetings.tsv")
+      gsk.centralization(hg)                                        # against a sunflower
+      gsk.centralization(hg, gsk.node_edge_centrality, model = "max")
    """
    if centrality == "degree":
-      from .network_statistics import _degrees
+      from .network_statistics import _degrees, _node_degrees
 
       def centrality(net, component, direction = "out", weight = None):
          comps = range(len(net.components)) if component is None else [component]
-         return [_degrees(net, c, direction, weight) for c in comps]
+         return [(_node_degrees if net.higher_order else _degrees)(net, c, direction, weight) for c in comps]
    c = _values(centrality(net, component = component, **kwargs))
    if len(c) < 2:
       return float("nan")
    total = float((c.max() - c).sum())
+   if maximum is None and net.higher_order is not None:   # the sunflower of the same nodes and mean hyperedge size
+      if net.directed:
+         raise ValueError("centralization of a directed hypergraph: pass maximum")
+      comps = range(len(net.components)) if component is None else [component]
+      try:
+         x = _values(centrality(_sunflower(net, comps, len(c)), component = 0, **kwargs))
+      except ValueError as err:
+         raise ValueError(f"centralization: the centrality cannot be computed on the reference sunflower of {len(c)} nodes ({err}); pass maximum") from err
+      maximum = float((x.max() - x).sum())
    if maximum is None:
       from .network import load_network
       n = len(c)

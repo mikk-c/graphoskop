@@ -1,5 +1,5 @@
 """
-Synthetic network generators, in six families:
+Synthetic network generators, in seven families:
 
 * simple graphs, with simple fixed topologies: :func:`chain_graph`;
 * random graphs, wired at random given a few numbers (edges, density, the degree of every node,
@@ -15,7 +15,11 @@ Synthetic network generators, in six families:
   (hierarchy of groups);
 * community benchmarks, with planted communities to test community discovery:
   :func:`girvan_newman_graph`, :func:`lfr_benchmark_graph` (broad degrees and community sizes;
-  directed, weighted, overlapping).
+  directed, weighted, overlapping);
+* higher-order networks (see :doc:`higher_order`): simplicial complexes with
+  :func:`growing_manifold` (discrete manifolds grown simplex by simplex) and
+  :func:`simplicial_configuration_model` (given facets per node and facet dimensions), hypergraphs
+  with :func:`hypergraph_configuration_model` (given hyperedges per node and hyperedge sizes).
 
 Every random generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 ``net``, an existing network, from which it infers them: the result is then a randomization of
@@ -45,8 +49,10 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import torch
+from numba import njit
 from scipy.sparse.csgraph import connected_components
 
+from ._policy import _higher_order
 from .network import BIPARTITE, _build, _explode, _membership, _memberships, _node_codes, _node_types, _subset, _take_edges
 from .progress import _bar
 
@@ -325,6 +331,7 @@ def _randomize(net, seed, make):
 # ------------------------------------------------------------------------------------------------
 
 
+@_higher_order()
 def chain_graph(n, directed = None, seed = None, device = None):
    """
    Chain graph (path): ``n`` nodes, the integers ``0`` to ``n - 1``, each linked to the next, so
@@ -437,6 +444,7 @@ def _random_graph(n, m, directed, self_loops, seed, device, p = None):
    return _build(s.cpu().numpy(), t.cpu().numpy(), names, np.zeros((m, 0), dtype = np.float32), [], None, [], directed, device, qtable, [BIPARTITE] if bipartite else [], "wide", types, (0, 1) if bipartite else None)
 
 
+@_higher_order()
 def gnm_random_graph(n = None, m = None, net = None, directed = None, self_loops = None, seed = None, device = None):
    """
    Gnm random graph (Erdős and Rényi, 1959): ``m`` edges placed uniformly at random among all
@@ -506,6 +514,7 @@ def gnm_random_graph(n = None, m = None, net = None, directed = None, self_loops
    return _random_graph(n, m, directed, self_loops, seed, device)
 
 
+@_higher_order()
 def gnp_random_graph(n = None, p = None, net = None, directed = None, self_loops = None, seed = None, device = None):
    """
    Gnp random graph (Gilbert, 1959; the Erdős–Rényi model): each possible pair of ``n`` nodes is
@@ -714,6 +723,7 @@ def _degrees(net):
    return (out, inn) if net.directed else (out + inn, out + inn)
 
 
+@_higher_order()
 def configuration_model(degrees = None, net = None, directed = None, rounds = 10, drop_self_loops = True, drop_parallel = True, seed = None, device = None):
    """
    Configuration model (Molloy and Reed, 1995): a random graph with a given degree sequence.
@@ -897,6 +907,7 @@ def _swap_edges(s, t, swaps, oriented, gen, progress = None):
    return s, t
 
 
+@_higher_order()
 def edge_swap(net, swaps = None, seed = None, progress = None):
    """
    Edge swap randomization (Maslov and Sneppen, 2002): a randomization of ``net`` that keeps the
@@ -1133,6 +1144,7 @@ def _kronecker(theta, k, n, directed, self_loops, gen, device):
    return u, v
 
 
+@_higher_order()
 def kronecker_graph(initiator = None, n = None, k = None, net = None, directed = None, self_loops = False, seed = None, device = None):
    """
    Kronecker graph (Leskovec, Chakrabarti, Kleinberg, Faloutsos and Ghahramani, 2010): the
@@ -1342,6 +1354,7 @@ def _geometric(pos, r, m, p, torus):
    return I[keep], J[keep]
 
 
+@_higher_order()
 def geometric_graph(n = None, r = None, m = None, d = 2, positions = None, net = None, p = 2, torus = False, position = "position", seed = None, device = None):
    """
    Random geometric graph (Gilbert, 1961; Penrose, 2003): ``n`` nodes at random positions,
@@ -1535,6 +1548,7 @@ def _cave_sizes(n, pairs, l = None, k = None):
    return [q + 1] * r + [q] * (l - r)
 
 
+@_higher_order()
 def caveman_graph(l = None, k = None, net = None, connected = False, directed = None, attribute = "cave", seed = None, device = None):
    """
    Caveman graph (Watts, 1999): ``l`` caves, each a clique of ``k`` nodes.
@@ -1753,6 +1767,7 @@ def _small_world(n, m, p, rewire, connected, tries, gen, device):
    raise ValueError(f"no connected graph in {tries} attempts: lower p, or raise k or tries")
 
 
+@_higher_order()
 def watts_strogatz_graph(n = None, k = None, p = None, net = None, rewire = "target", connected = False, tries = 100, seed = None, device = None):
    """
    Watts-Strogatz small world graph (Watts and Strogatz, 1998): a ring lattice whose edges are
@@ -2163,6 +2178,7 @@ def _growth(n, k, net, seed, device, sample):
    return _randomize(net, seed, make)
 
 
+@_higher_order()
 def barabasi_albert_graph(n = None, k = None, net = None, seed = None, device = None):
    """
    Barabási-Albert graph (Barabási and Albert, 1999): nodes arrive one at a time and link to
@@ -2214,6 +2230,7 @@ def barabasi_albert_graph(n = None, k = None, net = None, seed = None, device = 
    return _growth(n, k, net, seed, device, lambda n, m, gen, device, l: _preferential(n, m, gen, device))
 
 
+@_higher_order()
 def link_selection_graph(n = None, k = None, net = None, seed = None, device = None):
    """
    Link selection graph: nodes arrive one at a time, and each picks random links of the network
@@ -2266,6 +2283,7 @@ def link_selection_graph(n = None, k = None, net = None, seed = None, device = N
    return _growth(n, k, net, seed, device, lambda n, m, gen, device, l: _preferential(n, m, gen, device, links = True))
 
 
+@_higher_order()
 def copying_graph(n = None, k = None, net = None, seed = None, device = None):
    """
    Copying graph: nodes arrive one at a time, and each picks an earlier node uniformly at random
@@ -2323,6 +2341,7 @@ def copying_graph(n = None, k = None, net = None, seed = None, device = None):
    """
    return _growth(n, k, net, seed, device, lambda n, m, gen, device, l: _copying(n, m, gen, device))
 
+@_higher_order()
 def holme_kim_graph(n = None, k = None, p = None, net = None, seed = None, device = None):
    """
    Holme-Kim graph (Holme and Kim, 2002): a power law with clustering. Nodes arrive one at a time
@@ -2469,6 +2488,7 @@ def _planted(sizes, p_in, p_out, directed, gen, device):
    return torch.cat(s), torch.cat(t)
 
 
+@_higher_order()
 def planted_partition_graph(sizes = None, p_in = None, p_out = None, net = None, attribute = "community", directed = None, seed = None, device = None):
    """
    Planted partition graph, the classic stochastic blockmodel (Holland, Laskey and Leinhardt,
@@ -2666,6 +2686,7 @@ def _blocks(sizes, P, directed, gen, device):
    return s, t
 
 
+@_higher_order()
 def stochastic_block_model(sizes = None, probs = None, net = None, attribute = "community", directed = None, seed = None, device = None):
    """
    Stochastic blockmodel (Holland, Laskey and Leinhardt, 1983): nodes are split into blocks
@@ -2841,6 +2862,7 @@ def _dc_blocks(sizes, w_out, w_in, omega, directed, exact, rounds, drop_self_loo
    return s[keep], t[keep]
 
 
+@_higher_order()
 def degree_corrected_block_model(sizes = None, degrees = None, edges = None, net = None, attribute = "community", directed = None, exact = False, rounds = 10, drop_self_loops = True, drop_parallel = True, seed = None, device = None):
    """
    Degree-corrected stochastic blockmodel (Karrer and Newman, 2011): a stochastic blockmodel in
@@ -3111,6 +3133,7 @@ def _mixed_probs(node, block, weight, n, k, s, t, directed):
    return B.clamp(0, 1)
 
 
+@_higher_order()
 def mixed_membership_block_model(probs = None, memberships = None, n = None, alpha = None, net = None, attribute = "community", threshold = None, directed = None, seed = None, device = None):
    """
    Mixed membership stochastic blockmodel (Airoldi, Blei, Fienberg and Xing, 2008): every node
@@ -3293,6 +3316,7 @@ def _drop(edges, P, D, directed, gen, device):
    return t[x], u[x]
 
 
+@_higher_order()
 def nested_block_model(n = None, m = None, levels = None, degrees = None, net = None, attribute = "community", directed = None, rounds = 10, drop_self_loops = True, drop_parallel = True, max_blocks = 4096, seed = None, device = None):
    """
    Nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): a degree-corrected
@@ -3480,6 +3504,7 @@ def _gn_probs(sizes, d, mu):
    return p_in, p_out
 
 
+@_higher_order()
 def girvan_newman_graph(mu = None, l = None, k = None, degree = None, net = None, directed = None, attribute = "community", seed = None, device = None):
    """
    Girvan-Newman benchmark (Girvan and Newman, 2002) for community discovery: ``l`` communities
@@ -3831,6 +3856,7 @@ def _lfr_weights(s, t, internal, target_in, target_out, tol = 1e-4, iterations =
    return w
 
 
+@_higher_order()
 def lfr_benchmark_graph(n = None, k = None, maxk = None, mu = None, t1 = 2, t2 = 1, minc = None, maxc = None, on = 0, om = 2, muw = None, beta = None, net = None, attribute = "community", weight = "weight", directed = None, seed = None, device = None):
    """
    LFR benchmark (Lancichinetti, Fortunato and Radicchi, 2008) for community discovery, with the
@@ -4034,6 +4060,486 @@ def lfr_benchmark_graph(n = None, k = None, maxk = None, mu = None, t1 = 2, t2 =
 
 
 # ------------------------------------------------------------------------------------------------
+# Higher-order networks: growing manifolds, simplicial configuration model
+# ------------------------------------------------------------------------------------------------
+
+
+def _complex_from(facets, n, net, rng, device):
+   """
+   Simplicial complex from facets on nodes ``0`` to ``n - 1``: with ``net``, the nodes of ``net``
+   (in a random order if ``rng`` is given, otherwise in their network wide order), with their
+   attributes.
+
+   :param facets: List of lists of node indices.
+   :param n: Number of nodes.
+   :param net: Simplicial complex whose nodes are used, or ``None``.
+   :param rng: NumPy random generator for the order of the nodes of ``net``, or ``None``.
+   :param device: Device.
+   :return: The complex.
+   """
+   from .higher_order import load_simplicial_complex
+   size = np.array([len(f) for f in facets], dtype = np.int64)
+   members = np.concatenate([np.asarray(f, dtype = np.int64) for f in facets]) if facets else np.zeros(0, dtype = np.int64)
+   group = np.repeat(np.arange(len(facets)), size)
+   if net is None:
+      ids = np.arange(n)
+      nodes, fmt = pd.DataFrame({"node": ids}), "wide"
+   else:
+      table = net.to_pandas_dataframes()[1]
+      fmt = net.node_format
+      ids = np.concatenate([x[:k] for x, k in zip(net.node_ids, net.bipartite_split)])
+      ids = ids if rng is None else ids[rng.permutation(len(ids))]
+      nodes = table if fmt == "wide" else pd.concat([table, pd.DataFrame({"node": ids, "attribute": np.nan, "value": np.nan})], ignore_index = True)
+   if net is not None:   # ids as plain values (an object column of integers would be read as text)
+      nodes["node"] = pd.Series(nodes["node"].tolist(), dtype = None if len(nodes) else object)
+   memberships = pd.DataFrame({"node": pd.Series(ids[members].tolist(), dtype = None if len(members) else object), "simplex": group})
+   return load_simplicial_complex(memberships, nodes, node_format = fmt, device = device)
+
+
+def _grow_manifold(n, d, p, rng, bar):
+   """
+   Facets of a growing discrete manifold (see :func:`growing_manifold`), sequentially.
+
+   :param n: Number of nodes.
+   :param d: Dimension.
+   :param p: Probability of the closing move.
+   :param rng: NumPy random generator.
+   :param bar: Progress bar, updated every 1,024 new nodes.
+   :return: List of d-simplices (sorted tuples), and the number of nodes reached.
+   """
+   simplices, existing, linked = [], set(), set()
+   count, unsat, pos, ridges = {}, [], {}, {}
+
+   def free(f):   # face f becomes unsaturated
+      pos[f] = len(unsat)
+      unsat.append(f)
+      for i in range(len(f)):
+         ridges.setdefault(f[:i] + f[i + 1:], set()).add(f)
+
+   def full(f):   # face f becomes saturated
+      i = pos.pop(f)
+      last = unsat.pop()
+      if last != f:
+         unsat[i], pos[last] = last, i
+      for j in range(len(f)):
+         ridges[f[:j] + f[j + 1:]].discard(f)
+
+   def add(s):
+      simplices.append(s)
+      existing.add(s)
+      linked.update(itertools.combinations(s, 2))
+      for i in range(d + 1):
+         f = s[:i] + s[i + 1:]
+         c = count.get(f, 0) + 1
+         count[f] = c
+         if c == 1:
+            free(f)
+         else:
+            full(f)
+
+   add(tuple(range(d + 1)))
+   nodes = d + 1
+   while nodes < n and unsat:
+      f = unsat[rng.integers(len(unsat))]
+      if rng.random() >= p:   # glue a new simplex, with a new node, on the free face
+         add(f + (nodes,))
+         nodes += 1
+         if not nodes & 1023:
+            bar.update(1024)
+         continue
+      options = set()   # close: the simplex spanned by f and a free face sharing d - 1 nodes with it
+      for i in range(d):
+         for g in ridges.get(f[:i] + f[i + 1:], ()):
+            if g != f:
+               s = tuple(sorted(set(f) | set(g)))
+               i_, l_ = sorted(set(f) ^ set(g))   # the two nodes not shared: they get a new link
+               if (i_, l_) not in linked and all(count.get(s[:j] + s[j + 1:], 0) <= 1 for j in range(d + 1)):
+                  options.add(s)
+      if options:
+         options = sorted(options)
+         add(options[rng.integers(len(options))])
+   return simplices, nodes
+
+
+@_higher_order(simplicial = True)
+def growing_manifold(n = None, d = None, p = 0., net = None, seed = None, device = None, progress = None):
+   """
+   Growing discrete manifold: a :math:`d`-dimensional simplicial complex grown one simplex at a
+   time, in which every :math:`(d - 1)`-face is shared by at most two :math:`d`-simplices (a
+   pseudomanifold, see :func:`~graphoskop.is_pseudomanifold`). It starts from one
+   :math:`d`-simplex; a face in a single :math:`d`-simplex is free (incidence number 0), a face in
+   two is saturated. At each step, a free face is drawn uniformly at random and:
+
+   * with probability :math:`1 - p`, a new node joins it in a new :math:`d`-simplex (the face
+     becomes saturated): this alone is network geometry with flavor :math:`s = -1` (Bianconi and
+     Rahmede, 2016), which grows a :math:`d`-ball;
+   * with probability :math:`p`, the face is closed with a free face adjacent to it (sharing
+     :math:`d - 1` nodes), drawn uniformly at random among those for which the :math:`d`-simplex
+     spanned by the two is allowed: the two nodes not shared must not be linked (the closing move
+     adds the link between them, as in Wu et al.), and none of the faces of the new simplex may be
+     saturated. If there is none, nothing is added at that step. For :math:`d = 2` this saturates
+     two adjacent free links by completing their triangle with a new link between nodes at
+     distance 2, the second move of Wu, Menichetti, Rahmede and Bianconi (2015), whose emergent
+     geometry it generalizes; it creates cycles, so that the complex is no longer a ball.
+
+   Gluing moves grow the boundary (the free faces) and closing moves shrink it: with large ``p``
+   growth slows down, as most closing moves fail on small boundaries. The process stops when the
+   complex has ``n`` nodes, or earlier, with a warning, if no free face is left (for :math:`d = 1`,
+   a path closed into a cycle). The result is pure, with ``d``-simplices as facets, and strongly
+   connected.
+
+   The growth is sequential, in Python on the CPU: about 4 to 8 seconds per 100,000 nodes.
+
+   :param n: Number of nodes, at least :math:`d + 1` (with ``net``, its number of nodes).
+   :param d: Dimension of the manifold, at least 1; ``None`` for 2 (triangles, the usual case), or
+      with ``net`` for its dimension.
+   :param p: Probability of the closing move, in :math:`[0, 1)`.
+   :param net: A simplicial complex to randomize: its nodes, with their attributes, placed in a
+      random order of arrival; ``n`` is its number of nodes, and ``d`` its dimension unless given.
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result.
+   :param progress: Whether to show a progress bar, or ``None`` for the global setting (see
+      :doc:`progress`).
+   :return: A simplicial complex (see :doc:`higher_order`), nodes ``0`` to ``n - 1`` in order of
+      arrival.
+   :raises ValueError: If a parameter is not valid, or ``n`` is given with ``net``.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      disk = gsk.growing_manifold(1000, d = 2, seed = 1)          # a triangulated disk
+      gsk.is_pseudomanifold(disk)                                 # True
+      net = gsk.growing_manifold(1000, d = 2, p = 0.5, seed = 1)  # with closed cycles
+      gsk.degree(net, distribution = "ccdf")
+   """
+   from .higher_order import _facet_sizes
+   if net is not None:
+      if net.higher_order != "simplicial":
+         raise ValueError("growing_manifold randomizes simplicial complexes (for a network, see gsk.clique_promotion)")
+      if n is not None:
+         raise ValueError("n is the number of nodes of net: do not give both")
+      n = net.number_of_nodes()
+      sizes = _facet_sizes(net)[0]
+      d = int(sizes.max()) - 1 if len(sizes) and d is None else d
+      device = net.components[0].edge_index.device if device is None else device
+   d = 2 if d is None else d
+   if n is None or d is None or int(d) != d or d < 1 or n < d + 1:
+      raise ValueError(f"growing_manifold needs d >= 1 and n >= d + 1 nodes, got n = {n}, d = {d}")
+   if not 0 <= p < 1:
+      raise ValueError(f"p must be in [0, 1), got {p}")
+   rng = np.random.default_rng(int(torch.randint(2 ** 62, (1,), generator = _generator(seed, "cpu"))))
+   with _bar(int(n), "growing_manifold", progress) as bar:
+      simplices, reached = _grow_manifold(int(n), int(d), float(p), rng, bar)
+   if reached < n:
+      warnings.warn(f"growing_manifold: no free face left after {reached} nodes (the manifold closed): the complex has {reached} nodes instead of {n}")
+   return _complex_from([list(s) for s in simplices], reached if net is None else n, net, rng, "cpu" if device is None else device)
+
+
+@njit(cache = True)
+def _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal):
+   """
+   Repeated nodes of facet ``f`` and number of other facets contained in it or containing it
+   (counted only if ``maximal``: facets of simplicial complexes, not hyperedges).
+
+   :return: ``(repeated, related, stamp)``.
+   """
+   stamp += 1
+   a, b = fptr[f], fptr[f + 1]
+   repeated, distinct = 0, 0
+   for k in range(a, b):
+      if mark[fnode[k]] == stamp:
+         repeated += 1
+      else:
+         mark[fnode[k]] = stamp
+         distinct += 1
+   related = 0
+   if not maximal:
+      return repeated, related, stamp
+   gmark[f] = stamp
+   for k in range(a, b):
+      w = fnode[k]
+      for q in range(nptr[w], nptr[w + 1]):
+         g = slot_facet[nslot[q]]
+         if gmark[g] == stamp:
+            continue
+         gmark[g] = stamp
+         shared, size = 0, fptr[g + 1] - fptr[g]
+         for r in range(fptr[g], fptr[g + 1]):
+            if mark[fnode[r]] == stamp:
+               shared += 1
+         if shared == size or shared == distinct:   # g inside f, or f inside g
+            related += 1
+   return repeated, related, stamp
+
+
+@njit(cache = True)
+def _swap(a, b, fnode, nslot, nidx):
+   """
+   Exchange the nodes of slots ``a`` and ``b``, keeping the slot lists of the nodes up to date.
+   """
+   u, v = fnode[a], fnode[b]
+   fnode[a], fnode[b] = v, u
+   ia, ib = nidx[a], nidx[b]
+   nslot[ia], nslot[ib] = b, a
+   nidx[a], nidx[b] = ib, ia
+
+
+@njit(cache = True)
+def _refresh(fa, fb, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, seen, energy, stamp, maximal):
+   """
+   Recount the violations of facets ``fa`` and ``fb`` and of every facet sharing a node with them
+   (hyperedges, not ``maximal``: of ``fa`` and ``fb`` only, the others are unchanged).
+
+   :return: ``stamp``.
+   """
+   if not maximal:
+      for f in (fa, fb):
+         rep, rel, stamp = _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+         energy[f] = rep
+      return stamp
+   stamp += 1
+   todo = stamp
+   for f in (fa, fb):
+      for k in range(fptr[f], fptr[f + 1]):
+         w = fnode[k]
+         for q in range(nptr[w], nptr[w + 1]):
+            g = slot_facet[nslot[q]]
+            if seen[g] != todo:
+               seen[g] = todo
+               rep, rel, stamp = _facet_relations(g, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+               energy[g] = rep + rel
+   return stamp
+
+
+@njit(cache = True)
+def _configuration_chain(fptr, fnode, nslot, nptr, nidx, slot_facet, repair, mixing, seed, maximal = True):
+   """
+   Stub matching of the simplicial (``maximal``) or hypergraph configuration model, repaired, then
+   mixed, by exchanging the nodes of two random slots (Young et al., 2017).
+
+   :param repair: Largest number of exchanges tried to make the complex valid.
+   :param mixing: Number of exchanges proposed once it is valid.
+   :return: Whether the complex is valid.
+   """
+   np.random.seed(seed)
+   S, F = len(fnode), len(fptr) - 1
+   N = len(nptr) - 1
+   mark = np.zeros(N, dtype = np.int64)
+   gmark = np.zeros(F, dtype = np.int64)
+   seen = np.zeros(F, dtype = np.int64)
+   stamp = 0
+   energy = np.zeros(F, dtype = np.int64)
+   for f in range(F):
+      rep, rel, stamp = _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+      energy[f] = rep + rel
+   bad = np.flatnonzero(energy > 0)
+   tries = 0
+   while len(bad) and tries < repair:   # repair: exchanges that do not increase the violations
+      for _ in range(10 * len(bad) + 10):
+         tries += 1
+         fa = bad[np.random.randint(len(bad))]
+         if energy[fa] == 0:
+            continue
+         a = fptr[fa] + np.random.randint(fptr[fa + 1] - fptr[fa])
+         b = np.random.randint(S)
+         fb = slot_facet[b]
+         if fb == fa or fnode[a] == fnode[b]:
+            continue
+         before = 0
+         for f in (fa, fb):
+            rep, rel, stamp = _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+            before += 2 * rep + rel
+         _swap(a, b, fnode, nslot, nidx)
+         after = 0
+         for f in (fa, fb):
+            rep, rel, stamp = _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+            after += 2 * rep + rel
+         if after > before:
+            _swap(a, b, fnode, nslot, nidx)
+         else:
+            stamp = _refresh(fa, fb, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, seen, energy, stamp, maximal)
+      bad = np.flatnonzero(energy > 0)
+   if len(bad):
+      return False
+   for _ in range(mixing):   # mixing: symmetric proposals, kept only if the complex stays valid
+      a, b = np.random.randint(S), np.random.randint(S)
+      fa, fb = slot_facet[a], slot_facet[b]
+      if fa == fb or fnode[a] == fnode[b]:
+         continue
+      _swap(a, b, fnode, nslot, nidx)
+      ok = True
+      for f in (fa, fb):
+         rep, rel, stamp = _facet_relations(f, fptr, fnode, nslot, nptr, slot_facet, mark, gmark, stamp, maximal)
+         if rep + rel:
+            ok = False
+      if not ok:
+         _swap(a, b, fnode, nslot, nidx)
+   return True
+
+
+@_higher_order(simplicial = True)
+def simplicial_configuration_model(degrees = None, dimensions = None, net = None, mixing = 10, repair = 100, seed = None, device = None):
+   """
+   Simplicial configuration model (Young, Petri, Vaccarino and Patania, 2017): a random simplicial
+   complex with given facets per node and facet dimensions. Every node has as many stubs as the
+   facets it must belong to; every facet of dimension :math:`k` has :math:`k + 1` open stubs; stubs
+   are matched at random. A valid complex needs distinct nodes in every facet, and no facet inside
+   another (facets are maximal), so the random matching is repaired by exchanging the nodes of two
+   random facet stubs, keeping exchanges that do not increase the number of violations, and then
+   mixed with exchanges kept only if the complex stays valid. The mixing exchanges are symmetric
+   proposals over the valid complexes, the Markov chain of Young et al. with two stubs per move,
+   so the result is close to uniform over the complexes with these sequences after enough mixing.
+
+   The degree of a node here is its number of facets (its degree in
+   :func:`~graphoskop.incidence_network`), not its number of edges (:func:`~graphoskop.degree`).
+   Nodes of degree 0 are isolated; a facet of dimension 0 is a node in no other facet (an
+   isolated node too). Sequences that no complex can realize, or hard ones, raise
+   :class:`ValueError` after ``repair`` rounds. The exchanges run sequentially in compiled code.
+
+   :param degrees: Number of facets of every node (nodes ``0`` to ``n - 1``).
+   :param dimensions: Dimension of every facet, as a sequence, or a dictionary from dimension to
+      number of facets (e.g. ``{1: 100, 2: 50}``: 100 edges and 50 triangles).
+   :param net: A simplicial complex to randomize: its nodes and their attributes are kept, and its
+      sequences used (facets per node, facet dimensions); ``dimensions`` can override them.
+   :param mixing: Number of exchanges proposed after the repair, per facet stub.
+   :param repair: Largest number of repair rounds (each about ten attempts per invalid facet).
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result.
+   :return: A simplicial complex (see :doc:`higher_order`).
+   :raises ValueError: If the stubs of the nodes and of the facets differ in number, a value is
+      negative, ``degrees`` is given with ``net``, or the complex cannot be repaired.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      sc = gsk.simplicial_configuration_model([2, 2, 2, 1, 1, 1, 1], {1: 2, 2: 2}, seed = 1)
+      gsk.degree(gsk.incidence_network(sc), distribution = None, component = 0)   # facets per node, then facet sizes
+      gsk.hyperedge_size(sc)                                       # two edges, two triangles
+      null = gsk.simplicial_configuration_model(net = sc, seed = 2)   # same sequences, new complex
+   """
+   from .higher_order import _facet_lists, _facet_sizes
+   if net is not None:
+      if net.higher_order != "simplicial":
+         raise ValueError("simplicial_configuration_model randomizes simplicial complexes")
+      if degrees is not None:
+         raise ValueError("the degrees are those of net: do not give both")
+      degrees = np.concatenate([np.bincount(_facet_lists(net, c)[1], minlength = k) for c, k in enumerate(net.bipartite_split)])
+      if dimensions is None:
+         dimensions = _facet_sizes(net)[0] - 1
+      device = net.components[0].edge_index.device if device is None else device
+   if degrees is None or dimensions is None:
+      raise ValueError("simplicial_configuration_model needs degrees and dimensions, or net")
+   if isinstance(dimensions, dict):
+      dimensions = np.repeat(np.array(list(dimensions.keys()), dtype = np.int64), np.array(list(dimensions.values()), dtype = np.int64))
+   degrees, sizes = np.asarray(degrees, dtype = np.int64), np.asarray(dimensions, dtype = np.int64) + 1
+   if (degrees < 0).any() or (sizes < 1).any():
+      raise ValueError("degrees and dimensions must be at least 0")
+   if degrees.sum() != sizes.sum():
+      raise ValueError(f"the nodes have {degrees.sum()} stubs and the facets {sizes.sum()}: they must be equal")
+   rng = np.random.default_rng(int(torch.randint(2 ** 62, (1,), generator = _generator(seed, "cpu"))))
+   fptr = np.r_[0, np.cumsum(sizes)].astype(np.int64)
+   slot_facet = np.repeat(np.arange(len(sizes)), sizes).astype(np.int64)
+   fnode = rng.permutation(np.repeat(np.arange(len(degrees)), degrees)).astype(np.int64)   # random stub matching
+   order = np.argsort(fnode, kind = "stable")
+   nptr = np.r_[0, np.cumsum(degrees)].astype(np.int64)
+   nslot = order.astype(np.int64)
+   nidx = np.empty(len(fnode), dtype = np.int64)
+   nidx[order] = np.arange(len(fnode))
+   if not _configuration_chain(fptr, fnode, nslot, nptr, nidx, slot_facet, int(repair) * max(1, len(sizes)), int(mixing) * len(fnode), int(rng.integers(2 ** 31))):
+      raise ValueError("simplicial_configuration_model: no valid complex found (the sequences may not be realizable); try a larger repair")
+   facets = [fnode[fptr[f]:fptr[f + 1]].tolist() for f in range(len(sizes))]
+   return _complex_from(facets, len(degrees), net, None, "cpu" if device is None else device)
+
+
+@_higher_order(hypergraph = True)
+def hypergraph_configuration_model(degrees = None, sizes = None, net = None, mixing = 10, repair = 100, seed = None, device = None):
+   """
+   Hypergraph configuration model (Chodrow, 2020): a random hypergraph with given hyperedges per
+   node (degrees) and hyperedge sizes, uniform over the hypergraphs with these sequences, a node
+   being at most once in a hyperedge. Every node has as many stubs as its degree, every hyperedge as
+   many as its size; stubs are matched at random, the matching is repaired by exchanging the nodes
+   of two random hyperedge stubs (keeping the exchanges that do not increase the number of repeated
+   nodes), then mixed by exchanges kept only if no hyperedge gets a repeated node: the Markov chain
+   of :func:`simplicial_configuration_model` without its rule that facets are maximal (a
+   hyperedge can be inside another, or equal to it). An exchange swaps two memberships between two
+   hyperedges, the double edge swap of the incidence graph, so all such hypergraphs are reached.
+
+   With ``net``, its sequences are used, and its nodes and hyperedges are kept with their labels
+   and attributes: hyperedge ``h`` of the result has the size of hyperedge ``h`` of ``net`` and its
+   attributes, with random nodes. Membership attributes are dropped. Sequences that no hypergraph
+   can realize raise :class:`ValueError` after ``repair`` rounds. The exchanges run sequentially in
+   compiled code.
+
+   :param degrees: Number of hyperedges of every node (nodes ``0`` to ``n - 1``).
+   :param sizes: Number of nodes of every hyperedge (hyperedges labeled ``0``, ``1``, ...).
+   :param net: An undirected hypergraph to randomize (see above).
+   :param mixing: Number of exchanges proposed after the repair, per hyperedge stub.
+   :param repair: Largest number of repair rounds (each about ten attempts per invalid hyperedge).
+   :param seed: Seed of the random numbers, or ``None`` for a random seed.
+   :param device: Device of the result.
+   :return: A hypergraph (see :doc:`higher_order`).
+   :raises ValueError: If the stubs of the nodes and of the hyperedges differ in number, a value is
+      negative, ``degrees`` or ``sizes`` is given with ``net``, ``net`` is not an undirected
+      hypergraph, or no valid hypergraph is found.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      hg = gsk.hypergraph_configuration_model([2, 2, 1, 1, 1, 1], [3, 3, 2], seed = 1)
+      null = gsk.hypergraph_configuration_model(net = hg, seed = 2)      # same sequences, new hypergraph
+      test = gsk.randomization_test(hg, lambda g: float(gsk.degree(gsk.clique_expansion(g), distribution = "mean")), gsk.hypergraph_configuration_model, n = 100)
+   """
+   from .higher_order import _facet_lists, _facet_sizes, load_hypergraph
+   from .network import _side_label
+   labels, hyperedges, nodes, fmt = None, None, None, "wide"
+   if net is not None:
+      if net.higher_order != "hypergraph" or net.directed:
+         raise ValueError("hypergraph_configuration_model randomizes undirected hypergraphs")
+      if degrees is not None or sizes is not None:
+         raise ValueError("the degrees and sizes are those of net: do not give them too")
+      degrees = np.concatenate([np.bincount(_facet_lists(net, c)[1], minlength = k) for c, k in enumerate(net.bipartite_split)])
+      sizes = _facet_sizes(net)[0]
+      labels = _side_label(net)[1].tolist()
+      _, nodes, hyperedges = net.to_pandas_dataframes()
+      fmt = net.node_format
+      for t in (nodes, hyperedges):   # ids as plain values (an object column of integers would be read as text)
+         t[t.columns[0]] = pd.Series(t.iloc[:, 0].tolist(), dtype = None if len(t) else object, index = t.index)
+      device = net.components[0].edge_index.device if device is None else device
+   if degrees is None or sizes is None:
+      raise ValueError("hypergraph_configuration_model needs degrees and sizes, or net")
+   degrees, sizes = np.asarray(degrees, dtype = np.int64), np.asarray(sizes, dtype = np.int64)
+   if (degrees < 0).any() or (sizes < 0).any():
+      raise ValueError("degrees and sizes must be at least 0")
+   if degrees.sum() != sizes.sum():
+      raise ValueError(f"the nodes have {degrees.sum()} stubs and the hyperedges {sizes.sum()}: they must be equal")
+   rng = np.random.default_rng(int(torch.randint(2 ** 62, (1,), generator = _generator(seed, "cpu"))))
+   fptr = np.r_[0, np.cumsum(sizes)].astype(np.int64)
+   slot_facet = np.repeat(np.arange(len(sizes)), sizes).astype(np.int64)
+   fnode = rng.permutation(np.repeat(np.arange(len(degrees)), degrees)).astype(np.int64)   # random stub matching
+   order = np.argsort(fnode, kind = "stable")
+   nptr = np.r_[0, np.cumsum(degrees)].astype(np.int64)
+   nidx = np.empty(len(fnode), dtype = np.int64)
+   nidx[order] = np.arange(len(fnode))
+   if not _configuration_chain(fptr, fnode, order.astype(np.int64), nptr, nidx, slot_facet, int(repair) * max(1, len(sizes)), int(mixing) * len(fnode), int(rng.integers(2 ** 31)), False):
+      raise ValueError("hypergraph_configuration_model: no valid hypergraph found (the sequences may not be realizable); try a larger repair")
+   if net is None:
+      ids, labels = np.arange(len(degrees)), list(range(len(sizes)))
+      nodes = pd.DataFrame({"node": ids})
+   else:
+      ids = np.concatenate([x[:k] for x, k in zip(net.node_ids, net.bipartite_split)])
+   members = {h: ids[fnode[fptr[f]:fptr[f + 1]]].tolist() for f, h in enumerate(labels)}
+   return load_hypergraph(members, nodes, hyperedge_table = None if hyperedges is None or not len(hyperedges.columns) > 1 else hyperedges, node_format = fmt, device = "cpu" if device is None else device)
+
+# ------------------------------------------------------------------------------------------------
 # Testing statistics against null models
 # ------------------------------------------------------------------------------------------------
 
@@ -4062,6 +4568,7 @@ def _bins(values, target = 20):
    return np.round(np.round(values / step) * step, digits)
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def randomization_test(net, statistic, model, n = 100, seed = None, progress = None, **parameters):
    """
    Test a statistic of a network against a null model: the statistic is computed on ``net`` and
@@ -4069,11 +4576,16 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
    distribution.
 
    ``model`` is any generator of this module that takes ``net`` (e.g.
-   :func:`configuration_model`, :func:`edge_swap`, :func:`stochastic_block_model`), called as
+   :func:`configuration_model`, :func:`edge_swap`, :func:`stochastic_block_model`; for hypergraphs
+   :func:`hypergraph_configuration_model`, for simplicial complexes
+   :func:`simplicial_configuration_model` or :func:`growing_manifold`), called as
    ``model(net = net, seed = ..., **parameters)``, or a fitted ERGM (:class:`~graphoskop.ERGMFit`),
    whose networks are drawn with :meth:`~graphoskop.ERGMFit.simulate`. ``statistic`` is any function
-   of a network returning a number, such as :func:`~graphoskop.average_clustering` or
-   ``lambda g: gsk.assortativity(g, "age")``.
+   of a network returning one number, such as :func:`~graphoskop.average_clustering` or
+   ``lambda g: gsk.assortativity(g, "age")``. Node level statistics return a vector: test their
+   global version (:func:`~graphoskop.global_triangle_closure` rather than
+   :func:`~graphoskop.local_triangle_closure`) or a summary of them
+   (``lambda g: gsk.local_triangle_closure(g).nanmean()``, nodes in no triangle being NaN).
 
    The pseudo p-values are the shares of randomizations scoring above, below or equal to the
    observed value; ``p_value`` is the two sided one,
@@ -4081,7 +4593,11 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
    values rounded to a scale that gives about 20 bins (integers are kept as they are when they are
    few).
 
-   :param net: A :class:`~graphoskop.Network`.
+   Hypergraphs and simplicial complexes are tested as networks are, with a generator that takes
+   them and a statistic that does (e.g. ``lambda g: gsk.betti_numbers(g)[1]``); a generator of
+   plain networks refuses them.
+
+   :param net: A :class:`~graphoskop.Network`, hypergraph or simplicial complex.
    :param statistic: Function of a network returning a number.
    :param model: Generator function, or fitted :class:`~graphoskop.ERGMFit`.
    :param n: Number of randomizations.
@@ -4095,7 +4611,7 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
       (:class:`pandas.DataFrame` with columns ``value`` and ``count``, the rounded values),
       ``mean`` and ``std`` of the randomizations, ``z`` (standardized observed value), ``above``,
       ``below`` and ``equal`` (shares of randomizations) and ``p_value``.
-   :raises ValueError: If ``statistic`` does not return a number.
+   :raises ValueError: If ``statistic`` does not return one number.
 
    Example:
 
@@ -4105,6 +4621,8 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
 
       net = gsk.load_network("edges.tsv")
       test = gsk.randomization_test(net, gsk.average_clustering, gsk.configuration_model, n = 200, seed = 1)
+      H = gsk.load_hypergraph("memberships.tsv")
+      test = gsk.randomization_test(H, gsk.global_triangle_closure, gsk.hypergraph_configuration_model)
       test["observed"], test["mean"], test["above"], test["p_value"]
       test["distribution"]                                         # rounded values and their counts
 
@@ -4114,6 +4632,8 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
 
    def value(g):
       x = statistic(g)
+      if hasattr(x, "shape") and math.prod(x.shape) != 1:
+         raise ValueError(f"the statistic must return one number, got {type(x).__name__} of {math.prod(x.shape)} values: for a node level statistic, test a summary of it (e.g. lambda g: gsk.local_clustering(g).nanmean()) or its global version")
       try:
          return float(x.item() if hasattr(x, "item") else x)
       except (TypeError, ValueError):

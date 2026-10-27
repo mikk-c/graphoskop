@@ -19,12 +19,16 @@ functions show none: the outer bar covers them (and if it is off, they are off t
 
 Functions with a bar: :func:`~graphoskop.cascade_failures` (average path length), :func:`~graphoskop.diffpool`,
 :func:`~graphoskop.edge_removal` and :func:`~graphoskop.node_removal` (average path length, or
-``recompute``), :func:`~graphoskop.edge_swap`, :func:`~graphoskop.gat`, :func:`~graphoskop.gatv2`,
-:func:`~graphoskop.gcn`, :func:`~graphoskop.graphsage`, :func:`~graphoskop.nestedness` (null
-model), :func:`~graphoskop.node2vec`, :func:`~graphoskop.randomization_test`.
+``recompute``), :func:`~graphoskop.edge_swap`, :func:`~graphoskop.gae`, :func:`~graphoskop.gat`, :func:`~graphoskop.gatv2`,
+:func:`~graphoskop.gcn`, :func:`~graphoskop.graphrnn` and :meth:`~graphoskop.GraphRNNFit.simulate`, :func:`~graphoskop.graphsage`,
+:func:`~graphoskop.growing_manifold`, :func:`~graphoskop.higher_order_dependency_network`,
+:func:`~graphoskop.kuramoto_model`, :func:`~graphoskop.memory_network`, :func:`~graphoskop.metapath2vec`, :func:`~graphoskop.nestedness` (null
+model), :func:`~graphoskop.node2vec`, :func:`~graphoskop.node_link_kuramoto_model`, :func:`~graphoskop.randomization_test`,
+:func:`~graphoskop.simplicial_kuramoto_model`, :func:`~graphoskop.struc2vec`, :func:`~graphoskop.vgae`.
 """
 
 import sys
+from ._policy import _higher_order
 
 #: Global settings: bars on or off, seconds before a bar appears.
 _SETTINGS = {"enabled": True, "delay": 0.}
@@ -33,6 +37,7 @@ _SETTINGS = {"enabled": True, "delay": 0.}
 _OPEN = [0]
 
 
+@_higher_order(hypergraph = True, simplicial = True)
 def set_progress(enabled = True, delay = 0.):
    """
    Turns the progress bars of all functions on or off, and sets how long a computation runs

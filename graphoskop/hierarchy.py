@@ -14,12 +14,14 @@ import pandas as pd
 import scipy.sparse as sp
 import torch
 
+from ._policy import _higher_order
 from .centrality import reach_centrality
 from .network_statistics import _strong_labels, connected_components_nodes
 from .shortest_paths import _source_stats
 from .transformations import _restrict, network_condensation, subgraph
 
 
+@_higher_order()
 def global_reach_centrality(net, component = 0, direction = "out", lengths = None, n_jobs = None):
    """
    Global reaching centrality (Mones, Vicsek and Vicsek, 2012), a measure of hierarchy: how much
@@ -51,6 +53,7 @@ def global_reach_centrality(net, component = 0, direction = "out", lengths = Non
    return float((r.max() - r).sum() / (N - 1)) if N > 1 else 0.
 
 
+@_higher_order()
 def flow_hierarchy(net, component = 0, weight = None, by = "edges"):
    """
    Flow hierarchy (Luo and Magee, 2011), a measure of hierarchy: the fraction of the edges that
@@ -103,6 +106,7 @@ def flow_hierarchy(net, component = 0, weight = None, by = "edges"):
    return float(out / total) if total > 0 else float("nan")
 
 
+@_higher_order()
 def arborescence_hierarchy(net, component = 0, arborescence = False):
    """
    Arborescence hierarchicalness (Coscia, 2018): the fraction of the edges of a directed network
@@ -173,6 +177,7 @@ def arborescence_hierarchy(net, component = 0, arborescence = False):
    return score, forest
 
 
+@_higher_order()
 def agony_hierarchy(net, component = 0, weight = None, ranks = False):
    """
    Agony (Gupte et al., 2011; Tatti, 2015), a measure of hierarchy: the levels of the nodes, 0 at

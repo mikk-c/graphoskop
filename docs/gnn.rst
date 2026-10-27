@@ -15,6 +15,24 @@ Graph neural networks
    out["history"].plot(x = "epoch")                       # training and validation loss
    reg = gsk.gcn(net, "income", [16, 1], activations = ["tanh", None], epochs = 500, learning_rate = 0.005)
 
+Autoencoders
+------------
+
+Graph autoencoders learn node vectors without a target: an encoder of GCN layers gives every node
+a vector from the node attributes and the edges, trained so that the dot products of the vectors
+reconstruct the edges. Unlike the shallow embeddings below, they use the node attributes, and the
+trained encoder (``out["model"]``) can embed new nodes from their attributes.
+
+.. code-block:: python
+
+   train, validation = gsk.link_prediction_split(net, seed = 1)
+   out = gsk.vgae(train, seed = 1, attribute = "z")          # vectors stored as z_0 ... z_15
+   scored = gsk.embedding_lp(train, validation, [f"z_{j}" for j in range(16)])
+
+.. autofunction:: graphoskop.gae
+
+.. autofunction:: graphoskop.vgae
+
 Graph embeddings
 ----------------
 
@@ -30,6 +48,47 @@ one, unsupervised.
    free = gsk.diffpool(molecules, seed = 1)["embeddings"]     # unsupervised: one row per molecule
 
 .. autofunction:: graphoskop.diffpool
+
+Higher-order networks
+---------------------
+
+Hypergraphs and simplicial complexes (see :doc:`higher_order`) have two models, with the
+parameters and results of the models below. :func:`~graphoskop.hgnn` predicts a node attribute:
+its layers (the hypergraph convolution of ``HypergraphConv`` in PyTorch Geometric) pass features
+from the nodes to their hyperedges and back, so that a group of any size counts once, without the many pairs of the clique
+expansion; on a simplicial complex, the facets are the hyperedges. :func:`~graphoskop.scnn`
+predicts a simplex attribute of a simplicial complex, a value or a class of every edge (or
+triangle...), from the other attributes of the simplices of that dimension: its layers mix every
+simplex with those sharing a face with it and, separately, those sharing a coface with it,
+through the lower and upper Hodge Laplacians (see :ref:`hodge-laplacians`). The other models
+refuse higher-order networks: pass them :func:`~graphoskop.clique_expansion` for the network of
+co-members.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   hg = gsk.load_hypergraph("authorships.tsv", "authors.tsv")      # papers and their authors
+   out = gsk.hgnn(hg, "field", [32, 5], seed = 1)                  # a node attribute
+   out = gsk.hgnn(hg, "field", [32, 5], weight = "citations")      # a hyperedge attribute
+
+   sc = gsk.load_simplicial_complex("cliques.tsv")
+   sc.set_simplex_attribute(edge_table, dimension = 1)              # node_0, node_1, kind, weight
+   out = gsk.scnn(sc, "kind", [32, 3], order = 2, seed = 1)         # a class of every edge
+   out["predictions"]                                               # one row per edge, Simplex ids
+
+On a planted hypergraph (400 nodes in 4 groups, 600 hyperedges of 3 to 6 nodes, 85% inside a
+group, one noisy group feature), :func:`~graphoskop.hgnn` reaches a validation accuracy of 0.84
+(0.45 from the features alone), and :func:`~graphoskop.gcn` on the clique expansion 0.95: the
+hypergraph layer keeps more of every node's own (noisy) features, which here smooths too little;
+on 100,000 nodes and 100,000 hyperedges, 50 epochs take 11 s on two CPU threads. With a constant
+feature only, :func:`~graphoskop.scnn` tells the edges in a filled triangle from the others
+(accuracy 1.0), which needs the upper neighbors; on 72,849 edges and 42,850 triangles, 50 epochs
+take 10 s.
+
+.. autofunction:: graphoskop.hgnn
+
+.. autofunction:: graphoskop.scnn
 
 Models
 ------
@@ -54,7 +113,11 @@ Shallow embeddings learn one vector per node directly, from the structure alone:
 attribute is used or predicted. The vectors can be stored as node attributes and used anywhere
 numeric attributes are, e.g. as features of the models above, in node vector analysis or for
 clustering. :func:`~graphoskop.node2vec` learns them from random walks (for DeepWalk, use
-``p = q = 1``, the default); :func:`~graphoskop.laplacian_eigenmaps` and
+``p = q = 1``, the default), so that nearby nodes get similar vectors;
+:func:`~graphoskop.struc2vec` from walks on a multilayer graph of structural similarity, so that
+nodes with similar roles get similar vectors, wherever they are;
+:func:`~graphoskop.metapath2vec` from walks that follow a chain of node types (and relations) in a
+heterogeneous network; :func:`~graphoskop.laplacian_eigenmaps` and
 :func:`~graphoskop.locally_linear_embedding` compute them as eigenvectors, with no training and
 nothing random.
 
@@ -64,6 +127,8 @@ nothing random.
    emb = gsk.node2vec(net, q = 0.5, attribute = "n2v")     # also node attributes n2v_0, n2v_1, ...
    le = gsk.laplacian_eigenmaps(net, 16)                   # eigenvectors: exact, no training
    lle = gsk.locally_linear_embedding(net, 16, attribute = "lle")
+   roles = gsk.struc2vec(net, seed = 1)                    # structural roles, not proximity
+   typed = gsk.metapath2vec(net, "kind", ["author", "paper", "venue", "paper", "author"])
    out = gsk.gcn(net, "city", [16, 4], features = [f"n2v_{j}" for j in range(128)])
 
 Stored vectors also predict links, with :func:`~graphoskop.embedding_lp` (see :doc:`link_prediction`).
@@ -72,7 +137,11 @@ Stored vectors also predict links, with :func:`~graphoskop.embedding_lp` (see :d
 
 .. autofunction:: graphoskop.locally_linear_embedding
 
+.. autofunction:: graphoskop.metapath2vec
+
 .. autofunction:: graphoskop.node2vec
+
+.. autofunction:: graphoskop.struc2vec
 
 Performance
 -----------
@@ -97,6 +166,16 @@ network. GCN and GraphSAGE layers are products with a normalized adjacency matri
 as a sparse matrix (3 to 7 times faster than passing the edges to every layer); attention layers
 score every edge at every epoch, and are 3 to 10 times slower on CPU. On a GPU, all the training
 runs there.
+
+Graph autoencoders, with the defaults (``[32, 16]``, 200 epochs), on two CPU threads. Link
+prediction (10% of the edges hidden, as many negatives, dot product of the vectors), without node
+attributes (one-hot ids): on 20 planted communities of 100 nodes, AUC 0.805 for
+:func:`~graphoskop.gae` and 0.792 for :func:`~graphoskop.vgae` in 14 s (node2vec 0.871, common
+neighbors 0.802); on a Holme-Kim network of 3,000 nodes, 0.723 and 0.711 in 5-6 s (node2vec
+0.724, common neighbors 0.766). With node attributes that carry a weak signal (8 planted
+communities of 250 nodes, one noisy feature per community), the communities are recovered from
+the vectors with accuracy 0.760 (:func:`~graphoskop.gae`) and 0.753 (:func:`~graphoskop.vgae`),
+against 0.220 from the attributes alone. On 20,000 nodes and 108,000 edges, 50 epochs take 20 s.
 
 Many sparse attributes (e.g. a long node table with one attribute per label, genre and year):
 on a network of 105,317 nodes, 1.09 million edges and 87,122 numeric attributes with 2.5 million
@@ -127,6 +206,28 @@ communities, accuracy 1.000 for both (node2vec 0.965), in 28 s for
 eigenvalue equations to machine precision (checked against dense generalized eigensolvers).
 Without standardization, the tiny entries of the vectors of a large network make a penalized
 regression fail (accuracy at chance level on the 100,000 nodes).
+
+:func:`~graphoskop.struc2vec`, 16 dimensions, on the mirrored karate club of the paper (two copies
+joined by one edge): the mirror image of a node is its nearest node (standardized Euclidean
+distance) for 41% of the nodes, and ranks 2.5 on average among the 67 others (node2vec: 1%, rank
+38.9; many karate members are structurally equivalent to others, hence the ties). On a barbell
+graph (two cliques of 10 joined by a path of 10), the mirror of every path node is its nearest
+node with ``layers = 6`` (0.7 nodes closer with 3; node2vec 9.9). Rings and distances were
+checked against breadth first searches and a direct dynamic time warping, and the walks against
+the exact probabilities of the multilayer graph. With the defaults (128 dimensions, walks of 80
+nodes), on Barabási-Albert networks: 10,000 nodes in 38 s (2.5 s for rings, distances and walks,
+the rest training; 9 s with walks of 20 nodes), 100,000 nodes in 525 s, 2.3 GB.
+
+:func:`~graphoskop.metapath2vec`, on a synthetic bibliography (4 research areas, 4,000 authors,
+12,000 papers and 40 venues; each paper of an area, its venue of that area with probability 0.6
+and each of its 3 authors with probability 0.5, at random otherwise), predicting the area of the
+authors from their vectors (logistic regression on standardized vectors, 5-fold, mean of 2
+seeds): with the metapath author, paper, venue, paper, author and the defaults, 0.617 in 3.5 s;
+with 40 walks per author, as many walks as :func:`~graphoskop.node2vec` makes from all the nodes,
+0.688 in 13.6 s (metapath2vec++ 0.677), against 0.648 in 13.3 s for node2vec; author, paper,
+author alone 0.424 (coauthors mix areas). On 160,400 nodes and 479,982 edges: 53 s with the
+defaults, 221 s with 40 walks per author. The walks were checked to follow the metapath (with and
+without relations, directed or not), with uniform choices among the valid neighbors.
 
 :func:`~graphoskop.diffpool`, on graphs of 20 to 40 nodes of two kinds with the same expected degree,
 random graphs and graphs of two dense communities (no node attributes, so the feature is the

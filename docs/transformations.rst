@@ -99,3 +99,21 @@ join the same two nodes. Attributes come from the first network, completed by th
 .. autofunction:: graphoskop.network_intersection
 
 .. autofunction:: graphoskop.network_union
+
+Higher-order networks
+---------------------
+
+:func:`clique_promotion` turns the maximal cliques of a network into the facets of a simplicial
+complex (its clique complex) or into hyperedges; :func:`clique_expansion` goes back, from a
+hypergraph or a simplicial complex to the network of the nodes sharing a hyperedge or a facet (for
+a simplicial complex, its 1-skeleton). See :doc:`higher_order`.
+
+.. code-block:: python
+
+   sc = gsk.clique_promotion(net)                          # simplicial complex
+   hg = gsk.clique_promotion(net, kind = "hypergraph")
+   back = gsk.clique_expansion(sc)                         # the edges of net, weighted by facets
+
+.. autofunction:: graphoskop.clique_expansion
+
+.. autofunction:: graphoskop.clique_promotion

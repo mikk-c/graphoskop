@@ -46,6 +46,7 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
+from ._policy import _higher_order
 from .network import BIPARTITE, _build, _node_codes, _node_table, _node_types, _positions, _qualitative_rows, _categorize, _quiet_sparse, _release_memory
 
 
@@ -284,6 +285,7 @@ def _paths(net, node_type, weight, value, batch_size):
    return rows, kstrength, i, j, v
 
 
+@_higher_order()
 def simple_count_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Projection counting the shared neighbors, weighted: two kept nodes :math:`a` and :math:`b` are
@@ -322,6 +324,7 @@ def simple_count_projection(net, node_type, weight = "weight", batch_size = 2 **
    return _projection(net, rows, i, j, v, weight = weight)
 
 
+@_higher_order()
 def hist_intersection_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Histogram intersection projection: two kept nodes :math:`a` and :math:`b` are connected with
@@ -365,6 +368,7 @@ def hist_intersection_projection(net, node_type, weight = "weight", batch_size =
    return _projection(net, rows, i, j, v, weight = weight)
 
 
+@_higher_order()
 def hyperbolic_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Newman's hyperbolic projection: every node :math:`c` of the other type shared by two kept nodes
@@ -406,6 +410,7 @@ def hyperbolic_projection(net, node_type, weight = "weight", batch_size = 2 ** 2
    return _projection(net, rows, i, j, v, weight = weight)
 
 
+@_higher_order()
 def resource_allocation_projection(net, node_type, lambd = 1, weight = "weight", batch_size = 2 ** 24):
    """
    Resource allocation projections (Zhou et al.): ProbS (mass diffusion), HeatS (heat conduction)
@@ -472,6 +477,7 @@ def resource_allocation_projection(net, node_type, lambd = 1, weight = "weight",
    return _projection(net, rows, i, j, v, directed, weight)
 
 
+@_higher_order()
 def random_walk_projection(net, node_type, directed = False, weight = "weight", batch_size = 2 ** 24):
    """
    Random walk projection (YCN, Yildirim and Coscia, 2014): the weight from :math:`a` to :math:`b`
@@ -575,6 +581,7 @@ def _similarity_projection(net, node_type, weight, batch_size, similarity):
    return _projection(net, rows, i, j, v, weight = weight)
 
 
+@_higher_order()
 def cosine_similarity_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Cosine similarity projection: two kept nodes :math:`a` and :math:`b` sharing at least one
@@ -621,6 +628,7 @@ def cosine_similarity_projection(net, node_type, weight = "weight", batch_size =
    return _similarity_projection(net, node_type, weight, batch_size, lambda dot, sa, qa, sb, qb, m: _ratio(dot, torch.sqrt(qa * qb)))
 
 
+@_higher_order()
 def pearson_correlation_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Pearson correlation projection: two kept nodes :math:`a` and :math:`b` sharing at least one
@@ -675,6 +683,7 @@ def pearson_correlation_projection(net, node_type, weight = "weight", batch_size
    return _similarity_projection(net, node_type, weight, batch_size, pearson)
 
 
+@_higher_order()
 def inverse_euclidean_projection(net, node_type, weight = "weight", batch_size = 2 ** 24):
    """
    Inverse Euclidean distance projection: two kept nodes :math:`a` and :math:`b` sharing at least

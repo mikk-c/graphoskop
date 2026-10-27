@@ -62,6 +62,7 @@ import torch
 from scipy.optimize import brentq, minimize_scalar
 from scipy.special import gammaln
 
+from ._policy import _higher_order
 from .generators import _choose, _swap_edges
 from .network import _quiet_sparse
 from .progress import _bar
@@ -199,6 +200,7 @@ def _local_search(x, n, bu, bv, b, b2, strength, strength2, sa, qa, ties):
    return x, float(rho)
 
 
+@_higher_order()
 def discrete_core_periphery(net, component = 0, core_periphery_ties = "present", weight = None, restarts = 10, seed = None):
    """
    Discrete core-periphery model (Borgatti and Everett, 2000): the division of the nodes into a
@@ -250,6 +252,7 @@ def discrete_core_periphery(net, component = 0, core_periphery_ties = "present",
    return _split(best_x > 0.5, sizes, component), best_rho if np.isfinite(best_rho) else float("nan")
 
 
+@_higher_order()
 def continuous_core_periphery(net, component = 0, weight = None, tol = 1e-5, max_iter = 1000):
    """
    Continuous core-periphery model (Borgatti and Everett, 2000): the coreness of every node, non
@@ -461,6 +464,7 @@ def _rombach_fit(V, init, ptr, bu, bv, b, keys, n, p, max_iter):
    return X, R
 
 
+@_higher_order()
 def rombach_core_periphery(net, component = 0, alpha = None, beta = None, p = None, weight = None, restarts = 0, seed = None, max_iter = 1000):
    """
    Core-periphery structure of Rombach, Porter, Fowler and Mucha (2014): a core score for every
@@ -666,6 +670,7 @@ def _null(r, c, R, C, model, gen):
    return a, b - R
 
 
+@_higher_order()
 def nestedness(net, null_model = None, samples = 100, seed = None, progress = None):
    """
    NODF nestedness of a bipartite network, optionally compared with a null model (see the module
@@ -728,6 +733,7 @@ def _area(p):
    return 1 - np.exp(2 * gammaln(1 + 1 / p) - gammaln(1 + 2 / p))
 
 
+@_higher_order()
 def nestedness_isocline(net, method = "fill", points = 101):
    """
    Isocline of the nested biadjacency matrix (see the module description): the line

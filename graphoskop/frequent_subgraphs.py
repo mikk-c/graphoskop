@@ -44,6 +44,7 @@ import pandas as pd
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
 
+from ._policy import _higher_order
 from . import _mining as _k
 from .isomorphism import _node_values
 from .network import LAYER, load_network
@@ -556,6 +557,7 @@ class _SingleMiner:
       self.patterns[at] = tuple(rec)
 
 
+@_higher_order()
 def single_graph_mining(net, min_support, node_label = None, edge_label = None, maximal = False, max_edges = None):
    """
    Frequent subgraphs of a single network: the connected labeled patterns whose minimum image
@@ -610,6 +612,7 @@ def single_graph_mining(net, min_support, node_label = None, edge_label = None, 
    return _output(db, found, maximal, node_label, edge_label)
 
 
+@_higher_order()
 def transactional_graph_mining(net, min_support, node_label = None, edge_label = None, maximal = False, max_edges = None):
    """
    Frequent subgraphs of a database of graphs, the connected components of a network: the
@@ -796,6 +799,7 @@ def _connected(k, edges):
    return len(seen) == k
 
 
+@_higher_order()
 def graph_association_rules(net, patterns, support, transactional = True):
    """
    Association rules between frequent patterns that differ by one edge: the smaller pattern ``P``

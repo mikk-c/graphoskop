@@ -20,6 +20,7 @@ import numpy as np
 import torch
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
+from ._policy import _higher_order
 
 
 def _neighbor_entries(net, comps, mode, weight):
@@ -57,6 +58,7 @@ def _check_mode(mode):
       raise ValueError(f"unknown mode: {mode}")
 
 
+@_higher_order()
 def structural_equivalence(net, u, v, mode = "both", weight = None):
    """
    Degree of structural equivalence of two nodes: the Jaccard coefficient of their sets of
@@ -116,6 +118,7 @@ def structural_equivalence(net, u, v, mode = "both", weight = None):
    return sum(min(a.get(k, 0.), b.get(k, 0.)) for k in keys) / den if den > 0 else 0.
 
 
+@_higher_order()
 def pairwise_structural_equivalence(net, component = 0, mode = "both", weight = None, batch_size = 2 ** 24):
    """
    Degree of structural equivalence (see :func:`structural_equivalence`) of all pairs of nodes.
@@ -341,6 +344,7 @@ def _profiles(d, extra):
    return P
 
 
+@_higher_order()
 def automorphic_equivalence(net, u, v, seed = 0):
    """
    Degree of automorphic equivalence of two nodes (Borgatti and Everett, 1992): 1 if some
@@ -405,6 +409,7 @@ def automorphic_equivalence(net, u, v, seed = 0):
    return 1. if found else 1 - 1 / n
 
 
+@_higher_order()
 def pairwise_automorphic_equivalence(net, component = 0, seed = 0, batch_size = 2 ** 24):
    """
    Degree of automorphic equivalence (see :func:`automorphic_equivalence`) of all pairs of nodes.
@@ -520,6 +525,7 @@ def _undirected(net, c, weight):
    return s, t, w, k, new
 
 
+@_higher_order()
 def path_regular_equivalence(net, u, v, alpha = 0.97, weight = None, tol = 1e-12, max_iter = 100000):
    """
    Path-based regular equivalence of two nodes: the vertex similarity of Leicht, Holme and Newman
@@ -574,6 +580,7 @@ def path_regular_equivalence(net, u, v, alpha = 0.97, weight = None, tol = 1e-12
    return float(k.sum() * lam * x[iu] / (k[iu] * k[iv]))
 
 
+@_higher_order()
 def pairwise_path_regular_equivalence(net, component = 0, alpha = 0.97, weight = None):
    """
    Path-based regular equivalence of all pairs of nodes: the vertex similarity of Leicht, Holme and
@@ -708,6 +715,7 @@ def _rege(net, comps, weight, iterations, tol, batch_size):
    return M
 
 
+@_higher_order()
 def regular_equivalence(net, u, v, weight = None, iterations = 3, tol = 1e-10, batch_size = 2 ** 24):
    """
    Degree of regular equivalence of two nodes, by REGE (White and Reitz, 1983): two nodes are
@@ -750,6 +758,7 @@ def regular_equivalence(net, u, v, weight = None, iterations = 3, tol = 1e-10, b
    return float(M[int(offset[ids[0][0]]) + ids[0][1], int(offset[ids[1][0]]) + ids[1][1]])
 
 
+@_higher_order()
 def pairwise_regular_equivalence(net, component = 0, weight = None, iterations = 3, tol = 1e-10, batch_size = 2 ** 24):
    """
    Degree of regular equivalence of all pairs of nodes, by REGE (White and Reitz, 1983), in the form

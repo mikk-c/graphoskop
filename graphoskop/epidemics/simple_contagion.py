@@ -53,6 +53,7 @@ import torch
 from numba import njit, prange
 from scipy.stats import t as student
 
+from .._policy import _higher_order
 from ..ergms import _random
 
 #: Labels of the states, by code.
@@ -495,6 +496,11 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
    return sum(pad(x) for x in total), sum(pad(x) for x in square), state[(R - 1) * n:].cpu().numpy(), ev
 
 
+def _size(net, component):
+   """Number of nodes of a component (hyperedges and facets of higher-order networks left out)."""
+   return int(net.bipartite_split[component]) if net.higher_order else net.components[component].num_nodes
+
+
 def _node_values(net, comps, values):
    """
    Values of the nodes of some components, in the network wide node order.
@@ -508,11 +514,11 @@ def _node_values(net, comps, values):
    :return: float64 :class:`numpy.ndarray`.
    :raises ValueError: If a vector does not have one value per node.
    """
-   n = sum(net.components[c].num_nodes for c in comps)
+   n = sum(_size(net, c) for c in comps)
    if isinstance(values, str):
       x = [net.get_node_attribute(values, c) for c in comps]
    elif isinstance(values, (dict, pd.Series)):
-      ids = np.concatenate([net.node_ids[c] for c in comps])
+      ids = np.concatenate([net.node_ids[c][:_size(net, c)] for c in comps])
       x = [pd.Series(ids).map(values).to_numpy(dtype = np.float64)]
    elif isinstance(values, (list, tuple)) and len(values) and (torch.is_tensor(values[0]) or np.ndim(values[0]) == 1):
       x = [values[c] for c in comps] if len(values) == len(net.components) else values
@@ -575,11 +581,112 @@ def _immunization(net, comps, off, immunize, strategy, ptr, nbr, excl, runs, rs)
    pos = []
    for x in items:
       for c, i in net._nodes(x):
-         if c not in comps:
+         if c not in comps or i >= _size(net, c):
             raise ValueError(f"node {x!r} is not among the nodes simulated (component {c})")
          pos.append(off[comps.index(c)] + i)
    pos = np.unique(np.asarray(pos, dtype = np.int64))
    return pos[~excl[pos]][None]   # when resuming, infected and removed nodes are not immunized
+
+
+def _sums(total, square, ends, finals, n):
+   """
+   Sums over the runs of the fraction of nodes in each state at each step, and of their squares,
+   from the per-thread sums of the Numba engines: finished runs keep their final value until the
+   last step of the longest run.
+
+   :param total: Threads by steps by 3: numbers of nodes in each state, summed over the runs.
+   :param square: Same, for the squares.
+   :param ends: Last step of every run.
+   :param finals: Numbers of nodes in each state at the end of every run.
+   :param n: Number of nodes.
+   :return: ``(total, square)``, steps by 3.
+   """
+   T = int(ends.max())
+   pad = np.zeros((2, T + 2, 3))
+   np.add.at(pad[0], ends + 1, finals)
+   np.add.at(pad[1], ends + 1, finals * finals)
+   pad = np.cumsum(pad, 1)[:, :T + 1]
+   return (total.sum(0)[:T + 1] + pad[0]) / n, (square.sum(0)[:T + 1] + pad[1]) / n ** 2
+
+
+def _initial(net, comps, off, model, seeds, ranking, selection, runs, attribute, resume, immunize, strategy, ptr, nbr, rs):
+   """
+   States at step 0 of the runs of a model: the stored states (``resume``), the immunized nodes and
+   the seeds (see :func:`si_model`).
+
+   :param comps: Component indices of the simulation.
+   :param off: Position of the first node of each of ``comps``, then the number of nodes.
+   :param model: ``"SI"``, ``"SIS"`` or ``"SIR"``.
+   :param ptr: CSR row pointers of the out edges (NumPy), for acquaintance immunization.
+   :param nbr: CSR targets of the out edges (NumPy).
+   :param rs: NumPy random generator.
+   :return: ``(seeds, removed, immunized)``: infected nodes at step 0 (run ``r`` uses row
+      ``r % len``), removed nodes, and immunized nodes (run ``r`` uses row ``r % len``).
+   :raises ValueError: As :func:`si_model`.
+   """
+   n = int(off[-1])
+   removed, vres, excl = np.zeros(0, dtype = np.int64), np.zeros(0, dtype = np.int64), np.zeros(n, dtype = np.bool_)
+   if resume:
+      if attribute is None or attribute not in net.qualitative_node_attributes:
+         raise ValueError(f"resume needs the states in a qualitative node attribute, but there is no {attribute!r} in net.qualitative_node_attributes: run a model on this network object first (without resume), or set the states with net.set_node_attribute")
+      x = pd.Series(np.concatenate([net.get_node_attribute(attribute, c) for c in comps]), dtype = object)
+      code = x.map({**{s: i for i, s in enumerate(STATES[:3 if model == "SIR" else 2])}, "V": 4})
+      bad = x.notna() & code.isna()
+      if bad.any():
+         raise ValueError(f"{attribute!r} has value {x[bad].iloc[0]!r}, not a state of the {model} model")
+      code = code.fillna(0).to_numpy(dtype = np.int64)   # missing: susceptible
+      removed, vres, excl = np.flatnonzero(code == 2), np.flatnonzero(code == 4), code != 0
+   imm = _immunization(net, comps, off, immunize, strategy, ptr, nbr, excl, runs, rs)
+   imm = np.concatenate([np.broadcast_to(vres, (imm.shape[0], vres.shape[0])), imm], 1)
+   if resume:
+      out = np.flatnonzero(code == 1)[None]
+   else:
+      ki = imm.shape[1]
+      k = max(1, int(round(seeds * n))) if seeds < 1 else int(seeds)
+      if k > n - ki:
+         raise ValueError(f"{k} seeds, but only {n - ki} nodes that are not immunized")
+      out = np.zeros((runs, k), dtype = np.int64)
+      x, order_ = np.zeros(0), np.zeros(0, dtype = np.int64)
+      if ranking is not None:
+         x = _node_values(net, comps, ranking)
+         if selection == "top":
+            order_, x = np.argsort(-np.nan_to_num(x, nan = -np.inf), kind = "stable"), np.zeros(0)
+         else:
+            x = np.nan_to_num(x, nan = 0.)
+            if (x < 0).any():
+               raise ValueError("weighted selection needs non negative ranking values")
+            if (x > 0).sum() - ki < k:
+               raise ValueError(f"{k} seeds, but only {int((x > 0).sum())} nodes with a positive ranking value, and {ki} immunized nodes")
+      states = rs.integers(1, 2 ** 63, size = runs, dtype = np.uint64) if order_.shape[0] == 0 else np.ones(runs, dtype = np.uint64)
+      _draw_seeds(n, x, order_, k, imm if ki else np.zeros((0, 0), dtype = np.int64), states, out)
+   return out, removed, imm
+
+
+def _table(net, comps, off, component, attribute, last, total, square, runs, model):
+   """
+   Store the final states of the last run, and return the table of the states over time (see
+   :func:`si_model`).
+
+   :param last: State code of every node at the end of the last run.
+   :param total: Sums over the runs of the number of nodes in each state at each step, divided by
+      the number of nodes (steps by 3).
+   :param square: Same, for the squares.
+   :return: :class:`pandas.DataFrame`.
+   """
+   if attribute is not None:
+      labels = np.split(LABELS[last], off[1:-1])
+      net.set_node_attribute(attribute, labels if component is None else labels[0], component)
+   mean = total / runs
+   if runs > 1:
+      sd = np.sqrt(np.maximum(square - runs * mean * mean, 0) / (runs - 1))
+      h = student.ppf(0.975, runs - 1) * sd / np.sqrt(runs)
+   else:
+      h = np.full(mean.shape, np.nan)
+   cols = {}
+   for j, x in enumerate(STATES[:3 if model == "SIR" else 2]):
+      cols[x], cols[x + "_low"], cols[x + "_high"] = mean[:, j], mean[:, j] - h[:, j], mean[:, j] + h[:, j]
+   table = pd.DataFrame(cols, index = pd.RangeIndex(len(mean), name = "step"))
+   return table
 
 
 def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window = None, tolerance = 0., reinforcement = None, threshold = None, decay = 1., forest = False, immunize = None, strategy = "random", revert = False):
@@ -645,41 +752,7 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
    ptr = torch.zeros(n + 1, dtype = torch.long, device = dev)
    ptr[1:] = torch.cumsum(torch.bincount(s, minlength = n), 0)
 
-   # states at step 0: stored states (resume), immunized nodes, seeds
-   removed, vres, excl = np.zeros(0, dtype = np.int64), np.zeros(0, dtype = np.int64), np.zeros(n, dtype = np.bool_)
-   if resume:
-      if attribute is None or attribute not in net.qualitative_node_attributes:
-         raise ValueError(f"resume needs the states in a qualitative node attribute, but there is no {attribute!r} in net.qualitative_node_attributes: run a model on this network object first (without resume), or set the states with net.set_node_attribute")
-      x = pd.Series(np.concatenate([net.get_node_attribute(attribute, c) for c in comps]), dtype = object)
-      code = x.map({**{s: i for i, s in enumerate(STATES[:3 if model == "SIR" else 2])}, "V": 4})
-      bad = x.notna() & code.isna()
-      if bad.any():
-         raise ValueError(f"{attribute!r} has value {x[bad].iloc[0]!r}, not a state of the {model} model")
-      code = code.fillna(0).to_numpy(dtype = np.int64)   # missing: susceptible
-      removed, vres, excl = np.flatnonzero(code == 2), np.flatnonzero(code == 4), code != 0
-   imm = _immunization(net, comps, off, immunize, strategy, ptr.cpu().numpy(), nbr.cpu().numpy(), excl, runs, rs)
-   imm = np.concatenate([np.broadcast_to(vres, (imm.shape[0], vres.shape[0])), imm], 1)
-   if resume:
-      out = np.flatnonzero(code == 1)[None]
-   else:
-      ki = imm.shape[1]
-      k = max(1, int(round(seeds * n))) if seeds < 1 else int(seeds)
-      if k > n - ki:
-         raise ValueError(f"{k} seeds, but only {n - ki} nodes that are not immunized")
-      out = np.zeros((runs, k), dtype = np.int64)
-      x, order_ = np.zeros(0), np.zeros(0, dtype = np.int64)
-      if ranking is not None:
-         x = _node_values(net, comps, ranking)
-         if selection == "top":
-            order_, x = np.argsort(-np.nan_to_num(x, nan = -np.inf), kind = "stable"), np.zeros(0)
-         else:
-            x = np.nan_to_num(x, nan = 0.)
-            if (x < 0).any():
-               raise ValueError("weighted selection needs non negative ranking values")
-            if (x > 0).sum() - ki < k:
-               raise ValueError(f"{k} seeds, but only {int((x > 0).sum())} nodes with a positive ranking value, and {ki} immunized nodes")
-      states = rs.integers(1, 2 ** 63, size = runs, dtype = np.uint64) if order_.shape[0] == 0 else np.ones(runs, dtype = np.uint64)
-      _draw_seeds(n, x, order_, k, imm if ki else np.zeros((0, 0), dtype = np.int64), states, out)
+   out, removed, imm = _initial(net, comps, off, model, seeds, ranking, selection, runs, attribute, resume, immunize, strategy, ptr.cpu().numpy(), nbr.cpu().numpy(), rs)
 
    # infection probability of every edge, in CSR order, from a table per pair of nodes
    pe = np.zeros(0)
@@ -737,30 +810,12 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
          _run_numba(*args, out[(runs - 1) % out.shape[0]][None], removed, imm[(runs - 1) % imm.shape[0]][None], *rest, last_state, np.zeros((1, max_steps + 1, 3)), np.zeros((1, max_steps + 1, 3)), np.zeros(1, dtype = np.int64), np.zeros((1, 3)), np.zeros(n, dtype = np.uint8), ev, one)
       ev = ev[:nev[0]]
       ev = ev[ev[:, 2] <= ends[-1]]   # attempts decided at the last step were never applied
-      T = int(ends.max())
-      pad = np.zeros((2, T + 2, 3))   # finished runs keep their final value until step T
-      np.add.at(pad[0], ends + 1, finals)
-      np.add.at(pad[1], ends + 1, finals * finals)
-      pad = np.cumsum(pad, 1)[:, :T + 1]
-      total, square = (total.sum(0)[:T + 1] + pad[0]) / n, (square.sum(0)[:T + 1] + pad[1]) / n ** 2
+      total, square = _sums(total, square, ends, finals, n)
    else:
       tensor = lambda a: torch.as_tensor(a, device = dev)
       total, square, last, ev = _run_torch(ptr, nbr, tensor(out), tensor(removed), tensor(imm), beta, mu, sis, kind, tensor(need), tensor(stay), tensor(pe), float(decay), int(max_steps), window, float(tolerance), runs, int(rs.integers(2 ** 62)), batch or max(1, 2 ** 27 // n), forest)
 
-   # final states of the last run, and the table
-   if attribute is not None:
-      labels = np.split(LABELS[last], off[1:-1])
-      net.set_node_attribute(attribute, labels if component is None else labels[0], component)
-   mean = total / runs
-   if runs > 1:
-      sd = np.sqrt(np.maximum(square - runs * mean * mean, 0) / (runs - 1))
-      h = student.ppf(0.975, runs - 1) * sd / np.sqrt(runs)
-   else:
-      h = np.full(mean.shape, np.nan)
-   cols = {}
-   for j, x in enumerate(STATES[:3 if model == "SIR" else 2]):
-      cols[x], cols[x + "_low"], cols[x + "_high"] = mean[:, j], mean[:, j] - h[:, j], mean[:, j] + h[:, j]
-   table = pd.DataFrame(cols, index = pd.RangeIndex(len(mean), name = "step"))
+   table = _table(net, comps, off, component, attribute, last, total, square, runs, model)
    if not forest:
       return table
    return table, _forest(net, comps, out[(runs - 1) % out.shape[0]], ev)
@@ -791,6 +846,7 @@ def _forest(net, comps, roots, ev):
    return load_network(edges, nodes, source = "source", target = "target", directed = True, node_format = net.node_format, device = net.components[0].edge_index.device)
 
 
+@_higher_order()
 def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
    """
    Simulate the SI (Susceptible-Infected) model, and return the fraction of nodes in each state
@@ -892,6 +948,7 @@ def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100
    return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, immunize = immunize, strategy = strategy)
 
 
+@_higher_order()
 def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
    """
    Simulate the SIS (Susceptible-Infected-Susceptible) model, and return the fraction of nodes in
@@ -956,6 +1013,7 @@ def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
    return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, immunize = immunize, strategy = strategy)
 
 
+@_higher_order()
 def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
    """
    Simulate the SIR (Susceptible-Infected-Removed) model, and return the fraction of nodes in

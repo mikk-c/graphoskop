@@ -6,19 +6,10 @@ import os
 import sys
 from pathlib import Path
 
-# Make the package importable without installing it.
-sys.path.insert(0, str(Path("..").resolve()))
+# Add the repository root to Python's import path.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
-# Mock heavy dependencies that are not needed to extract docstrings.
-autodoc_mock_imports = [
-    "torch",
-    "torch_geometric",
-    "numba",
-    "numpy",
-    "pandas",
-    "scipy",
-    "tqdm",
-]
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "gui", "python")))   # worker of the interface

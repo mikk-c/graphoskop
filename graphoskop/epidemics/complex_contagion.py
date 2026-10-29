@@ -70,9 +70,11 @@ whatever its neighbors; a node whose threshold is above its in-degree can only b
 seed.
 """
 
+from .._policy import _higher_order
 from .simple_contagion import _simulate
 
 
+@_higher_order()
 def complex_si_model(net, beta, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random"):
    """
    Simulate the SI model with complex contagion, and return the fraction of nodes in each state
@@ -147,6 +149,7 @@ def complex_si_model(net, beta, reinforcement = "classical", threshold = None, d
    return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy)
 
 
+@_higher_order()
 def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, forest = False, immunize = None, strategy = "random"):
    """
    Simulate the SIS model with complex contagion, and return the fraction of nodes in each state
@@ -208,6 +211,7 @@ def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = No
    return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, decay, forest, immunize = immunize, strategy = strategy)
 
 
+@_higher_order()
 def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random"):
    """
    Simulate the SIR model with complex contagion, and return the fraction of nodes in each state
@@ -270,6 +274,7 @@ def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = No
    return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy)
 
 
+@_higher_order()
 def complex_nonprogressive_model(net, beta, reinforcement = "threshold", threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
    """
    Simulate the non progressive threshold model, and return the fraction of nodes in each state

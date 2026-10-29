@@ -19,12 +19,12 @@ functions show none: the outer bar covers them (and if it is off, they are off t
 
 Functions with a bar: :func:`~graphoskop.cascade_failures` (average path length), :func:`~graphoskop.diffpool`,
 :func:`~graphoskop.edge_removal` and :func:`~graphoskop.node_removal` (average path length, or
-``recompute``), :func:`~graphoskop.edge_swap`, :func:`~graphoskop.gae`, :func:`~graphoskop.gat`, :func:`~graphoskop.gatv2`,
+``recompute``), :func:`~graphoskop.edge_swap`, :func:`~graphoskop.force_directed_layout`, :func:`~graphoskop.gae`, :func:`~graphoskop.gat`, :func:`~graphoskop.gatv2`,
 :func:`~graphoskop.gcn`, :func:`~graphoskop.graphrnn` and :meth:`~graphoskop.GraphRNNFit.simulate`, :func:`~graphoskop.graphsage`,
 :func:`~graphoskop.growing_manifold`, :func:`~graphoskop.higher_order_dependency_network`,
 :func:`~graphoskop.kuramoto_model`, :func:`~graphoskop.memory_network`, :func:`~graphoskop.metapath2vec`, :func:`~graphoskop.nestedness` (null
 model), :func:`~graphoskop.node2vec`, :func:`~graphoskop.node_link_kuramoto_model`, :func:`~graphoskop.randomization_test`,
-:func:`~graphoskop.simplicial_kuramoto_model`, :func:`~graphoskop.struc2vec`, :func:`~graphoskop.vgae`.
+:func:`~graphoskop.simplicial_kuramoto_model`, :func:`~graphoskop.struc2vec`, :func:`~graphoskop.umap_layout`, :func:`~graphoskop.vgae`.
 """
 
 import sys

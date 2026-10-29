@@ -57,20 +57,29 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -132,6 +141,7 @@ colored afterwards). The coloring returned is then optimal, unless <code class="
 the best coloring found is returned, with a warning giving the bounds. Components are colored
 independently (smallest first, so that the time limit is spent on the hardest), with the same
 colors, so the number of colors is the largest over components.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -165,6 +175,7 @@ is split into connected pieces, and the search branches on a node of largest deg
 clique cover bound. Sparse real networks are often reduced to nothing without branching. If
 <code class="docutils literal notranslate"><span class="pre">time_limit</span></code> is reached, a greedy set (smallest degree first) is returned for the components
 not finished, with a warning that it is not proven maximum.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

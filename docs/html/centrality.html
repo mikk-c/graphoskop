@@ -62,26 +62,37 @@
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.hits"><code class="docutils literal notranslate"><span class="pre">hits()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.k_core_centrality"><code class="docutils literal notranslate"><span class="pre">k_core_centrality()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.katz_centrality"><code class="docutils literal notranslate"><span class="pre">katz_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.node_edge_centrality"><code class="docutils literal notranslate"><span class="pre">node_edge_centrality()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.pagerank"><code class="docutils literal notranslate"><span class="pre">pagerank()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.reach_centrality"><code class="docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.springrank"><code class="docutils literal notranslate"><span class="pre">springrank()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -115,8 +126,11 @@ betweenness centrality of edges; local reaching centrality of directed networks;
 shortest paths, random walk (current flow) betweenness (<code class="xref py py-func docutils literal notranslate"><span class="pre">flow_centrality()</span></code>), eigenvector
 centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code>), Katz centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">katz_centrality()</span></code>), alpha
 centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">alpha_centrality()</span></code>), PageRank (<code class="xref py py-func docutils literal notranslate"><span class="pre">pagerank()</span></code>), hubs and authorities
-(<code class="xref py py-func docutils literal notranslate"><span class="pre">hits()</span></code>) and k-core centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">k_core_centrality()</span></code>). Any of them can be turned into a
-centralization of the whole network with <code class="xref py py-func docutils literal notranslate"><span class="pre">centralization()</span></code>.</p>
+(<code class="xref py py-func docutils literal notranslate"><span class="pre">hits()</span></code>), k-core centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">k_core_centrality()</span></code>) and the SpringRank hierarchy of
+directed networks (<code class="xref py py-func docutils literal notranslate"><span class="pre">springrank()</span></code>). On hypergraphs and simplicial complexes, the nonlinear
+node and edge eigenvector centrality (<code class="xref py py-func docutils literal notranslate"><span class="pre">node_edge_centrality()</span></code>) scores nodes and hyperedges
+together. Any of them can be turned into a centralization of the whole network with
+<code class="xref py py-func docutils literal notranslate"><span class="pre">centralization()</span></code> (against a star, or a sunflower for higher-order networks).</p>
 <p>Paths are those of <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>: lengths are the values of an edge attribute
 (<code class="docutils literal notranslate"><span class="pre">weight</span></code>) or 1, with <code class="docutils literal notranslate"><span class="pre">inverse</span> <span class="pre">=</span> <span class="pre">True</span></code> for attributes measuring affinity; directed networks are
 searched along edge directions; in multilayer networks paths run on the supra-graph, where
@@ -147,6 +161,10 @@ work, see <a class="reference internal" href="shortest_paths.html#module-graphos
 <span class="c1"># all components at once, comparable across components</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">lin</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 <span class="n">h</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">harmonic_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># hierarchy of a directed network: an edge i -&gt; j pulls i one level above j</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;dominance.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">springrank</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py function">
@@ -174,6 +192,7 @@ but its cost can grow quickly (to the cube of the number of nodes) on large netw
 random-like structure, e.g. minutes for 20,000 nodes and 100,000 random edges. The default
 <span class="math notranslate nohighlight">\(\alpha = 1\)</span> is above <span class="math notranslate nohighlight">\(1 / \lambda_{max}\)</span> for most networks, so it always takes
 this route.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -233,6 +252,7 @@ be positive (a cycle of length 0 would give infinitely many shortest paths). Par
 count once, with the shortest length (igraph counts each parallel edge as a separate path), and
 self loops are ignored. With <code class="docutils literal notranslate"><span class="pre">lengths</span></code>, they must have been computed with the same <code class="docutils literal notranslate"><span class="pre">weight</span></code>
 and <code class="docutils literal notranslate"><span class="pre">inverse</span></code>, which are still needed to know the edge lengths.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -294,10 +314,18 @@ that cannot be computed on the star raise an error asking for <code class="docut
 depends on how the centrality is normalized: e.g. <a class="reference internal" href="#graphoskop.eigenvector_centrality" title="graphoskop.eigenvector_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">eigenvector_centrality()</span></code></a> has unit
 Euclidean norm, while igraph scales it to a largest value of 1, which gives a different
 centralization (pass a function rescaling the vector to reproduce it).</p>
+<p>On a hypergraph or simplicial complex, the reference is a sunflower of the same number of
+nodes: hyperedges (facets) of the mean size of those of <code class="docutils literal notranslate"><span class="pre">net</span></code> (rounded, at least 2), all
+sharing one center node and nothing else, the other nodes split among them (the last one
+smaller); its hyperedges have the mean value of every numeric hyperedge attribute of <code class="docutils literal notranslate"><span class="pre">net</span></code>.
+<code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code> is then <a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a> (hyperedges of a node; edges in a complex), and
+the centrality can be <a class="reference internal" href="#graphoskop.node_edge_centrality" title="graphoskop.node_edge_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_edge_centrality()</span></code></a> or any function taking these networks.
+Directed hypergraphs need <code class="docutils literal notranslate"><span class="pre">maximum</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, hypergraph or simplicial complex.</p></li>
 <li><p><strong>centrality</strong> – A centrality function of this module (or any function taking the network,
 <code class="docutils literal notranslate"><span class="pre">component</span></code> and the options, and returning one value per node, or a list of vectors for
 <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>), or <code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code> for the degree (options <code class="docutils literal notranslate"><span class="pre">direction</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>,
@@ -321,6 +349,9 @@ centralization (pass a function rescaling the vector to reproduce it).</p>
 <span class="n">gsk</span><span class="o">.</span><span class="n">centralization</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">closeness_centrality</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
 <span class="n">dnet</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">centralization</span><span class="p">(</span><span class="n">dnet</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;in&quot;</span><span class="p">)</span>
+<span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">centralization</span><span class="p">(</span><span class="n">hg</span><span class="p">)</span>                                        <span class="c1"># against a sunflower</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">centralization</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_edge_centrality</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -340,6 +371,7 @@ reachable). See also <a class="reference internal" href="#graphoskop.harmonic_ce
 <p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
 <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (NetworkX uses <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code>; its <code class="docutils literal notranslate"><span class="pre">wf_improved</span></code> is
 <code class="docutils literal notranslate"><span class="pre">lin</span></code>).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -392,6 +424,7 @@ one of the terms of Brandes’ backward accumulation. In undirected networks an 
 paths along it in both directions. Among parallel edges, only the shortest (the first in input
 order on ties) carries the paths, the others get 0; self loops and edges of infinite length get
 0.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -446,6 +479,7 @@ bipartite networks), with one sparse product per step on the device of the netwo
 from a constant vector (as NetworkX), until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node
 (1-norm of the change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). Each component is computed and normalized
 on its own.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -502,6 +536,7 @@ direction), parallel edges add their conductances, self loops are ignored. Weigh
 positive. Pairs of nodes in different components carry no current, so with
 <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> they add nothing. In multilayer networks the current flows on the
 supra-graph, couplings included.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -546,6 +581,7 @@ directly, without corrections. <span class="math notranslate nohighlight">\(N\)<
 length 0) are left out of the sum.</p>
 <p>In directed networks, <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code> uses the lengths from the node to the others,
 <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> those from the others to the node (as NetworkX).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -591,6 +627,7 @@ vector, until the authorities change by less than <code class="docutils literal 
 <span class="math notranslate nohighlight">\(n \cdot\)</span> <code class="docutils literal notranslate"><span class="pre">tol</span></code>). A component without edges gets 0. If the largest eigenvalue of
 <span class="math notranslate nohighlight">\(A^T A\)</span> is repeated (e.g. two disconnected parts once direction is taken into account),
 the scores are not unique; this iteration returns the ones reached from the constant vector.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -638,6 +675,7 @@ neighbors updated, wave after wave, until none is left at that level; they get c
 proportional to the number of edges, plus a small fixed cost per wave and a pass over the
 nodes per level. Waves are few on most networks; long chains of nodes (e.g. a path) are peeled
 one node from each end per wave.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -685,6 +723,7 @@ change below <span class="math notranslate nohighlight">\(n \cdot\)</span> <code
 norm over the network considered: with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> all components are normalized
 together, so values are comparable across them. If <span class="math notranslate nohighlight">\(\beta\)</span> is 0 everywhere, so is the
 result.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -720,6 +759,73 @@ not converge (<code class="docutils literal notranslate"><span class="pre">alpha
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.node_edge_centrality">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">node_edge_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperedges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.node_edge_centrality" title="Link to this definition"></a></dt>
+<dd><p>Nonlinear node and edge eigenvector centrality of a hypergraph or simplicial complex (Tudisco
+and Higham, 2021): node scores <span class="math notranslate nohighlight">\(x\)</span> and hyperedge scores <span class="math notranslate nohighlight">\(y\)</span>, each made of the other,</p>
+<div class="math notranslate nohighlight">
+\[\lambda x = g(B W f(y)), \qquad \mu y = \psi(B^T N \varphi(x)),\]</div>
+<p>with <span class="math notranslate nohighlight">\(B\)</span> the incidence matrix (nodes by hyperedges), <span class="math notranslate nohighlight">\(W\)</span> the hyperedge weights and
+<span class="math notranslate nohighlight">\(N\)</span> the node weights. A node is central if it is in central hyperedges, a hyperedge if it
+holds central nodes, and the functions say how scores combine. <code class="docutils literal notranslate"><span class="pre">model</span></code> chooses them, among
+the three of the paper:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>: all four the identity. Node scores add the scores of their hyperedges, and
+hyperedge scores the scores of their nodes: the eigenvector centrality of the bipartite
+incidence graph, which counts every hyperedge once whatever its size.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;log-exp&quot;</span></code>: <span class="math notranslate nohighlight">\(f(y) = y\)</span>, <span class="math notranslate nohighlight">\(g(z) = \sqrt{z}\)</span>, <span class="math notranslate nohighlight">\(\varphi(x) = \ln x\)</span>,
+<span class="math notranslate nohighlight">\(\psi(z) = e^z\)</span>: a hyperedge scores the product of the scores of its nodes, so it is
+central only if all its nodes are; on uniform hypergraphs (hyperedges of one size), with unit
+node weights, a solution is the tensor Z-eigenvector centrality of Benson (2019). The paper
+proves neither existence nor convergence for this model, and on sparse hypergraphs the
+iteration often ends with some scores driven to zero instead of on a solution: a warning
+says so.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>: <span class="math notranslate nohighlight">\(f\)</span>, <span class="math notranslate nohighlight">\(g\)</span> the identity, <span class="math notranslate nohighlight">\(\varphi(x) = x^{10}\)</span>,
+<span class="math notranslate nohighlight">\(\psi(z) = z^{1 / 10}\)</span>: a hyperedge scores about the largest score of its nodes (a soft
+maximum), so a group with one central node is central.</p></li>
+</ul>
+<p>The scores are computed by the nonlinear power method of the paper (each step the geometric
+mean of the previous scores and the new ones, which converges for the linear and max models on
+connected hypergraphs, the max model sometimes slowly), in double precision on the device of
+the network, products of the log-exp model in logarithms. After convergence, the scores are
+checked against the equations, with a warning if they do not solve them. Scores are normalized to sum 1 over the nodes of the component (and
+over its hyperedges). In a simplicial complex, the hyperedges are its facets.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A hypergraph or simplicial complex.</p></li>
+<li><p><strong>model</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;log-exp&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a list with one
+result per component.</p></li>
+<li><p><strong>weight</strong> – Name of the hyperedge (facet) attribute weighting the hyperedges, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>node_weight</strong> – Name of the node attribute weighting the nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>tol</strong> – Convergence threshold, on the L1 change of both score vectors.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations.</p></li>
+<li><p><strong>hyperedges</strong> – Whether to return the hyperedge scores too.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Float64 vector over the nodes of the component (internal order); with <code class="docutils literal notranslate"><span class="pre">hyperedges</span></code>,
+a pair of it and the vector over its hyperedges (facets), in their internal order.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network, <code class="docutils literal notranslate"><span class="pre">model</span></code> is unknown, or weights are not
+positive.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;papers.tsv&quot;</span><span class="p">)</span>                  <span class="c1"># papers and their authors</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_edge_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                        <span class="c1"># authors</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_edge_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">hyperedges</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># authors and papers</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">centralization</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_edge_centrality</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.pagerank">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">pagerank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.85</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">personalization</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.pagerank" title="Link to this definition"></a></dt>
 <dd><p>PageRank (Brin and Page, 1998): the stationary distribution of a random walker who, at each
@@ -734,6 +840,7 @@ a component index, the walk stays in that component (as
 followed both ways; in multilayer networks the walker moves along couplings too. Computed by
 power iteration, one sparse product per step on the device of the network, until the 1-norm
 of the change is below <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -781,6 +888,7 @@ unique, and is not provided).</p>
 <p>All nodes of a strongly connected component reach the same nodes, so a single breadth first
 search per strongly connected component is needed (on the CPU, in parallel processes for
 large work, as <a class="reference internal" href="#graphoskop.closeness_centrality" title="graphoskop.closeness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a>), or none with precomputed <code class="docutils literal notranslate"><span class="pre">lengths</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -809,6 +917,64 @@ does not match.</p>
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="hierarchy.html#graphoskop.global_reach_centrality" title="graphoskop.global_reach_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a> for the hierarchy measure built on it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.springrank">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">springrank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.springrank" title="Link to this definition"></a></dt>
+<dd><p>SpringRank (De Bacco, Larremore and Moore, 2018): the ranks <span class="math notranslate nohighlight">\(s\)</span> of the nodes of a
+directed network that minimize the energy of a system of springs, one per edge, each of rest
+length 1,</p>
+<div class="math notranslate nohighlight">
+\[H(s) = \frac{1}{2} \sum_{i, j} A_{ij} (s_i - s_j - 1)^2 + \frac{\alpha}{2} \sum_i s_i^2,\]</div>
+<p>so that an edge from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span> pulls <span class="math notranslate nohighlight">\(i\)</span> one unit above <span class="math notranslate nohighlight">\(j\)</span> (e.g.
+<span class="math notranslate nohighlight">\(i\)</span> beats <span class="math notranslate nohighlight">\(j\)</span>, or <span class="math notranslate nohighlight">\(i\)</span> places a graduate at <span class="math notranslate nohighlight">\(j\)</span>; to rank the targets of
+the edges higher, reverse them with <a class="reference internal" href="transformations.html#graphoskop.flip_edge_direction" title="graphoskop.flip_edge_direction"><code class="xref py py-func docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code></a>). The minimum
+solves the linear system</p>
+<div class="math notranslate nohighlight">
+\[\left[D^{out} + D^{in} - (A + A^T) + \alpha I\right] s = d^{out} - d^{in},\]</div>
+<p>with <span class="math notranslate nohighlight">\(d^{out}\)</span>, <span class="math notranslate nohighlight">\(d^{in}\)</span> the (weighted) out- and in-degrees: the Laplacian of the
+network with directions ignored, so the system is solved by conjugate gradient (Jacobi
+preconditioned), one sparse product per iteration on the device of the network, in double
+precision. Without regularization (<span class="math notranslate nohighlight">\(\alpha = 0\)</span>) ranks are defined up to a shift in each
+component: they are centered to mean 0 in each component, as in the reference implementation,
+so ranks are comparable only within a component. With <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> they are pulled
+towards 0 and are unique.</p>
+<p>Ranks are in units of the rest length: an edge from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span> is relaxed when
+<span class="math notranslate nohighlight">\(s_i = s_j + 1\)</span>. Parallel edges add their weights; self loops pull nothing. In
+multilayer networks the supra-graph is used.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight (number of interactions), or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>alpha</strong> – Regularization <span class="math notranslate nohighlight">\(\alpha \ge 0\)</span>.</p></li>
+<li><p><strong>tol</strong> – Relative residual tolerance of the conjugate gradient.</p></li>
+<li><p><strong>max_iter</strong> – Largest number of iterations, <code class="docutils literal notranslate"><span class="pre">10</span> <span class="pre">*</span> <span class="pre">n</span></code> if <code class="docutils literal notranslate"><span class="pre">None</span></code>; a warning is raised if
+it is reached.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float64 vector of ranks over the nodes of the component, on its device (a list of them,
+one per component, with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>), higher for higher ranked nodes.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected (all ranks would be 0), weights are negative,
+or <code class="docutils literal notranslate"><span class="pre">alpha</span></code> is negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;dominance.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># winner, loser, number of fights</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">springrank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;springrank&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">springrank</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># regularized, all components</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

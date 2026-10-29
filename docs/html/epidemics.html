@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Equivalence" href="equivalence.html" />
-    <link rel="prev" title="Communities" href="communities.html" /> 
+    <link rel="prev" title="Core-periphery structure" href="core_periphery.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Epidemics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.epidemics.complex_contagion">Complex contagion</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#complex-si-model">Complex SI model</a><ul>
@@ -65,6 +66,25 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#complex-sis-model">Complex SIS model</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_sis_model"><code class="docutils literal notranslate"><span class="pre">complex_sis_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#non-progressive-threshold-model">Non progressive threshold model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.complex_nonprogressive_model"><code class="docutils literal notranslate"><span class="pre">complex_nonprogressive_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.epidemics.higher_order_contagion">Higher-order contagion</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#higher-order-si-model">Higher-order SI model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.higher_order_si_model"><code class="docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#higher-order-sir-model">Higher-order SIR model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.higher_order_sir_model"><code class="docutils literal notranslate"><span class="pre">higher_order_sir_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#higher-order-sis-model">Higher-order SIS model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.higher_order_sis_model"><code class="docutils literal notranslate"><span class="pre">higher_order_sis_model()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -90,16 +110,24 @@
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -134,7 +162,11 @@ node to node through the edges of a network.</p>
 spontaneously. In simple contagion (<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">graphoskop.epidemics.simple_contagion</span></code></a>), one infected
 neighbor is enough to infect a node: SI, SIS and SIR models. In complex contagion
 (<a class="reference internal" href="#module-graphoskop.epidemics.complex_contagion" title="graphoskop.epidemics.complex_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">graphoskop.epidemics.complex_contagion</span></code></a>), the number of infected neighbors matters: one
-chance of infection per infected neighbor, or a threshold on their count or share.</p>
+chance of infection per infected neighbor, or a threshold on their count or share (which, in the
+non progressive model, also makes infected nodes susceptible again when they fall below it). In
+higher-order contagion (<a class="reference internal" href="#module-graphoskop.epidemics.higher_order_contagion" title="graphoskop.epidemics.higher_order_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">graphoskop.epidemics.higher_order_contagion</span></code></a>), on simplicial
+complexes and hypergraphs, groups of nodes infect: a triangle or a hyperedge infects its last
+susceptible node once all its other nodes are infected (the simplicial contagion model).</p>
 <section id="module-graphoskop.epidemics.complex_contagion">
 <span id="complex-contagion"></span><h2>Complex contagion<a class="headerlink" href="#module-graphoskop.epidemics.complex_contagion" title="Link to this heading"></a></h2>
 <p>Complex contagion: compartmental models of epidemics where the number of infected neighbors of a
@@ -195,6 +227,9 @@ node (a vector, a dictionary or <code class="xref py py-class docutils literal n
 numeric node attribute), so that, e.g., heterogeneous thresholds can be drawn from a
 distribution. Degrees count edges: parallel edges count several times, and a self loop counts in
 the in-degree (but never as an infected neighbor of a susceptible node).</p>
+<p>In <code class="xref py py-func docutils literal notranslate"><span class="pre">complex_nonprogressive_model()</span></code>, the non progressive threshold model, the thresholds
+also decide the way back: an infected node whose infected neighbors fall below its threshold is
+susceptible again at the next step, with no recovery rate <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p>
 <p>Everything else (time steps, seeds, runs, engines, stored states, resuming, the plateau of SIS) is
 as in <a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>. A seed node of a threshold model is infected
 whatever its neighbors; a node whose threshold is above its in-degree can only be infected as a
@@ -207,6 +242,7 @@ seed.</p>
 <span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.18</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>      <span class="c1"># Watts: at least 18% of the neighbors</span>
 <span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
 <span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">held</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_nonprogressive_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>   <span class="c1"># adoption undone below the threshold</span>
 
 <span class="c1"># heterogeneous thresholds, one per node, from a numeric node attribute</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -231,7 +267,9 @@ about as long as simple contagion: 3.6 s for the classical SI model with <code c
 (486 steps), 1.7 s for the threshold model with <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span></code> and 1% of seeds, 1.2 s for the cascade
 model with <code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">0.1</span></code>, 3.0 s for the classical SIR model with <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.05</span></code>, <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">0.1</span></code>,
 1.8 s for the independent cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.2</span></code> (2.2 s with probabilities from an edge
-attribute), 1.3 s for the decreasing cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.3</span></code> and <code class="docutils literal notranslate"><span class="pre">decay</span> <span class="pre">=</span> <span class="pre">0.5</span></code> (10 seeds).</p>
+attribute), 1.3 s for the decreasing cascade with <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.3</span></code> and <code class="docutils literal notranslate"><span class="pre">decay</span> <span class="pre">=</span> <span class="pre">0.5</span></code> (10 seeds), 1.4 s
+for the non progressive threshold model with <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0.5</span></code> and 5% of seeds, 1.2 s with
+<code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">0.2</span></code> and 20% of seeds.</p>
 <section id="complex-si-model">
 <h3>Complex SI model<a class="headerlink" href="#complex-si-model" title="Link to this heading"></a></h3>
 <dl class="py function">
@@ -243,6 +281,7 @@ at every time step, averaged over independent runs.</p>
 <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A run stops when no susceptible node can be
 infected any more (in threshold models, the cascade may stop well before reaching all the
 nodes), or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -325,6 +364,7 @@ at every time step, averaged over independent runs.</p>
 <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). Removed nodes no longer count as infected
 neighbors, so in threshold models a node can miss its threshold when its infected neighbors
 recover before enough of them are infected at the same time.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -394,6 +434,7 @@ at every time step, averaged over independent runs.</p>
 <p>As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a> (recoveries, plateau test), but a susceptible node is infected
 according to <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> (see the module description). A node can lose the infected
 neighbors that let it pass its threshold, and wait until it has enough again.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -448,6 +489,325 @@ kind of reinforcement.</p>
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
 <span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="s2">&quot;classical&quot;</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
 <span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="non-progressive-threshold-model">
+<h3>Non progressive threshold model<a class="headerlink" href="#non-progressive-threshold-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.complex_nonprogressive_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">complex_nonprogressive_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reinforcement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'threshold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.complex_nonprogressive_model" title="Link to this definition"></a></dt>
+<dd><p>Simulate the non progressive threshold model, and return the fraction of nodes in each state
+at every time step, averaged over independent runs.</p>
+<p>A threshold or cascade model (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, see the module description) in
+which the condition is checked again at every step for infected nodes too: an infected node
+whose infected neighbors fall below its threshold becomes susceptible again, at the next step,
+instead of recovering at rate <code class="docutils literal notranslate"><span class="pre">mu</span></code> (there is no <code class="docutils literal notranslate"><span class="pre">mu</span></code>). A susceptible node meeting its
+threshold is infected with probability <code class="docutils literal notranslate"><span class="pre">beta</span></code>, as in the other models. This is the non
+progressive version of the threshold models of Kempe, Kleinberg and Tardos (2003), where
+adoption can be undone when the reasons for it go away: it is neither SI (nodes leave the
+infected state) nor SIS (they leave it because of their neighbors, not at a rate). Both changes
+are decided at the same time from the states at the start of the step, so seeds are treated as
+any infected node: a seed without enough infected neighbors (e.g. a seed with no other seed
+among its neighbors, with a threshold of at least 1) is susceptible again at step 1. A node’s
+own self loops never count as its infected neighbors.</p>
+<p>A run stops when nothing can change any more: no infected node left, or a step in which no
+node changed state (a fixed point, where every infected node meets its threshold and no
+susceptible one can be infected). With <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">1</span></code> the dynamics are deterministic and can also
+end in a cycle of two states (nodes switching back and forth at every step), which the plateau
+test of <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a> stops (<code class="docutils literal notranslate"><span class="pre">window</span></code>, <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>), as it stops the
+endemic regime of a random process.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>beta</strong> – Probability, in (0, 1], that a susceptible node meeting its threshold is infected.</p></li>
+<li><p><strong>reinforcement</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code> (a count of infected neighbors) or <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code> (a share
+of the in-degree).</p></li>
+<li><p><strong>threshold</strong> – Count (<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code>) or share (<code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>) of infected neighbors
+needed, to be infected and to stay infected; one value, or one per node.</p></li>
+<li><p><strong>seeds</strong> – Number of seed nodes, or a fraction of the nodes if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values used to choose the seeds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>engine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;numba&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;torch&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>batch</strong> – With the torch engine, the number of runs simulated at once, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>attribute</strong> – Name of the qualitative node attribute holding the states (<code class="docutils literal notranslate"><span class="pre">&quot;S&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;I&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start from the states in <code class="docutils literal notranslate"><span class="pre">attribute</span></code> instead of seeds.</p></li>
+<li><p><strong>window</strong> – Steps of each window of the plateau test, or <code class="docutils literal notranslate"><span class="pre">None</span></code> not to stop at the
+plateau.</p></li>
+<li><p><strong>tolerance</strong> – Largest relative difference between the two windows at the plateau.</p></li>
+<li><p><strong>immunize</strong> – Nodes immunized at step 0, never infected (see
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>): a number of nodes (a fraction of them if
+below 1), chosen by <code class="docutils literal notranslate"><span class="pre">strategy</span></code>, or the node ids themselves; <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></li>
+<li><p><strong>strategy</strong> – With a number of nodes to immunize: <code class="docutils literal notranslate"><span class="pre">&quot;random&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;friend_of_random&quot;</span></code>, or
+node values (vector, dictionary or <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code>, name of a numeric node
+attribute) whose largest ones are immunized. Ignored with node ids.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by step, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – As <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a>, if <code class="docutils literal notranslate"><span class="pre">reinforcement</span></code> is not
+<code class="docutils literal notranslate"><span class="pre">&quot;threshold&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cascade&quot;</span></code>, or the thresholds are not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;contacts.tsv&quot;</span><span class="p">)</span>
+<span class="n">lost</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_nonprogressive_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>   <span class="c1"># isolated seeds revert</span>
+<span class="n">held</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">complex_nonprogressive_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;cascade&quot;</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">ranking</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>
+<span class="n">held</span><span class="p">[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>                                                           <span class="c1"># share still infected</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-graphoskop.epidemics.higher_order_contagion">
+<span id="higher-order-contagion"></span><h2>Higher-order contagion<a class="headerlink" href="#module-graphoskop.epidemics.higher_order_contagion" title="Link to this heading"></a></h2>
+<p>Higher-order contagion: epidemics on simplicial complexes and hypergraphs, where groups of nodes,
+not only pairs, carry the infection (Iacopini, Petri, Barrat and Latora, 2019, the simplicial
+contagion model).</p>
+<p>Every simplex (on a simplicial complex: every face of every facet, edges included) or hyperedge
+(on a hypergraph) of order <span class="math notranslate nohighlight">\(\omega\)</span> (dimension <span class="math notranslate nohighlight">\(\omega\)</span>, <span class="math notranslate nohighlight">\(\omega + 1\)</span> nodes) is
+an infection channel with probability <span class="math notranslate nohighlight">\(\beta_\omega\)</span>: at each step, a susceptible node of
+the group is infected through it with probability <span class="math notranslate nohighlight">\(\beta_\omega\)</span> if all the other
+<span class="math notranslate nohighlight">\(\omega\)</span> nodes of the group are infected. Edges (order 1) give the pairwise contagion of
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a> with one chance per infected neighbor (the
+<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code> reinforcement of <a class="reference internal" href="#module-graphoskop.epidemics.complex_contagion" title="graphoskop.epidemics.complex_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">complex_contagion</span></code></a>); a filled
+triangle (order 2) infects its third node only when two of them are infected, a social
+reinforcement that the edges of a triangle alone do not give. Channels are independent: a
+susceptible node is infected with probability <span class="math notranslate nohighlight">\(1 - \prod_g (1 - \beta_g)\)</span> over its groups
+<span class="math notranslate nohighlight">\(g\)</span> that meet the condition. With <code class="docutils literal notranslate"><span class="pre">threshold</span></code>, a group infects as soon as a share of its
+other nodes is infected (at least one): a critical mass, which suits hypergraphs with large
+hyperedges, where waiting for all the other nodes rarely happens.</p>
+<p>In a simplicial complex, a facet of <span class="math notranslate nohighlight">\(m\)</span> nodes holds all its faces as channels: a filled
+triangle is three edges and one triangle. The orders with a probability are enumerated (see
+<a class="reference internal" href="higher_order.html#graphoskop.Network.simplices" title="graphoskop.Network.simplices"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simplices()</span></code></a>); higher ones are not. A hypergraph has only its hyperedges:
+a hyperedge of three nodes is a triangle channel, without its pairs.</p>
+<p>Time, states, recoveries, seeds, immunization, stored states and the output are those of
+<a class="reference internal" href="#module-graphoskop.epidemics.simple_contagion" title="graphoskop.epidemics.simple_contagion"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simple_contagion</span></code></a>: discrete, synchronous steps; SI, SIS (the model of
+Iacopini et al.) and SIR. In the mean field, with <span class="math notranslate nohighlight">\(\lambda = \beta_1 \langle k \rangle /
+\mu\)</span> and <span class="math notranslate nohighlight">\(\lambda_\Delta = \beta_2 \langle k_\Delta \rangle / \mu\)</span>
+(<span class="math notranslate nohighlight">\(\langle k_\Delta \rangle\)</span> the mean number of triangles of a node, from
+<a class="reference internal" href="higher_order.html#graphoskop.generalized_degree" title="graphoskop.generalized_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_degree()</span></code></a>), the SIS model has a discontinuous transition with a
+bistable region when <span class="math notranslate nohighlight">\(\lambda_\Delta &gt; 1\)</span>: whether the epidemic survives depends on the
+share of initial seeds.</p>
+<p>Runs are simulated by compiled code on CPU threads, each thread running whole runs. Every node
+keeps its number of infected neighbors through edges, as in pairwise contagion, and the escape
+probability of its larger groups that can infect it, updated only when a group starts or stops
+infecting, so a step costs time proportional to the exposed nodes and to the edges and groups of
+the nodes that changed. Networks on a GPU are copied to the CPU for the simulation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">(</span><span class="s2">&quot;groups.tsv&quot;</span><span class="p">)</span>                     <span class="c1"># e.g. cliques of contacts</span>
+<span class="n">sis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span>   <span class="c1"># beta_1 (edges), beta_2 (triangles)</span>
+
+<span class="c1"># the rescaled infectivities of Iacopini et al.: lambda = beta_1 &lt;k&gt; / mu, lambda_D = beta_2 &lt;k_D&gt; / mu</span>
+<span class="n">mu</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_degree</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">kd</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_simplices</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>          <span class="c1"># mean triangles per node</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.8</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">/</span> <span class="n">k</span><span class="p">,</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">/</span> <span class="n">kd</span><span class="p">]</span>                                 <span class="c1"># lambda = 0.8, lambda_D = 2.5: bistable</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>   <span class="c1"># dies out</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">)[</span><span class="s2">&quot;I&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>    <span class="c1"># endemic</span>
+
+<span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>                             <span class="c1"># hyperedges of any size</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sir_model</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>   <span class="c1"># half of a group infects</span>
+</pre></div>
+</div>
+<p>On a random simplicial complex with the parameters of Iacopini et al. (2,000 nodes, mean degree
+20, 6 triangles per node, <span class="math notranslate nohighlight">\(\lambda_\Delta = 2.5\)</span>, <code class="docutils literal notranslate"><span class="pre">mu</span> <span class="pre">=</span> <span class="pre">0.05</span></code>), 20 runs of the SIS model
+take 2.4 s for four settings on two CPU threads, and reproduce the bistable region of the mean
+field: at <span class="math notranslate nohighlight">\(\lambda = 0.8\)</span>, the epidemic dies out from 1% of seeds and is endemic from 40%
+(46.5% of infected nodes, against 52.9% in the homogeneous mean field, which neglects the
+correlations between neighbors and the spread of degrees); at <span class="math notranslate nohighlight">\(\lambda = 0.5\)</span>, below the critical point <span class="math notranslate nohighlight">\(2 \sqrt{\lambda_\Delta} -
+\lambda_\Delta = 0.66\)</span>, it dies out from 40%. Pairs are counted as in pairwise contagion: with
+edges only, the model takes about as long as <a class="reference internal" href="#graphoskop.complex_sis_model" title="graphoskop.complex_sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">complex_sis_model()</span></code></a> with
+<code class="docutils literal notranslate"><span class="pre">&quot;classical&quot;</span></code> reinforcement (9.4 s against 8.0 s, 20 runs on 100,000 nodes and 900,000 edges).
+With 100,000 nodes, 900,000 edges and 200,000 triangles, 100 runs of an endemic SIS model (87% of
+the nodes infected, 214 steps to the plateau) take 72 s.</p>
+<section id="higher-order-si-model">
+<h3>Higher-order SI model<a class="headerlink" href="#higher-order-si-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.higher_order_si_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">higher_order_si_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.higher_order_si_model" title="Link to this definition"></a></dt>
+<dd><p>SI model of higher-order contagion on a simplicial complex or a hypergraph: a susceptible node
+is infected through each group of order <span class="math notranslate nohighlight">\(\omega\)</span> (a simplex, or a hyperedge of
+<span class="math notranslate nohighlight">\(\omega + 1\)</span> nodes) whose other nodes are all infected, with probability
+<span class="math notranslate nohighlight">\(\beta_\omega\)</span> (see the module description), and stays infected. Seeds, immunization,
+stored states and the table are as in <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A simplicial complex or a hypergraph (undirected).</p></li>
+<li><p><strong>beta</strong> – Infection probabilities by order: a sequence <span class="math notranslate nohighlight">\((\beta_1, \beta_2, \ldots)\)</span>
+(edges, triangles, …), a dictionary from order to probability, or one probability for all
+orders. Orders without a probability (or with 0) do not infect; on a simplicial complex,
+simplices of higher orders are not enumerated.</p></li>
+<li><p><strong>threshold</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> for groups that infect when all their other nodes are infected
+(Iacopini et al.), or the share of the other nodes that must be infected, in (0, 1] (at
+least one).</p></li>
+<li><p><strong>seeds</strong> – Number of infected nodes at step 0, or their share if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values to choose the seeds from, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for random seeds (see
+<a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>).</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code> (see <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>).</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>attribute</strong> – Qualitative node attribute storing the states at the end of the last run, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start every run from the states stored in <code class="docutils literal notranslate"><span class="pre">attribute</span></code>.</p></li>
+<li><p><strong>immunize</strong> – Nodes to immunize at step 0 (see <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>); acquaintance
+immunization picks a node sharing a simplex or hyperedge with a random node.</p></li>
+<li><p><strong>strategy</strong> – How to choose the immunized nodes (see <a class="reference internal" href="#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by <code class="docutils literal notranslate"><span class="pre">step</span></code>, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>: the mean fraction of nodes in each state and
+its 95% confidence interval.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network or a directed hypergraph, or a parameter is
+not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">(</span><span class="s2">&quot;groups.tsv&quot;</span><span class="p">)</span>
+<span class="n">si</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_si_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>       <span class="c1"># edges, then triangles</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="higher-order-sir-model">
+<h3>Higher-order SIR model<a class="headerlink" href="#higher-order-sir-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.higher_order_sir_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">higher_order_sir_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.higher_order_sir_model" title="Link to this definition"></a></dt>
+<dd><p>SIR model of higher-order contagion on a simplicial complex or a hypergraph: infection through
+groups as in <a class="reference internal" href="#graphoskop.higher_order_si_model" title="graphoskop.higher_order_si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a>; infected nodes recover with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> per
+step and become removed (R), as in <a class="reference internal" href="#graphoskop.sir_model" title="graphoskop.sir_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sir_model()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A simplicial complex or a hypergraph (undirected).</p></li>
+<li><p><strong>beta</strong> – Infection probabilities by order (see <a class="reference internal" href="#graphoskop.higher_order_si_model" title="graphoskop.higher_order_si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a>).</p></li>
+<li><p><strong>mu</strong> – Recovery probability per step.</p></li>
+<li><p><strong>threshold</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> (all the other nodes), or the share of the other nodes of a group
+that must be infected.</p></li>
+<li><p><strong>seeds</strong> – Number of infected nodes at step 0, or their share if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values to choose the seeds from, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>attribute</strong> – Qualitative node attribute storing the final states of the last run, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start every run from the states stored in <code class="docutils literal notranslate"><span class="pre">attribute</span></code>.</p></li>
+<li><p><strong>immunize</strong> – Nodes to immunize at step 0.</p></li>
+<li><p><strong>strategy</strong> – How to choose them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by <code class="docutils literal notranslate"><span class="pre">step</span></code>, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code> and <code class="docutils literal notranslate"><span class="pre">R</span></code>
+and their 95% confidence intervals (<code class="docutils literal notranslate"><span class="pre">_low</span></code>, <code class="docutils literal notranslate"><span class="pre">_high</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network or a directed hypergraph, or a parameter is
+not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>
+<span class="n">sir</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sir_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">},</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="higher-order-sis-model">
+<h3>Higher-order SIS model<a class="headerlink" href="#higher-order-sis-model" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.higher_order_sis_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">higher_order_sis_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seeds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">immunize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.higher_order_sis_model" title="Link to this definition"></a></dt>
+<dd><p>SIS model of higher-order contagion on a simplicial complex or a hypergraph: the simplicial
+contagion model of Iacopini, Petri, Barrat and Latora (2019). A susceptible node is infected
+through each group of order <span class="math notranslate nohighlight">\(\omega\)</span> whose other nodes are all infected, with probability
+<span class="math notranslate nohighlight">\(\beta_\omega\)</span> (see the module description); infected nodes recover with probability
+<code class="docutils literal notranslate"><span class="pre">mu</span></code> per step and become susceptible again. Runs stop at the endemic plateau as in
+<a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a>, and the other parameters are those of
+<a class="reference internal" href="#graphoskop.higher_order_si_model" title="graphoskop.higher_order_si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a>.</p>
+<p>The rescaled infectivities of the paper are <span class="math notranslate nohighlight">\(\lambda = \beta_1 \langle k \rangle / \mu\)</span>
+and <span class="math notranslate nohighlight">\(\lambda_\Delta = \beta_2 \langle k_\Delta \rangle / \mu\)</span>, with
+<span class="math notranslate nohighlight">\(\langle k \rangle\)</span> the mean degree (<a class="reference internal" href="network_statistics.html#graphoskop.average_degree" title="graphoskop.average_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_degree()</span></code></a>) and
+<span class="math notranslate nohighlight">\(\langle k_\Delta \rangle\)</span> the mean number of triangles of a node
+(<a class="reference internal" href="higher_order.html#graphoskop.generalized_degree" title="graphoskop.generalized_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_degree()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">d</span> <span class="pre">=</span> <span class="pre">2</span></code>). For <span class="math notranslate nohighlight">\(\lambda_\Delta &gt; 1\)</span>, the
+endemic state appears abruptly, below <span class="math notranslate nohighlight">\(\lambda = 1\)</span>, and only from enough initial seeds.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A simplicial complex or a hypergraph (undirected).</p></li>
+<li><p><strong>beta</strong> – Infection probabilities by order (see <a class="reference internal" href="#graphoskop.higher_order_si_model" title="graphoskop.higher_order_si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a>).</p></li>
+<li><p><strong>mu</strong> – Recovery probability per step.</p></li>
+<li><p><strong>threshold</strong> – <code class="docutils literal notranslate"><span class="pre">None</span></code> (all the other nodes), or the share of the other nodes of a group
+that must be infected (see <a class="reference internal" href="#graphoskop.higher_order_si_model" title="graphoskop.higher_order_si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_si_model()</span></code></a>).</p></li>
+<li><p><strong>seeds</strong> – Number of infected nodes at step 0, or their share if below 1.</p></li>
+<li><p><strong>ranking</strong> – Node values to choose the seeds from, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>selection</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;top&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted&quot;</span></code>.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>max_steps</strong> – Largest number of steps of a run.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>attribute</strong> – Qualitative node attribute storing the final states of the last run, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>resume</strong> – Whether to start every run from the states stored in <code class="docutils literal notranslate"><span class="pre">attribute</span></code>.</p></li>
+<li><p><strong>window</strong> – Steps of the plateau test (see <a class="reference internal" href="#graphoskop.sis_model" title="graphoskop.sis_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">sis_model()</span></code></a>), or 0 for none.
+An epidemic dying out slowly with few infected nodes (as in the bistable region, from few
+seeds) can pass the test at a noisy low level: use 0 to follow it to the end.</p></li>
+<li><p><strong>tolerance</strong> – Relative tolerance of the plateau test.</p></li>
+<li><p><strong>immunize</strong> – Nodes to immunize at step 0.</p></li>
+<li><p><strong>strategy</strong> – How to choose them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> indexed by <code class="docutils literal notranslate"><span class="pre">step</span></code>, with columns <code class="docutils literal notranslate"><span class="pre">S</span></code>, <code class="docutils literal notranslate"><span class="pre">S_low</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S_high</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>, <code class="docutils literal notranslate"><span class="pre">I_low</span></code> and <code class="docutils literal notranslate"><span class="pre">I_high</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network or a directed hypergraph, or a parameter is
+not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">(</span><span class="s2">&quot;groups.tsv&quot;</span><span class="p">)</span>
+<span class="n">mu</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_degree</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">kt</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_simplices</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>        <span class="c1"># mean triangles per node</span>
+<span class="n">lam</span><span class="p">,</span> <span class="n">lam_t</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">2.5</span>                                              <span class="c1"># bistable region</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="p">[</span><span class="n">lam</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">/</span> <span class="n">k</span><span class="p">,</span> <span class="n">lam_t</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">/</span> <span class="n">kt</span><span class="p">]</span>
+<span class="n">low</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">window</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>     <span class="c1"># dies out</span>
+<span class="n">high</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">higher_order_sis_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">seeds</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">)</span>     <span class="c1"># endemic</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -658,6 +1018,7 @@ numbers come from <code class="docutils literal notranslate"><span class="pre">s
 threads; the two engines give different draws of the same model.</p>
 <p>The confidence interval of the mean at each step is the 95% Student’s t interval, from the
 standard deviation across runs (NaN with a single run).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -726,6 +1087,7 @@ each state at every time step, averaged over independent runs.</p>
 every step each node infected at the start of the step recovers with probability <code class="docutils literal notranslate"><span class="pre">mu</span></code> and is
 removed (it can no longer infect nor be infected), at the same time as the infections. A run
 stops when no node is infected, or after <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> steps.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -792,6 +1154,7 @@ fluctuations can keep the test from passing (the runs then last <code class="doc
 <code class="docutils literal notranslate"><span class="pre">window</span></code> or <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> helps. Near the epidemic threshold the number of infected nodes
 drifts slowly, and a small <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> avoids stopping too early. <code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">=</span> <span class="pre">None</span></code> turns the
 test off.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -850,7 +1213,7 @@ valid.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="communities.html" class="btn btn-neutral float-left" title="Communities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_periphery.html" class="btn btn-neutral float-left" title="Core-periphery structure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="equivalence.html" class="btn btn-neutral float-right" title="Equivalence" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

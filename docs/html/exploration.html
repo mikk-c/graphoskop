@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Exploration</a><ul>
@@ -63,16 +64,24 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -128,6 +137,14 @@ time, on the device of the network.</p>
 <p>Only the component of the source is explored. A source can be given as an iterable of nodes (a
 list, set, range, NumPy array or pandas Series or Index; a tuple is always one node): each is then
 explored on its own, and the result gains a first column <code class="docutils literal notranslate"><span class="pre">source</span></code>, with the node as given.</p>
+<p>In hypergraphs (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>), a step of a random walk follows Zhou et al. (2006): a
+hyperedge of the current node, drawn in proportion to its weight <span class="math notranslate nohighlight">\(w(e)\)</span> (the hyperedge
+attribute <code class="docutils literal notranslate"><span class="pre">weight</span></code>, or uniformly), then a node of that hyperedge, uniformly, the current one
+included. In a directed hypergraph the step goes from a tail to a head (<code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;out&quot;</span></code>).
+Walks run as walks of twice the length on the incidence graph, and also report the hyperedge of
+every step. Metropolis-Hastings walks run on <a class="reference internal" href="higher_order.html#graphoskop.hypergraph_walk_network" title="graphoskop.hypergraph_walk_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_walk_network()</span></code></a>, and
+explorations of simplicial complexes on their 1-skeleton (their nodes and edges); other walk models
+are walks on <a class="reference internal" href="higher_order.html#graphoskop.hypergraph_walk_network" title="graphoskop.hypergraph_walk_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_walk_network()</span></code></a>. Searches do not support them.</p>
 <p>In directed networks <code class="docutils literal notranslate"><span class="pre">direction</span></code> chooses the edges followed: <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> (along their direction),
 <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> (against it) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>. In multilayer networks the exploration runs on the supra-graph
 (couplings are edges like the others). An entity given as source stands for all its copies: a
@@ -149,6 +166,7 @@ walk starts from one of them, drawn uniformly at random.</p>
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">bfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.bfs" title="Link to this definition"></a></dt>
 <dd><p>Breadth first search: the nodes reachable from <code class="docutils literal notranslate"><span class="pre">source</span></code>, by increasing number of edges from
 it (see the module description).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -188,6 +206,7 @@ the node it was reached from, missing for the source); first <code class="docuti
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">dfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.dfs" title="Link to this definition"></a></dt>
 <dd><p>Depth first search: the nodes reachable from <code class="docutils literal notranslate"><span class="pre">source</span></code>, each followed by all the nodes reached
 through it before backtracking (preorder; see the module description).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -226,6 +245,7 @@ added to the output. Moves towards hubs are refused more often, which corrects t
 random walks towards them: in the long run the walk spends the same number of steps on every
 node (undirected networks, or <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;both&quot;</span></code>; see the module description). The
 <code class="docutils literal notranslate"><span class="pre">duration</span></code> of each visit (1 plus the moves refused there) keeps that count.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -268,6 +288,7 @@ there; durations of a walk add up to <code class="docutils literal notranslate">
 <dd><p>Random walks: from <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">length</span></code> steps, each to a neighbor of the current node drawn
 uniformly at random (or in proportion to the edge weights), possibly repeated (see the module
 description). Nodes can be visited many times, and not every node is reached.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -277,7 +298,7 @@ multilayer networks), or an iterable of them, each with its own walks.</p></li>
 <li><p><strong>length</strong> – Number of steps of each walk.</p></li>
 <li><p><strong>walks</strong> – Number of walks from each source.</p></li>
 <li><p><strong>weight</strong> – Name of the edge attribute used as edge weight (neighbors are drawn in proportion
-to it), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform choices.</p></li>
+to it), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform choices; in hypergraphs, a hyperedge attribute <span class="math notranslate nohighlight">\(w(e)\)</span>.</p></li>
 <li><p><strong>direction</strong> – In directed networks, <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code>; ignored otherwise.</p></li>
 <li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
 </ul>
@@ -285,7 +306,9 @@ to it), or <code class="docutils literal notranslate"><span class="pre">None</sp
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per visit, by walk and step: columns <code class="docutils literal notranslate"><span class="pre">walk</span></code>
 (0 to <code class="docutils literal notranslate"><span class="pre">walks</span> <span class="pre">-</span> <span class="pre">1</span></code>), <code class="docutils literal notranslate"><span class="pre">step</span></code> (0 for the source) and <code class="docutils literal notranslate"><span class="pre">node</span></code> (input id); first <code class="docutils literal notranslate"><span class="pre">source</span></code>
-with an iterable. In directed networks a walk ends early at a node without edges to follow.</p>
+with an iterable; for hypergraphs, last <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> (the <a class="reference internal" href="higher_order.html#graphoskop.Hyperedge" title="graphoskop.Hyperedge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hyperedge</span></code></a>
+taken to reach the node, <code class="docutils literal notranslate"><span class="pre">None</span></code> at step 0). In directed networks a walk ends early at a
+node without edges to follow.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -303,6 +326,9 @@ with an iterable. In directed networks a walk ends early at a node without edges
 <span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">walks</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>    <span class="c1"># 100 walks from alice</span>
 <span class="n">visits</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">node</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">],</span> <span class="mi">10</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">({</span><span class="s2">&quot;m1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="s2">&quot;m2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">]})</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">random_walk</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>           <span class="c1"># walk, step, node, hyperedge</span>
 </pre></div>
 </div>
 </dd></dl>

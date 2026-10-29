@@ -53,17 +53,25 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Shortest paths</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths"><code class="docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a></li>
@@ -77,6 +85,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -135,6 +144,7 @@ is used.</p>
 <dt class="sig sig-object py" id="graphoskop.all_pairs_shortest_path_lengths">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">all_pairs_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.all_pairs_shortest_path_lengths" title="Link to this definition"></a></dt>
 <dd><p>Lengths of the shortest paths between all pairs of nodes of a component.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -173,6 +183,7 @@ lengths (as in <a class="reference internal" href="#graphoskop.single_source_sho
 <p>The number of paths grows with the square of the number of nodes, so this is meant for small
 components; for large ones, use <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> or
 <a class="reference internal" href="#graphoskop.single_source_shortest_paths" title="graphoskop.single_source_shortest_paths"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_source_shortest_paths()</span></code></a> on the sources of interest.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -216,6 +227,7 @@ handful of searches instead of one per node. Directed networks search from every
 and processes as <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>). With <code class="docutils literal notranslate"><span class="pre">lengths</span></code> (from
 <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> with the same <code class="docutils literal notranslate"><span class="pre">component</span></code>, <code class="docutils literal notranslate"><span class="pre">weight</span></code> and
 <code class="docutils literal notranslate"><span class="pre">inverse</span></code>) nothing is searched.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -249,6 +261,7 @@ and processes as <a class="reference internal" href="#graphoskop.all_pairs_short
 <dt class="sig sig-object py" id="graphoskop.shortest_path">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">shortest_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.shortest_path" title="Link to this definition"></a></dt>
 <dd><p>Shortest path between two nodes.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -281,6 +294,7 @@ then the first copy in layer order).</p>
 <dt class="sig sig-object py" id="graphoskop.shortest_path_length">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">shortest_path_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.shortest_path_length" title="Link to this definition"></a></dt>
 <dd><p>Length of the shortest path between two nodes.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -323,6 +337,7 @@ uniformly from the nodes considered, <code class="docutils literal notranslate">
 all sources, as an estimate. With <code class="docutils literal notranslate"><span class="pre">lengths</span></code> (computed by
 <a class="reference internal" href="#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a> with unit lengths, <code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>, for the same
 <code class="docutils literal notranslate"><span class="pre">component</span></code>) nothing is searched again.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -358,6 +373,7 @@ or float when estimated with <code class="docutils literal notranslate"><span cl
 <dt class="sig sig-object py" id="graphoskop.single_source_shortest_path_lengths">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_path_lengths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_path_lengths" title="Link to this definition"></a></dt>
 <dd><p>Lengths of the shortest paths from one node to every node it reaches.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -385,6 +401,7 @@ nearest of its copies, 0 for the copies themselves).</p></li>
 <dt class="sig sig-object py" id="graphoskop.single_source_shortest_paths">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_source_shortest_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_source_shortest_paths" title="Link to this definition"></a></dt>
 <dd><p>Shortest paths from one node to every node it reaches.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

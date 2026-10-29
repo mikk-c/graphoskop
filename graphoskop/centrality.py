@@ -762,7 +762,7 @@ def pagerank(net, component = 0, weight = None, damping = 0.85, personalization 
          v = torch.cat([torch.as_tensor(net.get_node_attribute(personalization, c), device = dev).double() for c in comps])
       else:
          ids = np.concatenate([net.node_ids[c] for c in comps])
-         v = torch.as_tensor(pd.Series(ids).map(personalization).fillna(0).to_numpy(dtype = np.float64), device = dev)
+         v = torch.as_tensor(pd.Series(ids).map(personalization).fillna(0).to_numpy(dtype = np.float64).copy(), device = dev)
       v = v.nan_to_num(0.)
       if bool((v < 0).any()) or not bool((v > 0).any()):
          raise ValueError("pagerank: personalization values must be non negative, not all 0")
@@ -937,7 +937,7 @@ def katz_centrality(net, component = 0, weight = None, alpha = 0.1, beta = 1., d
       if isinstance(beta, str):
          b = torch.as_tensor(net.get_node_attribute(beta, c), device = dev).double().nan_to_num(0.)
       elif isinstance(beta, (dict, pd.Series)):
-         b = torch.as_tensor(pd.Series(net.node_ids[c]).map(beta).fillna(0).to_numpy(dtype = np.float64), device = dev)
+         b = torch.as_tensor(pd.Series(net.node_ids[c]).map(beta).fillna(0).to_numpy(dtype = np.float64).copy(), device = dev)
       else:
          b = torch.full((n,), float(beta), dtype = torch.float64, device = dev)
       x = _katz_iter(s, t, w, b, alpha, tol, max_iter)
@@ -1023,7 +1023,7 @@ def alpha_centrality(net, component = 0, weight = None, alpha = 1., exo = 1., di
       if isinstance(exo, str):
          e = torch.as_tensor(net.get_node_attribute(exo, c), device = dev).double().nan_to_num(0.)
       elif isinstance(exo, (dict, pd.Series)):
-         e = torch.as_tensor(pd.Series(net.node_ids[c]).map(exo).fillna(0).to_numpy(dtype = np.float64), device = dev)
+         e = torch.as_tensor(pd.Series(net.node_ids[c]).map(exo).fillna(0).to_numpy(dtype = np.float64).copy(), device = dev)
       else:
          e = torch.full((n,), float(exo), dtype = torch.float64, device = dev)
       x = _katz_iter(s, t, w, e, alpha, tol, max_iter)

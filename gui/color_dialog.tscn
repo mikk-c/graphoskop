@@ -1,0 +1,156 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://color_dialog.gd" id="1_color"]
+[ext_resource type="Script" path="res://swatch_button.gd" id="2_swatch"]
+
+[node name="ColorDialog" type="AcceptDialog"]
+title = "Colors"
+size = Vector2i(440, 200)
+script = ExtResource("1_color")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 432.0
+offset_bottom = 151.0
+
+[node name="Grid" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 2
+
+[node name="ByLabel" type="Label" parent="Box/Grid"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Color by"
+
+[node name="By" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+fit_to_longest_item = false
+
+[node name="SingleLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Color"
+
+[node name="Single" type="Button" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("2_swatch")
+
+[node name="ScaleLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scale"
+
+[node name="Scale" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Quantitative"
+popup/item_0/id = 0
+popup/item_1/text = "Qualitative"
+popup/item_1/id = 1
+
+[node name="PaletteLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Palette"
+
+[node name="Palette" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+fit_to_longest_item = false
+
+[node name="ClassesLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Stops"
+
+[node name="Classes" type="SpinBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+min_value = 3.0
+max_value = 9.0
+value = 5.0
+
+[node name="MethodLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Placement"
+
+[node name="Method" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 4
+popup/item_0/text = "Quantiles"
+popup/item_0/id = 0
+popup/item_1/text = "Evenly spaced"
+popup/item_1/id = 1
+popup/item_2/text = "Natural breaks"
+popup/item_2/id = 2
+popup/item_3/text = "Custom"
+popup/item_3/id = 3
+popup/item_3/disabled = true
+
+[node name="LogLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Log" type="CheckBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Logarithmic scale"
+
+[node name="Scroll" type="ScrollContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Rows" type="VBoxContainer" parent="Box/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AutoRow" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Auto" type="Button" parent="Box/AutoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Automatic colors"
+
+[node name="Clear" type="Button" parent="Box/AutoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "All values #999999, to give them colors one by one"
+text = "Clear"
+
+[node name="MissingLabel" type="Label" parent="Box/AutoRow"]
+layout_mode = 2
+size_flags_horizontal = 10
+text = "Missing values"
+
+[node name="Missing" type="Button" parent="Box/AutoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_swatch")
+
+[node name="Note" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+autowrap_mode = 3
+
+[node name="Debounce" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.3
+one_shot = true

@@ -63,20 +63,29 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -155,6 +164,7 @@ isolated nodes.</p>
 in-vector of <span class="math notranslate nohighlight">\(b\)</span> (weights of <span class="math notranslate nohighlight">\(c \to b\)</span>), and the projection is directed. The dot
 products are sums over the paths of length two (see the module description), accumulated in
 float64.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -204,6 +214,7 @@ the device of the network. Batches cover disjoint sets of kept nodes, so no pair
 between two batches and nothing needs merging: peak memory is about 60 bytes per path of a
 batch (1 GB with the default) plus the result. Smaller batches use less memory and take a
 little longer.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -250,6 +261,7 @@ Parallel edges are summed, so with unit weights they count as many times as they
 directed networks the sum runs over the paths <span class="math notranslate nohighlight">\(a \to c \to b\)</span> (see the module
 description), and <span class="math notranslate nohighlight">\(s_c\)</span> sums the edges of <span class="math notranslate nohighlight">\(c\)</span> in both directions. Kept nodes
 sharing no neighbor stay as isolated nodes.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -301,6 +313,7 @@ by a path of length two are computed.</p>
 <span class="math notranslate nohighlight">\(a \to b\)</span> compares the out-vector of <span class="math notranslate nohighlight">\(a\)</span> with the in-vector of <span class="math notranslate nohighlight">\(b\)</span>, and the
 projection is directed. The dot products are sums over the paths of length two (see the module
 description), accumulated in float64 to limit cancellation.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -355,6 +368,7 @@ networks, those of the layer. In directed networks the weight of <span class="ma
 out-vector of <span class="math notranslate nohighlight">\(a\)</span> with the in-vector of <span class="math notranslate nohighlight">\(b\)</span>, and the projection is directed. The
 dot products are sums over the paths of length two (see the module description), accumulated
 in float64 to limit cancellation.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -409,6 +423,7 @@ sharing no neighbor stay as isolated nodes.</p>
 components, weights are comparable across components (the reference implementation takes an
 arbitrary eigenvector of eigenvalue 1 instead, which is unique only on connected networks). In
 multilayer networks, <span class="math notranslate nohighlight">\(S\)</span> is the total edge weight of the layer.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -472,6 +487,7 @@ directed, with both directions of every pair if <code class="docutils literal no
 summed. In directed networks <span class="math notranslate nohighlight">\(H\)</span> sums over the paths <span class="math notranslate nohighlight">\(a \to c \to b\)</span> (see the
 module description), and strengths sum the edges in both directions. Kept nodes sharing no
 neighbor stay as isolated nodes.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -518,6 +534,7 @@ connected with weight <span class="math notranslate nohighlight">\(\sum_c B_{ac}
 type they share (paths of length two in directed networks, see the module description). With
 unit weights (<code class="docutils literal notranslate"><span class="pre">weight</span> <span class="pre">=</span> <span class="pre">None</span></code>) this is the number of shared neighbors, parallel edges
 counting as many times as they appear. Kept nodes sharing no neighbor stay as isolated nodes.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

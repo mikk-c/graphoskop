@@ -59,7 +59,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#clustering">Clustering</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.average_clustering"><code class="docutils literal notranslate"><span class="pre">average_clustering()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.global_clustering"><code class="docutils literal notranslate"><span class="pre">global_clustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.global_triangle_closure"><code class="docutils literal notranslate"><span class="pre">global_triangle_closure()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.local_clustering"><code class="docutils literal notranslate"><span class="pre">local_clustering()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.local_triangle_closure"><code class="docutils literal notranslate"><span class="pre">local_triangle_closure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.two_node_clustering"><code class="docutils literal notranslate"><span class="pre">two_node_clustering()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#connected-components">Connected components</a><ul>
@@ -72,6 +75,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree"><code class="docutils literal notranslate"><span class="pre">degree()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_centralization"><code class="docutils literal notranslate"><span class="pre">degree_centralization()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.degree_power_law"><code class="docutils literal notranslate"><span class="pre">degree_power_law()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.hyperedge_size"><code class="docutils literal notranslate"><span class="pre">hyperedge_size()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#density">Density</a><ul>
@@ -89,20 +93,29 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -131,8 +144,8 @@
              
   <section id="module-graphoskop.network_statistics">
 <span id="network-statistics"></span><h1>Network statistics<a class="headerlink" href="#module-graphoskop.network_statistics" title="Link to this heading"></a></h1>
-<p>Simple network statistics: connected components, degree of nodes, degree distributions, average
-degree, power law fits of the degree distribution, degree centralization, density,
+<p>Simple network statistics: connected components, degree of nodes, degree distributions, sizes of
+hyperedges, average degree, power law fits of the degree distribution, degree centralization, density,
 reciprocity, average shortest path length, clustering coefficients,
 assortativity.</p>
 <p>Nodes are given by their input id (a key of <code class="xref py py-attr docutils literal notranslate"><span class="pre">node_map</span></code>) or by their
@@ -144,6 +157,13 @@ do. The degree of a copy <code class="docutils literal notranslate"><span class=
 given on its own, and its degree is then the sum over its copies (the overlapping degree, parallel
 edges in different layers counting separately). The number of distinct neighbors of an entity
 across layers is its degree in <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a>.</p>
+<p>In hypergraphs and simplicial complexes (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>), <code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">average_degree()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">degree_power_law()</span></code> use the degrees of the nodes: their numbers of
+hyperedges, or their numbers of edges in the complex; the generalized degrees of simplicial
+complexes are given by <a class="reference internal" href="higher_order.html#graphoskop.generalized_degree" title="graphoskop.generalized_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_degree()</span></code></a>, and the sizes of hyperedges and
+facets by <code class="xref py py-func docutils literal notranslate"><span class="pre">hyperedge_size()</span></code>. Connected components leave hyperedges and facets out; simplicial
+complexes also have the <span class="math notranslate nohighlight">\(q\)</span>-connected components of Q-analysis (<code class="docutils literal notranslate"><span class="pre">dimension</span></code> in
+<code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_nodes()</span></code>).</p>
 <p>Clustering coefficients count the triangles around nodes. Edges are taken as unweighted, parallel
 edges count once and self loops are ignored. For node <span class="math notranslate nohighlight">\(i\)</span>, with <span class="math notranslate nohighlight">\(A\)</span> the adjacency
 matrix, <span class="math notranslate nohighlight">\(d_i\)</span> its total (in plus out) degree and <span class="math notranslate nohighlight">\(d^\leftrightarrow_i\)</span> its number of
@@ -168,11 +188,13 @@ of a copy is its clustering in its layer, and global and average clustering are 
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>              <span class="c1"># degree assortativity</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>       <span class="c1"># numeric attribute: Pearson correlation over the edges</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>      <span class="c1"># qualitative attribute: Newman&#39;s categorical coefficient</span>
+<span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">assortativity</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;top-2&quot;</span><span class="p">)</span>   <span class="c1"># Chodrow: degrees of the two best connected members of every hyperedge</span>
 </pre></div>
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.assortativity">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">assortativity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('out',</span> <span class="pre">'in')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.assortativity" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">assortativity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('out',</span> <span class="pre">'in')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uniform'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.assortativity" title="Link to this definition"></a></dt>
 <dd><p>Assortativity: the tendency of nodes to connect to nodes with similar attribute values
 (Newman, 2002 and 2003).</p>
 <p>The kind of assortativity follows the type of the attribute:</p>
@@ -195,7 +217,17 @@ at either end are left out; in long node tables, nodes without a numeric value h
 that edge attribute. NaN if undefined (no edges, or no variance).</p>
 <p>In multilayer networks only intra-layer edges count, degrees are within layers (as in
 <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>), and the result is given per layer.</p>
+<p>On hypergraphs and simplicial complexes, this is the degree assortativity of Chodrow (2020): in
+every hyperedge (facet), a pair of its nodes is taken, and the Pearson correlation of their
+degrees (numbers of hyperedges or facets, both ways) is computed over the hyperedges of two
+nodes or more, each weighing 1 (or its <code class="docutils literal notranslate"><span class="pre">weight</span></code>, a hyperedge or facet attribute). <code class="docutils literal notranslate"><span class="pre">kind</span></code>
+chooses the pair: <code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code>, a pair drawn uniformly (computed exactly, as the average over
+all the pairs of the hyperedge, without sampling); <code class="docutils literal notranslate"><span class="pre">&quot;top-2&quot;</span></code>, the two nodes of largest degree;
+<code class="docutils literal notranslate"><span class="pre">&quot;top-bottom&quot;</span></code>, those of largest and smallest degree. Node attributes are not supported there.
+To compare with a null model, use <a class="reference internal" href="generators.html#graphoskop.randomization_test" title="graphoskop.randomization_test"><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code></a> with
+<a class="reference internal" href="generators.html#graphoskop.hypergraph_configuration_model" title="graphoskop.hypergraph_configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_configuration_model()</span></code></a>.</p>
 <p>All the work runs on the device of the network, in one pass over the edges.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -206,6 +238,8 @@ assortativity.</p></li>
 <li><p><strong>weight</strong> – Edge attribute used as weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
 <li><p><strong>direction</strong> – For degree assortativity in directed networks, the degree at the source and
 at the target: each <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;total&quot;</span></code>.</p></li>
+<li><p><strong>kind</strong> – On hypergraphs and simplicial complexes, the pair of nodes of every hyperedge:
+<code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;top-2&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;top-bottom&quot;</span></code> (see above).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -256,6 +290,7 @@ reproducibility), which estimates the average with <span class="math notranslate
 <p>With <code class="docutils literal notranslate"><span class="pre">lengths</span></code>, the lengths precomputed by <a class="reference internal" href="shortest_paths.html#graphoskop.all_pairs_shortest_path_lengths" title="graphoskop.all_pairs_shortest_path_lengths"><code class="xref py py-func docutils literal notranslate"><span class="pre">all_pairs_shortest_path_lengths()</span></code></a>
 (with the same <code class="docutils literal notranslate"><span class="pre">component</span></code>, <code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code>) are used and no path is searched
 again; <code class="docutils literal notranslate"><span class="pre">weight</span></code> and <code class="docutils literal notranslate"><span class="pre">inverse</span></code> are then ignored. The sums run on their device.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -297,6 +332,19 @@ again; <code class="docutils literal notranslate"><span class="pre">weight</span
 </section>
 <section id="clustering">
 <h2>Clustering<a class="headerlink" href="#clustering" title="Link to this heading"></a></h2>
+<p>On hypergraphs and simplicial complexes, the clustering of the projection
+(<a class="reference internal" href="transformations.html#graphoskop.clique_expansion" title="graphoskop.clique_expansion"><code class="xref py py-func docutils literal notranslate"><span class="pre">clique_expansion()</span></code></a>) is high by construction: every group of three nodes or more
+is a clique. Two coefficients measure what the groups add: the triangle closure, the share of the
+triangles of the projection whose three nodes are together in one hyperedge (in a complex, the
+share of the triangles of the 1-skeleton that are filled), and the two-node clustering, how much
+the hyperedges of two neighbors overlap.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">global_triangle_closure</span><span class="p">(</span><span class="n">hg</span><span class="p">)</span>                  <span class="c1"># share of closed triangles</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">local_triangle_closure</span><span class="p">(</span><span class="n">hg</span><span class="p">)</span>               <span class="c1"># per node</span>
+<span class="n">o</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">two_node_clustering</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;union&quot;</span><span class="p">)</span>  <span class="c1"># overlap of the meetings of neighbors, per node</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">global_triangle_closure</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.average_clustering">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">average_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_undefined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.average_clustering" title="Link to this definition"></a></dt>
@@ -305,6 +353,7 @@ again; <code class="docutils literal notranslate"><span class="pre">weight</span
 <p>Nodes with fewer than two neighbors, where the local coefficient is undefined, count as 0 (as
 in Watts and Strogatz, 1998, and NetworkX), or are left out with <code class="docutils literal notranslate"><span class="pre">skip_undefined</span> <span class="pre">=</span> <span class="pre">True</span></code>. NaN
 if no node is left.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -334,6 +383,7 @@ and <code class="docutils literal notranslate"><span class="pre">clustering</spa
 <p><span class="math notranslate nohighlight">\(\sum_i [(A + A^T)^3]_{ii} / \sum_i 2 [d_i (d_i - 1) - 2 d^\leftrightarrow_i]\)</span>; in
 undirected networks, three times the number of triangles over the number of connected triples.
 NaN if there are no connected triples.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -355,10 +405,43 @@ and <code class="docutils literal notranslate"><span class="pre">clustering</spa
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.global_triangle_closure">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">global_triangle_closure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.global_triangle_closure" title="Link to this definition"></a></dt>
+<dd><p>Global triangle closure of a hypergraph or simplicial complex: the share of the triangles of
+its projection that are closed, with their three nodes in one hyperedge (in a simplicial
+complex, the share of the triangles of the 1-skeleton that are filled); see
+<a class="reference internal" href="#graphoskop.local_triangle_closure" title="graphoskop.local_triangle_closure"><code class="xref py py-func docutils literal notranslate"><span class="pre">local_triangle_closure()</span></code></a>. NaN without triangles.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A hypergraph or simplicial complex.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once when counting the triangles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A float.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">global_triangle_closure</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>            <span class="c1"># 0.5: one filled triangle, one hollow</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.local_clustering">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">local_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.local_clustering" title="Link to this definition"></a></dt>
 <dd><p>Local clustering coefficient of nodes (see the module description).</p>
 <p>NaN for nodes with fewer than two neighbors, where it is undefined.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -396,12 +479,104 @@ or is both an input id and an internal id.</p></li>
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.local_triangle_closure">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">local_triangle_closure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4194304</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.local_triangle_closure" title="Link to this definition"></a></dt>
+<dd><p>Local triangle closure of the nodes of a hypergraph or simplicial complex: among the triangles
+of the projection at a node (two other nodes with which it shares a hyperedge, and which share
+one with each other), the share that are closed, with the three nodes together in one
+hyperedge (Benson, Abebe, Schaub, Jadbabaie and Kleinberg, 2018, open and closed triangles). In
+a simplicial complex, the closed triangles are the filled ones, its 2-simplices: the share of
+the triangles of the 1-skeleton at a node that are filled. It is 1 when all the clustering of
+the projection comes from groups (the clique expansion of any hypergraph has a large
+clustering), and lower when triangles form across different groups. NaN for nodes in no
+triangle.</p>
+<p>Pairs and triples sharing a hyperedge are enumerated from the hyperedges (see
+<a class="reference internal" href="higher_order.html#graphoskop.Network.simplices" title="graphoskop.Network.simplices"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simplices()</span></code></a>), so this is for hyperedges of moderate size: one of
+<span class="math notranslate nohighlight">\(s\)</span> nodes holds <span class="math notranslate nohighlight">\(s (s - 1) (s - 2) / 6\)</span> triples.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A hypergraph or simplicial complex.</p></li>
+<li><p><strong>node</strong> – Node (input id), list of nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>component</strong> – With <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+for a list with one vector per component; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given.</p></li>
+<li><p><strong>batch_size</strong> – Number of 2-paths expanded at once when counting the triangles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>With <code class="docutils literal notranslate"><span class="pre">node</span></code>, a float; with a list, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">node</span></code>
+and <code class="docutils literal notranslate"><span class="pre">closure</span></code>; with <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, a float64 vector over the nodes of the component.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network.</p></li>
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">local_triangle_closure</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>       <span class="c1"># 0.5: a-b-c is closed, a-c-d is open</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.two_node_clustering">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">two_node_clustering</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'union'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.two_node_clustering" title="Link to this definition"></a></dt>
+<dd><p>Two-node clustering coefficient of the nodes of a hypergraph or simplicial complex (Gallagher
+and Goldberg, 2013): for two nodes <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> sharing a hyperedge, the overlap of
+their sets of hyperedges <span class="math notranslate nohighlight">\(E(u)\)</span> and <span class="math notranslate nohighlight">\(E(v)\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[C_{uv} = \frac{|E(u) \cap E(v)|}{|E(u) \cup E(v)|}\]</div>
+<p>(<code class="docutils literal notranslate"><span class="pre">kind</span> <span class="pre">=</span> <span class="pre">&quot;union&quot;</span></code>; <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code> divide by the smaller or larger of <span class="math notranslate nohighlight">\(|E(u)|\)</span>
+and <span class="math notranslate nohighlight">\(|E(v)|\)</span>), and for a node, its mean over the nodes it shares a hyperedge with. It is 1
+when a node meets each of its neighbors in all their groups, and low when its neighbors are met
+in one group each. In a simplicial complex the hyperedges are its facets. NaN for nodes in no
+hyperedge with another node.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A hypergraph or simplicial complex.</p></li>
+<li><p><strong>node</strong> – Node (input id), list of nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>kind</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;union&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>.</p></li>
+<li><p><strong>component</strong> – With <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+for a list with one vector per component; ignored when <code class="docutils literal notranslate"><span class="pre">node</span></code> is given.</p></li>
+<li><p><strong>batch_size</strong> – Number of pairs of nodes enumerated at once.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>With <code class="docutils literal notranslate"><span class="pre">node</span></code>, a float; with a list, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">node</span></code>
+and <code class="docutils literal notranslate"><span class="pre">clustering</span></code>; with <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">=</span> <span class="pre">None</span></code>, a float64 vector over the nodes of the component.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a plain network or <code class="docutils literal notranslate"><span class="pre">kind</span></code> is unknown.</p></li>
+<li><p><strong>KeyError</strong> – If a node does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">two_node_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>              <span class="c1"># 2/3: the mean of 1 (b, met in both its hyperedges) and 1/3 (c)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">two_node_clustering</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">kind</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 <section id="connected-components">
 <h2>Connected components<a class="headerlink" href="#connected-components" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.connected_components_count">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_count" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_count" title="Link to this definition"></a></dt>
 <dd><p>Number of connected components.</p>
 <p>Weakly connected components (<code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">&quot;weak&quot;</span></code>) are the components the network is split into
 (see <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>), isolated nodes included (each is a component). Strongly
@@ -409,18 +584,37 @@ connected components (<code class="docutils literal notranslate"><span class="pr
 with a directed path from every node to every other; each weakly connected component splits into
 one or more of them. In undirected networks the two coincide. In multilayer networks the
 components are those of the supra-graph, interlayer edges included.</p>
+<p>In hypergraphs (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>), two nodes are connected if a sequence of hyperedges
+leads from one to the other, each sharing a node with the next (in a directed hypergraph, for
+strong components, from tails to heads); empty hyperedges are not components.</p>
+<p>In simplicial complexes, <code class="docutils literal notranslate"><span class="pre">dimension</span></code> <span class="math notranslate nohighlight">\(q\)</span> gives the <span class="math notranslate nohighlight">\(q\)</span>-connected components of
+Atkin’s Q-analysis (1974): two simplices are <span class="math notranslate nohighlight">\(q\)</span>-near if they share a <span class="math notranslate nohighlight">\(q\)</span>-face
+(<span class="math notranslate nohighlight">\(q + 1\)</span> nodes), and <span class="math notranslate nohighlight">\(q\)</span>-connected if a chain of simplices, each <span class="math notranslate nohighlight">\(q\)</span>-near the
+next, joins them; the <span class="math notranslate nohighlight">\(q\)</span>-connected components are the classes of the simplices of
+dimension at least <span class="math notranslate nohighlight">\(q\)</span>. Components for <span class="math notranslate nohighlight">\(q = 0\)</span> are the usual ones; for
+<span class="math notranslate nohighlight">\(q = 1\)</span>, two edges are connected only through filled triangles (or larger simplices)
+sharing edges, so a hollow triangle is three 1-connected components. Each simplex is
+<span class="math notranslate nohighlight">\(q\)</span>-near the facets containing it, so the components are found among the facets: those
+with at least <span class="math notranslate nohighlight">\(q + 1\)</span> nodes, joined when they share at least <span class="math notranslate nohighlight">\(q + 1\)</span> nodes (the
+pairs of facets sharing nodes are generated as in the bipartite projections, <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> at a
+time). For <span class="math notranslate nohighlight">\(q &gt; 0\)</span>, a node can be in several components, or in none (if it is in no
+simplex of dimension <span class="math notranslate nohighlight">\(q\)</span>).</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>type</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;weak&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;strong&quot;</span></code>.</p></li>
+<li><p><strong>dimension</strong> – In simplicial complexes, <span class="math notranslate nohighlight">\(q\)</span>; 0 otherwise.</p></li>
+<li><p><strong>batch_size</strong> – For <span class="math notranslate nohighlight">\(q &gt; 0\)</span>, number of pairs of facets sharing a node generated at once.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Number of components.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid.</p>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid, or if <code class="docutils literal notranslate"><span class="pre">dimension</span></code> is not 0 outside simplicial
+complexes (or negative).</p>
 </dd>
 </dl>
 <p>Example:</p>
@@ -429,33 +623,50 @@ components are those of the supra-graph, interlayer edges included.</p>
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;follows.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                    <span class="c1"># weakly connected</span>
 <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;strong&quot;</span><span class="p">)</span>
+
+<span class="c1"># two filled triangles sharing a node, and a hollow triangle</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                    <span class="c1"># 2</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">dimension</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>     <span class="c1"># 5: two triangles, three edges</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_count</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">dimension</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>     <span class="c1"># 2</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.connected_components_nodes">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_nodes" title="Link to this definition"></a></dt>
-<dd><p>Nodes of each connected component (see <a class="reference internal" href="#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a> for the types).</p>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">connected_components_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weak'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16777216</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.connected_components_nodes" title="Link to this definition"></a></dt>
+<dd><p>Nodes of each connected component (see <a class="reference internal" href="#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a> for the types and,
+in simplicial complexes, the dimension). In hypergraphs and simplicial complexes the hyperedges
+and facets are left out; for <span class="math notranslate nohighlight">\(q\)</span>-connected components with <span class="math notranslate nohighlight">\(q &gt; 0\)</span>, each component
+gives the nodes of its simplices, so a node can be in several components, or in none.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
 <li><p><strong>type</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;weak&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;strong&quot;</span></code>.</p></li>
+<li><p><strong>dimension</strong> – In simplicial complexes, <span class="math notranslate nohighlight">\(q\)</span>; 0 otherwise.</p></li>
+<li><p><strong>batch_size</strong> – As in <a class="reference internal" href="#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of arrays of input node ids, one per component, largest first (for weakly
-connected components, the same order as the components of the network, and the same as
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">node_ids</span></code>).</p>
+connected components of plain networks, the same order as the components of the network,
+and the same as <code class="xref py py-attr docutils literal notranslate"><span class="pre">node_ids</span></code>).</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid.</p>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">type</span></code> is not valid, or <code class="docutils literal notranslate"><span class="pre">dimension</span></code> as in
+<a class="reference internal" href="#graphoskop.connected_components_count" title="graphoskop.connected_components_count"><code class="xref py py-func docutils literal notranslate"><span class="pre">connected_components_count()</span></code></a>.</p>
 </dd>
 </dl>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sccs</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;strong&quot;</span><span class="p">)</span>
 <span class="n">core</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">sccs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>            <span class="c1"># the largest strongly connected component</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">connected_components_nodes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">dimension</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="c1"># [array([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]), array([&#39;c&#39;, &#39;d&#39;, &#39;e&#39;]), array([&#39;x&#39;, &#39;y&#39;]), array([&#39;y&#39;, &#39;z&#39;]), array([&#39;x&#39;, &#39;z&#39;])]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -472,11 +683,15 @@ nodes) and <span class="math notranslate nohighlight">\(m / n\)</span> in direct
 one out-degree and one in-degree, so the two averages are equal), <span class="math notranslate nohighlight">\(2m / n\)</span> for the total
 degree. Here <span class="math notranslate nohighlight">\(m\)</span> counts edges as <a class="reference internal" href="network.html#graphoskop.Network.number_of_edges" title="graphoskop.Network.number_of_edges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_edges()</span></code></a> does
 (parallel edges and self loops included) and <span class="math notranslate nohighlight">\(n\)</span> counts all nodes, isolated nodes
-included. NaN if there are no nodes.</p>
+included. NaN if there are no nodes. In hypergraphs and simplicial complexes, the mean of the
+degrees of the nodes as defined in <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>: the mean number of hyperedges per node
+(<span class="math notranslate nohighlight">\(\sum_e |e| / n\)</span>), or of edges of the complex (<span class="math notranslate nohighlight">\(2 m_1 / n\)</span>, <span class="math notranslate nohighlight">\(m_1\)</span> its number
+of edges).</p>
 <p>In multilayer networks only intra-layer edges count, and <code class="docutils literal notranslate"><span class="pre">by</span></code> chooses the average:
 <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> gives the average degree of the copies of each layer (<span class="math notranslate nohighlight">\(2 m_l / n_l\)</span> in
 undirected networks), <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code> the average of the degrees of the entities (sums over their
 copies, as in <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>).</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -529,12 +744,21 @@ list of them if <code class="docutils literal notranslate"><span class="pre">com
 <a class="reference internal" href="epidemics.html#graphoskop.si_model" title="graphoskop.si_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">si_model()</span></code></a>). In multilayer networks, the degree of each copy, counting
 intra-layer edges only.</p></li>
 </ul>
+<p>In a hypergraph (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>), the degree of a node is the number of hyperedges
+containing it (repeated hyperedges count separately); in a directed hypergraph, the out-degree
+counts the hyperedges whose tail has the node, the in-degree those whose head has it. With
+<code class="docutils literal notranslate"><span class="pre">weight</span></code>, a membership attribute is summed instead (e.g. the weight of a node in each of its
+hyperedges). In a simplicial complex, it is the number of edges of the complex at the node
+(its number of neighbors, <span class="math notranslate nohighlight">\(k_{1,0}\)</span> of <a class="reference internal" href="higher_order.html#graphoskop.generalized_degree" title="graphoskop.generalized_degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_degree()</span></code></a>), counting
+the edges of all the facets; <code class="docutils literal notranslate"><span class="pre">weight</span></code> is not allowed. Only nodes have a degree: the sizes of
+hyperedges and facets are their degrees in <a class="reference internal" href="higher_order.html#graphoskop.incidence_network" title="graphoskop.incidence_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">incidence_network()</span></code></a>.</p>
 <p>In multilayer networks (see the module description), <code class="docutils literal notranslate"><span class="pre">by</span></code> chooses the distribution:
 <code class="docutils literal notranslate"><span class="pre">&quot;layer&quot;</span></code> gives the distribution of each layer, over its copies, in one table with a first
 column <code class="docutils literal notranslate"><span class="pre">layer</span></code> (pdf and ccdf normalized within each layer); <code class="docutils literal notranslate"><span class="pre">&quot;entity&quot;</span></code> gives the
 distribution of the degrees of the entities (sums over their copies). Pooling the copies of all
 layers into one distribution is not offered: it would mix layers, and count each entity once per
 layer.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -580,6 +804,11 @@ both an input id and an internal id.</p></li>
 <span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;alice&quot;</span><span class="p">)</span>                                <span class="c1"># summed over the layers</span>
 <span class="n">pdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;pdf&quot;</span><span class="p">)</span>                 <span class="c1"># one distribution per layer</span>
 <span class="n">pdf</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;pdf&quot;</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="s2">&quot;entity&quot;</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">]])</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">)</span>                                    <span class="c1"># 2 hyperedges</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_simplicial_complex</span><span class="p">([[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">]])</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">)</span>                                    <span class="c1"># 3 edges: a, c, d</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -617,6 +846,7 @@ range (directed, disconnected or denser networks) it is NaN.</p>
 <p>Degrees are those of the simple graph: parallel edges count once, self loops are ignored, and
 weights are not used (the closed form holds for unweighted graphs only). Nodes without edges
 count in <span class="math notranslate nohighlight">\(n\)</span>. In multilayer networks the supra-graph is used.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -677,7 +907,9 @@ with <span class="math notranslate nohighlight">\(\lambda = 0\)</span>.</p></li>
 </ol>
 <p>A test is significant when its p-value is below <code class="docutils literal notranslate"><span class="pre">significance</span></code> (0.1 as in Clauset et al.).
 The goodness-of-fit p-value of Clauset et al. (by bootstrap) is not computed. Weighted degrees
-are not integers, so they are not supported.</p>
+are not integers, so they are not supported. In hypergraphs and simplicial complexes the
+degrees are those of the nodes, as defined in <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -739,6 +971,67 @@ Plotting both columns on log-log axes shows the fit over the empirical distribut
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hyperedge_size">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hyperedge_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hyperedge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'count'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hyperedge_size" title="Link to this definition"></a></dt>
+<dd><p>Size of hyperedges (their numbers of nodes), or the distribution of sizes, in a hypergraph; in a
+simplicial complex, of its facets (dimension plus one). This is the degree of the hyperedges in
+<a class="reference internal" href="higher_order.html#graphoskop.incidence_network" title="graphoskop.incidence_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">incidence_network()</span></code></a>, and the outputs are those of <a class="reference internal" href="#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> given: its size, as an <code class="docutils literal notranslate"><span class="pre">int</span></code> (a <code class="docutils literal notranslate"><span class="pre">float</span></code> with <code class="docutils literal notranslate"><span class="pre">weight</span></code>). A hyperedge is
+given by its label (or its <a class="reference internal" href="higher_order.html#graphoskop.Hyperedge" title="graphoskop.Hyperedge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hyperedge</span></code></a> id), a facet by the collection of
+its nodes (or its <a class="reference internal" href="higher_order.html#graphoskop.Simplex" title="graphoskop.Simplex"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simplex</span></code></a> id).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> a list of them: a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> (as
+given) and <code class="docutils literal notranslate"><span class="pre">size</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hyperedge</span> <span class="pre">=</span> <span class="pre">None</span></code>: the distribution of sizes (columns <code class="docutils literal notranslate"><span class="pre">size</span></code> and <code class="docutils literal notranslate"><span class="pre">count</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf</span></code> or
+<code class="docutils literal notranslate"><span class="pre">ccdf</span></code>), over all the hyperedges, empty ones included (size 0).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hyperedge</span> <span class="pre">=</span> <span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">distribution</span> <span class="pre">=</span> <span class="pre">None</span></code>: a vector over the hyperedges of the
+component, in the order of <a class="reference internal" href="higher_order.html#graphoskop.Network.get_hyperedge_attribute" title="graphoskop.Network.get_hyperedge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_hyperedge_attribute()</span></code></a>, or a list of
+them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+<p>In a directed hypergraph, <code class="docutils literal notranslate"><span class="pre">part</span></code> counts the tail (<code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code>), the head (<code class="docutils literal notranslate"><span class="pre">&quot;head&quot;</span></code>) or both
+(<code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>; a node in both counts twice). With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, a membership attribute is summed
+instead of counting nodes.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A hypergraph or simplicial complex.</p></li>
+<li><p><strong>hyperedge</strong> – Hyperedge (facet), list of them, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>distribution</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;pdf&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ccdf&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the size of every
+hyperedge; used when <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>part</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;head&quot;</span></code>; only <code class="docutils literal notranslate"><span class="pre">&quot;all&quot;</span></code> in undirected hypergraphs and
+simplicial complexes.</p></li>
+<li><p><strong>component</strong> – For the distribution or the vectors, index of the component (0 is the
+largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric membership attribute, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Size, <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, or vector (list of vectors) of sizes.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is not a hypergraph or a simplicial complex, if <code class="docutils literal notranslate"><span class="pre">part</span></code> or
+<code class="docutils literal notranslate"><span class="pre">distribution</span></code> is not valid, or if <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> is a node.</p></li>
+<li><p><strong>KeyError</strong> – If a hyperedge does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">({</span><span class="s2">&quot;m1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="s2">&quot;m2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">]})</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hyperedge_size</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;m1&quot;</span><span class="p">)</span>                       <span class="c1"># 3</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hyperedge_size</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                             <span class="c1"># sizes 2 and 3, one hyperedge each</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hyperedge_size</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># tensor([3, 2])</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">({</span><span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">])},</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hyperedge_size</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">part</span> <span class="o">=</span> <span class="s2">&quot;tail&quot;</span><span class="p">)</span>        <span class="c1"># 2</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 <section id="density">
 <h2>Density<a class="headerlink" href="#density" title="Link to this heading"></a></h2>
@@ -762,6 +1055,7 @@ left out, and the possible edges are those within each layer. <code class="docut
 density of each layer, over its copies; <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;network&quot;</span></code> pools the layers, as the fraction of
 all the possible intra-layer edges, <span class="math notranslate nohighlight">\(\sum_l m_l / \sum_l \binom{n_l}{2}\)</span> in undirected
 networks.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -808,6 +1102,7 @@ is 1).</p>
 <p>In multilayer networks only intra-layer edges count; <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;layer&quot;</span></code> gives the reciprocity of
 each layer, <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;network&quot;</span></code> pools the edges of all layers (and their densities, as in
 <a class="reference internal" href="#graphoskop.density" title="graphoskop.density"><code class="xref py py-func docutils literal notranslate"><span class="pre">density()</span></code></a>).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

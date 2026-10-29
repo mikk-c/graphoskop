@@ -52,13 +52,20 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Multilayer networks</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#analyses">Analyses</a></li>
@@ -78,9 +85,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -243,12 +252,14 @@ node, couplings disappear and the other interlayer edges become ordinary edges b
 entities (except in bipartite networks, where they would join two nodes of the same type, and
 are left out). With <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">=</span> <span class="pre">True</span></code> the edges between the same two entities (in the same
 direction, if directed), from any layer, are merged into one edge whose numeric attributes are
-the sums of theirs (NaN only if all are NaN): the weight of an edge is then its total weight
+the sums of theirs (NaN only if all are NaN) and whose qualitative attributes keep their
+distinct values (one value, or a tuple of them): the weight of an edge is then its total weight
 over the layers, and the degree of an entity its number of distinct neighbors. With
 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">=</span> <span class="pre">False</span></code> they stay as parallel edges, which give the same Laplacians.</p>
 <p>Node attributes take, for each entity, the first value found in layer order (attributes given
 for the whole entity have the same value in every copy); node types are kept in bipartite
 networks.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -282,6 +293,7 @@ edges of the layer; couplings and other interlayer edges are left out. All node 
 attributes are kept (an attribute classified as qualitative is read back as numeric if all its
 values in the layer look like numbers, as when saving and loading), and so are node types in
 bipartite networks. Components are recomputed, so they are the components of the layer.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

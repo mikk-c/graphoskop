@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data_panel.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://table_view.tscn" id="2_table"]
+
+[node name="DataPanel" type="TabContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 0
+script = ExtResource("1_data")
+
+[node name="Nodes" parent="." instance=ExtResource("2_table")]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="Edges" parent="." instance=ExtResource("2_table")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="Network" parent="." instance=ExtResource("2_table")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2

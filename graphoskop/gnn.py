@@ -794,7 +794,7 @@ def _simplex_features(net, k, target, features, qualitative, standardize):
          if qualitative:
             vals = pd.Series(np.concatenate([net.get_simplex_attribute(a, c) for c in comps]), dtype = object)
             for value in sorted(set(vals.dropna().tolist()), key = str):
-               cols.append(torch.as_tensor((vals == value).to_numpy(), dtype = torch.float32, device = dev))
+               cols.append(torch.as_tensor((vals == value).to_numpy().copy(), dtype = torch.float32, device = dev))
                names.append(f"{a}={value}")
          continue
       v = torch.cat([net.get_simplex_attribute(a, c) for c in comps]).double()

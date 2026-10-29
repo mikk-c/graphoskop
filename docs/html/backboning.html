@@ -67,20 +67,29 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -185,6 +194,7 @@ and 6 s for a million edges of a random geometric graph. Whether the network is 
 cliques is first tested in constant time, with <span class="math notranslate nohighlight">\(\sum_e 2 / (e + 2) = n - c\)</span> (true of
 every block graph, <span class="math notranslate nohighlight">\(e\)</span> being the embeddedness of an edge and <span class="math notranslate nohighlight">\(c\)</span> the number of
 components), then confirmed exactly.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -238,6 +248,7 @@ original paper);</p></li>
 <p>Parallel edges and self loops count as separate edges of their nodes (a self loop once in
 undirected networks). In multilayer networks, strengths and degrees count the intra-layer
 edges only, so they are those of each copy in its layer.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -284,6 +295,7 @@ Slater’s second stage, adding edges by decreasing score until the network is c
 the edges with a score of at least the smallest score of a maximum spanning forest:
 <a class="reference internal" href="#graphoskop.find_bb_thresholds" title="graphoskop.find_bb_thresholds"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_bb_thresholds()</span></code></a> gives it as the smaller of <code class="docutils literal notranslate"><span class="pre">first_isolate</span></code> and
 <code class="docutils literal notranslate"><span class="pre">first_component_break</span></code> (keep the edges with a score above a threshold just below it).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -346,6 +358,7 @@ layer (its components and isolated copies). Interlayer edges (couplings included
 kept between the copies that are kept; a copy left without intra-layer edges is dropped with
 its interlayer edges, unless <code class="docutils literal notranslate"><span class="pre">keep_isolates</span></code>. The backbone is multilayer, with the same
 layers.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -398,6 +411,7 @@ average degree of <code class="docutils literal notranslate"><span class="pre">n
 <p>A threshold is NaN if the change never happens, and <code class="docutils literal notranslate"><span class="pre">-inf</span></code> if it happens at every threshold
 (e.g. a node whose edges all have a NaN significance). Standard deviations are assumed
 positive.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -452,6 +466,7 @@ device of the component. <code class="docutils literal notranslate"><span class=
 edges on the CPU), the same processes as the shortest paths, kept between calls (see
 <a class="reference internal" href="shortest_paths.html#module-graphoskop.shortest_paths" title="graphoskop.shortest_paths"><code class="xref py py-mod docutils literal notranslate"><span class="pre">shortest_paths</span></code></a>); on systems that start processes by spawning (Windows,
 macOS), the calling script must then be protected by <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -497,6 +512,7 @@ first only the kept edges near the dropped one (a part with it that is not plana
 and edges likely to be kept are tested in runs. For a complete graph of <span class="math notranslate nohighlight">\(n\)</span> nodes this
 takes about 10 seconds for <span class="math notranslate nohighlight">\(n = 200\)</span> and 2 minutes for <span class="math notranslate nohighlight">\(n = 500\)</span> (the cost grows
 about as <span class="math notranslate nohighlight">\(n^3\)</span>; <a class="reference internal" href="#graphoskop.triangulated_filtered_graph" title="graphoskop.triangulated_filtered_graph"><code class="xref py py-func docutils literal notranslate"><span class="pre">triangulated_filtered_graph()</span></code></a> is a fast alternative).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -541,6 +557,7 @@ they count once in the strength of their node. Edges whose source or target hold
 weight of the network get NaN.</p>
 <p>In multilayer networks, the strengths and <span class="math notranslate nohighlight">\(n_{..}\)</span> are those of the layer of the edge
 (<span class="math notranslate nohighlight">\(n_{i.l}\)</span>, <span class="math notranslate nohighlight">\(n_{.jl}\)</span>, <span class="math notranslate nohighlight">\(n_{..l}\)</span>): each layer is scored on its own.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -645,6 +662,7 @@ backbones shrink as it grows. The paper’s other criteria (salience) are not im
 undirected networks), as in <a class="reference internal" href="#graphoskop.disparity_filter" title="graphoskop.disparity_filter"><code class="xref py py-func docutils literal notranslate"><span class="pre">disparity_filter()</span></code></a>. In multilayer networks every
 layer is filtered on its own: strengths and degrees count the intra-layer edges, and with
 <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">None</span></code> each layer gets its own estimate.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -696,6 +714,7 @@ component) and kept in the result. In multilayer networks the trees span the com
 layer, made of intra-layer edges only, and all interlayer edges are kept. Among parallel edges only the best one can be chosen; self
 loops never are. Edges with a NaN weight are used last, only if needed to connect the
 component. Ties are broken arbitrarily but deterministically.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -740,6 +759,7 @@ network (the same statistic computed on <code class="docutils literal notranslat
 </ul>
 <p>Backbones are not built, so this is much faster than calling <a class="reference internal" href="#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> for
 each threshold.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -796,6 +816,7 @@ kept in the result, only the best of parallel edges can be chosen and self loops
 edges with a NaN weight are treated as absent. All edge and node attributes (numeric and
 qualitative) are kept, and node types in bipartite networks. In multilayer networks each layer
 is filtered on its own (intra-layer edges only), and all interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

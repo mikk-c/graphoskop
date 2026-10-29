@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frequent subgraph mining &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Generators" href="generators.html" />
+    <link rel="prev" title="Exponential random graph models" href="ergm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frequent subgraph mining</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.graph_association_rules"><code class="docutils literal notranslate"><span class="pre">graph_association_rules()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.single_graph_mining"><code class="docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.transactional_graph_mining"><code class="docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Frequent subgraph mining</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/frequent_subgraphs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.frequent_subgraphs">
+<span id="frequent-subgraph-mining"></span><h1>Frequent subgraph mining<a class="headerlink" href="#module-graphoskop.frequent_subgraphs" title="Link to this heading"></a></h1>
+<p>Frequent subgraph mining: the labeled subgraphs (patterns) that occur in many graphs of a
+database.</p>
+<p>In transactional mining (<code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code>) the database is a network and each
+of its connected components is a graph (a transaction); the support of a pattern is the number of
+components that contain it (as a subgraph, not necessarily induced), and a pattern is frequent if
+its support reaches a threshold. In single graph mining (<code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code>) the network
+is analyzed as a whole, and the support of a pattern is its minimum image based support (MNI): the
+least number of distinct network nodes onto which one of its nodes is mapped. Nodes and edges may
+carry labels, taken from a node attribute and an edge attribute (or the layer, in multilayer
+networks), and patterns must match them.</p>
+<p>The search is gSpan (Yan and Han, 2002). A pattern is written as a DFS code, the list of its edges
+in the order of a depth first visit, each with the labels of its endpoints; among the codes of a
+pattern, the lexicographically smallest one, the minimum DFS code, is its canonical form. Patterns
+grow one edge at a time, only from the end of their code (rightmost extensions: a new node attached
+to the rightmost path of the visit, or an edge back from its last node), so that every pattern has
+a single parent, the pattern of its code minus the last edge, and the search space is a tree:</p>
+<ul class="simple">
+<li><p>the search starts from single labeled nodes and single edges; node labels and edge types (node
+label, edge label, node label) that are not frequent are removed from the database first, so no
+pattern containing them is ever built;</p></li>
+<li><p>in transactional mining, every pattern keeps the list of its embeddings (where it occurs, node
+by node) in the database; its extensions and their supports are all counted in one vectorized
+pass over these embeddings, without any subgraph isomorphism test (single graph mining keeps
+the valid images of each pattern node instead, see <code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code>);</p></li>
+<li><p>an extension that is not frequent is dropped there and never extended: support is
+anti-monotone, so none of its super-patterns can be frequent. A super-pattern reached from
+another, frequent parent is counted in that parent’s pass and dropped in the same way;</p></li>
+<li><p>an extension whose code is not the minimum DFS code of its pattern is a duplicate of a pattern
+found (or to be found) through its canonical parent, and is dropped with its whole subtree.</p></li>
+</ul>
+<p>A frequent pattern is maximal if no frequent pattern contains it: if no extension by one edge,
+anywhere in the pattern, is frequent. Frequent patterns that differ by one edge give association
+rules (<code class="xref py py-func docutils literal notranslate"><span class="pre">graph_association_rules()</span></code>), which can score node pairs for link prediction
+(<a class="reference internal" href="link_prediction.html#graphoskop.association_rules_lp" title="graphoskop.association_rules_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">association_rules_lp()</span></code></a>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;molecules.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;atoms.tsv&quot;</span><span class="p">)</span>         <span class="c1"># one molecule per component</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">edge_label</span> <span class="o">=</span> <span class="s2">&quot;bond&quot;</span><span class="p">)</span>
+<span class="n">support</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>   <span class="c1"># most frequent patterns</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">patterns</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;bond&quot;</span><span class="p">))</span>       <span class="c1"># edges of pattern 3</span>
+<span class="n">top</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">maximal</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ml</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;layers.tsv&quot;</span><span class="p">,</span> <span class="n">multilayer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>      <span class="c1"># layers as edge labels</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">ml</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">edge_label</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">LAYER</span><span class="p">,</span> <span class="n">max_edges</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;citations.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;papers.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># a single network</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_graph_mining</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">max_edges</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="n">rules</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_association_rules</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">support</span><span class="p">,</span> <span class="n">transactional</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">rules</span><span class="p">[</span><span class="n">rules</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;lift&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.graph_association_rules">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">graph_association_rules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transactional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.graph_association_rules" title="Link to this definition"></a></dt>
+<dd><p>Association rules between frequent patterns that differ by one edge: the smaller pattern <code class="docutils literal notranslate"><span class="pre">P</span></code>
+(the antecedent) and the larger one <code class="docutils literal notranslate"><span class="pre">Q</span></code> (the consequent), <code class="docutils literal notranslate"><span class="pre">Q</span></code> being <code class="docutils literal notranslate"><span class="pre">P</span></code> with one more edge
+(between two of its nodes, or to a new node).</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">Q</span></code> contains <code class="docutils literal notranslate"><span class="pre">P</span></code>, the support of the rule is the support of <code class="docutils literal notranslate"><span class="pre">Q</span></code>, and its confidence
+<span class="math notranslate nohighlight">\(\sup(Q) / \sup(P)\)</span> the share of the support of <code class="docutils literal notranslate"><span class="pre">P</span></code> that extends to <code class="docutils literal notranslate"><span class="pre">Q</span></code> (at most 1,
+support being anti-monotone). The lift compares this confidence with the relative support of
+the added edge alone, <code class="docutils literal notranslate"><span class="pre">E</span></code>, the one-edge pattern with the labels (and direction) of the new
+edge and its endpoints: <span class="math notranslate nohighlight">\(\text{lift} = \text{confidence} / (\sup(E) / N)\)</span>, above 1 when
+<code class="docutils literal notranslate"><span class="pre">P</span></code> makes the new edge more likely than in general (when <code class="docutils literal notranslate"><span class="pre">P</span></code> is a single node, <code class="docutils literal notranslate"><span class="pre">Q</span></code> is
+<code class="docutils literal notranslate"><span class="pre">E</span></code> itself and the lift reduces to <span class="math notranslate nohighlight">\(N / \sup(P)\)</span>). <code class="docutils literal notranslate"><span class="pre">N</span></code> is the number of graphs of the
+database (components; components of the network of entities for a multilayer network mined
+with the layer as edge label) with <code class="docutils literal notranslate"><span class="pre">transactional</span> <span class="pre">=</span> <span class="pre">True</span></code>, or the number of nodes (entities)
+for MNI, with <code class="docutils literal notranslate"><span class="pre">transactional</span> <span class="pre">=</span> <span class="pre">False</span></code>.</p>
+<p>Patterns are matched by their minimum DFS codes, with the labels stored in <code class="docutils literal notranslate"><span class="pre">patterns</span></code>. All
+the frequent patterns are needed: with the maximal ones only (<code class="docutils literal notranslate"><span class="pre">maximal</span> <span class="pre">=</span> <span class="pre">True</span></code>) almost no
+pair is left. If two different edges of <code class="docutils literal notranslate"><span class="pre">Q</span></code> give the same <code class="docutils literal notranslate"><span class="pre">P</span></code> with different edge labels,
+the rule uses the first one for the lift.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – The network that was mined.</p></li>
+<li><p><strong>patterns</strong> – Pattern network returned by <a class="reference internal" href="#graphoskop.transactional_graph_mining" title="graphoskop.transactional_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a> or
+<a class="reference internal" href="#graphoskop.single_graph_mining" title="graphoskop.single_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a>.</p></li>
+<li><p><strong>support</strong> – Support table returned with <code class="docutils literal notranslate"><span class="pre">patterns</span></code>.</p></li>
+<li><p><strong>transactional</strong> – Whether the patterns come from <a class="reference internal" href="#graphoskop.transactional_graph_mining" title="graphoskop.transactional_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a> (or
+from <a class="reference internal" href="#graphoskop.single_graph_mining" title="graphoskop.single_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">antecedent</span></code> and <code class="docutils literal notranslate"><span class="pre">consequent</span></code> (pattern ids,
+the components of <code class="docutils literal notranslate"><span class="pre">patterns</span></code>), <code class="docutils literal notranslate"><span class="pre">support</span></code>, <code class="docutils literal notranslate"><span class="pre">confidence</span></code> and <code class="docutils literal notranslate"><span class="pre">lift</span></code>, one row per pair.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;molecules.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;atoms.tsv&quot;</span><span class="p">)</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span><span class="p">)</span>
+<span class="n">rules</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_association_rules</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">support</span><span class="p">)</span>
+<span class="n">rules</span><span class="p">[</span><span class="n">rules</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;lift&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.single_graph_mining">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">single_graph_mining</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.single_graph_mining" title="Link to this definition"></a></dt>
+<dd><p>Frequent subgraphs of a single network: the connected labeled patterns whose minimum image
+based support (MNI; Bringmann and Nijssen, 2008) reaches <code class="docutils literal notranslate"><span class="pre">min_support</span></code>.</p>
+<p>The network is mined as a whole. Counting the occurrences of a pattern is not anti-monotone (a
+star with three leaves occurs more often than the edge it contains, around a hub), so the
+support of a pattern is instead, over its nodes, the least number of distinct network nodes
+onto which the node is mapped by some embedding (an occurrence as a subgraph, not necessarily
+induced, with the same labels and directions). MNI never grows when a pattern grows, so the
+search can stop at infrequent patterns; it is never larger than the number of occurrences up to
+automorphisms, and is close to it when occurrences overlap little.</p>
+<p>Patterns grow as in <a class="reference internal" href="#graphoskop.transactional_graph_mining" title="graphoskop.transactional_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a> (gSpan’s minimum DFS codes and rightmost
+extensions, single labeled nodes first), with the same labels, multilayer collapse, options
+and output. Instead of storing every embedding, which explodes around hubs in a large network,
+every pattern keeps the set of valid images of each of its nodes, as in GraMi (Elseidy et al.,
+2014): an extension can map these nodes only onto them (its candidates), is skipped if its new
+edge leaves or reaches fewer distinct valid images than the threshold, has its candidates
+filtered by arc consistency, and then, for each node, each remaining candidate is checked by
+searching an embedding that maps the node onto it (a compiled search, candidates in parallel):
+every embedding found validates all its nodes at once, and the check stops as soon as the
+threshold is out of reach.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>min_support</strong> – Least MNI of a pattern, a positive integer.</p></li>
+<li><p><strong>node_label</strong> – Name of the node attribute giving the node labels, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>edge_label</strong> – Name of the edge attribute giving the edge labels,
+<a class="reference internal" href="multilayer.html#graphoskop.LAYER" title="graphoskop.LAYER"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYER</span></code></a> in multilayer networks, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>maximal</strong> – Whether to report only maximal patterns: those contained in no other frequent
+pattern (whatever <code class="docutils literal notranslate"><span class="pre">max_edges</span></code>).</p></li>
+<li><p><strong>max_edges</strong> – Largest number of edges of a pattern (<code class="docutils literal notranslate"><span class="pre">None</span></code>: no limit).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(patterns,</span> <span class="pre">support)</span></code>, as <a class="reference internal" href="#graphoskop.transactional_graph_mining" title="graphoskop.transactional_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a>, with <code class="docutils literal notranslate"><span class="pre">support</span></code> the
+MNI of each pattern.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">min_support</span></code> is not a positive integer, or if an entity has different
+node labels in different layers.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;citations.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;papers.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_graph_mining</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="n">max_edges</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">support</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.transactional_graph_mining">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">transactional_graph_mining</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_support</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.transactional_graph_mining" title="Link to this definition"></a></dt>
+<dd><p>Frequent subgraphs of a database of graphs, the connected components of a network: the
+connected labeled patterns that occur in at least <code class="docutils literal notranslate"><span class="pre">min_support</span></code> components, found with gSpan
+(see the module description).</p>
+<p>A pattern occurs in a component if some of its nodes and edges form a copy of the pattern (a
+subgraph, not necessarily induced), with the same node labels (the values of the node
+attribute <code class="docutils literal notranslate"><span class="pre">node_label</span></code>), the same edge labels (the values of the edge attribute
+<code class="docutils literal notranslate"><span class="pre">edge_label</span></code>) and, in directed networks, the same edge directions. Both attributes can be
+numeric or qualitative. Without <code class="docutils literal notranslate"><span class="pre">node_label</span></code>
+(<code class="docutils literal notranslate"><span class="pre">edge_label</span></code>), all nodes (edges) have the same label; NaN is a label like any other.
+Patterns start from single labeled nodes and grow one edge at a time; every frequent pattern is
+reported once, with its support.</p>
+<p>In a multilayer network, <code class="docutils literal notranslate"><span class="pre">edge_label</span> <span class="pre">=</span></code> <a class="reference internal" href="multilayer.html#graphoskop.LAYER" title="graphoskop.LAYER"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYER</span></code></a> makes the layer the edge
+label: couplings and other interlayer edges are ignored, the copies of each entity collapse
+into one node, and an edge present in several layers becomes parallel edges with different
+labels (a labeled multigraph); the graphs of the database are then the connected components of
+this network of entities. <code class="docutils literal notranslate"><span class="pre">node_label</span></code> must then have the same value in all the copies of an
+entity. With another edge label, a multilayer network is mined as its supra-graph.</p>
+<p>Self loops are ignored, and parallel edges with the same label count as one edge. The number of
+frequent patterns can grow exponentially as <code class="docutils literal notranslate"><span class="pre">min_support</span></code> decreases; <code class="docutils literal notranslate"><span class="pre">max_edges</span></code> bounds
+the size of the patterns.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>min_support</strong> – Least number of components containing a pattern; a number between 0 and 1
+(excluded) is a fraction of the number of components.</p></li>
+<li><p><strong>node_label</strong> – Name of the node attribute giving the node labels, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>edge_label</strong> – Name of the edge attribute giving the edge labels, <a class="reference internal" href="multilayer.html#graphoskop.LAYER" title="graphoskop.LAYER"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYER</span></code></a>
+in multilayer networks, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>maximal</strong> – Whether to report only maximal patterns: those contained in no other frequent
+pattern (whatever <code class="docutils literal notranslate"><span class="pre">max_edges</span></code>).</p></li>
+<li><p><strong>max_edges</strong> – Largest number of edges of a pattern (<code class="docutils literal notranslate"><span class="pre">None</span></code>: no limit).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(patterns,</span> <span class="pre">support)</span></code>: a <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with one component per
+pattern, directed if <code class="docutils literal notranslate"><span class="pre">net</span></code> is, with node ids <code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">...</span></code> in component order and only the
+labels as attributes (node attribute <code class="docutils literal notranslate"><span class="pre">node_label</span></code>, edge attribute <code class="docutils literal notranslate"><span class="pre">edge_label</span></code>; with
+<a class="reference internal" href="multilayer.html#graphoskop.LAYER" title="graphoskop.LAYER"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYER</span></code></a>, the position of the layer in <code class="docutils literal notranslate"><span class="pre">net.layer_labels</span></code>); and a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">pattern</span></code> (index of the component of <code class="docutils literal notranslate"><span class="pre">patterns</span></code>)
+and <code class="docutils literal notranslate"><span class="pre">support</span></code> (number of components of <code class="docutils literal notranslate"><span class="pre">net</span></code> containing it). <code class="docutils literal notranslate"><span class="pre">patterns</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>
+if no pattern is frequent.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">min_support</span></code> is not positive, or if an entity has different node
+labels in different layers.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">db</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;molecules.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;atoms.tsv&quot;</span><span class="p">)</span>        <span class="c1"># one molecule per component</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">edge_label</span> <span class="o">=</span> <span class="s2">&quot;bond&quot;</span><span class="p">)</span>
+<span class="n">support</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;support&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="n">patterns</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>                              <span class="c1"># size of pattern 3</span>
+<span class="n">big</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">transactional_graph_mining</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">maximal</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<p>On two CPU threads, with databases of random molecule-like graphs (15 to 30 nodes, a tree plus one
+to three rings, four node labels and two edge labels): 300 graphs, support 20%, 251 frequent
+patterns in 0.7 s (0.9 s for the 112 maximal ones); support 10%, 910 patterns in 1.5 s; 1000
+graphs, support 10%, 831 patterns in 3.8 s (maximal: 5.3 s). The pure Python gSpan of the
+<code class="docutils literal notranslate"><span class="pre">gspan-mining</span></code> package finds the same patterns (it does not report single nodes) in 3.9 s, 7.8 s
+and 22 s.</p>
+<p>In a single network (<a class="reference internal" href="#graphoskop.single_graph_mining" title="graphoskop.single_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a>), with Barabási-Albert networks whose
+nodes have one of three random labels: 10,000 nodes and 30,000 edges, MNI threshold 500, 169
+frequent patterns (up to 5 edges) in 2.1 s, the 94 maximal ones in 4.6 s; 100,000 nodes and
+300,000 edges, threshold 5,000, 75 patterns up to 3 edges in 3.6 s and 156 up to 4 edges in 10.5 s.</p>
+<p><a class="reference internal" href="#graphoskop.graph_association_rules" title="graphoskop.graph_association_rules"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_association_rules()</span></code></a> matches patterns by their canonical codes: the 2,088
+rules between the 831 patterns of the 1,000 molecule-like graphs take 0.25 s.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ergm.html" class="btn btn-neutral float-left" title="Exponential random graph models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="generators.html" class="btn btn-neutral float-right" title="Generators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

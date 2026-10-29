@@ -1,0 +1,1386 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphical interface &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Hierarchy" href="hierarchy.html" />
+    <link rel="prev" title="Graph neural networks" href="gnn.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Graphical interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#analysis">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-panel">Data panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generators">Generators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#layouts">Layouts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-a-network">Loading a network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-window">Main window</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-environments">Python environments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-gsk_worker">Python worker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.BENDS"><code class="docutils literal notranslate"><span class="pre">BENDS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.CHOICES"><code class="docutils literal notranslate"><span class="pre">CHOICES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.COMMANDS"><code class="docutils literal notranslate"><span class="pre">COMMANDS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.COMMUNITIES"><code class="docutils literal notranslate"><span class="pre">COMMUNITIES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.CURVE_STRIDE"><code class="docutils literal notranslate"><span class="pre">CURVE_STRIDE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.EDGE_COLOR"><code class="docutils literal notranslate"><span class="pre">EDGE_COLOR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.EDGE_STRIDE"><code class="docutils literal notranslate"><span class="pre">EDGE_STRIDE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.GENERATORS"><code class="docutils literal notranslate"><span class="pre">GENERATORS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.LAYOUTS"><code class="docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.LISTS"><code class="docutils literal notranslate"><span class="pre">LISTS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.HIDDEN"><code class="docutils literal notranslate"><span class="pre">HIDDEN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.HINTS"><code class="docutils literal notranslate"><span class="pre">HINTS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.INTEGERS"><code class="docutils literal notranslate"><span class="pre">INTEGERS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.MAX_BREAK_VALUES"><code class="docutils literal notranslate"><span class="pre">MAX_BREAK_VALUES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.MAX_CELLS"><code class="docutils literal notranslate"><span class="pre">MAX_CELLS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.MAX_SEGMENTS"><code class="docutils literal notranslate"><span class="pre">MAX_SEGMENTS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.MAX_VALUES"><code class="docutils literal notranslate"><span class="pre">MAX_VALUES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.MISSING_COLOR"><code class="docutils literal notranslate"><span class="pre">MISSING_COLOR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.NODE_COLOR"><code class="docutils literal notranslate"><span class="pre">NODE_COLOR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.NODE_SIZES_NOTE"><code class="docutils literal notranslate"><span class="pre">NODE_SIZES_NOTE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.NODE_STRIDE"><code class="docutils literal notranslate"><span class="pre">NODE_STRIDE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.NODES"><code class="docutils literal notranslate"><span class="pre">NODES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.NUMBERS"><code class="docutils literal notranslate"><span class="pre">NUMBERS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.OPTIONS"><code class="docutils literal notranslate"><span class="pre">OPTIONS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.PROGRESS_INTERVAL"><code class="docutils literal notranslate"><span class="pre">PROGRESS_INTERVAL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.QUALITATIVE_PALETTE"><code class="docutils literal notranslate"><span class="pre">QUALITATIVE_PALETTE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.RANGES"><code class="docutils literal notranslate"><span class="pre">RANGES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.SHOWN_DEFAULTS"><code class="docutils literal notranslate"><span class="pre">SHOWN_DEFAULTS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.STRINGS"><code class="docutils literal notranslate"><span class="pre">STRINGS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.TRANSFORMS"><code class="docutils literal notranslate"><span class="pre">TRANSFORMS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.TYPE1_COLOR"><code class="docutils literal notranslate"><span class="pre">TYPE1_COLOR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.attributes"><code class="docutils literal notranslate"><span class="pre">attributes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.bent"><code class="docutils literal notranslate"><span class="pre">bent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.breaks"><code class="docutils literal notranslate"><span class="pre">breaks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.colors"><code class="docutils literal notranslate"><span class="pre">colors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.default_style"><code class="docutils literal notranslate"><span class="pre">default_style()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.distinct"><code class="docutils literal notranslate"><span class="pre">distinct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.drawing"><code class="docutils literal notranslate"><span class="pre">drawing()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.edge_values"><code class="docutils literal notranslate"><span class="pre">edge_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.environment"><code class="docutils literal notranslate"><span class="pre">environment()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.generator_code"><code class="docutils literal notranslate"><span class="pre">generator_code()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.layout_code"><code class="docutils literal notranslate"><span class="pre">layout_code()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.literal"><code class="docutils literal notranslate"><span class="pre">literal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.load_code"><code class="docutils literal notranslate"><span class="pre">load_code()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.natural_breaks"><code class="docutils literal notranslate"><span class="pre">natural_breaks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.node_size"><code class="docutils literal notranslate"><span class="pre">node_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.node_sizes"><code class="docutils literal notranslate"><span class="pre">node_sizes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.node_values"><code class="docutils literal notranslate"><span class="pre">node_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.numbers"><code class="docutils literal notranslate"><span class="pre">numbers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.opacities"><code class="docutils literal notranslate"><span class="pre">opacities()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.pick_grid"><code class="docutils literal notranslate"><span class="pre">pick_grid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.preview"><code class="docutils literal notranslate"><span class="pre">preview()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.ProgressBar"><code class="docutils literal notranslate"><span class="pre">ProgressBar</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.signature"><code class="docutils literal notranslate"><span class="pre">signature()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.size_code"><code class="docutils literal notranslate"><span class="pre">size_code()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.sizes"><code class="docutils literal notranslate"><span class="pre">sizes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.subdivisions"><code class="docutils literal notranslate"><span class="pre">subdivisions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.summary"><code class="docutils literal notranslate"><span class="pre">summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.text"><code class="docutils literal notranslate"><span class="pre">text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.transform"><code class="docutils literal notranslate"><span class="pre">transform()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gsk_worker.widget"><code class="docutils literal notranslate"><span class="pre">widget()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-interface">Running the interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visual-elements">Visual elements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#colors">Colors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opacity">Opacity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sizes">Sizes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization-panel">Visualization panel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Graphical interface</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/gui.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="graphical-interface">
+<h1>Graphical interface<a class="headerlink" href="#graphical-interface" title="Link to this heading"></a></h1>
+<p>Graphoskop has a graphical interface, in the <code class="docutils literal notranslate"><span class="pre">gui</span></code> folder of the source tree: a
+<a class="reference external" href="https://godotengine.org/">Godot</a> 4.7 application that calls the library and draws its results.
+The library does not depend on it, and works the same without it.</p>
+<p>The interface never computes anything about a network: a separate Python process, the worker,
+runs the library, and the interface draws a result only once the function producing it has
+finished. Since the worker is another process, the interface cannot slow a computation down,
+and the drawing of a network is done by the GPU, a few draw calls for any number of nodes and
+edges. A network is drawn again only when it changes (a new layout, new colors, a pan, a zoom, a
+selection): an idle window draws nothing, so it takes no processor or GPU time from the worker.
+While a long function runs, the progress bar of the status bar is updated once per second.</p>
+<section id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Link to this heading"></a></h2>
+<p><strong>Analysis › Community discovery</strong> lists every community discovery algorithm of the library (see
+<a class="reference internal" href="communities.html"><span class="doc">Communities</span></a>): BigCLAM, DEMON, hierarchical random graphs, Infomap, label propagation,
+Leiden, link communities (hierarchical, and from the line graph), OSLOM and stochastic
+blockmodels. Each opens a dialog with its parameters, with the same controls as for the
+generators (see <a class="reference internal" href="#generators">Generators</a>), then runs on the network of the current tab and adds its line to
+the code panel, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">leiden_communities</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">resolution</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The communities are written as an attribute (<code class="docutils literal notranslate"><span class="pre">community</span></code> by default, <code class="docutils literal notranslate"><span class="pre">link_community</span></code> for
+link communities; the dialog can change the name), shown in the data panel, and the nodes are
+colored by it on a qualitative scale (the edges, for link communities), which can then be
+changed in the <a class="reference internal" href="#visual-elements">Visual elements</a> panel. The view keeps its zoom and center. Hypergraphs and
+simplicial complexes are analyzed as the incidence networks that are drawn.</p>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Godot interface (gui/*.gd, *.tscn)          Python worker (gui/python/gsk_worker.py)
+----------------------------------          -----------------------------------------
+menus, dialogs, tabs, panels       ---&gt;      runs graphoskop, one namespace per tab
+draws nodes and edges, tooltips    &lt;---      code, drawing buffers, colors, node ids,
+tables, progress bar                         pages of tables, progress
+                    local TCP connection, frames: lengths, JSON header, binary payload
+</pre></div>
+</div>
+<p>The interface listens on a free local port and starts the worker with the Python interpreter of
+the user’s environment, passing it the port. Requests and replies are frames (see
+<a class="reference internal" href="#module-gsk_worker" title="gsk_worker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gsk_worker</span></code></a>). Results come back as the code that produced them and, for drawings, as
+float32 buffers that go unchanged into two Godot <code class="docutils literal notranslate"><span class="pre">MultiMesh</span></code> resources, one for the nodes and
+one for the edges: one draw call each, with no loop over nodes or edges in the interface. Colors
+are computed by the worker too, and so is a grid of the node positions, with which the interface
+finds the node under the cursor by looking at a few nodes only.</p>
+<p>Every tab has its own namespace in the worker, where the code shown in its code panel runs: the
+code panel always shows exactly the code that produced what is drawn, and can be copied to a
+script to reproduce it.</p>
+<p>The scripts of the interface:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">main.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">main.tscn</span></code>): the main window, its menus, tabs, panels, status bar and the Fit
+button of the visualization panel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">worker.gd</span></code>: starts the worker, sends requests and dispatches the replies to callbacks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">environments.gd</span></code>: finds the Python environments the worker can run in.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_settings.gd</span></code>: the memory of the application between sessions (see <a class="reference internal" href="#settings">Settings</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_dialog.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">load_dialog.tscn</span></code>): the load dialog.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">params_dialog.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">params_dialog.tscn</span></code>): the parameters of a generator, a layout or a
+community discovery algorithm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">network_view.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">network_view.tscn</span></code>): the visualization panel of one network, with the
+shaders <code class="docutils literal notranslate"><span class="pre">node.gdshader</span></code> (discs of at least 3 pixels), <code class="docutils literal notranslate"><span class="pre">edge.gdshader</span></code> (lines of a sixth
+of the node diameter, at least 1 pixel) and <code class="docutils literal notranslate"><span class="pre">curve.gdshader</span></code> (bundled edges: cubic Bézier
+curves computed by the GPU).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">visual_panel.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">visual_panel.tscn</span></code>): the visual elements panel, with its dialogs
+<code class="docutils literal notranslate"><span class="pre">color_dialog.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">color_dialog.tscn</span></code>) and <code class="docutils literal notranslate"><span class="pre">size_dialog.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">size_dialog.tscn</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">swatch_button.gd</span></code> and <code class="docutils literal notranslate"><span class="pre">swatch_picker.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">swatch_picker.tscn</span></code>): the color buttons and
+their color picker; <code class="docutils literal notranslate"><span class="pre">colorbrewer.json</span></code>: the ColorBrewer palettes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_panel.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">data_panel.tscn</span></code>) and <code class="docutils literal notranslate"><span class="pre">table_view.gd</span></code> (<code class="docutils literal notranslate"><span class="pre">table_view.tscn</span></code>): the data
+panel.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">python_highlighter.tres</span></code>: Python syntax colors of the code panel; <code class="docutils literal notranslate"><span class="pre">theme.tres</span></code>: the fonts
+of the operating system.</p></li>
+</ul>
+<p>They are documented with Godot’s documentation comments (<code class="docutils literal notranslate"><span class="pre">##</span></code>). Dialogs are as large as their
+contents (long lists scroll).</p>
+</section>
+<section id="data-panel">
+<h2>Data panel<a class="headerlink" href="#data-panel" title="Link to this heading"></a></h2>
+<p>The data panel, at the bottom left, has three tabs:</p>
+<ul class="simple">
+<li><p><strong>Nodes</strong>: the attributes of all nodes, one row per node (positions included, as <code class="docutils literal notranslate"><span class="pre">pos_x</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pos_y</span></code>), or, when a node is selected, its attributes and their values;</p></li>
+<li><p><strong>Edges</strong>: all edges (source, target and attributes), or the edges of the selected node;</p></li>
+<li><p><strong>Network</strong>: the properties of the network (kind, direction, numbers of nodes, edges and
+components, device, attributes).</p></li>
+</ul>
+<p>Tables show 200 rows at a time, with buttons for the previous and next pages; only the visible
+page is asked to the worker. Numbers are aligned to the right, texts to the left, with their
+column titles. Hypergraphs and simplicial complexes show their incidence networks:
+hyperedges and facets are rows of the node table, memberships of the edge table.</p>
+</section>
+<section id="generators">
+<h2>Generators<a class="headerlink" href="#generators" title="Link to this heading"></a></h2>
+<p>The <strong>Generators</strong> menu creates a synthetic network in a new tab, with every generator of the
+library (see <a class="reference internal" href="generators.html"><span class="doc">Generators</span></a>), by family: chain; random graphs (G(n, m), G(n, p), configuration
+model, Kronecker graph, random geometric graph); clustered graphs (caveman, Watts-Strogatz);
+broad degree graphs (Barabási-Albert, link selection, copying model, Holme-Kim); stochastic block
+models (planted partition, general, degree-corrected, mixed membership, nested); community
+benchmarks (Girvan-Newman, LFR); higher-order networks (growing manifold, simplicial and
+hypergraph configuration models). <a class="reference internal" href="generators.html#graphoskop.graphrnn" title="graphoskop.graphrnn"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphrnn()</span></code></a> is not in the menu, since it
+learns from a network.</p>
+<p>Each item opens a dialog with the parameters of the function (their descriptions from the
+documentation, as tooltips), set to preset values that make networks of about a thousand nodes,
+or to the defaults. Every parameter gets the control that needs the least typing (see
+<a class="reference internal" href="#gsk_worker.widget" title="gsk_worker.widget"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.widget()</span></code></a>):</p>
+<ul class="simple">
+<li><p>a switch for true / false values (e.g. <code class="docutils literal notranslate"><span class="pre">directed</span></code>), and a <strong>GPU</strong> switch for the device
+(offered when PyTorch finds CUDA);</p></li>
+<li><p>a menu for values from a list (e.g. <code class="docutils literal notranslate"><span class="pre">rewire</span></code> of the Watts-Strogatz model, <code class="docutils literal notranslate"><span class="pre">direction</span></code> of
+hierarchical layouts) and for one attribute name (layouts, analyses);</p></li>
+<li><p>a menu of check boxes for several attribute names (e.g. the <code class="docutils literal notranslate"><span class="pre">groups</span></code> of a circular layout),
+kept in the order they are checked;</p></li>
+<li><p>a slider with a number for values between two bounds (probabilities, mixing parameters,
+angles);</p></li>
+<li><p>a number with arrows for integers and other numbers (e.g. <code class="docutils literal notranslate"><span class="pre">n</span></code>);</p></li>
+<li><p>a field for names (e.g. the <code class="docutils literal notranslate"><span class="pre">attribute</span></code> written) and node ids, typed without quotes;</p></li>
+<li><p>a field for numbers that can be left empty (e.g. <code class="docutils literal notranslate"><span class="pre">seed</span></code>);</p></li>
+<li><p>a field for lists: numbers separated by commas (<code class="docutils literal notranslate"><span class="pre">250,</span> <span class="pre">250,</span> <span class="pre">250,</span> <span class="pre">250</span></code>), rows of a matrix
+separated by semicolons (<code class="docutils literal notranslate"><span class="pre">0.05,</span> <span class="pre">0.002;</span> <span class="pre">0.002,</span> <span class="pre">0.05</span></code>), pairs <code class="docutils literal notranslate"><span class="pre">key:</span> <span class="pre">value</span></code> for dictionaries
+(<code class="docutils literal notranslate"><span class="pre">1:</span> <span class="pre">75,</span> <span class="pre">2:</span> <span class="pre">50</span></code>); Python expressions such as <code class="docutils literal notranslate"><span class="pre">[3]</span> <span class="pre">*</span> <span class="pre">1000</span></code> work too.</p></li>
+</ul>
+<p>A default <code class="docutils literal notranslate"><span class="pre">None</span></code> is shown as the value it stands for (e.g. <code class="docutils literal notranslate"><span class="pre">False</span></code> for <code class="docutils literal notranslate"><span class="pre">directed</span></code>, <code class="docutils literal notranslate"><span class="pre">4</span></code>
+communities in the Girvan-Newman benchmark); when it stands for no value, the field is empty,
+with a hint (e.g. <code class="docutils literal notranslate"><span class="pre">random</span></code> for <code class="docutils literal notranslate"><span class="pre">seed</span></code>). Values are written into the code as Python
+expressions, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">(</span><span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">250</span><span class="p">],</span> <span class="n">p_in</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">p_out</span> <span class="o">=</span> <span class="mf">0.002</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>with only the values that differ from the defaults. The dialog stays open while the function
+runs: if a value is not valid (e.g. a seed that is not a number) or the library raises an error
+(e.g. matrices of the wrong size), the error is shown in the dialog, which keeps the values
+entered, to be corrected; it closes once the function has run. The network is then laid out and
+drawn as a loaded one. Fitting a generator to an open network (the <code class="docutils literal notranslate"><span class="pre">net</span></code> parameter) is not offered yet.</p>
+</section>
+<section id="layouts">
+<h2>Layouts<a class="headerlink" href="#layouts" title="Link to this heading"></a></h2>
+<p>The <strong>Layout</strong> menu lays out the network of the current tab with a layout of node-link diagrams
+of the library (see <a class="reference internal" href="layouts.html"><span class="doc">Layouts</span></a>):</p>
+<ul class="simple">
+<li><p><strong>Circular</strong>: <a class="reference internal" href="layouts.html#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a>;</p></li>
+<li><p><strong>Force-directed</strong>: <a class="reference internal" href="layouts.html#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>;</p></li>
+<li><p><strong>Grid</strong>: <a class="reference internal" href="layouts.html#graphoskop.grid_layout" title="graphoskop.grid_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">grid_layout()</span></code></a>;</p></li>
+<li><p><strong>Hierarchical</strong>: <a class="reference internal" href="layouts.html#graphoskop.hierarchical_layout" title="graphoskop.hierarchical_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_layout()</span></code></a>;</p></li>
+<li><p><strong>Hierarchical, radial</strong>: <a class="reference internal" href="layouts.html#graphoskop.hierarchical_layout" title="graphoskop.hierarchical_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_layout()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;radial&quot;</span></code>;</p></li>
+<li><p><strong>UMAP</strong>: <a class="reference internal" href="layouts.html#graphoskop.umap_layout" title="graphoskop.umap_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">umap_layout()</span></code></a>.</p></li>
+</ul>
+<p>Each opens a dialog with the parameters of the layout, with the same controls as for the
+generators (see <a class="reference internal" href="#generators">Generators</a>), set to the default values, descriptions as tooltips.
+Parameters that take one attribute name, <code class="docutils literal notranslate"><span class="pre">order</span></code> and <code class="docutils literal notranslate"><span class="pre">levels</span></code> (node attributes) and
+<code class="docutils literal notranslate"><span class="pre">weight</span></code> (edge attribute), are menus of the attributes of the network, whose first item is the
+default (e.g. <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">the</span> <span class="pre">edges</span></code>); <code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">attributes</span></code> (UMAP), which take several names
+in order, are menus of check boxes, which keep the names in the order they are checked (the
+button shows them). For example, a circular layout with sectors by <code class="docutils literal notranslate"><span class="pre">country</span></code> and, inside, by
+<code class="docutils literal notranslate"><span class="pre">city</span></code>, clockwise by <code class="docutils literal notranslate"><span class="pre">age</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The number of dimensions and the prefix of the position attributes are not offered: the
+interface draws the two dimensions of <code class="docutils literal notranslate"><span class="pre">pos</span></code>.</p>
+<p>Further items transform the current layout: <strong>Mirror left to right</strong> and <strong>Mirror top to
+bottom</strong> (<a class="reference internal" href="layouts.html#graphoskop.mirror_layout" title="graphoskop.mirror_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">mirror_layout()</span></code></a>), <strong>Rotate 90° counterclockwise</strong> and <strong>Rotate 90°
+clockwise</strong> (<a class="reference internal" href="layouts.html#graphoskop.rotate_layout" title="graphoskop.rotate_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">rotate_layout()</span></code></a>), which run at once, <strong>Rotate…</strong>, which opens a
+dialog with a slider for the angle, and <strong>Remove overlaps</strong> (<a class="reference internal" href="layouts.html#graphoskop.remove_overlaps" title="graphoskop.remove_overlaps"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_overlaps()</span></code></a>,
+at once), with <code class="docutils literal notranslate"><span class="pre">size</span></code> the diameters of the drawn nodes: a number, or, when node sizes are given
+by an attribute, the default diameter times the relative sizes of the nodes, e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># node_sizes: relative sizes of the drawn nodes, a function of the graphical interface</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">remove_overlaps</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mf">0.7</span> <span class="o">*</span> <span class="n">node_sizes</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">smallest</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">largest</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>so that no two nodes overlap, whatever their sizes. <code class="docutils literal notranslate"><span class="pre">node_sizes</span></code> (<a class="reference internal" href="#gsk_worker.node_sizes" title="gsk_worker.node_sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.node_sizes()</span></code></a>)
+is a plotting utility of the interface, not a function of the library: it is defined in the
+namespace of every tab, and the comment says so in the code panel.</p>
+<p>The last item, <strong>Bundle edges…</strong>, bundles the edges of the current layout with
+<a class="reference internal" href="layouts.html#graphoskop.bundle_edges" title="graphoskop.bundle_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">bundle_edges()</span></code></a> (hierarchical edge bundling, as in graph-tool), with a dialog
+for the hierarchy (<code class="docutils literal notranslate"><span class="pre">groups</span></code>: attributes from the coarsest level, or the space of the layout)
+and the strength <code class="docutils literal notranslate"><span class="pre">beta</span></code> (a slider). The curves, chains of cubic Bézier curves, are stored in
+<code class="docutils literal notranslate"><span class="pre">bends</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bundle_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and the edges are drawn along them, as curves computed by the GPU (<code class="docutils literal notranslate"><span class="pre">curve.gdshader</span></code>: every
+Bézier piece is a strip whose vertices the shader puts on the curve, smooth at any zoom), until
+another item of the menu changes the layout (run <strong>Bundle edges…</strong> again then); changing colors,
+sizes and opacities, and community discovery, keep them. For very large networks, pieces are
+drawn with fewer segments, so that there are at most <a class="reference internal" href="#gsk_worker.MAX_SEGMENTS" title="gsk_worker.MAX_SEGMENTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">gsk_worker.MAX_SEGMENTS</span></code></a>.</p>
+<p>Every item adds its line to the code panel, e.g. <code class="docutils literal notranslate"><span class="pre">gsk.force_directed_layout(net)</span></code>. While a
+layout runs, the status bar says so, with a progress bar for long layouts.</p>
+<p>The default diameter of the nodes is 70% of the median distance between a node and its nearest
+neighbor (see <a class="reference internal" href="#gsk_worker.node_size" title="gsk_worker.node_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.node_size()</span></code></a>), recomputed after each layout and kept by the
+transformations and by edge bundling; on screen, nodes are never smaller than 3 pixels. The default width of the
+edges is a sixth of the default node diameter, and at least 1 pixel. Sizes and widths can be
+changed in the <a class="reference internal" href="#visual-elements">Visual elements</a> panel.</p>
+</section>
+<section id="loading-a-network">
+<h2>Loading a network<a class="headerlink" href="#loading-a-network" title="Link to this heading"></a></h2>
+<p><strong>File › Load network…</strong> opens the load dialog, which decides how
+<a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> (or <a class="reference internal" href="higher_order.html#graphoskop.load_hypergraph" title="graphoskop.load_hypergraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_hypergraph()</span></code></a>,
+<a class="reference internal" href="higher_order.html#graphoskop.load_simplicial_complex" title="graphoskop.load_simplicial_complex"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_simplicial_complex()</span></code></a>) is called:</p>
+<ul class="simple">
+<li><p>the edge table (required) and the node table (optional), with the separator of both files and
+whether they have a header row. The first ten rows of each are shown, as the library reads
+them;</p></li>
+<li><p>the columns of the source and target nodes; in multilayer networks, the layer column; in
+signed networks, the column of the signs; in directed hypergraphs, the column with <code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code>
+or <code class="docutils literal notranslate"><span class="pre">&quot;head&quot;</span></code>;</p></li>
+<li><p>the format of the node table, wide or long (guessed: long if it has three or more columns and
+a node id repeats in the first one), and its key columns: node id (entity and layer in
+multilayer networks), then attribute name and value in long format;</p></li>
+<li><p>whether the network is directed, bipartite, signed, multilayer, a hypergraph or a simplicial
+complex. In hypergraphs and simplicial complexes each row of the edge table is a node in a
+hyperedge or simplex (columns node and hyperedge or simplex), and the node table has the node
+id in its first column. Signed networks are loaded and then signed with
+<a class="reference internal" href="signed.html#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">weight</span></code> = the sign column: 0 or more is positive);</p></li>
+<li><p>the device, CPU or GPU (offered when PyTorch finds CUDA).</p></li>
+</ul>
+<p>On <strong>Import</strong>, the network opens in a new tab: the code panel shows the code that loaded it, for
+example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;/data/edges.tsv&quot;</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="s2">&quot;/data/nodes.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>with only the arguments that differ from their defaults. The network is then laid out with
+<a class="reference internal" href="layouts.html#graphoskop.grid_layout" title="graphoskop.grid_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">grid_layout()</span></code></a> (hypergraphs and simplicial complexes as their
+<a class="reference internal" href="higher_order.html#graphoskop.incidence_network" title="graphoskop.incidence_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">incidence_network()</span></code></a>, with hyperedges or facets drawn as nodes of another color),
+and drawn. The layout line is part of the code, since it stores the positions as the node
+attributes <code class="docutils literal notranslate"><span class="pre">pos_x</span></code> and <code class="docutils literal notranslate"><span class="pre">pos_y</span></code>. Errors of the library (e.g. a bipartite network without node
+types) are shown in the load dialog, which stays open with its choices until the network is
+loaded.</p>
+</section>
+<section id="main-window">
+<h2>Main window<a class="headerlink" href="#main-window" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The menu bar: File (<strong>Load network…</strong>, <strong>Save image…</strong>: the visualization panel of the current
+network as a PNG image, twice as large as on screen, without the selection ring), Edit,
+Select, Layout (see <a class="reference internal" href="#layouts">Layouts</a>), Analysis (see <a class="reference internal" href="#analysis">Analysis</a>), Simulation, Generators (see
+<a class="reference internal" href="#generators">Generators</a>), Help. On macOS it is the global menu bar of
+the system.</p></li>
+<li><p>The tab bar: one tab per open network; the close button of a tab forgets its network.</p></li>
+<li><p>Above, the <a class="reference internal" href="#visual-elements">Visual elements</a> panel on the left and the <a class="reference internal" href="#visualization-panel">Visualization panel</a> on the right.</p></li>
+<li><p>Below, over the whole width, side by side, the <a class="reference internal" href="#data-panel">Data panel</a> and the code panel (the code of
+the current tab).</p></li>
+<li><p>At the bottom, the status bar: on the left, the size of the current network or what is
+running; then, while a function of the library with a progress bar runs (e.g. a
+force-directed layout), the bar, with the time left; on the right, the Python environment of
+the worker, with the Python and library versions and whether a GPU is available. Click it to
+choose another environment (see <a class="reference internal" href="#python-environments">Python environments</a>). The progress bars of the library
+(see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>) are sent by the worker (<a class="reference internal" href="#gsk_worker.ProgressBar" title="gsk_worker.ProgressBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">gsk_worker.ProgressBar</span></code></a>) at most once
+per second, and go to the status bar instead of the terminal.</p></li>
+</ul>
+</section>
+<section id="python-environments">
+<h2>Python environments<a class="headerlink" href="#python-environments" title="Link to this heading"></a></h2>
+<p>The worker runs in a Python environment where graphoskop is installed. Clicking the environment
+in the status bar lists the environments found:</p>
+<ul class="simple">
+<li><p>the interpreters used before, most recent first;</p></li>
+<li><p>the conda environments, as listed by conda in <code class="docutils literal notranslate"><span class="pre">~/.conda/environments.txt</span></code> (<code class="docutils literal notranslate"><span class="pre">base</span></code> for its
+base environment);</p></li>
+<li><p>the active virtual environment (<code class="docutils literal notranslate"><span class="pre">$VIRTUAL_ENV</span></code>);</p></li>
+<li><p>the interpreters on the <code class="docutils literal notranslate"><span class="pre">PATH</span></code>;</p></li>
+</ul>
+<p>and <strong>Other interpreter…</strong> to choose one with a file dialog. Choosing one restarts the worker
+there, and the networks of the open tabs are rebuilt by running their code again (a tab whose
+code fails in the new environment, e.g. on a GPU it does not have, is closed with a message).
+Layouts with random starts (force-directed, UMAP) can then come out different.</p>
+</section>
+<section id="module-gsk_worker">
+<span id="python-worker"></span><h2>Python worker<a class="headerlink" href="#module-gsk_worker" title="Link to this heading"></a></h2>
+<p>Python worker of the Graphoskop graphical interface.</p>
+<p>The interface (a Godot application, in the <code class="docutils literal notranslate"><span class="pre">gui</span></code> folder) starts this script with the Python
+interpreter of the user’s environment, as <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">gsk_worker.py</span> <span class="pre">&lt;port&gt;</span></code>, and talks to it over a
+local TCP connection on <code class="docutils literal notranslate"><span class="pre">port</span></code>. The worker runs the library: the interface never computes
+anything about a network, it only draws what the worker sends back once a function has finished.
+The worker is a separate process, so the interface cannot slow down a computation; while one
+runs, the worker answers nothing else.</p>
+<p>Every message, in both directions, is a frame:</p>
+<ul class="simple">
+<li><p>8 bytes: the length of the header and the length of the payload, as two little-endian unsigned
+32-bit integers;</p></li>
+<li><p>the header: a JSON object, UTF-8;</p></li>
+<li><p>the payload: raw bytes (possibly none).</p></li>
+</ul>
+<p>Requests have a <code class="docutils literal notranslate"><span class="pre">cmd</span></code> (see <a class="reference internal" href="#gsk_worker.COMMANDS" title="gsk_worker.COMMANDS"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMMANDS</span></code></a>) and an <code class="docutils literal notranslate"><span class="pre">id</span></code>, which the reply repeats. Replies have
+<code class="docutils literal notranslate"><span class="pre">ok</span></code> (<code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>) and, if <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">error</span></code> (the message) and <code class="docutils literal notranslate"><span class="pre">traceback</span></code>. When
+it connects, the worker sends a first frame with <code class="docutils literal notranslate"><span class="pre">cmd</span> <span class="pre">=</span> <span class="pre">&quot;hello&quot;</span></code>, then imports the library and
+sends a second one with <code class="docutils literal notranslate"><span class="pre">cmd</span> <span class="pre">=</span> <span class="pre">&quot;ready&quot;</span></code> (its <code class="docutils literal notranslate"><span class="pre">ok</span></code> tells whether the import worked). While a
+function with a progress bar runs, the worker also sends frames with <code class="docutils literal notranslate"><span class="pre">cmd</span> <span class="pre">=</span> <span class="pre">&quot;progress&quot;</span></code> (see
+<a class="reference internal" href="#gsk_worker.ProgressBar" title="gsk_worker.ProgressBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProgressBar</span></code></a>).</p>
+<p>Every tab of the interface has its own namespace (a dictionary), where the code shown in the code
+panel of that tab runs: the code panel always shows exactly the code that produced what is drawn.
+The namespace also keeps the style of the drawing (<code class="docutils literal notranslate"><span class="pre">__style__</span></code>, see <a class="reference internal" href="#gsk_worker.default_style" title="gsk_worker.default_style"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_style()</span></code></a>), the
+default diameter of the drawn nodes (<code class="docutils literal notranslate"><span class="pre">__size__</span></code>) and the tables of the data panel
+(<code class="docutils literal notranslate"><span class="pre">__tables__</span></code>).</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.BENDS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">BENDS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'bends</span> <span class="pre">=</span> <span class="pre">gsk.bundle_edges'</span></span><a class="headerlink" href="#gsk_worker.BENDS" title="Link to this definition"></a></dt>
+<dd><p>Start of the line of code bundling the edges: the curves are stored in <code class="docutils literal notranslate"><span class="pre">bends</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.CHOICES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">CHOICES</span></span><a class="headerlink" href="#gsk_worker.CHOICES" title="Link to this definition"></a></dt>
+<dd><p>Parameters of layouts and community discovery that take attribute names (by name, or by
+function and name): the kind of attribute (<code class="docutils literal notranslate"><span class="pre">&quot;nodes&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;edges&quot;</span></code>) and whether several
+names can be given (a list); the dialog offers the attributes of the network. (<code class="docutils literal notranslate"><span class="pre">groups</span></code> of
+community discovery is a number.)</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.COMMANDS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">COMMANDS</span></span><a class="headerlink" href="#gsk_worker.COMMANDS" title="Link to this definition"></a></dt>
+<dd><p>Commands understood by the worker.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.COMMUNITIES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">COMMUNITIES</span></span><a class="headerlink" href="#gsk_worker.COMMUNITIES" title="Link to this definition"></a></dt>
+<dd><p>Functions of Analysis › Community discovery: the community discovery functions of the library.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.CURVE_STRIDE">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">CURVE_STRIDE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#gsk_worker.CURVE_STRIDE" title="Link to this definition"></a></dt>
+<dd><p>Floats per piece of the buffer of bundled edges (cubic Bézier curves): the first three points
+in a 2D transform (8 floats: second point as x axis, third as y axis, first as origin), a color
+(4) and custom data (4: the last point, the relative width, 0).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.EDGE_COLOR">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">EDGE_COLOR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#999999'</span></span><a class="headerlink" href="#gsk_worker.EDGE_COLOR" title="Link to this definition"></a></dt>
+<dd><p>Default color of the edges.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.EDGE_STRIDE">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">EDGE_STRIDE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12</span></span><a class="headerlink" href="#gsk_worker.EDGE_STRIDE" title="Link to this definition"></a></dt>
+<dd><p>Floats per edge in the buffer of the edges: a 2D transform (8 floats) and a color (4).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.GENERATORS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">GENERATORS</span></span><a class="headerlink" href="#gsk_worker.GENERATORS" title="Link to this definition"></a></dt>
+<dd><p>Functions of the Generators menu: the generators of synthetic networks of the library (not
+<a class="reference internal" href="generators.html#graphoskop.graphrnn" title="graphoskop.graphrnn"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphrnn()</span></code></a>, which learns from a network).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.LAYOUTS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">LAYOUTS</span></span><a class="headerlink" href="#gsk_worker.LAYOUTS" title="Link to this definition"></a></dt>
+<dd><p>Functions of the Layout menu: layouts of node-link diagrams, transformations of layouts, and
+edge bundling.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.LISTS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">LISTS</span></span><a class="headerlink" href="#gsk_worker.LISTS" title="Link to this definition"></a></dt>
+<dd><p>Parameters taking lists, matrices or dictionaries (or a number), written in the dialog as
+numbers separated by commas, rows separated by semicolons, or <code class="docutils literal notranslate"><span class="pre">key:</span> <span class="pre">value</span></code> pairs.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.HIDDEN">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">HIDDEN</span></span><a class="headerlink" href="#gsk_worker.HIDDEN" title="Link to this definition"></a></dt>
+<dd><p>Parameters of layouts not shown in the parameter dialog: the network (layouts work on the
+network of the tab), the prefix of the positions (the interface draws <code class="docutils literal notranslate"><span class="pre">pos</span></code>), the number of
+dimensions (it draws two) and the progress bar (it shows it). Generators hide only <code class="docutils literal notranslate"><span class="pre">net</span></code>
+(fitted generators are not offered) and <code class="docutils literal notranslate"><span class="pre">progress</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.HINTS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">HINTS</span></span><a class="headerlink" href="#gsk_worker.HINTS" title="Link to this definition"></a></dt>
+<dd><p>Hints shown in empty fields of the parameter dialog, for parameters whose default <code class="docutils literal notranslate"><span class="pre">None</span></code>
+has no value of its own.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.INTEGERS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">INTEGERS</span></span><a class="headerlink" href="#gsk_worker.INTEGERS" title="Link to this definition"></a></dt>
+<dd><p>Integer parameters: their smallest value; the dialog shows a number with arrows.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.MAX_BREAK_VALUES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">MAX_BREAK_VALUES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#gsk_worker.MAX_BREAK_VALUES" title="Link to this definition"></a></dt>
+<dd><p>Most values used to find natural breaks (a sample of quantiles beyond).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.MAX_CELLS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">MAX_CELLS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4194304</span></span><a class="headerlink" href="#gsk_worker.MAX_CELLS" title="Link to this definition"></a></dt>
+<dd><p>Most cells of the grid used by the interface to find the node under the cursor.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.MAX_SEGMENTS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">MAX_SEGMENTS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16777216</span></span><a class="headerlink" href="#gsk_worker.MAX_SEGMENTS" title="Link to this definition"></a></dt>
+<dd><p>Most segments drawn for bundled edges: every Bézier piece is drawn with up to 16 straight
+segments (computed by the GPU), fewer beyond this total (at least 2).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.MAX_VALUES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">MAX_VALUES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#gsk_worker.MAX_VALUES" title="Link to this definition"></a></dt>
+<dd><p>Most distinct values of an attribute sent to the interface (all values get colors anyway).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.MISSING_COLOR">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">MISSING_COLOR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#cccccc'</span></span><a class="headerlink" href="#gsk_worker.MISSING_COLOR" title="Link to this definition"></a></dt>
+<dd><p>Default color of missing values.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.NODE_COLOR">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">NODE_COLOR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#e41a1c'</span></span><a class="headerlink" href="#gsk_worker.NODE_COLOR" title="Link to this definition"></a></dt>
+<dd><p>Default color of the nodes.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.NODE_SIZES_NOTE">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">NODE_SIZES_NOTE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#</span> <span class="pre">node_sizes:</span> <span class="pre">relative</span> <span class="pre">sizes</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">drawn</span> <span class="pre">nodes,</span> <span class="pre">a</span> <span class="pre">function</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">graphical</span> <span class="pre">interface'</span></span><a class="headerlink" href="#gsk_worker.NODE_SIZES_NOTE" title="Link to this definition"></a></dt>
+<dd><p>Comment before code using <a class="reference internal" href="#gsk_worker.node_sizes" title="gsk_worker.node_sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_sizes()</span></code></a>, which is defined by the interface.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.NODE_STRIDE">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">NODE_STRIDE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#gsk_worker.NODE_STRIDE" title="Link to this definition"></a></dt>
+<dd><p>Floats per node in the Godot <code class="docutils literal notranslate"><span class="pre">MultiMesh</span></code> buffer of the nodes: a 2D transform (8 floats), a
+color (4) and custom data (4: the diameter of the node, then zeros).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.NODES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">NODES</span></span><a class="headerlink" href="#gsk_worker.NODES" title="Link to this definition"></a></dt>
+<dd><p>Parameters taking a node id, written without quotes in the dialog.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.NUMBERS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">NUMBERS</span></span><a class="headerlink" href="#gsk_worker.NUMBERS" title="Link to this definition"></a></dt>
+<dd><p>Other numeric parameters: their smallest value and step; the dialog shows a number with arrows.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.OPTIONS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">OPTIONS</span></span><a class="headerlink" href="#gsk_worker.OPTIONS" title="Link to this definition"></a></dt>
+<dd><p>Parameters chosen from a list of values (Python source code; <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, shown with its
+hint), by name or by function and name: the dialog shows a menu.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.PROGRESS_INTERVAL">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">PROGRESS_INTERVAL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#gsk_worker.PROGRESS_INTERVAL" title="Link to this definition"></a></dt>
+<dd><p>Smallest interval between two progress frames, in seconds.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.QUALITATIVE_PALETTE">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">QUALITATIVE_PALETTE</span></span><a class="headerlink" href="#gsk_worker.QUALITATIVE_PALETTE" title="Link to this definition"></a></dt>
+<dd><p>Colors of qualitative scales set by the interface (ColorBrewer’s Set1, the default palette of
+the color dialog).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.RANGES">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">RANGES</span></span><a class="headerlink" href="#gsk_worker.RANGES" title="Link to this definition"></a></dt>
+<dd><p>Numeric parameters between two bounds: smallest and largest value and step; the dialog shows a
+slider next to the number.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.SHOWN_DEFAULTS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">SHOWN_DEFAULTS</span></span><a class="headerlink" href="#gsk_worker.SHOWN_DEFAULTS" title="Link to this definition"></a></dt>
+<dd><p>Values shown in the parameter dialog of the generators for parameters whose default is
+<code class="docutils literal notranslate"><span class="pre">None</span></code>: their actual value without <code class="docutils literal notranslate"><span class="pre">net</span></code> (by name, or by function and name; <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none:
+Infomap’s <code class="docutils literal notranslate"><span class="pre">directed</span></code> follows the network).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.STRINGS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">STRINGS</span></span><a class="headerlink" href="#gsk_worker.STRINGS" title="Link to this definition"></a></dt>
+<dd><p>Parameters taking a text (a name), written without quotes in the dialog (by name, or by
+function and name).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.TRANSFORMS">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">TRANSFORMS</span></span><a class="headerlink" href="#gsk_worker.TRANSFORMS" title="Link to this definition"></a></dt>
+<dd><p>Functions of <a class="reference internal" href="#gsk_worker.LAYOUTS" title="gsk_worker.LAYOUTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a> transforming the current layout (or bundling its edges): the drawn
+nodes keep their size, and <code class="docutils literal notranslate"><span class="pre">remove_overlaps</span></code> gets it as <code class="docutils literal notranslate"><span class="pre">size</span></code> (unless given), to remove
+the overlaps on screen.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="gsk_worker.TYPE1_COLOR">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">TYPE1_COLOR</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#377eb8'</span></span><a class="headerlink" href="#gsk_worker.TYPE1_COLOR" title="Link to this definition"></a></dt>
+<dd><p>Color of the second type of nodes of bipartite networks (hyperedges and facets of incidence
+networks), by default: the second color of ColorBrewer’s Set1, whose first one is
+<a class="reference internal" href="#gsk_worker.NODE_COLOR" title="gsk_worker.NODE_COLOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">NODE_COLOR</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.attributes">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.attributes" title="Link to this definition"></a></dt>
+<dd><p>Node and edge attributes of a network, for the visual elements panel: for each, its <code class="docutils literal notranslate"><span class="pre">name</span></code>,
+whether it is <code class="docutils literal notranslate"><span class="pre">numeric</span></code>, its smallest and largest number (<code class="docutils literal notranslate"><span class="pre">min</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>: values, or
+positions of the values of qualitative attributes, see <a class="reference internal" href="#gsk_worker.numbers" title="gsk_worker.numbers"><code class="xref py py-func docutils literal notranslate"><span class="pre">numbers()</span></code></a>), whether all its numbers
+are positive (<code class="docutils literal notranslate"><span class="pre">positive</span></code>), its number of distinct values (<code class="docutils literal notranslate"><span class="pre">count</span></code>) and the first
+<a class="reference internal" href="#gsk_worker.MAX_VALUES" title="gsk_worker.MAX_VALUES"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_VALUES</span></code></a> of them in order (<code class="docutils literal notranslate"><span class="pre">values</span></code>, texts, see <a class="reference internal" href="#gsk_worker.distinct" title="gsk_worker.distinct"><code class="xref py py-func docutils literal notranslate"><span class="pre">distinct()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with lists <code class="docutils literal notranslate"><span class="pre">nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">edges</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.bent">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">bent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.bent" title="Link to this definition"></a></dt>
+<dd><p>Whether the edges are drawn bundled: the last line of code that bundles the edges
+(<a class="reference internal" href="#gsk_worker.BENDS" title="gsk_worker.BENDS"><code class="xref py py-data docutils literal notranslate"><span class="pre">BENDS</span></code></a>) or changes the layout (a function of <a class="reference internal" href="#gsk_worker.LAYOUTS" title="gsk_worker.LAYOUTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a>) bundles them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>code</strong> – Lines of code of a tab.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.breaks">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.breaks" title="Link to this definition"></a></dt>
+<dd><p>Values of the <code class="docutils literal notranslate"><span class="pre">k</span></code> color stops of a quantitative scale: <code class="docutils literal notranslate"><span class="pre">&quot;quantiles&quot;</span></code> (stop <code class="docutils literal notranslate"><span class="pre">i</span></code> at the
+quantile <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">(k</span> <span class="pre">-</span> <span class="pre">1)</span></code>), <code class="docutils literal notranslate"><span class="pre">&quot;equal&quot;</span></code> (evenly spaced from the smallest to the largest value)
+or <code class="docutils literal notranslate"><span class="pre">&quot;natural&quot;</span></code> (the boundaries of <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">-</span> <span class="pre">1</span></code> classes of <a class="reference internal" href="#gsk_worker.natural_breaks" title="gsk_worker.natural_breaks"><code class="xref py py-func docutils literal notranslate"><span class="pre">natural_breaks()</span></code></a>). With <code class="docutils literal notranslate"><span class="pre">log</span></code>,
+stops are placed on the logarithmic scale (<a class="reference internal" href="#gsk_worker.transform" title="gsk_worker.transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">transform()</span></code></a>) and given back as values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – Values of the attribute (qualitative ones as <a class="reference internal" href="#gsk_worker.numbers" title="gsk_worker.numbers"><code class="xref py py-func docutils literal notranslate"><span class="pre">numbers()</span></code></a>).</p></li>
+<li><p><strong>method</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;quantiles&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;equal&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;natural&quot;</span></code>.</p></li>
+<li><p><strong>k</strong> – Number of stops, at least 2.</p></li>
+<li><p><strong>log</strong> – Whether the scale is logarithmic.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of <code class="docutils literal notranslate"><span class="pre">k</span></code> stop values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.colors">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.colors" title="Link to this definition"></a></dt>
+<dd><p>RGBA colors (float32, one row per value) of nodes or edges, from a color specification:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">None,</span> <span class="pre">&quot;color&quot;:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code>: one color for all;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">name,</span> <span class="pre">&quot;scale&quot;:</span> <span class="pre">&quot;quantitative&quot;,</span> <span class="pre">&quot;stops&quot;:</span> <span class="pre">[[value,</span> <span class="pre">&quot;#rrggbb&quot;],</span> <span class="pre">...],</span> <span class="pre">&quot;log&quot;:</span>
+<span class="pre">bool,</span> <span class="pre">&quot;missing&quot;:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code>: colors interpolated linearly between the stops (sorted by
+value), on the logarithmic scale of <a class="reference internal" href="#gsk_worker.transform" title="gsk_worker.transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">transform()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">log</span></code>, the first and last color
+beyond them. Qualitative attributes count as the positions of their values (<a class="reference internal" href="#gsk_worker.numbers" title="gsk_worker.numbers"><code class="xref py py-func docutils literal notranslate"><span class="pre">numbers()</span></code></a>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">name,</span> <span class="pre">&quot;scale&quot;:</span> <span class="pre">&quot;qualitative&quot;,</span> <span class="pre">&quot;palette&quot;:</span> <span class="pre">[colors],</span> <span class="pre">&quot;overrides&quot;:</span> <span class="pre">[[text,</span>
+<span class="pre">&quot;#rrggbb&quot;],</span> <span class="pre">...],</span> <span class="pre">&quot;missing&quot;:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code>: every distinct value (<a class="reference internal" href="#gsk_worker.distinct" title="gsk_worker.distinct"><code class="xref py py-func docutils literal notranslate"><span class="pre">distinct()</span></code></a>) gets the
+next color of the palette, again from the first after the last one, unless it has a color in
+<code class="docutils literal notranslate"><span class="pre">overrides</span></code>.</p></li>
+</ul>
+<p>Missing values get the <code class="docutils literal notranslate"><span class="pre">missing</span></code> color.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – Values of the attribute (ignored without an attribute), or their number.</p></li>
+<li><p><strong>spec</strong> – Color specification, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="docutils literal notranslate"><span class="pre">default</span></code>.</p></li>
+<li><p><strong>default</strong> – Color without a specification.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">4)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.default_style">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">default_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.default_style" title="Link to this definition"></a></dt>
+<dd><p>Style of a new drawing: <code class="docutils literal notranslate"><span class="pre">nodes</span></code> and <code class="docutils literal notranslate"><span class="pre">edges</span></code> (colors, see <a class="reference internal" href="#gsk_worker.colors" title="gsk_worker.colors"><code class="xref py py-func docutils literal notranslate"><span class="pre">colors()</span></code></a>), <code class="docutils literal notranslate"><span class="pre">node_size</span></code> and
+<code class="docutils literal notranslate"><span class="pre">edge_width</span></code> (see <a class="reference internal" href="#gsk_worker.sizes" title="gsk_worker.sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">sizes()</span></code></a>), <code class="docutils literal notranslate"><span class="pre">node_opacity</span></code> and <code class="docutils literal notranslate"><span class="pre">edge_opacity</span></code> (see
+<a class="reference internal" href="#gsk_worker.opacities" title="gsk_worker.opacities"><code class="xref py py-func docutils literal notranslate"><span class="pre">opacities()</span></code></a>). Nodes are <a class="reference internal" href="#gsk_worker.NODE_COLOR" title="gsk_worker.NODE_COLOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">NODE_COLOR</span></code></a> and edges <a class="reference internal" href="#gsk_worker.EDGE_COLOR" title="gsk_worker.EDGE_COLOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">EDGE_COLOR</span></code></a>, all of the
+default size and opaque; in bipartite networks (and incidence networks of hypergraphs and
+complexes), nodes are colored by type, the second type (hyperedges, facets)
+<a class="reference internal" href="#gsk_worker.TYPE1_COLOR" title="gsk_worker.TYPE1_COLOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">TYPE1_COLOR</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.distinct">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">distinct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.distinct" title="Link to this definition"></a></dt>
+<dd><p>Distinct values of an attribute, as texts (<a class="reference internal" href="#gsk_worker.text" title="gsk_worker.text"><code class="xref py py-func docutils literal notranslate"><span class="pre">text()</span></code></a>) in their order (numbers, and texts
+that are numbers, numerically first, then other texts alphabetically), with the position of the text of each value in that order (-1
+for missing values): the order of qualitative colors, and the numbers given to qualitative
+values on quantitative scales and sizes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>values</strong> – Values (NumPy array).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of texts and int64 array of positions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.drawing">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">drawing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bends</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.drawing" title="Link to this definition"></a></dt>
+<dd><p>Drawing of a laid out network, as buffers of Godot <code class="docutils literal notranslate"><span class="pre">MultiMesh</span></code> resources: one instance per
+node (a disc, its diameter in the transform and in the custom data) and one per edge (a quad
+from the source to the target, whose second axis is the relative width: the edge shader of the
+interface multiplies it by the default width), or, for bundled edges, one per cubic Bézier
+piece of their curves (<a class="reference internal" href="#gsk_worker.CURVE_STRIDE" title="gsk_worker.CURVE_STRIDE"><code class="xref py py-data docutils literal notranslate"><span class="pre">CURVE_STRIDE</span></code></a>: the curve shader of the interface computes the
+curve, with <a class="reference internal" href="#gsk_worker.subdivisions" title="gsk_worker.subdivisions"><code class="xref py py-func docutils literal notranslate"><span class="pre">subdivisions()</span></code></a> segments). Each instance is a 2D transform, row by row
+(<code class="docutils literal notranslate"><span class="pre">x.x,</span> <span class="pre">y.x,</span> <span class="pre">0,</span> <span class="pre">origin.x,</span> <span class="pre">x.y,</span> <span class="pre">y.y,</span> <span class="pre">0,</span> <span class="pre">origin.y</span></code>), and a color (<a class="reference internal" href="#gsk_worker.colors" title="gsk_worker.colors"><code class="xref py py-func docutils literal notranslate"><span class="pre">colors()</span></code></a>, its alpha
+the opacity, <a class="reference internal" href="#gsk_worker.opacities" title="gsk_worker.opacities"><code class="xref py py-func docutils literal notranslate"><span class="pre">opacities()</span></code></a>); nodes also have their diameter as custom data. The y axis is
+flipped, since it points down on screen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with the numeric node attributes
+<code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code>.</p></li>
+<li><p><strong>size</strong> – Default diameter of the nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <a class="reference internal" href="#gsk_worker.node_size" title="gsk_worker.node_size"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_size()</span></code></a>.</p></li>
+<li><p><strong>style</strong> – Style (see <a class="reference internal" href="#gsk_worker.default_style" title="gsk_worker.default_style"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_style()</span></code></a>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the default one.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the position attributes.</p></li>
+<li><p><strong>bends</strong> – Curves of the edges, as returned by <a class="reference internal" href="layouts.html#graphoskop.bundle_edges" title="graphoskop.bundle_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">bundle_edges()</span></code></a>, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for straight edges.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with the node and edge buffers (float32 arrays), whether edges are curves
+(<code class="docutils literal notranslate"><span class="pre">curved</span></code>), the node ids joined by <code class="docutils literal notranslate"><span class="pre">&quot;\x1f&quot;</span></code> (UTF-8), the picking grid
+(<a class="reference internal" href="#gsk_worker.pick_grid" title="gsk_worker.pick_grid"><code class="xref py py-func docutils literal notranslate"><span class="pre">pick_grid()</span></code></a>), the bounding box <code class="docutils literal notranslate"><span class="pre">[x0,</span> <span class="pre">y0,</span> <span class="pre">x1,</span> <span class="pre">y1]</span></code>, the default diameter of the
+nodes and the largest one.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.edge_values">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">edge_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.edge_values" title="Link to this definition"></a></dt>
+<dd><p>Values of an edge attribute, for the input edges in the network wide order (as <code class="xref py py-func docutils literal notranslate"><span class="pre">_edges()</span></code>):
+float64 array for numeric attributes, object array for qualitative ones.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.environment">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.environment" title="Link to this definition"></a></dt>
+<dd><p>Name of the Python environment of the worker: the name of a virtual or conda environment
+(<code class="docutils literal notranslate"><span class="pre">&quot;base&quot;</span></code> for conda’s base environment), or <code class="docutils literal notranslate"><span class="pre">&quot;system&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.generator_code">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">generator_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.generator_code" title="Link to this definition"></a></dt>
+<dd><p>Code generating a synthetic network with a function of <a class="reference internal" href="#gsk_worker.GENERATORS" title="gsk_worker.GENERATORS"><code class="xref py py-data docutils literal notranslate"><span class="pre">GENERATORS</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function</strong> – Name of the function.</p></li>
+<li><p><strong>arguments</strong> – Dictionary from parameter name to its value as Python source code (e.g.
+<code class="docutils literal notranslate"><span class="pre">&quot;[250]</span> <span class="pre">*</span> <span class="pre">4&quot;</span></code>), written as given.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of lines of code, defining <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the function is not a generator, or a value is not a Python expression.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.layout_code">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">layout_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grid_layout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arguments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.layout_code" title="Link to this definition"></a></dt>
+<dd><p>Code of a layout (or a transformation of a layout, edge bundling, or community discovery) of
+the network of a tab.
+Hypergraphs and simplicial complexes are laid out (and drawn) as their incidence networks,
+defined as <code class="docutils literal notranslate"><span class="pre">inc</span></code> the first time. The curves of <a class="reference internal" href="layouts.html#graphoskop.bundle_edges" title="graphoskop.bundle_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">bundle_edges()</span></code></a> are stored
+in <code class="docutils literal notranslate"><span class="pre">bends</span></code> (<a class="reference internal" href="#gsk_worker.BENDS" title="gsk_worker.BENDS"><code class="xref py py-data docutils literal notranslate"><span class="pre">BENDS</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ns</strong> – Namespace of the tab, with the network <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p></li>
+<li><p><strong>function</strong> – One of <a class="reference internal" href="#gsk_worker.LAYOUTS" title="gsk_worker.LAYOUTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a> or <a class="reference internal" href="#gsk_worker.COMMUNITIES" title="gsk_worker.COMMUNITIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMMUNITIES</span></code></a>; by default
+<a class="reference internal" href="layouts.html#graphoskop.grid_layout" title="graphoskop.grid_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">grid_layout()</span></code></a>, the first layout of every network (the cheapest of the
+library).</p></li>
+<li><p><strong>arguments</strong> – Dictionary from parameter name to its value as Python source code (e.g.
+<code class="docutils literal notranslate"><span class="pre">'[&quot;region&quot;,</span> <span class="pre">&quot;city&quot;]'</span></code>), written as given, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of lines of code.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">function</span></code> is not in <a class="reference internal" href="#gsk_worker.LAYOUTS" title="gsk_worker.LAYOUTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a> or <a class="reference internal" href="#gsk_worker.COMMUNITIES" title="gsk_worker.COMMUNITIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMMUNITIES</span></code></a>, or a
+value is not a Python expression.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.literal">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">literal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.literal" title="Link to this definition"></a></dt>
+<dd><p>Python literal of a value, as written in the code panel: strings in double quotes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> – String, number, boolean, <code class="docutils literal notranslate"><span class="pre">None</span></code>, or a list of them.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Source code of the value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.load_code">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">load_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.load_code" title="Link to this definition"></a></dt>
+<dd><p>Code loading a network as described by the load dialog of the interface: a call to
+<a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>, <a class="reference internal" href="higher_order.html#graphoskop.load_hypergraph" title="graphoskop.load_hypergraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_hypergraph()</span></code></a> or
+<a class="reference internal" href="higher_order.html#graphoskop.load_simplicial_complex" title="graphoskop.load_simplicial_complex"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_simplicial_complex()</span></code></a>, with only the arguments that differ from their
+defaults, followed by <a class="reference internal" href="signed.html#graphoskop.signed_network" title="graphoskop.signed_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">signed_network()</span></code></a> for signed networks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>spec</strong> – Dictionary with <code class="docutils literal notranslate"><span class="pre">edges</span></code> (path), <code class="docutils literal notranslate"><span class="pre">nodes</span></code> (path or <code class="docutils literal notranslate"><span class="pre">None</span></code>), <code class="docutils literal notranslate"><span class="pre">sep</span></code>,
+<code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">kind</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;network&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hypergraph&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;simplicial&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">source</span></code> and
+<code class="docutils literal notranslate"><span class="pre">target</span></code> (column names, or positions without a header; node and hyperedge or simplex
+column in higher-order networks), <code class="docutils literal notranslate"><span class="pre">directed</span></code>, <code class="docutils literal notranslate"><span class="pre">bipartite</span></code>, <code class="docutils literal notranslate"><span class="pre">multilayer</span></code>, <code class="docutils literal notranslate"><span class="pre">layer</span></code>,
+<code class="docutils literal notranslate"><span class="pre">direction</span></code> (directed hypergraphs), <code class="docutils literal notranslate"><span class="pre">node_format</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;wide&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;long&quot;</span></code>),
+<code class="docutils literal notranslate"><span class="pre">node_columns</span></code> (list, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the first columns), <code class="docutils literal notranslate"><span class="pre">device</span></code> and <code class="docutils literal notranslate"><span class="pre">sign</span></code> (edge
+attribute of the signs, or <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of lines of code, defining <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.main">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.main" title="Link to this definition"></a></dt>
+<dd><p>Connects to the interface on <code class="docutils literal notranslate"><span class="pre">port</span></code> and serves its requests until the connection closes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>port</strong> – TCP port where the interface listens, on 127.0.0.1.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.natural_breaks">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">natural_breaks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.natural_breaks" title="Link to this definition"></a></dt>
+<dd><p>Natural breaks (Jenks; Fisher’s exact optimization): the <code class="docutils literal notranslate"><span class="pre">k</span></code> classes of consecutive sorted
+values with the smallest total squared deviation from their means, on at most
+<a class="reference internal" href="#gsk_worker.MAX_BREAK_VALUES" title="gsk_worker.MAX_BREAK_VALUES"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_BREAK_VALUES</span></code></a> values (quantiles of the values beyond).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Values (no NaN).</p></li>
+<li><p><strong>k</strong> – Number of classes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">+</span> <span class="pre">1</span></code> class boundaries: smallest value, first value of every class but the
+first, largest value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.node_size">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">node_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.node_size" title="Link to this definition"></a></dt>
+<dd><p>Default diameter of the drawn nodes for a layout: 70% of the median distance from a node to
+the nearest other node, so that nodes in typical places do not overlap, whatever the scale of
+the layout (grid spacing, edge length, UMAP units).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Horizontal positions (NumPy array).</p></li>
+<li><p><strong>y</strong> – Vertical positions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Diameter, in layout units.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.node_sizes">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">node_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smallest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">largest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.node_sizes" title="Link to this definition"></a></dt>
+<dd><p>Relative diameters of the drawn nodes (1 is the default diameter), from a node attribute: the
+node with the smallest value gets <code class="docutils literal notranslate"><span class="pre">smallest</span></code>, the one with the largest value <code class="docutils literal notranslate"><span class="pre">largest</span></code>, and
+the areas of the others grow linearly with their values in between (<a class="reference internal" href="#gsk_worker.sizes" title="gsk_worker.sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">sizes()</span></code></a> with
+<code class="docutils literal notranslate"><span class="pre">area</span></code>; qualitative values count as their positions in <a class="reference internal" href="#gsk_worker.distinct" title="gsk_worker.distinct"><code class="xref py py-func docutils literal notranslate"><span class="pre">distinct()</span></code></a>, missing values get
+<code class="docutils literal notranslate"><span class="pre">smallest</span></code>; <code class="docutils literal notranslate"><span class="pre">log</span></code> places the values on a logarithmic scale). A plotting utility of the
+interface, not of the library: it is also defined in the namespace of every tab, for the code
+of <a class="reference internal" href="#gsk_worker.size_code" title="gsk_worker.size_code"><code class="xref py py-func docutils literal notranslate"><span class="pre">size_code()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>attribute</strong> – Name of a node attribute, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for 1 for all nodes.</p></li>
+<li><p><strong>smallest</strong> – Size of the node with the smallest value.</p></li>
+<li><p><strong>largest</strong> – Size of the node with the largest value.</p></li>
+<li><p><strong>log</strong> – Whether the values are placed on a logarithmic scale.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float64 array, one value per node in the network wide order.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.node_values">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">node_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.node_values" title="Link to this definition"></a></dt>
+<dd><p>Values of a node attribute, in the network wide order: float64 array for numeric attributes,
+object array for qualitative ones.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.numbers">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">numbers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.numbers" title="Link to this definition"></a></dt>
+<dd><p>Numbers of the values of an attribute for quantitative scales and sizes: the values of numeric
+attributes, the positions in <a class="reference internal" href="#gsk_worker.distinct" title="gsk_worker.distinct"><code class="xref py py-func docutils literal notranslate"><span class="pre">distinct()</span></code></a> of qualitative ones; NaN for missing values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.opacities">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">opacities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.opacities" title="Link to this definition"></a></dt>
+<dd><p>Opacities of nodes or edges (0 transparent, 1 opaque), from a specification:
+<code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">None,</span> <span class="pre">&quot;opacity&quot;:</span> <span class="pre">a}</span></code> (all <code class="docutils literal notranslate"><span class="pre">a</span></code>), or <code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">name,</span> <span class="pre">&quot;min&quot;:</span> <span class="pre">a,</span> <span class="pre">&quot;max&quot;:</span>
+<span class="pre">b,</span> <span class="pre">&quot;log&quot;:</span> <span class="pre">bool}</span></code>: the smallest value gets <code class="docutils literal notranslate"><span class="pre">a</span></code>, the largest <code class="docutils literal notranslate"><span class="pre">b</span></code>, the others in between
+linearly (<a class="reference internal" href="#gsk_worker.sizes" title="gsk_worker.sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">sizes()</span></code></a> without <code class="docutils literal notranslate"><span class="pre">area</span></code>; missing values get <code class="docutils literal notranslate"><span class="pre">a</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – Values of the attribute (ignored without an attribute), or their number.</p></li>
+<li><p><strong>spec</strong> – Opacity specification, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float64 array, between 0 and 1.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.pick_grid">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">pick_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.pick_grid" title="Link to this definition"></a></dt>
+<dd><p>Grid of cells of side <code class="docutils literal notranslate"><span class="pre">size</span></code> (the largest node diameter; doubled until there are at most
+<a class="reference internal" href="#gsk_worker.MAX_CELLS" title="gsk_worker.MAX_CELLS"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_CELLS</span></code></a>), with which the interface finds the node under the cursor by looking at the
+9 cells around it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">x0</span></code>, <code class="docutils literal notranslate"><span class="pre">y0</span></code>, <code class="docutils literal notranslate"><span class="pre">cell</span></code>, <code class="docutils literal notranslate"><span class="pre">gx</span></code>, <code class="docutils literal notranslate"><span class="pre">gy</span></code>; the node positions sorted by
+cell, and the start of every cell in them (followed by the number of nodes), as int32 arrays.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.preview">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">preview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.preview" title="Link to this definition"></a></dt>
+<dd><p>First rows of a table, read as <a class="reference internal" href="network.html#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> reads it (all values as text),
+and a guess of its node table format: long if it has three or more columns and a node id
+repeats in the first column among the first thousand rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Path of the file.</p></li>
+<li><p><strong>sep</strong> – Column separator.</p></li>
+<li><p><strong>header</strong> – Whether the file has a header row.</p></li>
+<li><p><strong>rows</strong> – Number of rows returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">columns</span></code> (names; positions as text without a header), <code class="docutils literal notranslate"><span class="pre">rows</span></code>
+(lists of text) and <code class="docutils literal notranslate"><span class="pre">long</span></code> (the format guess).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="gsk_worker.ProgressBar">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">ProgressBar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.ProgressBar" title="Link to this definition"></a></dt>
+<dd><p>Progress bar of the library shown in the status bar of the interface: it replaces the tqdm bar
+of <a class="reference internal" href="progress.html#module-graphoskop.progress" title="graphoskop.progress"><code class="xref py py-mod docutils literal notranslate"><span class="pre">graphoskop.progress</span></code></a> (same calls), so that the library needs nothing for the
+interface. It sends a <code class="docutils literal notranslate"><span class="pre">progress</span></code> frame when it opens, then at most every
+<a class="reference internal" href="#gsk_worker.PROGRESS_INTERVAL" title="gsk_worker.PROGRESS_INTERVAL"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROGRESS_INTERVAL</span></code></a> seconds, with <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">fraction</span></code> (of the work done),
+<code class="docutils literal notranslate"><span class="pre">elapsed</span></code> and <code class="docutils literal notranslate"><span class="pre">remaining</span></code> (seconds, estimated as the bars of the library do), and a last
+frame with <code class="docutils literal notranslate"><span class="pre">done</span> <span class="pre">=</span> <span class="pre">True</span></code> when it closes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.signature">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">signature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.signature" title="Link to this definition"></a></dt>
+<dd><p>Parameters of a generator or of a layout, for the parameter dialog of the interface, leaving
+out those of <a class="reference internal" href="#gsk_worker.HIDDEN" title="gsk_worker.HIDDEN"><code class="xref py py-data docutils literal notranslate"><span class="pre">HIDDEN</span></code></a> for layouts, <code class="docutils literal notranslate"><span class="pre">net</span></code> and <code class="docutils literal notranslate"><span class="pre">progress</span></code> for generators: for each, its
+<code class="docutils literal notranslate"><span class="pre">name</span></code>, its <code class="docutils literal notranslate"><span class="pre">default</span></code> as shown in the dialog (Python source code: the default value, or
+for <code class="docutils literal notranslate"><span class="pre">None</span></code> its actual value from <a class="reference internal" href="#gsk_worker.SHOWN_DEFAULTS" title="gsk_worker.SHOWN_DEFAULTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SHOWN_DEFAULTS</span></code></a>; an empty string if there is none),
+a <code class="docutils literal notranslate"><span class="pre">hint</span></code> for empty fields (from <a class="reference internal" href="#gsk_worker.HINTS" title="gsk_worker.HINTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">HINTS</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">&quot;required&quot;</span></code>),
+its description <code class="docutils literal notranslate"><span class="pre">doc</span></code> (from the <code class="docutils literal notranslate"><span class="pre">:param:</span></code> lines of the docstring) and the <code class="docutils literal notranslate"><span class="pre">widget</span></code> that
+sets it (<a class="reference internal" href="#gsk_worker.widget" title="gsk_worker.widget"><code class="xref py py-func docutils literal notranslate"><span class="pre">widget()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function</strong> – Name of a function of <a class="reference internal" href="#gsk_worker.GENERATORS" title="gsk_worker.GENERATORS"><code class="xref py py-data docutils literal notranslate"><span class="pre">GENERATORS</span></code></a>, <a class="reference internal" href="#gsk_worker.LAYOUTS" title="gsk_worker.LAYOUTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LAYOUTS</span></code></a> or
+<a class="reference internal" href="#gsk_worker.COMMUNITIES" title="gsk_worker.COMMUNITIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">COMMUNITIES</span></code></a>.</p></li>
+<li><p><strong>net</strong> – The network the function runs on, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">params</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.size_code">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">size_code</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.size_code" title="Link to this definition"></a></dt>
+<dd><p>Source code of the diameters of the drawn nodes of a tab, for <code class="docutils literal notranslate"><span class="pre">remove_overlaps</span></code>: the default
+diameter (3 significant digits) times the relative size of the nodes, a number, or
+<a class="reference internal" href="#gsk_worker.node_sizes" title="gsk_worker.node_sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_sizes()</span></code></a> of the attribute of the node sizes (defined in the namespace of the tab, not
+in the library: the code panel says so in a comment, <a class="reference internal" href="#gsk_worker.NODE_SIZES_NOTE" title="gsk_worker.NODE_SIZES_NOTE"><code class="xref py py-data docutils literal notranslate"><span class="pre">NODE_SIZES_NOTE</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.sizes">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.sizes" title="Link to this definition"></a></dt>
+<dd><p>Relative sizes of edges (1 is the default width) and nodes (<a class="reference internal" href="#gsk_worker.node_sizes" title="gsk_worker.node_sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_sizes()</span></code></a>, with
+<code class="docutils literal notranslate"><span class="pre">area</span></code>), from a size specification:
+<code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">None,</span> <span class="pre">&quot;size&quot;:</span> <span class="pre">s}</span></code> (all <code class="docutils literal notranslate"><span class="pre">s</span></code>), or <code class="docutils literal notranslate"><span class="pre">{&quot;attribute&quot;:</span> <span class="pre">name,</span> <span class="pre">&quot;min&quot;:</span> <span class="pre">a,</span> <span class="pre">&quot;max&quot;:</span> <span class="pre">b,</span>
+<span class="pre">&quot;log&quot;:</span> <span class="pre">bool,</span> <span class="pre">&quot;area&quot;:</span> <span class="pre">bool}</span></code>: the smallest value (on the logarithmic scale of <a class="reference internal" href="#gsk_worker.transform" title="gsk_worker.transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">transform()</span></code></a>
+with <code class="docutils literal notranslate"><span class="pre">log</span></code>) gets <code class="docutils literal notranslate"><span class="pre">a</span></code>, the largest <code class="docutils literal notranslate"><span class="pre">b</span></code>, and the others are interpolated linearly in between,
+in the squares of the sizes with <code class="docutils literal notranslate"><span class="pre">area</span></code> (node diameters, so that areas are proportional), in
+the sizes otherwise (edge widths). Qualitative attributes count as the positions of their
+values (<a class="reference internal" href="#gsk_worker.numbers" title="gsk_worker.numbers"><code class="xref py py-func docutils literal notranslate"><span class="pre">numbers()</span></code></a>); missing values get <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – Values of the attribute (ignored without an attribute), or their number.</p></li>
+<li><p><strong>spec</strong> – Size specification, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float64 array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.subdivisions">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">subdivisions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pieces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.subdivisions" title="Link to this definition"></a></dt>
+<dd><p>Straight segments drawn per Bézier piece of bundled edges: 16, fewer when there are more than
+<a class="reference internal" href="#gsk_worker.MAX_SEGMENTS" title="gsk_worker.MAX_SEGMENTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">MAX_SEGMENTS</span></code></a> segments in all (at least 2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pieces</strong> – Number of Bézier pieces.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.summary">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.summary" title="Link to this definition"></a></dt>
+<dd><p>Properties of a network for the “Network” tab of the data panel, as pairs of texts.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.text">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.text" title="Link to this definition"></a></dt>
+<dd><p>Text of a value in the data panel and in qualitative colors: integral numbers without decimals,
+others with 6 significant digits, several values (of a qualitative attribute) joined by commas;
+<code class="docutils literal notranslate"><span class="pre">None</span></code> for missing values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – A value.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Its text, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.transform">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.transform" title="Link to this definition"></a></dt>
+<dd><p>The numbers of a scale, logarithmic if <code class="docutils literal notranslate"><span class="pre">log</span></code>: <span class="math notranslate nohighlight">\(\log_{10} x\)</span> if all values are positive,
+else <span class="math notranslate nohighlight">\(\log_{10} (x - m + 1)\)</span> with <span class="math notranslate nohighlight">\(m\)</span> the smallest value (so that it maps to 0).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Numbers (NaN for missing values).</p></li>
+<li><p><strong>log</strong> – Whether to take logarithms.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Function from numbers to scale positions (applied to stops as well).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="gsk_worker.widget">
+<span class="sig-prename descclassname"><span class="pre">gsk_worker.</span></span><span class="sig-name descname"><span class="pre">widget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shown</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gsk_worker.widget" title="Link to this definition"></a></dt>
+<dd><p>How the parameter dialog lets the user set a parameter, with as little typing as possible:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;device&quot;,</span> <span class="pre">&quot;gpu&quot;:</span> <span class="pre">bool}</span></code> for <code class="docutils literal notranslate"><span class="pre">device</span></code> (a GPU switch, off without a GPU);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;bool&quot;}</span></code> for defaults <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code> (a check box);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;choice&quot;,</span> <span class="pre">&quot;options&quot;:</span> <span class="pre">[...]}</span></code> for <a class="reference internal" href="#gsk_worker.OPTIONS" title="gsk_worker.OPTIONS"><code class="xref py py-data docutils literal notranslate"><span class="pre">OPTIONS</span></code></a> (a menu);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;attribute&quot;,</span> <span class="pre">&quot;choices&quot;:</span> <span class="pre">&quot;nodes&quot;</span> <span class="pre">or</span> <span class="pre">&quot;edges&quot;,</span> <span class="pre">&quot;multiple&quot;:</span> <span class="pre">bool}</span></code> for the
+attribute names of <a class="reference internal" href="#gsk_worker.CHOICES" title="gsk_worker.CHOICES"><code class="xref py py-data docutils literal notranslate"><span class="pre">CHOICES</span></code></a>, in layouts and community discovery (a menu of the
+attributes of the network; check boxes for several);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;string&quot;}</span></code> for <a class="reference internal" href="#gsk_worker.STRINGS" title="gsk_worker.STRINGS"><code class="xref py py-data docutils literal notranslate"><span class="pre">STRINGS</span></code></a> and <code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;node&quot;,</span> <span class="pre">&quot;numeric&quot;:</span> <span class="pre">bool}</span></code> for
+<a class="reference internal" href="#gsk_worker.NODES" title="gsk_worker.NODES"><code class="xref py py-data docutils literal notranslate"><span class="pre">NODES</span></code></a> (fields without quotes; node ids are numbers if the ids of the network are);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;list&quot;}</span></code> for <a class="reference internal" href="#gsk_worker.LISTS" title="gsk_worker.LISTS"><code class="xref py py-data docutils literal notranslate"><span class="pre">LISTS</span></code></a> (a field of numbers separated by commas);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;optional&quot;}</span></code> for numbers whose default <code class="docutils literal notranslate"><span class="pre">None</span></code> has no value of its own (an
+empty field with a hint);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;range&quot;,</span> <span class="pre">&quot;min&quot;,</span> <span class="pre">&quot;max&quot;,</span> <span class="pre">&quot;step&quot;}</span></code> for <a class="reference internal" href="#gsk_worker.RANGES" title="gsk_worker.RANGES"><code class="xref py py-data docutils literal notranslate"><span class="pre">RANGES</span></code></a> (a slider and a number);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;int&quot;,</span> <span class="pre">&quot;min&quot;}</span></code> for <a class="reference internal" href="#gsk_worker.INTEGERS" title="gsk_worker.INTEGERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">INTEGERS</span></code></a> and <code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;number&quot;,</span> <span class="pre">&quot;min&quot;,</span> <span class="pre">&quot;step&quot;}</span></code>
+for <a class="reference internal" href="#gsk_worker.NUMBERS" title="gsk_worker.NUMBERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">NUMBERS</span></code></a> (numbers with arrows);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{&quot;kind&quot;:</span> <span class="pre">&quot;text&quot;}</span></code> for any other parameter (Python source code).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function</strong> – Name of the function.</p></li>
+<li><p><strong>name</strong> – Name of the parameter.</p></li>
+<li><p><strong>shown</strong> – Default shown in the dialog (see <a class="reference internal" href="#gsk_worker.signature" title="gsk_worker.signature"><code class="xref py py-func docutils literal notranslate"><span class="pre">signature()</span></code></a>).</p></li>
+<li><p><strong>hint</strong> – Hint of an empty field.</p></li>
+<li><p><strong>net</strong> – The network the function runs on (for node ids), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with <code class="docutils literal notranslate"><span class="pre">kind</span></code> and its settings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="running-the-interface">
+<h2>Running the interface<a class="headerlink" href="#running-the-interface" title="Link to this heading"></a></h2>
+<p>The interface needs Godot 4.7 and a Python environment with the dependencies of graphoskop
+(PyTorch, PyTorch Geometric, NumPy, SciPy, pandas, Numba, tqdm). graphoskop itself does not
+need to be installed: the worker imports the library from the source tree that holds the
+<code class="docutils literal notranslate"><span class="pre">gui</span></code> folder, so that the interface and the library always match, even when another version of
+graphoskop is installed in the environment. Without the source tree (e.g. an exported
+interface), it imports the installed one. Open <code class="docutils literal notranslate"><span class="pre">gui/project.godot</span></code> in the Godot editor
+and run it, or run it directly:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>godot --path gui
+</pre></div>
+</div>
+<p>The worker is started with the interpreter chosen before (see <a class="reference internal" href="#python-environments">Python environments</a>), or else
+the one in the environment variable <code class="docutils literal notranslate"><span class="pre">GRAPHOSKOP_PYTHON</span></code>, or else <code class="docutils literal notranslate"><span class="pre">python3</span></code> (<code class="docutils literal notranslate"><span class="pre">python</span></code> on
+Windows). If it cannot start or cannot import graphoskop, a message offers to choose the
+interpreter, e.g. <code class="docutils literal notranslate"><span class="pre">~/miniconda3/envs/gsk/bin/python</span></code>.</p>
+<p>The interface uses Godot’s Compatibility renderer (OpenGL 3.3, OpenGL ES 3.0 or WebGL 2), which
+runs on any GPU of the last fifteen years; its file dialogs are those of the operating system.</p>
+</section>
+<section id="settings">
+<h2>Settings<a class="headerlink" href="#settings" title="Link to this heading"></a></h2>
+<p>The interface remembers, between sessions, in the file <code class="docutils literal notranslate"><span class="pre">settings.cfg</span></code> of its user data folder
+(<code class="docutils literal notranslate"><span class="pre">~/.local/share/godot/app_userdata/Graphoskop</span></code> on Linux, <code class="docutils literal notranslate"><span class="pre">~/Library/Application</span>
+<span class="pre">Support/Godot/app_userdata/Graphoskop</span></code> on macOS, <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Godot\app_userdata\Graphoskop</span></code>
+on Windows):</p>
+<ul class="simple">
+<li><p>the Python interpreter of the worker, and the ten used last;</p></li>
+<li><p>the folder of the last edge table and of the last node table. The edge table dialog opens in
+the folder of the last edge table; the node table dialog in the folder of the edge table chosen
+in the load dialog (the most likely to hold its node table), or else in that of the last node
+table;</p></li>
+<li><p>the separator, header and device chosen last in the load dialog;</p></li>
+<li><p>the size of the window, and whether it was maximized.</p></li>
+</ul>
+<p>Deleting the file resets them.</p>
+</section>
+<section id="visual-elements">
+<h2>Visual elements<a class="headerlink" href="#visual-elements" title="Link to this heading"></a></h2>
+<p>The visual elements panel, left of the visualization panel, sets the look of the drawing of the
+current network, in three tabs:</p>
+<ul class="simple">
+<li><p><strong>Nodes</strong>: their color, size and opacity. By default all nodes are <code class="docutils literal notranslate"><span class="pre">#e41a1c</span></code>; in bipartite networks
+(and incidence networks of hypergraphs and complexes) the second type of nodes is <code class="docutils literal notranslate"><span class="pre">#377eb8</span></code>,
+the next color of ColorBrewer’s Set1 palette.</p></li>
+<li><p><strong>Edges</strong>: their color (by default <code class="docutils literal notranslate"><span class="pre">#999999</span></code>), thickness and opacity.</p></li>
+<li><p><strong>Network</strong>: the background color.</p></li>
+</ul>
+<p>Each row sums up the current choice (a swatch or the colors of the scale); its <strong>Edit…</strong> button
+opens a dialog. Changes in the dialogs apply to the drawing as they are made; <strong>Cancel</strong> restores
+what was there when the dialog opened. Colors and sizes do not change the network or the code:
+they are part of the drawing only, computed by the worker (<a class="reference internal" href="#gsk_worker.colors" title="gsk_worker.colors"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.colors()</span></code></a>,
+<a class="reference internal" href="#gsk_worker.sizes" title="gsk_worker.sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.sizes()</span></code></a>, <a class="reference internal" href="#gsk_worker.opacities" title="gsk_worker.opacities"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.opacities()</span></code></a>), and kept by new layouts and when networks are rebuilt in another
+environment.</p>
+<section id="colors">
+<h3>Colors<a class="headerlink" href="#colors" title="Link to this heading"></a></h3>
+<p>Nodes and edges can have <strong>one color</strong>, or colors given by one of their attributes (any
+attribute, on either scale), with a ColorBrewer palette (sequential and diverging palettes for
+quantitative scales, qualitative ones for qualitative scales; the menu shows their colors):</p>
+<ul class="simple">
+<li><p><strong>Quantitative scale</strong>: a continuous gradient through color stops, as many as the chosen
+number of stops (3 to 9, or 11 for diverging palettes), with the colors of that version of the
+palette: a value between two stops gets the color between theirs, in proportion (linear
+interpolation), so that every value has its own color, not the color of the nearest stop. The
+dialog and the panel show the gradient, each stop at the place of its value. <strong>Placement</strong> puts the stops at <strong>quantiles</strong> of the values (the default: stop <code class="docutils literal notranslate"><span class="pre">i</span></code> of
+<code class="docutils literal notranslate"><span class="pre">k</span></code> at the quantile <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">/</span> <span class="pre">(k</span> <span class="pre">-</span> <span class="pre">1)</span></code>, so that about as many nodes fall between any two stops),
+<strong>evenly spaced</strong> from the smallest to the largest value, or at <strong>natural breaks</strong> (the class
+boundaries of <a class="reference internal" href="#gsk_worker.natural_breaks" title="gsk_worker.natural_breaks"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.natural_breaks()</span></code></a>). The values and colors of the stops can be
+edited (placement: custom). With <strong>Logarithmic scale</strong>, values are placed and interpolated on
+the logarithm of the values (see <a class="reference internal" href="#gsk_worker.transform" title="gsk_worker.transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.transform()</span></code></a>). Values beyond the first or last
+stop get its color. Qualitative attributes count as the positions of their values in order
+(numbers numerically, then texts alphabetically; see <a class="reference internal" href="#gsk_worker.distinct" title="gsk_worker.distinct"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.distinct()</span></code></a>).</p></li>
+<li><p><strong>Qualitative scale</strong>: every distinct value gets the next color of the palette, in the order of
+the values; colors repeat only when there are more values than colors in the palette. Any value
+can get another color; <strong>Automatic colors</strong> gives back the colors of the palette, and <strong>Clear</strong>
+makes all values <code class="docutils literal notranslate"><span class="pre">#999999</span></code>, to give them colors one by one. The first 1000
+values are listed; the others get the colors of the palette too.</p></li>
+</ul>
+<p>Missing values get the <strong>Missing values</strong> color. Colors are picked from a color picker in three
+tabs: <strong>ColorBrewer</strong> (the colors of all its palettes, as swatches), <strong>Swatches</strong> (the color space
+as a grid of swatches: hues across, from light tints to dark shades down, and grays) and
+<strong>Custom</strong> (the continuous color space). The picker opens below the color button, above the
+dialog of the button.</p>
+<p>The palettes are those of <a class="reference external" href="https://colorbrewer2.org">ColorBrewer 2.0</a>, by Cynthia A. Brewer
+(Pennsylvania State University), under the Apache License 2.0.</p>
+</section>
+<section id="opacity">
+<h3>Opacity<a class="headerlink" href="#opacity" title="Link to this heading"></a></h3>
+<p>Nodes and edges can be made transparent: one opacity for all (from 0, transparent, to 1,
+opaque, the default), or opacities given by one of their attributes, from the <strong>Smallest</strong>
+opacity for the smallest value to the <strong>Largest</strong> for the largest, on a linear or logarithmic
+scale (missing values get the smallest). Lower edge opacities show the bundles of
+<a class="reference internal" href="layouts.html#graphoskop.bundle_edges" title="graphoskop.bundle_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">bundle_edges()</span></code></a> where many edges overlap. Saved images keep the opacities.</p>
+</section>
+<section id="sizes">
+<h3>Sizes<a class="headerlink" href="#sizes" title="Link to this heading"></a></h3>
+<p>Node sizes (computed with <a class="reference internal" href="#gsk_worker.node_sizes" title="gsk_worker.node_sizes"><code class="xref py py-func docutils literal notranslate"><span class="pre">gsk_worker.node_sizes()</span></code></a>) and edge thicknesses are relative to
+the default ones (1 ×): one size for all, or
+sizes given by one of their attributes (any attribute; qualitative values count by their order),
+from the <strong>Smallest</strong> size for the smallest value to the <strong>Largest</strong> for the largest, on a linear
+or logarithmic scale. Node <em>areas</em>, not diameters, grow linearly with the values, so that a node
+with twice the value of another (above the smallest) has twice its extra area; edge widths grow
+linearly. Missing values get the smallest size.</p>
+</section>
+</section>
+<section id="visualization-panel">
+<h2>Visualization panel<a class="headerlink" href="#visualization-panel" title="Link to this heading"></a></h2>
+<p>Drag to pan, and scroll to zoom around the cursor. The <strong>Fit</strong> button, at the top right, zooms
+and centers the view so that the whole network fills it, nodes included with their sizes, a few
+pixels from the borders (as when a network is first drawn or laid out again). When nodes (of the
+default size) are at least 6 pixels wide on screen, hovering a node shows its id in a tooltip, and clicking it selects it:
+it is circled, and the data panel shows its attributes and its edges. Where nodes overlap, the
+node drawn on top is the one picked. Clicking elsewhere clears the selection. When
+the network is zoomed out so far that nodes are smaller, they cannot be told apart, and tooltips
+and selection are off.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gnn.html" class="btn btn-neutral float-left" title="Graph neural networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hierarchy.html" class="btn btn-neutral float-right" title="Hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

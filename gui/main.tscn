@@ -1,0 +1,235 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="Script" path="res://worker.gd" id="2_worker"]
+[ext_resource type="PackedScene" path="res://load_dialog.tscn" id="3_load"]
+[ext_resource type="CodeHighlighter" path="res://python_highlighter.tres" id="4_python"]
+[ext_resource type="PackedScene" path="res://visual_panel.tscn" id="5_visual"]
+[ext_resource type="PackedScene" path="res://data_panel.tscn" id="6_data"]
+[ext_resource type="PackedScene" path="res://params_dialog.tscn" id="7_params"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Menus" type="MenuBar" parent="Layout"]
+layout_mode = 2
+flat = true
+
+[node name="File" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
+item_count = 2
+item_0/text = "Load network…"
+item_0/id = 0
+item_1/text = "Save image…"
+item_1/id = 1
+
+[node name="Edit" type="PopupMenu" parent="Layout/Menus"]
+
+[node name="Select" type="PopupMenu" parent="Layout/Menus"]
+
+[node name="Layout" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
+
+[node name="Analysis" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
+
+[node name="Simulation" type="PopupMenu" parent="Layout/Menus"]
+
+[node name="Generators" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
+
+[node name="Help" type="PopupMenu" parent="Layout/Menus"]
+
+[node name="Tabs" type="TabBar" parent="Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+tab_close_display_policy = 1
+
+[node name="Panels" type="VSplitContainer" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Top" type="HSplitContainer" parent="Layout/Panels"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="VisualPanel" type="PanelContainer" parent="Layout/Panels/Top"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="Box" type="VBoxContainer" parent="Layout/Panels/Top/VisualPanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Panels/Top/VisualPanel/Box"]
+layout_mode = 2
+text = "Visual elements"
+
+[node name="Separator" type="HSeparator" parent="Layout/Panels/Top/VisualPanel/Box"]
+layout_mode = 2
+
+[node name="Visual" parent="Layout/Panels/Top/VisualPanel/Box" instance=ExtResource("5_visual")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Views" type="Control" parent="Layout/Panels/Top"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Hint" type="Label" parent="Layout/Panels/Top/Views"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(1, 1, 1, 0.6)
+text = "File › Load network… or Generators to open a network"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FitButton" type="Button" parent="Layout/Panels/Top/Views"]
+unique_name_in_owner = true
+visible = false
+z_index = 1
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -50.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 34.0
+grow_horizontal = 0
+tooltip_text = "Fit the network to the panel"
+focus_mode = 0
+text = "Fit"
+
+[node name="Bottom" type="HSplitContainer" parent="Layout/Panels"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DataPanel" type="PanelContainer" parent="Layout/Panels/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Box" type="VBoxContainer" parent="Layout/Panels/Bottom/DataPanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Panels/Bottom/DataPanel/Box"]
+layout_mode = 2
+text = "Data"
+
+[node name="Data" parent="Layout/Panels/Bottom/DataPanel/Box" instance=ExtResource("6_data")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CodePanel" type="PanelContainer" parent="Layout/Panels/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Box" type="VBoxContainer" parent="Layout/Panels/Bottom/CodePanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Layout/Panels/Bottom/CodePanel/Box"]
+layout_mode = 2
+text = "Code"
+
+[node name="Code" type="CodeEdit" parent="Layout/Panels/Bottom/CodePanel/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+wrap_mode = 1
+syntax_highlighter = ExtResource("4_python")
+gutters_draw_line_numbers = true
+
+[node name="StatusBar" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Status" type="Label" parent="Layout/StatusBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+modulate = Color(1, 1, 1, 0.7)
+text_overrun_behavior = 3
+
+[node name="Progress" type="ProgressBar" parent="Layout/StatusBar"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+
+[node name="Remaining" type="Label" parent="Layout/StatusBar"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="EnvButton" type="Button" parent="Layout/StatusBar"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Python environment of the worker: click to change it"
+flat = true
+text = "Python…"
+
+[node name="EnvMenu" type="PopupMenu" parent="Layout/StatusBar"]
+unique_name_in_owner = true
+
+[node name="Worker" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("2_worker")
+
+[node name="LoadDialog" parent="." instance=ExtResource("3_load")]
+unique_name_in_owner = true
+visible = false
+
+[node name="ParamsDialog" parent="." instance=ExtResource("7_params")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Message" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+
+[node name="ImageDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Save image"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.png ; PNG images")
+use_native_dialog = true
+
+[node name="PythonDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Python interpreter"
+file_mode = 0
+access = 2
+use_native_dialog = true

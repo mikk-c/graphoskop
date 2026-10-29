@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isomorphism &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Laplacians" href="laplacians.html" />
+    <link rel="prev" title="Higher-order networks" href="higher_order.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Isomorphism</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.is_isomorphic"><code class="docutils literal notranslate"><span class="pre">is_isomorphic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.isomorphisms"><code class="docutils literal notranslate"><span class="pre">isomorphisms()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Isomorphism</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/isomorphism.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.isomorphism">
+<span id="isomorphism"></span><h1>Isomorphism<a class="headerlink" href="#module-graphoskop.isomorphism" title="Link to this heading"></a></h1>
+<p>Isomorphism: whether two networks are the same up to a relabeling of their nodes, and whether a
+network contains another one.</p>
+<p>Two networks are isomorphic when a one-to-one map of the nodes of one onto the nodes of the other
+maps edges onto edges and non edges onto non edges. A network contains another one, the pattern,
+when the pattern is isomorphic to a subgraph of it: to an induced subgraph (some nodes and all the
+edges among them), or, more loosely, to any subgraph (some nodes and some of the edges among
+them: a monomorphism).</p>
+<p>Both questions have an exact and an approximate answer.</p>
+<ul class="simple">
+<li><p>The approximate answer is one sided: <code class="docutils literal notranslate"><span class="pre">False</span></code> is always right, and <code class="docutils literal notranslate"><span class="pre">True</span></code> means that the
+networks passed a necessary condition. For isomorphism, the condition is color refinement, the
+1-dimensional Weisfeiler-Leman test: every node gets a color from its attributes, then the color
+of every node is repeatedly combined with the multiset of the colors of its neighbors, on both
+networks at once, until no color class splits; isomorphic networks end with the same number of
+nodes of every color. Regular graphs of the same size and degree are the classic case that the
+test cannot tell apart. For subgraphs, the condition is a filter of the candidate images of
+every pattern node (same attributes, at least the same degree), keeping a candidate only while
+every neighbor of the pattern node has a candidate among the neighbors of the candidate (the
+refinement of Ullmann, 1976, as matrix products), followed by a matching that assigns distinct
+candidates to all pattern nodes. Both are vectorized tensor operations, on the device of the
+networks, except color refinement on the CPU, which runs in compiled code with Hopcroft’s
+rule, in <span class="math notranslate nohighlight">\(O(m \log n)\)</span> whatever the diameter of the networks (vectorized rounds are
+faster only on a GPU, where they run up to 32 rounds before the compiled code takes over).</p></li>
+<li><p>The exact answer to isomorphism comes from individualization-refinement, the strategy of
+nauty, bliss and Traces (McKay and Piperno, 2014): after color refinement, a node of <code class="docutils literal notranslate"><span class="pre">net2</span></code>
+in a color class with more than one node per network is given a color of its own together with
+each node of <code class="docutils literal notranslate"><span class="pre">net1</span></code> of its class, in turn, and the colors are refined again, until every class
+holds one node of each network, a mapping that is then checked. A class whose individualization
+splits nothing else is a class of twins (nodes with the same neighbors) and is matched at once,
+without trying alternatives. The search is compiled (Numba) and the candidates of the first
+node are tried in parallel.</p></li>
+<li><p>The exact answer to subgraph questions searches a mapping depth first, in the style of VF2++
+and VF3 (Jüttner and Madarasi, 2018; Carletti et al., 2017): pattern nodes are matched in an
+order that keeps every new node connected to the matched ones (most matched neighbors, then
+fewest candidates, then highest degree), the candidates of a node are the neighbors of the
+image of a matched neighbor that passed the filter above, and every candidate is checked
+against the matched nodes. The search is compiled and runs in parallel over the candidate
+images of the first node (as the parallel VF3 of Carletti et al., 2019).</p></li>
+</ul>
+<p>Node attributes and edge attributes listed by name must be equal on matched nodes and edges.
+Edge directions always count; self loops are attributes of their node; parallel edges are one
+edge whose attributes are the number of copies and the attribute values of each copy (pairs of
+parallel edges must match exactly, also in monomorphisms). In multilayer networks the layer of
+every node copy must match as well.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">ring</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>              <span class="c1"># a 6-cycle</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">ring</span><span class="p">)</span>                                 <span class="c1"># True</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                <span class="c1"># True: the cycle contains a 4-path</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>                <span class="c1"># False</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">exact</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># True: passes the filter</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">other</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges2.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes2.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">exact</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>                  <span class="c1"># Weisfeiler-Leman test only</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">node_attributes</span> <span class="o">=</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>       <span class="c1"># cities must match too</span>
+
+<span class="n">triangle</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]}))</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">isomorphisms</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">triangle</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>          <span class="c1"># every embedding of a triangle</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;match&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">//</span> <span class="mi">6</span>                                     <span class="c1"># number of triangles</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.is_isomorphic">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">is_isomorphic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgraph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">induced</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.is_isomorphic" title="Link to this definition"></a></dt>
+<dd><p>Whether two networks are isomorphic or, with <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>, whether <code class="docutils literal notranslate"><span class="pre">net1</span></code> contains
+<code class="docutils literal notranslate"><span class="pre">net2</span></code>: whether some subgraph of <code class="docutils literal notranslate"><span class="pre">net1</span></code> is isomorphic to <code class="docutils literal notranslate"><span class="pre">net2</span></code>.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code> (default), the answer comes from a compiled, parallel search of a
+mapping of the nodes of <code class="docutils literal notranslate"><span class="pre">net2</span></code> onto nodes of <code class="docutils literal notranslate"><span class="pre">net1</span></code>: individualization-refinement for
+isomorphism, a depth first search in the style of VF2++ / VF3 for subgraphs, with the
+candidates pruned by the approximate tests first (see the module description). The worst case
+is exponential, as for every known algorithm, but common networks are matched quickly.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">False</span></code>, the approximate test only: <code class="docutils literal notranslate"><span class="pre">False</span></code> is always right, and <code class="docutils literal notranslate"><span class="pre">True</span></code>
+means that the networks passed a necessary condition, so that they are likely, not surely,
+isomorphic (<code class="docutils literal notranslate"><span class="pre">net1</span></code> likely contains <code class="docutils literal notranslate"><span class="pre">net2</span></code>). For isomorphism, the condition is that color
+refinement (1-dimensional Weisfeiler-Leman) gives both networks the same number of nodes of
+every color; for subgraphs, that every pattern node keeps candidates under neighborhood
+filtering and that distinct candidates can be assigned to all pattern nodes. Both are tensor
+operations, on the GPU if the networks are there. For subgraphs, the filter needs a dense
+matrix of <code class="docutils literal notranslate"><span class="pre">n1</span> <span class="pre">*</span> <span class="pre">n2</span></code> booleans and is skipped above <span class="math notranslate nohighlight">\(2^{28}\)</span> pairs, leaving a
+comparison of node attributes only (and, with <code class="docutils literal notranslate"><span class="pre">exact</span> <span class="pre">=</span> <span class="pre">True</span></code>, a search without pruning).</p>
+<p>The networks must be both directed or both undirected, and both multilayer or not. Node
+attributes listed in <code class="docutils literal notranslate"><span class="pre">node_attributes</span></code> (numeric or qualitative, multi-valued in long format)
+must be equal on matched nodes, NaN matching NaN; edge attributes listed in
+<code class="docutils literal notranslate"><span class="pre">edge_attributes</span></code> (numeric or qualitative) must be equal on matched edges. Self loops must match (with
+<code class="docutils literal notranslate"><span class="pre">induced</span> <span class="pre">=</span> <span class="pre">False</span></code>, a self loop of <code class="docutils literal notranslate"><span class="pre">net1</span></code> may be left out of the subgraph). Parallel edges
+are matched as a whole: same number of copies with the same attribute values. In multilayer
+networks every node copy must match a copy in the same layer (compared by layer label).
+Bipartite networks are matched as plain networks: pass <a class="reference internal" href="network.html#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> in
+<code class="docutils literal notranslate"><span class="pre">node_attributes</span></code> to match the node types too.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net1</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (the larger network, with <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>).</p></li>
+<li><p><strong>net2</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> (the pattern, with <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>).</p></li>
+<li><p><strong>subgraph</strong> – Whether to test whether <code class="docutils literal notranslate"><span class="pre">net1</span></code> contains <code class="docutils literal notranslate"><span class="pre">net2</span></code> instead of isomorphism.</p></li>
+<li><p><strong>induced</strong> – With <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>, whether the subgraph of <code class="docutils literal notranslate"><span class="pre">net1</span></code> must be induced
+(all the edges of <code class="docutils literal notranslate"><span class="pre">net1</span></code> among the matched nodes are in <code class="docutils literal notranslate"><span class="pre">net2</span></code>); otherwise <code class="docutils literal notranslate"><span class="pre">net1</span></code> may
+have more edges among them (monomorphism).</p></li>
+<li><p><strong>exact</strong> – Whether to search a mapping (exact answer) or to run the approximate test only.</p></li>
+<li><p><strong>node_attributes</strong> – Name or list of names of node attributes that must match.</p></li>
+<li><p><strong>edge_attributes</strong> – Name or list of names of edge attributes that must match.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If one network is directed (multilayer) and the other is not.</p></li>
+<li><p><strong>KeyError</strong> – If an attribute is missing.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">ring</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">ring</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">add_edges</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>                        <span class="c1"># a 6-cycle</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">chain_graph</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">ring</span><span class="p">)</span>                             <span class="c1"># True</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>            <span class="c1"># True: the 6-cycle contains P4</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ring</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>            <span class="c1"># False</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_isomorphic</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">exact</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>              <span class="c1"># False (different sizes)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.isomorphisms">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">isomorphisms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subgraph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">induced</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_matches</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.isomorphisms" title="Link to this definition"></a></dt>
+<dd><p>The mappings of the nodes of <code class="docutils literal notranslate"><span class="pre">net2</span></code> onto nodes of <code class="docutils literal notranslate"><span class="pre">net1</span></code> found by the exact test of
+<a class="reference internal" href="#graphoskop.is_isomorphic" title="graphoskop.is_isomorphic"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_isomorphic()</span></code></a>: isomorphisms or, with <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>, embeddings of <code class="docutils literal notranslate"><span class="pre">net2</span></code> (the
+pattern) into <code class="docutils literal notranslate"><span class="pre">net1</span></code>. Every mapping is listed, so a subgraph of <code class="docutils literal notranslate"><span class="pre">net1</span></code> appears once for
+every automorphism of the pattern (a triangle six times), and highly symmetric networks have a
+huge number of isomorphisms: <code class="docutils literal notranslate"><span class="pre">max_matches</span></code> stops the search.</p>
+<p>All the mappings are found in parallel; with <code class="docutils literal notranslate"><span class="pre">max_matches</span></code>, the first ones are found by a
+single thread, in a fixed order.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net1</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>net2</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>subgraph</strong> – Whether to find embeddings of <code class="docutils literal notranslate"><span class="pre">net2</span></code> into <code class="docutils literal notranslate"><span class="pre">net1</span></code> instead of isomorphisms.</p></li>
+<li><p><strong>induced</strong> – With <code class="docutils literal notranslate"><span class="pre">subgraph</span> <span class="pre">=</span> <span class="pre">True</span></code>, whether the subgraphs must be induced.</p></li>
+<li><p><strong>node_attributes</strong> – Name or list of names of node attributes that must match.</p></li>
+<li><p><strong>edge_attributes</strong> – Name or list of names of edge attributes that must match.</p></li>
+<li><p><strong>max_matches</strong> – Most mappings to return (<code class="docutils literal notranslate"><span class="pre">None</span></code>: all).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">match</span></code> (0, 1, …), <code class="docutils literal notranslate"><span class="pre">net2</span></code> and <code class="docutils literal notranslate"><span class="pre">net1</span></code>:
+in mapping <code class="docutils literal notranslate"><span class="pre">match</span></code>, node <code class="docutils literal notranslate"><span class="pre">net2</span></code> of <code class="docutils literal notranslate"><span class="pre">net2</span></code> goes to node <code class="docutils literal notranslate"><span class="pre">net1</span></code> of <code class="docutils literal notranslate"><span class="pre">net1</span></code> (input
+ids); one row per node of <code class="docutils literal notranslate"><span class="pre">net2</span></code> and mapping.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If one network is directed (multilayer) and the other is not.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">triangle</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">]}))</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">isomorphisms</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">triangle</span><span class="p">,</span> <span class="n">subgraph</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="s2">&quot;match&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">//</span> <span class="mi">6</span>                                 <span class="c1"># number of triangles of net</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<p>Measured on two CPU threads (no GPU), testing a network against a copy with its nodes shuffled
+(isomorphic) and against a copy where one swap of edge endpoints keeps the degrees but breaks the
+isomorphism:</p>
+<ul class="simple">
+<li><p>Barabási-Albert network, 100,000 nodes and 300,000 edges: exact test 0.3 s (isomorphic) and
+0.2 s (not), approximate test 0.3 s; igraph’s BLISS takes 14.6 s. With 1,000,000 nodes: 7.9 s
+and 6.9 s exact, 4.5 s and 3.5 s approximate.</p></li>
+<li><p>Random 3-regular network, 100,000 nodes: exact test 0.3 s (isomorphic) and 5.5 s (not: color
+refinement sees no difference, so every candidate image of the first node is tried); the
+approximate test cannot tell the two apart and answers <code class="docutils literal notranslate"><span class="pre">True</span></code> in 0.1 s. igraph’s BLISS takes
+308 s on the isomorphic pair.</p></li>
+<li><p>2D lattice, 300 by 300: 0.3 s and 0.2 s exact (BLISS: 0.4 s and 0.2 s); 1000 by 1000: 5.9 s and
+7.8 s exact, 3.8 s and 4.3 s approximate.</p></li>
+</ul>
+<p>igraph’s VF2 did not finish within five minutes on the 100,000-node Barabási-Albert pair, on a
+10,000-node 3-regular pair or on a 100 by 100 lattice.</p>
+<p>Subgraphs of a Barabási-Albert network with 100,000 nodes and 500,000 edges: whether it contains a
+pattern of 3 to 7 nodes (triangle, 4-cycle, 6-path, 5-star, 6-wheel, 5- and 7-cliques) takes 0.15
+to 0.45 s exactly and 0.1 to 0.3 s approximately, mostly spent building and filtering the
+candidates; igraph’s VF2 answers in milliseconds when the pattern is there, but takes 4.5 s and
+2.4 s to rule out the cliques. The approximate test accepts both cliques, which are absent:
+neighborhood filtering does not see them. Listing every mapping with <a class="reference internal" href="#graphoskop.isomorphisms" title="graphoskop.isomorphisms"><code class="xref py py-func docutils literal notranslate"><span class="pre">isomorphisms()</span></code></a>: 3,960
+for the triangle in 0.7 s (igraph’s VF2 counts them in 9.8 s), 60,184 for the 4-cycle in 8.6 s
+(igraph: 232 s).</p>
+<p>On a GPU, the approximate tests and the first rounds of color refinement of the exact
+isomorphism test run there; the searches always run on the CPU.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="higher_order.html" class="btn btn-neutral float-left" title="Higher-order networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="laplacians.html" class="btn btn-neutral float-right" title="Laplacians" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

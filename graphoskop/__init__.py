@@ -76,6 +76,16 @@ unconnected ones, from the rest of the network (see :doc:`link_prediction`). Net
 correction does both jobs of cleaning observed networks, finding spurious and missing edges, with
 the nested stochastic blockmodel (see :doc:`error_correction`).
 
+Layouts place the nodes in the plane or in space to draw the network, storing the positions as node
+attributes ``pos_x``, ``pos_y`` (and ``pos_z``); the circular and grid layouts make sectors and
+blocks of groups (nested for hierarchical groups), and the matrix layout orders the rows and
+columns of adjacency matrices (independently in bipartite networks); the hierarchical layout draws
+layers (directed acyclic networks, trees), top-down or radially; the force-directed layout keeps
+groups of densely connected nodes together; UMAP lays out node attributes, node embeddings or the
+adjacency matrix; any layout can be mirrored, rotated and zoomed, and its overlaps removed, also
+for nodes of different sizes, and its edges bundled along a hierarchy of groups (see
+:doc:`layouts`).
+
 Long computations show a progress bar with the time left, at no measurable cost (see
 :doc:`progress`).
 """
@@ -116,6 +126,7 @@ from .higher_order_dependencies import higher_order_dependency_network, memory_n
 from .synchronization import kuramoto_model, simplicial_kuramoto_model, node_link_kuramoto_model
 from .error_correction import fit_nested_block_model, measured_network_correction, uncertain_network_correction
 from .link_prediction import association_rules_lp, embedding_lp, link_prediction_split, preferential_attachment_lp, common_neighbors_lp, common_neighbors_jaccard_lp, adamic_adar_lp, resource_allocation_lp, car_index_lp, mutual_information_index_lp, local_random_walk_lp, simrank_lp, vertex_similarity_lp, hierarchical_random_graph_lp, block_model_reliability_lp, ensemble_link_prediction, link_prediction_evaluation, link_prediction_sign_evaluation
+from .layouts import circular_layout, force_directed_layout, grid_layout, hierarchical_layout, matrix_layout, umap_layout, mirror_layout, rotate_layout, scale_layout, remove_overlaps, bundle_edges
 from .node_vector_analysis import generalized_euclidean, pairwise_generalized_euclidean, network_correlation, pairwise_network_correlation, network_variance, network_entropy, graph_fourier_basis, graph_fourier_transform, inverse_graph_fourier_transform, earth_movers_distance, annihilation_distance
 
 try:
@@ -206,4 +217,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "higher_order_si_model", "higher_order_sis_model", "higher_order_sir_model",
            "hgnn", "scnn", "set_hypergraph_route", "hypergraph_configuration_model",
            "node_edge_centrality", "local_triangle_closure", "global_triangle_closure", "two_node_clustering",
-           "higher_order_dependency_network", "memory_network", "first_order_values"]
+           "higher_order_dependency_network", "memory_network", "first_order_values",
+           "force_directed_layout", "umap_layout", "circular_layout",
+           "hierarchical_layout", "grid_layout", "mirror_layout", "rotate_layout",
+           "scale_layout", "remove_overlaps", "matrix_layout", "bundle_edges"]

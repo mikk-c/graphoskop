@@ -1,0 +1,45 @@
+[gd_resource type="CodeHighlighter" format=3]
+
+[resource]
+number_color = Color(0.71, 0.81, 0.66, 1)
+symbol_color = Color(0.67, 0.79, 1, 1)
+function_color = Color(0.86, 0.86, 0.67, 1)
+member_variable_color = Color(0.61, 0.86, 1, 1)
+keyword_colors = {
+"False": Color(0.34, 0.61, 0.84, 1),
+"None": Color(0.34, 0.61, 0.84, 1),
+"True": Color(0.34, 0.61, 0.84, 1),
+"and": Color(0.77, 0.53, 0.75, 1),
+"as": Color(0.77, 0.53, 0.75, 1),
+"assert": Color(0.77, 0.53, 0.75, 1),
+"break": Color(0.77, 0.53, 0.75, 1),
+"class": Color(0.34, 0.61, 0.84, 1),
+"continue": Color(0.77, 0.53, 0.75, 1),
+"def": Color(0.34, 0.61, 0.84, 1),
+"del": Color(0.77, 0.53, 0.75, 1),
+"elif": Color(0.77, 0.53, 0.75, 1),
+"else": Color(0.77, 0.53, 0.75, 1),
+"except": Color(0.77, 0.53, 0.75, 1),
+"finally": Color(0.77, 0.53, 0.75, 1),
+"for": Color(0.77, 0.53, 0.75, 1),
+"from": Color(0.77, 0.53, 0.75, 1),
+"if": Color(0.77, 0.53, 0.75, 1),
+"import": Color(0.77, 0.53, 0.75, 1),
+"in": Color(0.77, 0.53, 0.75, 1),
+"is": Color(0.77, 0.53, 0.75, 1),
+"lambda": Color(0.34, 0.61, 0.84, 1),
+"not": Color(0.77, 0.53, 0.75, 1),
+"or": Color(0.77, 0.53, 0.75, 1),
+"pass": Color(0.77, 0.53, 0.75, 1),
+"raise": Color(0.77, 0.53, 0.75, 1),
+"return": Color(0.77, 0.53, 0.75, 1),
+"try": Color(0.77, 0.53, 0.75, 1),
+"while": Color(0.77, 0.53, 0.75, 1),
+"with": Color(0.77, 0.53, 0.75, 1),
+"yield": Color(0.77, 0.53, 0.75, 1)
+}
+color_regions = {
+"\" \"": Color(0.81, 0.57, 0.47, 1),
+"#": Color(0.42, 0.6, 0.33, 1),
+"' '": Color(0.81, 0.57, 0.47, 1)
+}

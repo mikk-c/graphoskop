@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hierarchy" href="hierarchy.html" />
-    <link rel="prev" title="Exponential random graph models" href="ergm.html" /> 
+    <link rel="next" title="Graph neural networks" href="gnn.html" />
+    <link rel="prev" title="Frequent subgraph mining" href="frequent_subgraphs.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,10 +53,12 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Generators</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#broad-degree-graphs">Broad degree graphs</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.barabasi_albert_graph"><code class="docutils literal notranslate"><span class="pre">barabasi_albert_graph()</span></code></a></li>
@@ -73,6 +75,20 @@
 <li class="toctree-l2"><a class="reference internal" href="#community-benchmarks">Community benchmarks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.girvan_newman_graph"><code class="docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.lfr_benchmark_graph"><code class="docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#higher-order-networks">Higher-order networks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.growing_manifold"><code class="docutils literal notranslate"><span class="pre">growing_manifold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.hypergraph_configuration_model"><code class="docutils literal notranslate"><span class="pre">hypergraph_configuration_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.simplicial_configuration_model"><code class="docutils literal notranslate"><span class="pre">simplicial_configuration_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-graphoskop.neural_generators">Neural generators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.graphrnn"><code class="docutils literal notranslate"><span class="pre">graphrnn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.GraphRNNFit"><code class="docutils literal notranslate"><span class="pre">GraphRNNFit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.GraphRNNFit.simulate"><code class="docutils literal notranslate"><span class="pre">GraphRNNFit.simulate()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#random-graphs">Random graphs</a><ul>
@@ -102,15 +118,22 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -139,7 +162,7 @@
              
   <section id="module-graphoskop.generators">
 <span id="generators"></span><h1>Generators<a class="headerlink" href="#module-graphoskop.generators" title="Link to this heading"></a></h1>
-<p>Synthetic network generators, in six families:</p>
+<p>Synthetic network generators, in seven families:</p>
 <ul class="simple">
 <li><p>simple graphs, with simple fixed topologies: <code class="xref py py-func docutils literal notranslate"><span class="pre">chain_graph()</span></code>;</p></li>
 <li><p>random graphs, wired at random given a few numbers (edges, density, the degree of every node,
@@ -155,7 +178,11 @@ network), <code class="xref py py-func docutils literal notranslate"><span class
 (hierarchy of groups);</p></li>
 <li><p>community benchmarks, with planted communities to test community discovery:
 <code class="xref py py-func docutils literal notranslate"><span class="pre">girvan_newman_graph()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">lfr_benchmark_graph()</span></code> (broad degrees and community sizes;
-directed, weighted, overlapping).</p></li>
+directed, weighted, overlapping);</p></li>
+<li><p>higher-order networks (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>): simplicial complexes with
+<code class="xref py py-func docutils literal notranslate"><span class="pre">growing_manifold()</span></code> (discrete manifolds grown simplex by simplex) and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_configuration_model()</span></code> (given facets per node and facet dimensions), hypergraphs
+with <code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_configuration_model()</span></code> (given hyperedges per node and hyperedge sizes).</p></li>
 </ul>
 <p>Every random generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 <code class="docutils literal notranslate"><span class="pre">net</span></code>, an existing network, from which it infers them: the result is then a randomization of
@@ -218,6 +245,7 @@ the result is a randomization of <code class="docutils literal notranslate"><spa
 random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
 is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
 for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -278,6 +306,7 @@ the result is a randomization of <code class="docutils literal notranslate"><spa
 random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
 is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
 for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -342,6 +371,7 @@ thousand nodes), which costs a few extra generations. A network more clustered t
 Holme-Kim graph of its density gets <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">1</span></code>, with a warning. In multilayer networks each
 layer is randomized on its own, with its own <code class="docutils literal notranslate"><span class="pre">p</span></code> (<code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span></code> can be one value for all
 layers or a dictionary from layer to value); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -401,6 +431,7 @@ the result is a randomization of <code class="docutils literal notranslate"><spa
 random order, and <code class="docutils literal notranslate"><span class="pre">n</span></code> and the number of edges (so <code class="docutils literal notranslate"><span class="pre">k</span></code>) are those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code>
 is given. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
 for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -469,6 +500,7 @@ rounded) is given. In multilayer networks each layer is randomized on its own, w
 caves (numbered across layers, so that no two layers share one); <code class="docutils literal notranslate"><span class="pre">l</span></code> can be a dictionary
 from layer to number of caves, <code class="docutils literal notranslate"><span class="pre">k</span></code> one size for all layers or a dictionary. Interlayer
 edges are kept. The new edges take the attributes of the old ones of their layer.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -540,6 +572,7 @@ ring in random order, and <code class="docutils literal notranslate"><span class
 those of <code class="docutils literal notranslate"><span class="pre">net</span></code>, unless <code class="docutils literal notranslate"><span class="pre">k</span></code> is given; <code class="docutils literal notranslate"><span class="pre">p</span></code> is always needed. In multilayer networks each
 layer is randomized on its own, with its own ring and number of edges (<code class="docutils literal notranslate"><span class="pre">k</span></code> can be one value
 for all layers or a dictionary from layer to average degree); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -630,6 +663,7 @@ value); interlayer edges are kept.</p>
 <p>In both cases the community of every node is stored as the numeric node attribute
 <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (overwriting that of <code class="docutils literal notranslate"><span class="pre">net</span></code>), unless <code class="docutils literal notranslate"><span class="pre">None</span></code>: the planted partition, the
 ground truth with which to compare the communities found.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -724,6 +758,7 @@ those of <code class="docutils literal notranslate"><span class="pre">net</span>
 weight on external edges, unless given; otherwise edge attributes are drawn from the old edges,
 as in the other generators. In multilayer networks each layer is randomized on its own (<code class="docutils literal notranslate"><span class="pre">mu</span></code>,
 <code class="docutils literal notranslate"><span class="pre">muw</span></code> and <code class="docutils literal notranslate"><span class="pre">beta</span></code> can be dictionaries from layer to value); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -783,6 +818,357 @@ the number of memberships, <code class="docutils literal notranslate"><span clas
 </dd></dl>
 
 </section>
+<section id="higher-order-networks">
+<h2>Higher-order networks<a class="headerlink" href="#higher-order-networks" title="Link to this heading"></a></h2>
+<p>Simplicial complexes and hypergraphs (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>): discrete manifolds grown simplex
+by simplex (network geometry with flavor, with the closing move of Wu et al.), complexes with given
+facets per node and facet dimensions (the simplicial configuration model of Young et al.), and
+hypergraphs with given hyperedges per node and hyperedge sizes (the hypergraph configuration model
+of Chodrow): null models for higher-order networks, which <a class="reference internal" href="#graphoskop.randomization_test" title="graphoskop.randomization_test"><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code></a>
+takes. Plain networks become complexes with <a class="reference internal" href="transformations.html#graphoskop.clique_promotion" title="graphoskop.clique_promotion"><code class="xref py py-func docutils literal notranslate"><span class="pre">clique_promotion()</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">disk</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">growing_manifold</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                         <span class="c1"># triangles glued on free links</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">growing_manifold</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># tetrahedra, with closing moves</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">null</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>      <span class="c1"># facets per node and facet dimensions of net</span>
+<span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">meetings</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;meetings.tsv&quot;</span><span class="p">)</span>
+<span class="n">null</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">meetings</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># same degrees and sizes, labels and attributes kept</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="n">gsk</span><span class="o">.</span><span class="n">betti_numbers</span><span class="p">(</span><span class="n">g</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>   <span class="c1"># holes against the null</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.growing_manifold">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">growing_manifold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.growing_manifold" title="Link to this definition"></a></dt>
+<dd><p>Growing discrete manifold: a <span class="math notranslate nohighlight">\(d\)</span>-dimensional simplicial complex grown one simplex at a
+time, in which every <span class="math notranslate nohighlight">\((d - 1)\)</span>-face is shared by at most two <span class="math notranslate nohighlight">\(d\)</span>-simplices (a
+pseudomanifold, see <a class="reference internal" href="higher_order.html#graphoskop.is_pseudomanifold" title="graphoskop.is_pseudomanifold"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_pseudomanifold()</span></code></a>). It starts from one
+<span class="math notranslate nohighlight">\(d\)</span>-simplex; a face in a single <span class="math notranslate nohighlight">\(d\)</span>-simplex is free (incidence number 0), a face in
+two is saturated. At each step, a free face is drawn uniformly at random and:</p>
+<ul class="simple">
+<li><p>with probability <span class="math notranslate nohighlight">\(1 - p\)</span>, a new node joins it in a new <span class="math notranslate nohighlight">\(d\)</span>-simplex (the face
+becomes saturated): this alone is network geometry with flavor <span class="math notranslate nohighlight">\(s = -1\)</span> (Bianconi and
+Rahmede, 2016), which grows a <span class="math notranslate nohighlight">\(d\)</span>-ball;</p></li>
+<li><p>with probability <span class="math notranslate nohighlight">\(p\)</span>, the face is closed with a free face adjacent to it (sharing
+<span class="math notranslate nohighlight">\(d - 1\)</span> nodes), drawn uniformly at random among those for which the <span class="math notranslate nohighlight">\(d\)</span>-simplex
+spanned by the two is allowed: the two nodes not shared must not be linked (the closing move
+adds the link between them, as in Wu et al.), and none of the faces of the new simplex may be
+saturated. If there is none, nothing is added at that step. For <span class="math notranslate nohighlight">\(d = 2\)</span> this saturates
+two adjacent free links by completing their triangle with a new link between nodes at
+distance 2, the second move of Wu, Menichetti, Rahmede and Bianconi (2015), whose emergent
+geometry it generalizes; it creates cycles, so that the complex is no longer a ball.</p></li>
+</ul>
+<p>Gluing moves grow the boundary (the free faces) and closing moves shrink it: with large <code class="docutils literal notranslate"><span class="pre">p</span></code>
+growth slows down, as most closing moves fail on small boundaries. The process stops when the
+complex has <code class="docutils literal notranslate"><span class="pre">n</span></code> nodes, or earlier, with a warning, if no free face is left (for <span class="math notranslate nohighlight">\(d = 1\)</span>,
+a path closed into a cycle). The result is pure, with <code class="docutils literal notranslate"><span class="pre">d</span></code>-simplices as facets, and strongly
+connected.</p>
+<p>The growth is sequential, in Python on the CPU: about 4 to 8 seconds per 100,000 nodes.</p>
+<p>Simplicial complexes: supported; hypergraphs: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> – Number of nodes, at least <span class="math notranslate nohighlight">\(d + 1\)</span> (with <code class="docutils literal notranslate"><span class="pre">net</span></code>, its number of nodes).</p></li>
+<li><p><strong>d</strong> – Dimension of the manifold, at least 1; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 2 (triangles, the usual case), or
+with <code class="docutils literal notranslate"><span class="pre">net</span></code> for its dimension.</p></li>
+<li><p><strong>p</strong> – Probability of the closing move, in <span class="math notranslate nohighlight">\([0, 1)\)</span>.</p></li>
+<li><p><strong>net</strong> – A simplicial complex to randomize: its nodes, with their attributes, placed in a
+random order of arrival; <code class="docutils literal notranslate"><span class="pre">n</span></code> is its number of nodes, and <code class="docutils literal notranslate"><span class="pre">d</span></code> its dimension unless given.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the global setting (see
+<a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A simplicial complex (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>), nodes <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> in order of
+arrival.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a parameter is not valid, or <code class="docutils literal notranslate"><span class="pre">n</span></code> is given with <code class="docutils literal notranslate"><span class="pre">net</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">disk</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">growing_manifold</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>          <span class="c1"># a triangulated disk</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">is_pseudomanifold</span><span class="p">(</span><span class="n">disk</span><span class="p">)</span>                                 <span class="c1"># True</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">growing_manifold</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># with closed cycles</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;ccdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hypergraph_configuration_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hypergraph_configuration_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hypergraph_configuration_model" title="Link to this definition"></a></dt>
+<dd><p>Hypergraph configuration model (Chodrow, 2020): a random hypergraph with given hyperedges per
+node (degrees) and hyperedge sizes, uniform over the hypergraphs with these sequences, a node
+being at most once in a hyperedge. Every node has as many stubs as its degree, every hyperedge as
+many as its size; stubs are matched at random, the matching is repaired by exchanging the nodes
+of two random hyperedge stubs (keeping the exchanges that do not increase the number of repeated
+nodes), then mixed by exchanges kept only if no hyperedge gets a repeated node: the Markov chain
+of <a class="reference internal" href="#graphoskop.simplicial_configuration_model" title="graphoskop.simplicial_configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_configuration_model()</span></code></a> without its rule that facets are maximal (a
+hyperedge can be inside another, or equal to it). An exchange swaps two memberships between two
+hyperedges, the double edge swap of the incidence graph, so all such hypergraphs are reached.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">net</span></code>, its sequences are used, and its nodes and hyperedges are kept with their labels
+and attributes: hyperedge <code class="docutils literal notranslate"><span class="pre">h</span></code> of the result has the size of hyperedge <code class="docutils literal notranslate"><span class="pre">h</span></code> of <code class="docutils literal notranslate"><span class="pre">net</span></code> and its
+attributes, with random nodes. Membership attributes are dropped. Sequences that no hypergraph
+can realize raise <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> after <code class="docutils literal notranslate"><span class="pre">repair</span></code> rounds. The exchanges run sequentially in
+compiled code.</p>
+<p>Hypergraphs: supported; simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degrees</strong> – Number of hyperedges of every node (nodes <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>).</p></li>
+<li><p><strong>sizes</strong> – Number of nodes of every hyperedge (hyperedges labeled <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code>, …).</p></li>
+<li><p><strong>net</strong> – An undirected hypergraph to randomize (see above).</p></li>
+<li><p><strong>mixing</strong> – Number of exchanges proposed after the repair, per hyperedge stub.</p></li>
+<li><p><strong>repair</strong> – Largest number of repair rounds (each about ten attempts per invalid hyperedge).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A hypergraph (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the stubs of the nodes and of the hyperedges differ in number, a value is
+negative, <code class="docutils literal notranslate"><span class="pre">degrees</span></code> or <code class="docutils literal notranslate"><span class="pre">sizes</span></code> is given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, <code class="docutils literal notranslate"><span class="pre">net</span></code> is not an undirected
+hypergraph, or no valid hypergraph is found.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">hg</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">null</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">hg</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>      <span class="c1"># same sequences, new hypergraph</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">hg</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">clique_expansion</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="n">distribution</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">)),</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.simplicial_configuration_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simplicial_configuration_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repair</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simplicial_configuration_model" title="Link to this definition"></a></dt>
+<dd><p>Simplicial configuration model (Young, Petri, Vaccarino and Patania, 2017): a random simplicial
+complex with given facets per node and facet dimensions. Every node has as many stubs as the
+facets it must belong to; every facet of dimension <span class="math notranslate nohighlight">\(k\)</span> has <span class="math notranslate nohighlight">\(k + 1\)</span> open stubs; stubs
+are matched at random. A valid complex needs distinct nodes in every facet, and no facet inside
+another (facets are maximal), so the random matching is repaired by exchanging the nodes of two
+random facet stubs, keeping exchanges that do not increase the number of violations, and then
+mixed with exchanges kept only if the complex stays valid. The mixing exchanges are symmetric
+proposals over the valid complexes, the Markov chain of Young et al. with two stubs per move,
+so the result is close to uniform over the complexes with these sequences after enough mixing.</p>
+<p>The degree of a node here is its number of facets (its degree in
+<a class="reference internal" href="higher_order.html#graphoskop.incidence_network" title="graphoskop.incidence_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">incidence_network()</span></code></a>), not its number of edges (<a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>).
+Nodes of degree 0 are isolated; a facet of dimension 0 is a node in no other facet (an
+isolated node too). Sequences that no complex can realize, or hard ones, raise
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code> after <code class="docutils literal notranslate"><span class="pre">repair</span></code> rounds. The exchanges run sequentially in compiled code.</p>
+<p>Simplicial complexes: supported; hypergraphs: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degrees</strong> – Number of facets of every node (nodes <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>).</p></li>
+<li><p><strong>dimensions</strong> – Dimension of every facet, as a sequence, or a dictionary from dimension to
+number of facets (e.g. <code class="docutils literal notranslate"><span class="pre">{1:</span> <span class="pre">100,</span> <span class="pre">2:</span> <span class="pre">50}</span></code>: 100 edges and 50 triangles).</p></li>
+<li><p><strong>net</strong> – A simplicial complex to randomize: its nodes and their attributes are kept, and its
+sequences used (facets per node, facet dimensions); <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> can override them.</p></li>
+<li><p><strong>mixing</strong> – Number of exchanges proposed after the repair, per facet stub.</p></li>
+<li><p><strong>repair</strong> – Largest number of repair rounds (each about ten attempts per invalid facet).</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>device</strong> – Device of the result.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A simplicial complex (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the stubs of the nodes and of the facets differ in number, a value is
+negative, <code class="docutils literal notranslate"><span class="pre">degrees</span></code> is given with <code class="docutils literal notranslate"><span class="pre">net</span></code>, or the complex cannot be repaired.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">sc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">degree</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">incidence_network</span><span class="p">(</span><span class="n">sc</span><span class="p">),</span> <span class="n">distribution</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># facets per node, then facet sizes</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hyperedge_size</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>                                       <span class="c1"># two edges, two triangles</span>
+<span class="n">null</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">(</span><span class="n">net</span> <span class="o">=</span> <span class="n">sc</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>   <span class="c1"># same sequences, new complex</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-graphoskop.neural_generators">
+<span id="neural-generators"></span><h2>Neural generators<a class="headerlink" href="#module-graphoskop.neural_generators" title="Link to this heading"></a></h2>
+<p>Neural generators: networks drawn from deep generative models trained on observed networks, which
+learn their structure (degrees, clustering, communities, motifs) without a formula for it.</p>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">graphrnn()</span></code> trains GraphRNN (You, Ying, Ren, Hamilton and Leskovec, 2018), an autoregressive
+model that writes a graph node by node, and returns a <a class="reference internal" href="#graphoskop.GraphRNNFit" title="graphoskop.neural_generators.GraphRNNFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">GraphRNNFit</span></code></a>, whose
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code> draws new networks, as <a class="reference internal" href="ergm.html#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> does for
+exponential random graph models (so a fit is also a null model for
+<a class="reference internal" href="#graphoskop.randomization_test" title="graphoskop.randomization_test"><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code></a>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">molecules</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;bonds.tsv&quot;</span><span class="p">)</span>                  <span class="c1"># one component per molecule</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graphrnn</span><span class="p">(</span><span class="n">molecules</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>                    <span class="c1"># train (long: see the performance below)</span>
+<span class="n">fake</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>                           <span class="c1"># as many generated molecules</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">molecules</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">fit</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>GraphRNN needs long training: the paper trains for 96,000 steps of 32 graphs, which takes hours
+even on a GPU. On two CPU threads, with a smaller model (<code class="docutils literal notranslate"><span class="pre">hidden</span> <span class="pre">=</span> <span class="pre">64,</span> <span class="pre">layers</span> <span class="pre">=</span> <span class="pre">2</span></code>), compared with
+the training graphs and with random graphs of the same numbers of nodes and edges:</p>
+<ul class="simple">
+<li><p>100 grids of 4 to 7 by 4 to 7 nodes: after 1,000 steps (111 s) the generated graphs are too
+large (38.1 nodes, against 31.9) and their degrees as far from the data as random graphs’
+(distance of the degree distributions 0.42); after 4,000 steps (417 s), 30.8 nodes, mean degree
+3.28 (data 3.29), degree distance 0.12, clustering 0.010 (data 0, random graphs 0.099);</p></li>
+<li><p>100 graphs of two dense communities (8 to 15 nodes each, density 0.5, one edge between them),
+3,000 steps (270 s): 23.4 nodes (data 23.6), clustering 0.466 (data 0.479, random 0.247),
+modularity 0.400 (data 0.443, random 0.246); GraphRNN-S (110 s): 16.2 nodes, modularity 0.287;</p></li>
+<li><p>one network of 8 cliques of 10 nodes in a ring (single network mode), 3,000 steps (634 s): mean
+degree 8.98 (9.00), clustering 0.874 (0.936), 65 nodes (80).</p></li>
+</ul>
+<p>With the paper’s model (4 layers of 128) and only 1,500 steps, on grids of up to 12 by 12, nothing
+was learned yet (graphs of 2 nodes): give it many more steps, preferably on a GPU. On paths (to
+check the model), 1,000 steps give graphs of 19.5 nodes (data 20), 99% of them paths.</p>
+<p>Memory does not grow with the size of the network (see <a class="reference internal" href="#graphoskop.graphrnn" title="graphoskop.graphrnn"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphoskop.graphrnn()</span></code></a>): on single
+networks of 6,000 nodes and 30,000 edges, a random geometric graph (<code class="docutils literal notranslate"><span class="pre">M</span></code> = 338) and a preferential
+attachment network (<code class="docutils literal notranslate"><span class="pre">M</span></code> = 4,507), training takes about 3 GB, and on two CPU threads 13 and 22 seconds
+per step (a GPU is much faster). Generating a graph that large takes about <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">*</span> <span class="pre">M</span></code> small steps. There, the loss of a step is on 6% (<code class="docutils literal notranslate"><span class="pre">M</span></code>
+= 338) or less of the nodes, which needs more steps: on the network of 8 cliques above, with the
+loss forced on 9% of the nodes, 3,000 steps give mean degree 7.38, clustering 0.631 and 37.4 nodes
+(against 8.98, 0.874 and 65 with the full loss; data 9.00, 0.936, 80).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.graphrnn">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">graphrnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_previous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.003</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_hidden</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_embedding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.graphrnn" title="Link to this definition"></a></dt>
+<dd><p>Train GraphRNN (You, Ying, Ren, Hamilton and Leskovec, 2018), a deep autoregressive generator of
+graphs, on a network, and return the fitted model, whose <a class="reference internal" href="#graphoskop.GraphRNNFit.simulate" title="graphoskop.GraphRNNFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> draws new
+networks like it.</p>
+<p>A graph is written as a sequence: its nodes in the order of a breadth first search (from a
+random node, neighbors in random order), and for every new node its edges to the <code class="docutils literal notranslate"><span class="pre">M</span></code> nodes
+before it in that order (in a BFS order, the neighbors of a node are always close before it). A
+graph-level recurrent network (a GRU) reads the edges of every node and gives a state for the
+next one; from it, an edge-level GRU decides the edges of the new node one after the other, each
+depending on the ones before (<code class="docutils literal notranslate"><span class="pre">simple</span> <span class="pre">=</span> <span class="pre">False</span></code>, the full GraphRNN), or a small network gives
+all their probabilities at once, independently (<code class="docutils literal notranslate"><span class="pre">simple</span> <span class="pre">=</span> <span class="pre">True</span></code>, GraphRNN-S, faster, but
+weaker where edges depend on each other, as in communities). A node without any edge ends the
+graph, so the model also learns the sizes of the graphs (with independent edges, GraphRNN-S
+draws nodes without edges more often than it should, and its graphs tend to be too small). <code class="docutils literal notranslate"><span class="pre">M</span></code> (<code class="docutils literal notranslate"><span class="pre">max_previous</span></code>) is by default
+the largest distance, in random BFS orders of the training graphs, between the two ends of an
+edge.</p>
+<p>The training graphs are the components of <code class="docutils literal notranslate"><span class="pre">net</span></code> (<code class="docutils literal notranslate"><span class="pre">dataset</span> <span class="pre">=</span> <span class="pre">True</span></code>: a network whose
+components are the graphs of a dataset, as in the paper), or its largest component alone,
+learned from many random BFS orders of it (<code class="docutils literal notranslate"><span class="pre">dataset</span> <span class="pre">=</span> <span class="pre">False</span></code>); with <code class="docutils literal notranslate"><span class="pre">dataset</span> <span class="pre">=</span> <span class="pre">None</span></code>, the
+components if none holds more than half of the nodes, the largest component otherwise. At every
+training step, <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> training graphs are drawn at random, each in a new random BFS
+order (fewer if the graphs are large: at most 32,768 nodes in all, e.g. 5 orders of a network of
+6,000 nodes), and the networks are trained on them with teacher forcing (binary cross entropy of the
+edges, Adam). The defaults are those of the paper (graph-level GRU of 4 layers of 128, edge-level
+of 4 layers of 16, learning rate 0.003). The network is used as undirected and unweighted
+(generated networks are undirected); attributes, node types and layers are ignored.</p>
+<p>Training and sampling run on the device of the network. A sequence has one step per node, and
+every step up to <code class="docutils literal notranslate"><span class="pre">M</span></code> edges, so GraphRNN suits graphs of up to a few thousand nodes (the paper:
+up to 2,000): a single large network makes long sequences, with a large <code class="docutils literal notranslate"><span class="pre">M</span></code> if it has no
+narrow BFS order (random graphs and expanders have none, nor networks with hubs). To bound the
+memory, the graph-level GRU reads the edges in sparse form, and when the nodes of a batch have
+more than 524,288 edge positions (nodes times <code class="docutils literal notranslate"><span class="pre">M</span></code>), the loss of the step is computed on a
+random sample of its nodes (the graph-level GRU still reads all of them): an unbiased estimate,
+with the same expected gradient, which needs more steps. Training then takes about 3 GB whatever the size of the network
+(measured on networks of 6,000 nodes and 30,000 edges, with <code class="docutils literal notranslate"><span class="pre">M</span></code> from 300 to 4,500).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>dataset</strong> – Whether to train on all the components (<code class="docutils literal notranslate"><span class="pre">True</span></code>), on the largest component
+alone (<code class="docutils literal notranslate"><span class="pre">False</span></code>), or to choose (<code class="docutils literal notranslate"><span class="pre">None</span></code>, see above).</p></li>
+<li><p><strong>simple</strong> – Whether to use GraphRNN-S instead of the full GraphRNN.</p></li>
+<li><p><strong>max_previous</strong> – <code class="docutils literal notranslate"><span class="pre">M</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to measure it on the training graphs.</p></li>
+<li><p><strong>steps</strong> – Number of training steps.</p></li>
+<li><p><strong>batch_size</strong> – Number of training graphs (BFS orders) per step.</p></li>
+<li><p><strong>learning_rate</strong> – Learning rate.</p></li>
+<li><p><strong>hidden</strong> – Size of the state of the graph-level GRU.</p></li>
+<li><p><strong>layers</strong> – Number of layers of the graph-level GRU.</p></li>
+<li><p><strong>embedding</strong> – Size of the inputs of the graph-level GRU and of its output network.</p></li>
+<li><p><strong>edge_hidden</strong> – Size of the state of the edge-level GRU.</p></li>
+<li><p><strong>edge_layers</strong> – Number of layers of the edge-level GRU.</p></li>
+<li><p><strong>edge_embedding</strong> – Size of the inputs of the edge-level GRU and of its output network.</p></li>
+<li><p><strong>seed</strong> – Seed of the orders, the initial weights and the training, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the training steps (<code class="docutils literal notranslate"><span class="pre">None</span></code>: as set by
+<a class="reference internal" href="progress.html#graphoskop.set_progress" title="graphoskop.set_progress"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code></a>; see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#graphoskop.GraphRNNFit" title="graphoskop.GraphRNNFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">GraphRNNFit</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a size or parameter is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">molecules</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;bonds.tsv&quot;</span><span class="p">)</span>                 <span class="c1"># one component per molecule</span>
+<span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graphrnn</span><span class="p">(</span><span class="n">molecules</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">fake</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>                          <span class="c1"># as many generated molecules</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">molecules</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">fit</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">ego</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graphrnn</span><span class="p">(</span><span class="n">one_network</span><span class="p">,</span> <span class="n">dataset</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">steps</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">)</span>   <span class="c1"># a single network</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="graphoskop.GraphRNNFit">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">GraphRNNFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">history</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.GraphRNNFit" title="Link to this definition"></a></dt>
+<dd><p>A trained GraphRNN, as returned by <a class="reference internal" href="#graphoskop.graphrnn" title="graphoskop.graphrnn"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphrnn()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The trained <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code>.</p></li>
+<li><p><strong>max_previous</strong> – <code class="docutils literal notranslate"><span class="pre">M</span></code>, the number of earlier nodes (in the BFS order) a new node can link to.</p></li>
+<li><p><strong>max_nodes</strong> – Largest number of nodes of a generated graph (the largest training graph).</p></li>
+<li><p><strong>dataset</strong> – Whether the training graphs were the components of the network (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or its
+largest component alone (<code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+<li><p><strong>graphs</strong> – Number of graphs of a simulated network: as many as the training graphs (one in
+single network mode).</p></li>
+<li><p><strong>history</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the loss at every training step.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.GraphRNNFit.simulate">
+<span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.GraphRNNFit.simulate" title="Link to this definition"></a></dt>
+<dd><p>Networks drawn from the trained model: every network has <code class="docutils literal notranslate"><span class="pre">graphs</span></code> graphs as its components
+(as many as the training graphs, by default), each written node by node until the model ends
+it (or <code class="docutils literal notranslate"><span class="pre">max_nodes</span></code> nodes). Generated networks are undirected, with integer node ids and no
+attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>count</strong> – Number of networks.</p></li>
+<li><p><strong>graphs</strong> – Number of graphs in every network, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for <code class="xref py py-attr docutils literal notranslate"><span class="pre">graphs</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the nodes (<code class="docutils literal notranslate"><span class="pre">None</span></code>: as set by
+<a class="reference internal" href="progress.html#graphoskop.set_progress" title="graphoskop.set_progress"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code></a>; see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>). Nodes are written one after the
+other, and the full model decides their edges one after the other too: a graph of <code class="docutils literal notranslate"><span class="pre">n</span></code>
+nodes takes about <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">*</span> <span class="pre">M</span></code> small steps (minutes or more for thousands of nodes).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fit</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graphrnn</span><span class="p">(</span><span class="n">molecules</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sims</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>          <span class="c1"># 10 networks, as many molecules as the data</span>
+<span class="n">more</span> <span class="o">=</span> <span class="n">fit</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">graphs</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>      <span class="c1"># one network of 1,000 generated molecules</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="random-graphs">
 <h2>Random graphs<a class="headerlink" href="#random-graphs" title="Link to this heading"></a></h2>
 <p>Edges placed uniformly at random, given their number or density (Erdős–Rényi), or the degree of
@@ -832,6 +1218,7 @@ degrees of its nodes (out- and in-degrees if directed; self loops count twice if
 parallel edges count), its node types if bipartite (edges only between types) and, in
 multilayer networks, each layer randomized on its own with the degrees of its intra-layer
 edges; interlayer edges are kept. Directed bipartite networks are not supported.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -874,7 +1261,7 @@ differ from those of <code class="docutils literal notranslate"><span class="pre
 
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.edge_swap">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_swap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_swap" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">edge_swap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">swaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.edge_swap" title="Link to this definition"></a></dt>
 <dd><p>Edge swap randomization (Maslov and Sneppen, 2002): a randomization of <code class="docutils literal notranslate"><span class="pre">net</span></code> that keeps the
 degree of every node exactly (out- and in-degrees if directed, and node types if bipartite),
 by double edge swaps: two edges <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span> <span class="pre">-</span> <span class="pre">d</span></code> become <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">-</span> <span class="pre">c</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">-</span> <span class="pre">d</span></code> (or
@@ -897,6 +1284,7 @@ of steps of the chain (stopping after a number of successful swaps, as some libr
 favors the graphs that allow more swaps). In multilayer networks each layer is
 swapped on its own (<code class="docutils literal notranslate"><span class="pre">swaps</span></code> can be a dictionary from layer to number); interlayer edges are
 kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -904,6 +1292,8 @@ kept.</p>
 <li><p><strong>swaps</strong> – Number of swaps tried; <code class="docutils literal notranslate"><span class="pre">None</span></code> for 10 per edge, enough to randomize most
 networks (Milo et al., 2003). In multilayer networks, a number per layer or a dictionary.</p></li>
 <li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the swaps (<code class="docutils literal notranslate"><span class="pre">None</span></code>: as set by
+<a class="reference internal" href="progress.html#graphoskop.set_progress" title="graphoskop.set_progress"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code></a>; see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>); one bar per layer.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -954,6 +1344,7 @@ real places, whose graph of closest pairs is then built), otherwise nodes get ra
 positions, which are stored. In multilayer networks each layer is randomized on its own, with
 the positions of its copies; <code class="docutils literal notranslate"><span class="pre">r</span></code> and <code class="docutils literal notranslate"><span class="pre">m</span></code> can be dictionaries from layer to value.
 Interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1027,6 +1418,7 @@ layers to change), drawing attributes from the edges of that layer; interlayer e
 <p>The network is split into weakly connected components as usual, so the internal ids
 <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> of the nodes of a randomization differ from those in <code class="docutils literal notranslate"><span class="pre">net</span></code>; their
 input ids do not.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1091,6 +1483,7 @@ layers to change. Interlayer edges (couplings included) are kept as they are.</p
 <p>As the number of edges varies, new edges take the attributes of the original edges of their
 layer as described in the module description: shuffled, with some left out if fewer edges are
 drawn, and some repeated if more are.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1161,6 +1554,7 @@ likelihood fit (KronFit) of Leskovec et al., but its nodes are not matched to th
 the nodes of <code class="docutils literal notranslate"><span class="pre">net</span></code> take random positions. In multilayer networks each layer is randomized on
 its own, with its own initiator (<code class="docutils literal notranslate"><span class="pre">initiator</span></code> can be a dictionary from layer to matrix);
 interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1318,6 +1712,7 @@ communities with <code class="docutils literal notranslate"><span class="pre">ex
 the communities in sorted order (or order of appearance, if their values cannot be sorted), or a
 dictionary from layer to matrix. In multilayer networks each layer is randomized on its own, with
 the degrees and edges of its intra-layer edges; interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1404,6 +1799,7 @@ do not overlap this is the density of the edges between them, as in
 by the model, are clipped. In multilayer networks each layer is randomized on its own, with the
 communities of its copies and its own probabilities (or a dictionary from layer to matrix);
 interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1498,6 +1894,7 @@ are ignored), and the result is a randomization of <code class="docutils literal
 the nodes, the exact numbers of edges between bottom groups and, on average, the degrees, and
 gets the groups of all levels as node attributes. The fit runs on the CPU (Numba), the wiring on
 the device.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1566,6 +1963,7 @@ densities of the edges of <code class="docutils literal notranslate"><span class
 parallel edges counting), unless given. In multilayer networks each layer is randomized on its
 own, with the communities of its copies and its own densities (<code class="docutils literal notranslate"><span class="pre">p_in</span></code> and <code class="docutils literal notranslate"><span class="pre">p_out</span></code> can be
 one value for all layers or a dictionary from layer to value); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1635,6 +2033,7 @@ order of appearance, if their values cannot be sorted). In multilayer networks e
 randomized on its own, with the communities of its copies and its own densities (a <code class="docutils literal notranslate"><span class="pre">probs</span></code>
 given applies to the communities present in each layer, or can be a dictionary from layer to
 matrix); interlayer edges are kept.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1688,29 +2087,40 @@ compared with its distribution over randomizations.</p>
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.randomization_test">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">randomization_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.randomization_test" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">randomization_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.randomization_test" title="Link to this definition"></a></dt>
 <dd><p>Test a statistic of a network against a null model: the statistic is computed on <code class="docutils literal notranslate"><span class="pre">net</span></code> and
 on <code class="docutils literal notranslate"><span class="pre">n</span></code> randomizations of it made by <code class="docutils literal notranslate"><span class="pre">model</span></code>, and the observed value is compared with their
 distribution.</p>
 <p><code class="docutils literal notranslate"><span class="pre">model</span></code> is any generator of this module that takes <code class="docutils literal notranslate"><span class="pre">net</span></code> (e.g.
-<a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>, <a class="reference internal" href="#graphoskop.edge_swap" title="graphoskop.edge_swap"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code></a>, <a class="reference internal" href="#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>), called as
+<a class="reference internal" href="#graphoskop.configuration_model" title="graphoskop.configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">configuration_model()</span></code></a>, <a class="reference internal" href="#graphoskop.edge_swap" title="graphoskop.edge_swap"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code></a>, <a class="reference internal" href="#graphoskop.stochastic_block_model" title="graphoskop.stochastic_block_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">stochastic_block_model()</span></code></a>; for hypergraphs
+<a class="reference internal" href="#graphoskop.hypergraph_configuration_model" title="graphoskop.hypergraph_configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_configuration_model()</span></code></a>, for simplicial complexes
+<a class="reference internal" href="#graphoskop.simplicial_configuration_model" title="graphoskop.simplicial_configuration_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_configuration_model()</span></code></a> or <a class="reference internal" href="#graphoskop.growing_manifold" title="graphoskop.growing_manifold"><code class="xref py py-func docutils literal notranslate"><span class="pre">growing_manifold()</span></code></a>), called as
 <code class="docutils literal notranslate"><span class="pre">model(net</span> <span class="pre">=</span> <span class="pre">net,</span> <span class="pre">seed</span> <span class="pre">=</span> <span class="pre">...,</span> <span class="pre">**parameters)</span></code>, or a fitted ERGM (<a class="reference internal" href="ergm.html#graphoskop.ERGMFit" title="graphoskop.ERGMFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERGMFit</span></code></a>),
 whose networks are drawn with <a class="reference internal" href="ergm.html#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">statistic</span></code> is any function
-of a network returning a number, such as <a class="reference internal" href="network_statistics.html#graphoskop.average_clustering" title="graphoskop.average_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_clustering()</span></code></a> or
-<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.assortativity(g,</span> <span class="pre">&quot;age&quot;)</span></code>.</p>
+of a network returning one number, such as <a class="reference internal" href="network_statistics.html#graphoskop.average_clustering" title="graphoskop.average_clustering"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_clustering()</span></code></a> or
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.assortativity(g,</span> <span class="pre">&quot;age&quot;)</span></code>. Node level statistics return a vector: test their
+global version (<a class="reference internal" href="network_statistics.html#graphoskop.global_triangle_closure" title="graphoskop.global_triangle_closure"><code class="xref py py-func docutils literal notranslate"><span class="pre">global_triangle_closure()</span></code></a> rather than
+<a class="reference internal" href="network_statistics.html#graphoskop.local_triangle_closure" title="graphoskop.local_triangle_closure"><code class="xref py py-func docutils literal notranslate"><span class="pre">local_triangle_closure()</span></code></a>) or a summary of them
+(<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.local_triangle_closure(g).nanmean()</span></code>, nodes in no triangle being NaN).</p>
 <p>The pseudo p-values are the shares of randomizations scoring above, below or equal to the
 observed value; <code class="docutils literal notranslate"><span class="pre">p_value</span></code> is the two sided one,
 <span class="math notranslate nohighlight">\(\min(1, 2 \min(P(x \geq obs), P(x \leq obs)))\)</span>. The distribution is tabulated on
 values rounded to a scale that gives about 20 bins (integers are kept as they are when they are
 few).</p>
+<p>Hypergraphs and simplicial complexes are tested as networks are, with a generator that takes
+them and a statistic that does (e.g. <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">g:</span> <span class="pre">gsk.betti_numbers(g)[1]</span></code>); a generator of
+plain networks refuses them.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, hypergraph or simplicial complex.</p></li>
 <li><p><strong>statistic</strong> – Function of a network returning a number.</p></li>
 <li><p><strong>model</strong> – Generator function, or fitted <a class="reference internal" href="ergm.html#graphoskop.ERGMFit" title="graphoskop.ERGMFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ERGMFit</span></code></a>.</p></li>
 <li><p><strong>n</strong> – Number of randomizations.</p></li>
 <li><p><strong>seed</strong> – Seed of the random numbers (randomization <code class="docutils literal notranslate"><span class="pre">k</span></code> gets <code class="docutils literal notranslate"><span class="pre">seed</span> <span class="pre">+</span> <span class="pre">k</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the randomizations (<code class="docutils literal notranslate"><span class="pre">None</span></code>: as set by
+<a class="reference internal" href="progress.html#graphoskop.set_progress" title="graphoskop.set_progress"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code></a>; see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>); the generator shows none.</p></li>
 <li><p><strong>parameters</strong> – Other arguments of the generator (e.g. <code class="docutils literal notranslate"><span class="pre">swaps</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code>), or of
 <a class="reference internal" href="ergm.html#graphoskop.ERGMFit.simulate" title="graphoskop.ERGMFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">burnin</span></code>, <code class="docutils literal notranslate"><span class="pre">interval</span></code>).</p></li>
 </ul>
@@ -1723,7 +2133,7 @@ few).</p>
 <code class="docutils literal notranslate"><span class="pre">below</span></code> and <code class="docutils literal notranslate"><span class="pre">equal</span></code> (shares of randomizations) and <code class="docutils literal notranslate"><span class="pre">p_value</span></code>.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">statistic</span></code> does not return a number.</p>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">statistic</span></code> does not return one number.</p>
 </dd>
 </dl>
 <p>Example:</p>
@@ -1731,6 +2141,8 @@ few).</p>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
 <span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">average_clustering</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">configuration_model</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_hypergraph</span><span class="p">(</span><span class="s2">&quot;memberships.tsv&quot;</span><span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">randomization_test</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">global_triangle_closure</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">hypergraph_configuration_model</span><span class="p">)</span>
 <span class="n">test</span><span class="p">[</span><span class="s2">&quot;observed&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;above&quot;</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s2">&quot;p_value&quot;</span><span class="p">]</span>
 <span class="n">test</span><span class="p">[</span><span class="s2">&quot;distribution&quot;</span><span class="p">]</span>                                         <span class="c1"># rounded values and their counts</span>
 
@@ -1747,8 +2159,8 @@ few).</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="ergm.html" class="btn btn-neutral float-left" title="Exponential random graph models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="hierarchy.html" class="btn btn-neutral float-right" title="Hierarchy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="frequent_subgraphs.html" class="btn btn-neutral float-left" title="Frequent subgraph mining" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gnn.html" class="btn btn-neutral float-right" title="Graph neural networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

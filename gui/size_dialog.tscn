@@ -1,0 +1,96 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://size_dialog.gd" id="1_size"]
+
+[node name="SizeDialog" type="AcceptDialog"]
+title = "Sizes"
+size = Vector2i(400, 200)
+script = ExtResource("1_size")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 392.0
+offset_bottom = 151.0
+
+[node name="Grid" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 2
+
+[node name="ByLabel" type="Label" parent="Box/Grid"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "Size by"
+
+[node name="By" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+fit_to_longest_item = false
+
+[node name="SingleLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Size"
+
+[node name="Single" type="SpinBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+min_value = 0.05
+max_value = 50.0
+step = 0.05
+value = 1.0
+suffix = "×"
+
+[node name="MinLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Smallest"
+
+[node name="Min" type="SpinBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+min_value = 0.05
+max_value = 50.0
+step = 0.05
+value = 0.5
+suffix = "×"
+
+[node name="MaxLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Largest"
+
+[node name="Max" type="SpinBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+min_value = 0.05
+max_value = 50.0
+step = 0.05
+value = 2.0
+suffix = "×"
+
+[node name="LogLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Log" type="CheckBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Logarithmic scale"
+
+[node name="Note" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+autowrap_mode = 3
+
+[node name="Debounce" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.3
+one_shot = true

@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synchronization &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Signed networks" href="signed.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Synchronization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#higher-order-kuramoto-models">Higher-order Kuramoto models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.node_link_kuramoto_model"><code class="docutils literal notranslate"><span class="pre">node_link_kuramoto_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.simplicial_kuramoto_model"><code class="docutils literal notranslate"><span class="pre">simplicial_kuramoto_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#kuramoto-model">Kuramoto model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.kuramoto_model"><code class="docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Synchronization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/synchronization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.synchronization">
+<span id="synchronization"></span><h1>Synchronization<a class="headerlink" href="#module-graphoskop.synchronization" title="Link to this heading"></a></h1>
+<p>Synchronization of coupled oscillators: the Kuramoto model on networks, and its higher-order
+versions on simplicial complexes, where oscillators live on edges and triangles too.</p>
+<p>Every oscillator has a phase that turns at its own natural frequency and is pulled towards the
+phases it is coupled with, with strength <code class="docutils literal notranslate"><span class="pre">sigma</span></code>. Weakly coupled, the phases drift
+independently; strongly coupled, they lock together. The <strong>order parameter</strong>
+<span class="math notranslate nohighlight">\(R = |\frac{1}{n} \sum_j e^{i \theta_j}|\)</span> measures this, from 0 (incoherent) to 1
+(synchronized), and its curve against <code class="docutils literal notranslate"><span class="pre">sigma</span></code> shows the synchronization transition, continuous
+or explosive (abrupt, with hysteresis).</p>
+<ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code>: phases on the nodes of a network (Kuramoto, 1975; on networks, Arenas,
+Díaz-Guilera, Kurths, Moreno and Zhou, 2008): <span class="math notranslate nohighlight">\(\dot\theta_i = \omega_i + \sigma
+\sum_j A_{ji} \sin(\theta_j - \theta_i)\)</span>, with weights and directions.</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_kuramoto_model()</span></code>: phases on the <span class="math notranslate nohighlight">\(k\)</span>-simplices of a simplicial complex,
+coupled through the boundary matrices (Millán, Torres and Bianconi, 2020), with the explosive
+variant; <span class="math notranslate nohighlight">\(k = 1\)</span> puts the oscillators on the edges of a complex or of a network.</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">node_link_kuramoto_model()</span></code>: phases on the nodes and on the edges at once, each coupling
+modulated by the order of the other (Ghorbanchian, Restrepo, Torres and Bianconi, 2021), whose
+explosive transition comes from the coupling of the two topological signals.</p></li>
+</ul>
+<p>The dynamics are integrated with the classical Runge-Kutta method (fixed step <code class="docutils literal notranslate"><span class="pre">dt</span></code>), in double
+precision, on the device of the network, and order parameters are averaged over time after a
+transient. A value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> or a sequence of them can be given, with independent <code class="docutils literal notranslate"><span class="pre">runs</span></code>
+(frequencies and initial phases drawn per run, shared by all <code class="docutils literal notranslate"><span class="pre">sigma</span></code> values). Without
+<code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>, all pairs of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> and run are integrated at once, as the columns of one
+matrix: a whole transition curve at the cost of a single simulation of many columns, which suits
+a GPU. With <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>, the values of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> are followed in the given order, each starting
+from the final phases of the previous one: a forward sweep followed by a backward one shows the
+hysteresis loop of an explosive transition.</p>
+<p>The coupling uses the boundary matrices of <a class="reference internal" href="higher_order.html#graphoskop.boundary_matrix" title="graphoskop.boundary_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">boundary_matrix()</span></code></a>: <span class="math notranslate nohighlight">\(B_1\)</span> maps
+edges to nodes, <span class="math notranslate nohighlight">\(B_2\)</span> triangles to edges, and simplices have the reference orientation of
+their nodes (see <a class="reference internal" href="higher_order.html#graphoskop.Network.set_simplex_attribute" title="graphoskop.Network.set_simplex_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_simplex_attribute()</span></code></a>). A plain network is a
+complex without triangles: its edges, taken undirected, unweighted and without self-loops or
+repetitions, in the order of their node pairs (internal indices), are its 1-simplices.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">curve</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kuramoto_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># all at once</span>
+<span class="n">curve</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)[</span><span class="s2">&quot;order&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>                                         <span class="c1"># the transition</span>
+
+<span class="n">sc</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_configuration_model</span><span class="p">(</span><span class="n">degrees</span> <span class="o">=</span> <span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">*</span> <span class="mi">200</span><span class="p">,</span> <span class="n">dimensions</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="mi">400</span><span class="p">},</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_kuramoto_model</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">up</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>   <span class="c1"># oscillators on the edges</span>
+<span class="n">loop</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_link_kuramoto_model</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">up</span><span class="p">,</span> <span class="n">up</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;nlt&quot;</span><span class="p">,</span> <span class="n">omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">link_omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">adiabatic</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">forward</span><span class="p">,</span> <span class="n">backward</span> <span class="o">=</span> <span class="n">loop</span><span class="p">[</span><span class="s2">&quot;order_nodes&quot;</span><span class="p">][:</span><span class="mi">16</span><span class="p">],</span> <span class="n">loop</span><span class="p">[</span><span class="s2">&quot;order_nodes&quot;</span><span class="p">][</span><span class="mi">16</span><span class="p">:]</span>         <span class="c1"># explosive: a hysteresis loop</span>
+</pre></div>
+</div>
+<section id="higher-order-kuramoto-models">
+<h2>Higher-order Kuramoto models<a class="headerlink" href="#higher-order-kuramoto-models" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.node_link_kuramoto_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">node_link_kuramoto_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabatic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.node_link_kuramoto_model" title="Link to this definition"></a></dt>
+<dd><p>Coupled Kuramoto dynamics of node and link signals (Ghorbanchian, Restrepo, Torres and Bianconi,
+2021): phases <span class="math notranslate nohighlight">\(\theta\)</span> on the nodes and <span class="math notranslate nohighlight">\(\phi\)</span> on the edges of a network or
+simplicial complex, each coupled through the boundary matrices and modulated by the order of
+the other,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\dot\theta &amp;= \omega - \sigma R_1^{down} B_1 \sin(B_1^T \theta), \\
+\dot\phi &amp;= \tilde\omega - \sigma R_0 (R_1^{up})^{m - 1} B_1^T \sin(B_1 \phi)
+- \sigma (R_1^{down})^{m - 1} B_2 \sin(B_2^T \phi),\end{split}\]</div>
+<p>with the order parameters <span class="math notranslate nohighlight">\(R_0\)</span> of the node phases (<code class="docutils literal notranslate"><span class="pre">order_nodes</span></code>), <span class="math notranslate nohighlight">\(R_1^{down}\)</span>
+of the projection of the link phases on the nodes, <span class="math notranslate nohighlight">\(B_1 \phi\)</span> (<code class="docutils literal notranslate"><span class="pre">order_down</span></code>), and
+<span class="math notranslate nohighlight">\(R_1^{up}\)</span> of their projection on the triangles, <span class="math notranslate nohighlight">\(B_2^T \phi\)</span> (<code class="docutils literal notranslate"><span class="pre">order_up</span></code>). Model
+<code class="docutils literal notranslate"><span class="pre">&quot;nl&quot;</span></code> (<span class="math notranslate nohighlight">\(m = 1\)</span>) couples nodes and links; model <code class="docutils literal notranslate"><span class="pre">&quot;nlt&quot;</span></code> (<span class="math notranslate nohighlight">\(m = 2\)</span>) also couples
+the triangles, and needs them. The coupling of the two signals makes the transition
+explosive, with hysteresis (follow it with <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>). On a plain network there are no
+triangles: the last term is absent and <code class="docutils literal notranslate"><span class="pre">order_up</span></code> is NaN. See the module description for
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">runs</span></code> and <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>.</p>
+<p>Simplicial complexes: supported; hypergraphs: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> or a simplicial complex.</p></li>
+<li><p><strong>sigma</strong> – Coupling strength, or sequence of them.</p></li>
+<li><p><strong>model</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;nl&quot;</span></code> (nodes and links) or <code class="docutils literal notranslate"><span class="pre">&quot;nlt&quot;</span></code> (nodes, links and triangles).</p></li>
+<li><p><strong>omega</strong> – Natural frequencies of the nodes, <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">sd)</span></code> of a normal distribution or
+values (see <a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>).</p></li>
+<li><p><strong>link_omega</strong> – Natural frequencies of the edges, as <code class="docutils literal notranslate"><span class="pre">omega</span></code>, over the edges in the order
+of <a class="reference internal" href="higher_order.html#graphoskop.Network.simplices" title="graphoskop.Network.simplices"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simplices()</span></code></a> (or the sorted edges of a network).</p></li>
+<li><p><strong>theta</strong> – Initial node phases, <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform ones.</p></li>
+<li><p><strong>phi</strong> – Initial edge phases, <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform ones.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest).</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>adiabatic</strong> – Whether to follow the values of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> in order (see
+<a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>).</p></li>
+<li><p><strong>time</strong> – Integration time of each value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code>.</p></li>
+<li><p><strong>dt</strong> – Time step.</p></li>
+<li><p><strong>transient</strong> – Time discarded before averaging, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for half of <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>phases</strong> – Whether to also return the final phases.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the time steps, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the global
+setting (see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> and run: columns
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">run</span></code>, <code class="docutils literal notranslate"><span class="pre">order_nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">order_down</span></code> and <code class="docutils literal notranslate"><span class="pre">order_up</span></code>; with <code class="docutils literal notranslate"><span class="pre">phases</span></code>, also
+the final node and edge phases, tensors <code class="docutils literal notranslate"><span class="pre">[n,</span> <span class="pre">len(sigma),</span> <span class="pre">runs]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">[edges,</span> <span class="pre">len(sigma),</span> <span class="pre">runs]</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a hypergraph or has no edges, <code class="docutils literal notranslate"><span class="pre">model</span></code> is unknown or
+<code class="docutils literal notranslate"><span class="pre">&quot;nlt&quot;</span></code> without triangles, a vector has the wrong shape, or the times are inconsistent.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">26</span><span class="p">)</span>
+<span class="n">loop</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">node_link_kuramoto_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">up</span><span class="p">,</span> <span class="n">up</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">link_omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">adiabatic</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.simplicial_kuramoto_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">simplicial_kuramoto_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explosive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabatic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.simplicial_kuramoto_model" title="Link to this definition"></a></dt>
+<dd><p>Higher-order Kuramoto model of Millán, Torres and Bianconi (2020): oscillators on the
+<span class="math notranslate nohighlight">\(k\)</span>-simplices of a simplicial complex (on its edges for <span class="math notranslate nohighlight">\(k = 1\)</span>: a topological
+signal), each coupled with the simplices it shares a face or a coface with,</p>
+<div class="math notranslate nohighlight">
+\[\dot\theta = \omega - \sigma B_{k + 1} \sin(B_{k + 1}^T \theta)
+- \sigma B_k^T \sin(B_k \theta).\]</div>
+<p>The phases project on the <span class="math notranslate nohighlight">\((k - 1)\)</span>-simplices, <span class="math notranslate nohighlight">\(\theta^- = B_k \theta\)</span> (a
+discrete divergence), and on the <span class="math notranslate nohighlight">\((k + 1)\)</span>-simplices, <span class="math notranslate nohighlight">\(\theta^+ = B_{k + 1}^T
+\theta\)</span> (a discrete curl), whose dynamics decouple; their order parameters <code class="docutils literal notranslate"><span class="pre">order_down</span></code> and
+<code class="docutils literal notranslate"><span class="pre">order_up</span></code> (<span class="math notranslate nohighlight">\(R^-\)</span> and <span class="math notranslate nohighlight">\(R^+\)</span>) synchronize, while the phases themselves need not
+(<code class="docutils literal notranslate"><span class="pre">order</span></code>). With <code class="docutils literal notranslate"><span class="pre">explosive</span></code>, each coupling is modulated by the order of the other
+projection, <span class="math notranslate nohighlight">\(\sigma R^-\)</span> on the first term and <span class="math notranslate nohighlight">\(\sigma R^+\)</span> on the second, which
+makes the transition discontinuous, with hysteresis (follow it with <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>).</p>
+<p>For <span class="math notranslate nohighlight">\(k = 0\)</span> this is the Kuramoto model of the 1-skeleton (<a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>). On a
+plain network, <span class="math notranslate nohighlight">\(k\)</span> is 0 or 1, and edges have no triangles: the second term only. The
+order parameter of a projection with no simplex (<code class="docutils literal notranslate"><span class="pre">order_down</span></code> for <span class="math notranslate nohighlight">\(k = 0\)</span>, <code class="docutils literal notranslate"><span class="pre">order_up</span></code>
+without <span class="math notranslate nohighlight">\((k + 1)\)</span>-simplices) is NaN. Phases are over <a class="reference internal" href="higher_order.html#graphoskop.Network.simplices" title="graphoskop.Network.simplices"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simplices()</span></code></a>
+(or the sorted edges of a network), in reference orientation. See the module description for
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">runs</span></code> and <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>.</p>
+<p>Simplicial complexes: supported; hypergraphs: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A simplicial complex or a <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>sigma</strong> – Coupling strength, or sequence of them.</p></li>
+<li><p><strong>k</strong> – Dimension of the simplices carrying the oscillators.</p></li>
+<li><p><strong>explosive</strong> – Whether to use the explosive (adaptive) coupling.</p></li>
+<li><p><strong>omega</strong> – Natural frequencies, <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">sd)</span></code> of a normal distribution or values (see
+<a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>), over the <span class="math notranslate nohighlight">\(k\)</span>-simplices.</p></li>
+<li><p><strong>theta</strong> – Initial phases, <code class="docutils literal notranslate"><span class="pre">None</span></code> for uniform ones (see <a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest).</p></li>
+<li><p><strong>runs</strong> – Number of independent runs.</p></li>
+<li><p><strong>adiabatic</strong> – Whether to follow the values of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> in order (see
+<a class="reference internal" href="#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>).</p></li>
+<li><p><strong>time</strong> – Integration time of each value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code>.</p></li>
+<li><p><strong>dt</strong> – Time step.</p></li>
+<li><p><strong>transient</strong> – Time discarded before averaging, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for half of <code class="docutils literal notranslate"><span class="pre">time</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>phases</strong> – Whether to also return the final phases.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the time steps, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the global
+setting (see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> and run: columns
+<code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">run</span></code>, <code class="docutils literal notranslate"><span class="pre">order</span></code>, <code class="docutils literal notranslate"><span class="pre">order_down</span></code> and <code class="docutils literal notranslate"><span class="pre">order_up</span></code>; with <code class="docutils literal notranslate"><span class="pre">phases</span></code>, also the
+final phases, a tensor <code class="docutils literal notranslate"><span class="pre">[n_k,</span> <span class="pre">len(sigma),</span> <span class="pre">runs]</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a hypergraph, <code class="docutils literal notranslate"><span class="pre">k</span></code> is out of range, <code class="docutils literal notranslate"><span class="pre">explosive</span></code> lacks the
+simplices of one projection, a vector has the wrong shape, or the times are inconsistent.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">clique_promotion</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">))</span>       <span class="c1"># the clique complex</span>
+<span class="n">up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">31</span><span class="p">)</span>
+<span class="n">loop</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">simplicial_kuramoto_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">up</span><span class="p">,</span> <span class="n">up</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">explosive</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">adiabatic</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="kuramoto-model">
+<h2>Kuramoto model<a class="headerlink" href="#kuramoto-model" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.kuramoto_model">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">kuramoto_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adiabatic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.kuramoto_model" title="Link to this definition"></a></dt>
+<dd><p>Kuramoto model on the nodes of a network: every node is an oscillator with phase
+<span class="math notranslate nohighlight">\(\theta_i\)</span> and natural frequency <span class="math notranslate nohighlight">\(\omega_i\)</span>, pulled by its neighbors,</p>
+<div class="math notranslate nohighlight">
+\[\dot\theta_i = \omega_i + \sigma \sum_j A_{ji} \sin(\theta_j - \theta_i),\]</div>
+<p>with <span class="math notranslate nohighlight">\(A_{ji}\)</span> the weight of the edge from <span class="math notranslate nohighlight">\(j\)</span> to <span class="math notranslate nohighlight">\(i\)</span> (directed networks: a
+node follows the nodes with edges towards it). For undirected networks this is
+<span class="math notranslate nohighlight">\(\dot\theta = \omega - \sigma B_1 W \sin(B_1^T \theta)\)</span>. The coupling is not
+divided by the degree or the number of nodes: scale <code class="docutils literal notranslate"><span class="pre">sigma</span></code> for that. The order parameter
+<code class="docutils literal notranslate"><span class="pre">order</span></code> is <span class="math notranslate nohighlight">\(R = |\frac{1}{n} \sum_j e^{i \theta_j}|\)</span>, averaged over time after the
+transient. On a simplicial complex, the model runs on its 1-skeleton (for oscillators on its
+edges, see <a class="reference internal" href="#graphoskop.simplicial_kuramoto_model" title="graphoskop.simplicial_kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_kuramoto_model()</span></code></a>). See the module description for <code class="docutils literal notranslate"><span class="pre">sigma</span></code>,
+<code class="docutils literal notranslate"><span class="pre">runs</span></code> and <code class="docutils literal notranslate"><span class="pre">adiabatic</span></code>.</p>
+<p>Simplicial complexes: supported; hypergraphs: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> or a simplicial complex.</p></li>
+<li><p><strong>sigma</strong> – Coupling strength, or sequence of them.</p></li>
+<li><p><strong>omega</strong> – Natural frequencies: <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">sd)</span></code> to draw them from a normal distribution for
+every run, or a vector over the nodes of the component (shared by the runs), or a matrix with
+one column per run.</p></li>
+<li><p><strong>theta</strong> – Initial phases, as <code class="docutils literal notranslate"><span class="pre">omega</span></code> but without <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">sd)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> to draw them
+uniformly in <span class="math notranslate nohighlight">\([0, 2 \pi)\)</span> for every run.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>runs</strong> – Number of independent runs (frequencies and initial phases).</p></li>
+<li><p><strong>adiabatic</strong> – Whether to follow the values of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> in order, each from the final phases
+of the previous one (hysteresis), instead of all at once from the initial phases.</p></li>
+<li><p><strong>time</strong> – Integration time of each value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code>.</p></li>
+<li><p><strong>dt</strong> – Time step.</p></li>
+<li><p><strong>transient</strong> – Time discarded before averaging the order parameter, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for half of
+<code class="docutils literal notranslate"><span class="pre">time</span></code>.</p></li>
+<li><p><strong>seed</strong> – Seed of the random numbers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a random seed.</p></li>
+<li><p><strong>phases</strong> – Whether to also return the final phases.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar over the time steps, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the global
+setting (see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per value of <code class="docutils literal notranslate"><span class="pre">sigma</span></code> (in the given order) and
+run: columns <code class="docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="docutils literal notranslate"><span class="pre">run</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code>; with <code class="docutils literal notranslate"><span class="pre">phases</span></code>, also the final phases, a
+tensor <code class="docutils literal notranslate"><span class="pre">[n,</span> <span class="pre">len(sigma),</span> <span class="pre">runs]</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">net</span></code> is a hypergraph, a vector has the wrong shape, or the times are
+inconsistent.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">curve</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kuramoto_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">curve</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)[</span><span class="s2">&quot;order&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>                 <span class="c1"># the synchronization transition</span>
+<span class="n">up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span>
+<span class="n">loop</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">kuramoto_model</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">up</span><span class="p">,</span> <span class="n">up</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">adiabatic</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="signed.html" class="btn btn-neutral float-left" title="Signed networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

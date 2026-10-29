@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Multilayer networks" href="multilayer.html" />
-    <link rel="prev" title="Laplacians" href="laplacians.html" /> 
+    <link rel="prev" title="Layouts" href="layouts.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,13 +53,20 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Link prediction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#ensembles">Ensembles</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.ensemble_link_prediction"><code class="docutils literal notranslate"><span class="pre">ensemble_link_prediction()</span></code></a></li>
@@ -72,6 +79,10 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scores">Scores</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#association-rules">Association rules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.association_rules_lp"><code class="docutils literal notranslate"><span class="pre">association_rules_lp()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#common-neighbors">Common neighbors</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.adamic_adar_lp"><code class="docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.car_index_lp"><code class="docutils literal notranslate"><span class="pre">car_index_lp()</span></code></a></li>
@@ -79,6 +90,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.common_neighbors_jaccard_lp"><code class="docutils literal notranslate"><span class="pre">common_neighbors_jaccard_lp()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.mutual_information_index_lp"><code class="docutils literal notranslate"><span class="pre">mutual_information_index_lp()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#graphoskop.resource_allocation_lp"><code class="docutils literal notranslate"><span class="pre">resource_allocation_lp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#embeddings">Embeddings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#graphoskop.embedding_lp"><code class="docutils literal notranslate"><span class="pre">embedding_lp()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#hierarchical-random-graphs">Hierarchical random graphs</a><ul>
@@ -113,9 +128,11 @@
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -173,6 +190,11 @@ node to the other, and <code class="xref py py-func docutils literal notranslate
 meet soon;</p></li>
 <li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">vertex_similarity_lp()</span></code>: the paths of all lengths between the two nodes, relative to the
 number expected from their degrees;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">embedding_lp()</span></code>: a logistic regression on edge features made from node embeddings (e.g.
+<a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a>), with the four operators of node2vec;</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">association_rules_lp()</span></code>: the association rules between frequent patterns whose added edge
+would join the two nodes (see <a class="reference internal" href="frequent_subgraphs.html"><span class="doc">Frequent subgraph mining</span></a>); rules that add a new node also predict
+neighbors that are not in the network yet;</p></li>
 <li><p>models fitted to the network by Markov chain Monte Carlo, which learn any pattern of
 connection, assortative or not: <code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_lp()</span></code>, the edge probability of the
 pair in hierarchical random graphs, and <code class="xref py py-func docutils literal notranslate"><span class="pre">block_model_reliability_lp()</span></code>, in stochastic block
@@ -280,6 +302,7 @@ bottom (the best pair scores the number of pairs), averaged over pairs that all 
 rank the same. Compiled with Numba; the time grows with the number of moves, small when the scores
 mostly agree.</p></li>
 </ul>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -402,6 +425,7 @@ pair is the sum over the paths: the edge <span class="math notranslate nohighlig
 </ul>
 <p>A pair is predicted by the sign of its vote, and not predicted if the vote is 0 (no common
 neighbor, or a tie). Signs 0 or NaN in the training network count as absent edges.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -570,6 +594,88 @@ Between seeds, the scores of the Markov chain models vary by a few hundredths.</
 </section>
 <section id="scores">
 <h2>Scores<a class="headerlink" href="#scores" title="Link to this heading"></a></h2>
+<section id="association-rules">
+<h3>Association rules<a class="headerlink" href="#association-rules" title="Link to this heading"></a></h3>
+<p>Frequent patterns that differ by one edge give association rules
+(<a class="reference internal" href="frequent_subgraphs.html#graphoskop.graph_association_rules" title="graphoskop.graph_association_rules"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_association_rules()</span></code></a>): a pair is scored by the rules whose antecedent
+occurs around it and whose added edge would join it, so the score learns any labeled local
+structure that precedes an edge (feed-forward triads between roles, for instance), not only
+triangles. Rules whose added edge brings a new node predict new neighbors that are not in the
+network yet. In a directed network of 20,000 nodes with three roles (hubs, brokers and leaves
+following a broker and two of its hubs, plus random edges), mining the training network
+(<a class="reference internal" href="frequent_subgraphs.html#graphoskop.single_graph_mining" title="graphoskop.single_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a>, MNI threshold 500, up to 3 edges: 206 patterns, 2.1 s)
+gives 407 rules, which score the 14,774 validation pairs in 1 s with AUC 0.79, against 0.63 for
+common neighbors and 0.76 for preferential attachment; predicting the new neighbors of all the
+nodes too takes 5 s.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.association_rules_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">association_rules_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rules</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'confidence'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.association_rules_lp" title="Link to this definition"></a></dt>
+<dd><p>Association rule score of node pairs: the rules of <a class="reference internal" href="frequent_subgraphs.html#graphoskop.graph_association_rules" title="graphoskop.graph_association_rules"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_association_rules()</span></code></a>
+whose added edge would join the two nodes. A rule <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">-&gt;</span> <span class="pre">Q</span></code> applies to a pair <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> if
+<code class="docutils literal notranslate"><span class="pre">Q</span></code> adds an edge between two nodes <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> of <code class="docutils literal notranslate"><span class="pre">P</span></code> and some occurrence of <code class="docutils literal notranslate"><span class="pre">P</span></code> in
+<code class="docutils literal notranslate"><span class="pre">net</span></code> (an embedding with the same labels and directions, not necessarily induced) maps <code class="docutils literal notranslate"><span class="pre">a</span></code>
+onto <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> onto <code class="docutils literal notranslate"><span class="pre">v</span></code> (in directed networks, the added edge goes from <code class="docutils literal notranslate"><span class="pre">a</span></code> to <code class="docutils literal notranslate"><span class="pre">b</span></code>).
+The score of a pair combines, over the rules that apply, their <code class="docutils literal notranslate"><span class="pre">measure</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;support&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;confidence&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;lift&quot;</span></code>), with <code class="docutils literal notranslate"><span class="pre">combine</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>; it is 0 if no rule
+applies. Every rule counts once per pair, however many occurrences of its antecedent map onto
+the pair. The edge label of the added edge does not matter: the pairs of a validation set are
+not labeled.</p>
+<p>Rules whose added edge brings a new node, joined to a node <code class="docutils literal notranslate"><span class="pre">a</span></code> of <code class="docutils literal notranslate"><span class="pre">P</span></code>, predict instead that
+the image of <code class="docutils literal notranslate"><span class="pre">a</span></code> gains a neighbor that is not in the network yet, with the label of the new
+node: no other link prediction score can, but these predictions cannot be tested on a
+validation set. With <code class="docutils literal notranslate"><span class="pre">new_nodes</span> <span class="pre">=</span> <span class="pre">True</span></code> they are returned too, as a second table: every node
+onto which an occurrence of the antecedent maps <code class="docutils literal notranslate"><span class="pre">a</span></code>, with the label of the new node, the
+label of the new edge and, in directed networks, its direction, scored as the pairs are.</p>
+<p>Rules and patterns come from mining a network labeled as <code class="docutils literal notranslate"><span class="pre">net</span></code> (the training network, when
+testing): <code class="docutils literal notranslate"><span class="pre">node_label</span></code> and <code class="docutils literal notranslate"><span class="pre">edge_label</span></code> must name the attributes used for mining. Mining
+the training network itself keeps the hidden edges out of the rules. Antecedents are found
+with the compiled search of <a class="reference internal" href="frequent_subgraphs.html#graphoskop.single_graph_mining" title="graphoskop.single_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">single_graph_mining()</span></code></a>, all the pairs of a rule
+in parallel.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – A pair <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> of node ids, an iterable of pairs, or a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the endpoints in its first two columns (e.g. the validation
+set).</p></li>
+<li><p><strong>patterns</strong> – Pattern network of the mining.</p></li>
+<li><p><strong>rules</strong> – Rules of <a class="reference internal" href="frequent_subgraphs.html#graphoskop.graph_association_rules" title="graphoskop.graph_association_rules"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_association_rules()</span></code></a> (any subset of the rows).</p></li>
+<li><p><strong>node_label</strong> – Name of the node attribute used as node label in the mining, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>edge_label</strong> – Name of the edge attribute used as edge label in the mining, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>measure</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;support&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;confidence&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;lift&quot;</span></code>.</p></li>
+<li><p><strong>combine</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>.</p></li>
+<li><p><strong>new_nodes</strong> – Whether to also return the predictions of new neighbors.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The scores, as the other scores (a float for one pair, otherwise a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>); with <code class="docutils literal notranslate"><span class="pre">new_nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">(scores,</span> <span class="pre">new)</span></code>, <code class="docutils literal notranslate"><span class="pre">new</span></code> a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with columns <code class="docutils literal notranslate"><span class="pre">source</span></code> (node id), <code class="docutils literal notranslate"><span class="pre">label</span></code> (of the new node, if
+<code class="docutils literal notranslate"><span class="pre">node_label</span></code>), <code class="docutils literal notranslate"><span class="pre">edge_label</span></code> (if <code class="docutils literal notranslate"><span class="pre">edge_label</span></code>), <code class="docutils literal notranslate"><span class="pre">direction</span></code> (directed networks:
+<code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> if the new edge leaves the node, <code class="docutils literal notranslate"><span class="pre">&quot;in&quot;</span></code> otherwise) and <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is multilayer, or <code class="docutils literal notranslate"><span class="pre">measure</span></code> or <code class="docutils literal notranslate"><span class="pre">combine</span></code> is not valid.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">patterns</span><span class="p">,</span> <span class="n">support</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">single_graph_mining</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">max_edges</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">rules</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_association_rules</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">support</span><span class="p">,</span> <span class="n">transactional</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">association_rules_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">rules</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;city&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span>
+<span class="n">validation</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">association_rules_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">patterns</span><span class="p">,</span> <span class="n">rules</span><span class="p">,</span> <span class="n">node_label</span> <span class="o">=</span> <span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">new_nodes</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">new</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>   <span class="c1"># who will get a new neighbor, of which city</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="common-neighbors">
 <h3>Common neighbors<a class="headerlink" href="#common-neighbors" title="Link to this heading"></a></h3>
 <p>Two nodes with many neighbors in common are likely to become neighbors themselves (triadic
@@ -591,6 +697,7 @@ neighbor has at least the two neighbors <code class="docutils literal notranslat
 common neighbor counts <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) / 2\)</span> divided by <span class="math notranslate nohighlight">\(\log(1 + s_z)\)</span>, with
 <span class="math notranslate nohighlight">\(s_z\)</span> its strength (Lü and Zhou, 2009, up to the factor 1/2); unlike the other scores,
 this does not reduce to the unweighted score when all weights are 1.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -628,6 +735,7 @@ happen to be adjacent to both. Pairs whose common neighbors share no link score 
 of <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> are the nodes <span class="math notranslate nohighlight">\(z\)</span> of the paths <span class="math notranslate nohighlight">\(u \to z \to v\)</span>, and the local
 community links are the arcs between two of them. Each pair costs the degrees of its common
 neighbors.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -666,6 +774,7 @@ weights of parallel edges summed), as in Lü and Zhou (2009) up to the factor 1/
 score is the unweighted one when all weights are 1.</p>
 <p>Each pair costs the number of neighbors of its endpoint with fewer neighbors, and the pairs
 are processed in parallel, on the device of the network.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -705,6 +814,7 @@ neighbors. Unlike <a class="reference internal" href="#graphoskop.common_neighbo
 (Ruzicka) similarity of the two vectors of edge weights,
 <span class="math notranslate nohighlight">\(\sum_z \min(w_{uz}, w_{zv}) / \sum_z \max(w_{uz}, w_{zv})\)</span>, the sums running over all
 nodes (weights of parallel edges summed, 0 for missing edges, positive values expected).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -754,6 +864,7 @@ neighbors: the mean, over the pairs <span class="math notranslate nohighlight">\
 and <span class="math notranslate nohighlight">\(M\)</span> is the number of connected pairs. Clustering coefficients are computed on the
 device of the network; the information of each node (a sum over the pairs of its neighbors,
 grouped by degree) is compiled with Numba, on the CPU.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -789,6 +900,7 @@ It punishes common neighbors with many neighbors more than <a class="reference i
 <p>Neighborhoods and <span class="math notranslate nohighlight">\(k_z\)</span> are as in <a class="reference internal" href="#graphoskop.adamic_adar_lp" title="graphoskop.adamic_adar_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">adamic_adar_lp()</span></code></a>. With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, each common
 neighbor counts <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) / 2\)</span> divided by its strength <span class="math notranslate nohighlight">\(s_z\)</span> (Lü and Zhou,
 2009, up to the factor 1/2), the unweighted score when all weights are 1.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -810,6 +922,123 @@ neighbor counts <span class="math notranslate nohighlight">\((w_{uz} + w_{zv}) /
 </dl>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">resource_allocation_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="embeddings">
+<h3>Embeddings<a class="headerlink" href="#embeddings" title="Link to this heading"></a></h3>
+<p>Node embeddings, such as the vectors of <a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a> stored as node attributes,
+score a pair through the edge features of its two nodes. AUC (10% of the edges hidden, as many
+negatives, vectors of <a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a> with the defaults, computed on the training
+network):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Network</p></th>
+<th class="head"><p>Average</p></th>
+<th class="head"><p>Hadamard</p></th>
+<th class="head"><p>Weighted-L1</p></th>
+<th class="head"><p>Weighted-L2</p></th>
+<th class="head"><p>Common
+neighbors</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>20 communities of 100 nodes</p></td>
+<td><p>0.484</p></td>
+<td><p>0.872</p></td>
+<td><p>0.872</p></td>
+<td><p>0.871</p></td>
+<td><p>0.802</p></td>
+</tr>
+<tr class="row-odd"><td><p>Holme-Kim, 3,000 nodes</p></td>
+<td><p>0.596</p></td>
+<td><p>0.724</p></td>
+<td><p>0.680</p></td>
+<td><p>0.693</p></td>
+<td><p>0.766</p></td>
+</tr>
+<tr class="row-even"><td><p>Two groups, edges only between</p></td>
+<td><p>0.512</p></td>
+<td><p>0.476</p></td>
+<td><p>0.479</p></td>
+<td><p>0.487</p></td>
+<td><p>0.428</p></td>
+</tr>
+</tbody>
+</table>
+<p>As in node2vec’s experiments, Hadamard is the best operator and average the worst; Hadamard
+scores as well as the plain dot product of the vectors (0.871 and 0.724). Walks keep nodes close
+when they are near each other, so embeddings find communities but not edges between groups that
+avoid themselves, for which the block models above are needed. On 225,000 training edges with 128
+dimensions, scoring 50,000 pairs takes 3 s (two CPU threads), most of it the regression.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.embedding_lp">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">embedding_lp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hadamard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negatives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ridge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'score'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.embedding_lp" title="Link to this definition"></a></dt>
+<dd><p>Link prediction from node embeddings (Grover and Leskovec, 2016): the numeric node attributes
+<code class="docutils literal notranslate"><span class="pre">attributes</span></code> are the vector of every node (e.g. stored by <a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a>), a
+pair gets an edge feature vector from the vectors of its two nodes, and a logistic regression
+trained on the edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> against unconnected pairs scores it. The edge features are
+computed coordinate by coordinate from the vectors <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> of the two nodes,
+with one of the four operators of node2vec:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;average&quot;</span></code>: <span class="math notranslate nohighlight">\((a_i + b_i) / 2\)</span>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;hadamard&quot;</span></code>: <span class="math notranslate nohighlight">\(a_i b_i\)</span> (the best in node2vec’s experiments; with equal coefficients,
+the dot product of the two vectors);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;weighted_l1&quot;</span></code>: <span class="math notranslate nohighlight">\(|a_i - b_i|\)</span>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;weighted_l2&quot;</span></code>: <span class="math notranslate nohighlight">\((a_i - b_i)^2\)</span>.</p></li>
+</ul>
+<p>The regression is trained in <code class="docutils literal notranslate"><span class="pre">net</span></code>, so to test the score give the training network of
+<a class="reference internal" href="#graphoskop.link_prediction_split" title="graphoskop.link_prediction_split"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_split()</span></code></a>, with vectors computed on it, not on the full network (whose
+vectors have seen the hidden edges). Its positives are <code class="docutils literal notranslate"><span class="pre">samples</span></code> edges of <code class="docutils literal notranslate"><span class="pre">net</span></code> (all of
+them if fewer), its negatives <code class="docutils literal notranslate"><span class="pre">negatives</span></code> times as many unconnected pairs, drawn uniformly
+and never among the <code class="docutils literal notranslate"><span class="pre">pairs</span></code> to score; the features are standardized, and the regression has
+an intercept and a ridge penalty <span class="math notranslate nohighlight">\(\lambda \|\theta\|^2 / 2\)</span> (<code class="docutils literal notranslate"><span class="pre">ridge</span></code>; the default
+is that of scikit-learn), which keeps the coefficients finite when the classes are separable.
+The score is the log-odds of an edge. The operators are symmetric, so in directed networks the
+two directions of a pair get the same score. Missing values of an attribute are replaced by
+its mean.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>pairs</strong> – A pair <code class="docutils literal notranslate"><span class="pre">(u,</span> <span class="pre">v)</span></code> of node ids, an iterable of pairs, or a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with the endpoints in its first two columns (e.g. the validation
+set).</p></li>
+<li><p><strong>attributes</strong> – Names of the numeric node attributes that make the vectors (an iterable, or
+one name).</p></li>
+<li><p><strong>operator</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;average&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hadamard&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;weighted_l1&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;weighted_l2&quot;</span></code>.</p></li>
+<li><p><strong>negatives</strong> – Number of unconnected pairs per edge to train on.</p></li>
+<li><p><strong>samples</strong> – Largest number of edges to train on.</p></li>
+<li><p><strong>ridge</strong> – Ridge penalty of the logistic regression.</p></li>
+<li><p><strong>seed</strong> – Seed of the training edges and pairs, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>name</strong> – Name of the score column.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float, for one pair; otherwise a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>: a copy of the
+table with the column <code class="docutils literal notranslate"><span class="pre">name</span></code> added, or columns <code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">target</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If a node does not exist, or an attribute is not a numeric node attribute.</p></li>
+<li><p><strong>ValueError</strong> – If the network is multilayer, has no edges, the operator is not known, or a
+pair does not have two nodes.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">train</span><span class="p">,</span> <span class="n">validation</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_split</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">node2vec</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;n2v&quot;</span><span class="p">)</span>          <span class="c1"># vectors of the training network</span>
+<span class="n">vec</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;n2v_</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">128</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="s2">&quot;hadamard&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted_l1&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted_l2&quot;</span><span class="p">):</span>
+   <span class="n">scored</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">embedding_lp</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">validation</span><span class="p">,</span> <span class="n">vec</span><span class="p">,</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">op</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">gsk</span><span class="o">.</span><span class="n">link_prediction_evaluation</span><span class="p">(</span><span class="n">scored</span><span class="p">)[</span><span class="s2">&quot;auc&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -857,7 +1086,9 @@ between two subtrees, needed by every move, are counted by listing the neighbors
 of the smaller one and comparing their positions with the range of the other: a move costs
 the degrees of the leaves of a small subtree, and an accepted move moves the leaves of at most
 two subtrees. Fitting is still much slower than the other scores, since it needs thousands of
-sweeps (see the Performance section of <a class="reference internal" href="#"><span class="doc">Link prediction</span></a>).</p>
+sweeps (see the Performance section of <a class="reference internal" href="#"><span class="doc">Link prediction</span></a>). The same dendrograms give
+hierarchical communities: <a class="reference internal" href="communities.html#graphoskop.hierarchical_random_graph_communities" title="graphoskop.hierarchical_random_graph_communities"><code class="xref py py-func docutils literal notranslate"><span class="pre">hierarchical_random_graph_communities()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -906,6 +1137,7 @@ With <code class="docutils literal notranslate"><span class="pre">weight</span><
 <a class="reference internal" href="network_statistics.html#graphoskop.degree" title="graphoskop.degree"><code class="xref py py-func docutils literal notranslate"><span class="pre">degree()</span></code></a>).</p>
 <p>Degrees are computed in <code class="docutils literal notranslate"><span class="pre">net</span></code>: to test the score, give the training network and the validation
 set of <a class="reference internal" href="#graphoskop.link_prediction_split" title="graphoskop.link_prediction_split"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_split()</span></code></a>. Degrees are computed on the device of the network.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -965,6 +1197,7 @@ out-degrees. Only the pairs are scored: <span class="math notranslate nohighligh
 distribution after <span class="math notranslate nohighlight">\(\lceil t / 2 \rceil\)</span> steps from <span class="math notranslate nohighlight">\(u\)</span> and the probabilities of
 reaching <span class="math notranslate nohighlight">\(v\)</span> in the remaining steps, two sparse vectors with about <span class="math notranslate nohighlight">\(k^{t / 2}\)</span>
 entries each (<span class="math notranslate nohighlight">\(k\)</span> the average degree), computed with SciPy on the CPU.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1013,6 +1246,7 @@ averages <code class="docutils literal notranslate"><span class="pre">walks</spa
 and stopping after <code class="docutils literal notranslate"><span class="pre">length</span></code> steps underestimates a score by less than
 <span class="math notranslate nohighlight">\(C^{length + 1}\)</span>. Results depend on <code class="docutils literal notranslate"><span class="pre">seed</span></code> only, not on the number of threads.</p>
 <p>Neighborhoods are sets, as in <a class="reference internal" href="#graphoskop.common_neighbors_lp" title="graphoskop.common_neighbors_lp"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_neighbors_lp()</span></code></a> (self loops and parallel edges ignored).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1074,6 +1308,7 @@ assortative or not.</p>
 <code class="docutils literal notranslate"><span class="pre">groups</span></code> groups (by default the number of nodes, at most 1,000): every chain keeps a
 <code class="docutils literal notranslate"><span class="pre">groups</span></code> by <code class="docutils literal notranslate"><span class="pre">groups</span></code> table of links between groups, and a move costs the degree of the node
 plus the number of non-empty groups. Compiled with Numba, on the CPU.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1130,6 +1365,7 @@ distinct nodes on one side of the pairs, a block at a time, on the device of the
 each costs a few tens of products with <span class="math notranslate nohighlight">\(A\)</span> (more as <span class="math notranslate nohighlight">\(\phi\)</span> approaches 1), so the
 time grows with the number of distinct nodes times the number of edges. Pairs with a node
 without neighbors score 0.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1180,6 +1416,7 @@ one.</p>
 validation set also has a column named as <code class="docutils literal notranslate"><span class="pre">sign</span></code>, with the sign of each positive (+1 or -1;
 with parallel edges, the sign of the sum of their signs; NaN if it is 0 or for the negatives),
 for <a class="reference internal" href="#graphoskop.link_prediction_sign_evaluation" title="graphoskop.link_prediction_sign_evaluation"><code class="xref py py-func docutils literal notranslate"><span class="pre">link_prediction_sign_evaluation()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1218,7 +1455,7 @@ for the positives, which come first, 0 for the negatives), and <code class="docu
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="laplacians.html" class="btn btn-neutral float-left" title="Laplacians" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="layouts.html" class="btn btn-neutral float-left" title="Layouts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="multilayer.html" class="btn btn-neutral float-right" title="Multilayer networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

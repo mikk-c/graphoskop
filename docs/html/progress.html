@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Progress bars &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Robustness" href="robustness.html" />
+    <link rel="prev" title="Node vector analysis" href="node_vector_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Progress bars</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.set_progress"><code class="docutils literal notranslate"><span class="pre">set_progress()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Progress bars</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/progress.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.progress">
+<span id="progress-bars"></span><h1>Progress bars<a class="headerlink" href="#module-graphoskop.progress" title="Link to this heading"></a></h1>
+<p>Progress bars of long computations, in the terminal (or as a widget in Jupyter, if ipywidgets is
+installed), with the time elapsed and the time left.</p>
+<p>A bar appears as soon as a computation starts (or, with a delay set by <code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code>, only
+once it has run that long, so that shorter computations print nothing), and disappears when it
+ends. The bar follows the units of work the function does anyway (epochs, runs, swaps,
+removals), so nothing is estimated in advance and nothing is computed only for the bar: the time
+left is the time elapsed per unit, times the units left, and it is accurate when the units take
+about the same time (units of different sizes are weighted by their expected cost); it starts
+rough and improves as the computation advances. Updating a bar costs about 0.2 microseconds,
+against milliseconds or more for each unit of work. On a GPU, bars read no value from the device,
+so they never make it wait.</p>
+<p>A function with a bar has a <code class="docutils literal notranslate"><span class="pre">progress</span></code> parameter: <code class="docutils literal notranslate"><span class="pre">None</span></code> (default) follows
+<code class="xref py py-func docutils literal notranslate"><span class="pre">set_progress()</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> turn its bar on or off. Inside a function with a bar
+(e.g. <a class="reference internal" href="generators.html#graphoskop.randomization_test" title="graphoskop.randomization_test"><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code></a> of <a class="reference internal" href="generators.html#graphoskop.edge_swap" title="graphoskop.edge_swap"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code></a>), the inner
+functions show none: the outer bar covers them (and if it is off, they are off too).</p>
+<p>Functions with a bar: <a class="reference internal" href="robustness.html#graphoskop.cascade_failures" title="graphoskop.cascade_failures"><code class="xref py py-func docutils literal notranslate"><span class="pre">cascade_failures()</span></code></a> (average path length), <a class="reference internal" href="gnn.html#graphoskop.diffpool" title="graphoskop.diffpool"><code class="xref py py-func docutils literal notranslate"><span class="pre">diffpool()</span></code></a>,
+<a class="reference internal" href="robustness.html#graphoskop.edge_removal" title="graphoskop.edge_removal"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_removal()</span></code></a> and <a class="reference internal" href="robustness.html#graphoskop.node_removal" title="graphoskop.node_removal"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_removal()</span></code></a> (average path length, or
+<code class="docutils literal notranslate"><span class="pre">recompute</span></code>), <a class="reference internal" href="generators.html#graphoskop.edge_swap" title="graphoskop.edge_swap"><code class="xref py py-func docutils literal notranslate"><span class="pre">edge_swap()</span></code></a>, <a class="reference internal" href="layouts.html#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.gae" title="graphoskop.gae"><code class="xref py py-func docutils literal notranslate"><span class="pre">gae()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.gat" title="graphoskop.gat"><code class="xref py py-func docutils literal notranslate"><span class="pre">gat()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.gatv2" title="graphoskop.gatv2"><code class="xref py py-func docutils literal notranslate"><span class="pre">gatv2()</span></code></a>,
+<a class="reference internal" href="gnn.html#graphoskop.gcn" title="graphoskop.gcn"><code class="xref py py-func docutils literal notranslate"><span class="pre">gcn()</span></code></a>, <a class="reference internal" href="generators.html#graphoskop.graphrnn" title="graphoskop.graphrnn"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphrnn()</span></code></a> and <a class="reference internal" href="generators.html#graphoskop.GraphRNNFit.simulate" title="graphoskop.GraphRNNFit.simulate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">simulate()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.graphsage" title="graphoskop.graphsage"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphsage()</span></code></a>,
+<a class="reference internal" href="generators.html#graphoskop.growing_manifold" title="graphoskop.growing_manifold"><code class="xref py py-func docutils literal notranslate"><span class="pre">growing_manifold()</span></code></a>, <a class="reference internal" href="higher_order.html#graphoskop.higher_order_dependency_network" title="graphoskop.higher_order_dependency_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">higher_order_dependency_network()</span></code></a>,
+<a class="reference internal" href="synchronization.html#graphoskop.kuramoto_model" title="graphoskop.kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">kuramoto_model()</span></code></a>, <a class="reference internal" href="higher_order.html#graphoskop.memory_network" title="graphoskop.memory_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">memory_network()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.metapath2vec" title="graphoskop.metapath2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">metapath2vec()</span></code></a>, <a class="reference internal" href="core_periphery.html#graphoskop.nestedness" title="graphoskop.nestedness"><code class="xref py py-func docutils literal notranslate"><span class="pre">nestedness()</span></code></a> (null
+model), <a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a>, <a class="reference internal" href="synchronization.html#graphoskop.node_link_kuramoto_model" title="graphoskop.node_link_kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">node_link_kuramoto_model()</span></code></a>, <a class="reference internal" href="generators.html#graphoskop.randomization_test" title="graphoskop.randomization_test"><code class="xref py py-func docutils literal notranslate"><span class="pre">randomization_test()</span></code></a>,
+<a class="reference internal" href="synchronization.html#graphoskop.simplicial_kuramoto_model" title="graphoskop.simplicial_kuramoto_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">simplicial_kuramoto_model()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.struc2vec" title="graphoskop.struc2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">struc2vec()</span></code></a>, <a class="reference internal" href="layouts.html#graphoskop.umap_layout" title="graphoskop.umap_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">umap_layout()</span></code></a>, <a class="reference internal" href="gnn.html#graphoskop.vgae" title="graphoskop.vgae"><code class="xref py py-func docutils literal notranslate"><span class="pre">vgae()</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gcn</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">epochs</span> <span class="o">=</span> <span class="mi">2000</span><span class="p">)</span>       <span class="c1"># a bar while it runs</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">gcn</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">progress</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>    <span class="c1"># no bar for this call</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>                         <span class="c1"># bars only after 5 seconds</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>                                   <span class="c1"># no bars at all</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.set_progress">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">set_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.set_progress" title="Link to this definition"></a></dt>
+<dd><p>Turns the progress bars of all functions on or off, and sets how long a computation runs
+before its bar appears.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>enabled</strong> – Whether to show progress bars.</p></li>
+<li><p><strong>delay</strong> – Seconds before a bar appears: 0 to show it at once, or e.g. 5 to show bars only
+for computations that last longer than that.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">gsk</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>              <span class="c1"># no bars (e.g. in batch jobs)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">set_progress</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">delay</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>    <span class="c1"># bars only for computations longer than 5 seconds</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<p>Every function was timed (best of 3, two CPU threads) before progress bars existed, with its bar
+off, with its bar shown from the start (the default, output to a file), and with
+<code class="docutils literal notranslate"><span class="pre">set_progress(True,</span> <span class="pre">delay</span> <span class="pre">=</span> <span class="pre">5)</span></code> (shown after 5 seconds). The differences are run-to-run noise (up
+to about 10%, as often faster as slower), and the results are identical in all four cases:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Before</p></th>
+<th class="head"><p>Bar off</p></th>
+<th class="head"><p>Bar shown</p></th>
+<th class="head"><p>Delay 5 s</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gcn</span></code>, 10,000 nodes, 200 epochs</p></td>
+<td><p>5.12 s</p></td>
+<td><p>5.03 s</p></td>
+<td><p>4.61 s</p></td>
+<td><p>4.58 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">graphsage</span></code>, same</p></td>
+<td><p>3.52 s</p></td>
+<td><p>3.70 s</p></td>
+<td><p>3.63 s</p></td>
+<td><p>3.94 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gat</span></code>, 100 epochs</p></td>
+<td><p>7.32 s</p></td>
+<td><p>7.01 s</p></td>
+<td><p>6.75 s</p></td>
+<td><p>7.69 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gatv2</span></code>, 100 epochs</p></td>
+<td><p>10.90 s</p></td>
+<td><p>10.84 s</p></td>
+<td><p>11.14 s</p></td>
+<td><p>11.11 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">node_removal</span></code>, adaptive</p></td>
+<td><p>8.96 s</p></td>
+<td><p>9.41 s</p></td>
+<td><p>9.16 s</p></td>
+<td><p>9.34 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">node_removal</span></code>, path lengths</p></td>
+<td><p>5.95 s</p></td>
+<td><p>6.32 s</p></td>
+<td><p>6.34 s</p></td>
+<td><p>6.19 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">edge_removal</span></code>, path lengths</p></td>
+<td><p>8.51 s</p></td>
+<td><p>8.37 s</p></td>
+<td><p>8.44 s</p></td>
+<td><p>8.66 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cascade_failures</span></code>, path lengths</p></td>
+<td><p>5.36 s</p></td>
+<td><p>5.42 s</p></td>
+<td><p>5.54 s</p></td>
+<td><p>5.39 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">randomization_test</span></code>, 100</p></td>
+<td><p>4.39 s</p></td>
+<td><p>4.30 s</p></td>
+<td><p>4.33 s</p></td>
+<td><p>4.77 s</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edge_swap</span></code>, 2M swaps</p></td>
+<td><p>0.85 s</p></td>
+<td><p>0.82 s</p></td>
+<td><p>0.85 s</p></td>
+<td><p>0.86 s</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">nestedness</span></code>, 40 nulls</p></td>
+<td><p>15.53 s</p></td>
+<td><p>15.18 s</p></td>
+<td><p>15.25 s</p></td>
+<td><p>14.84 s</p></td>
+</tr>
+</tbody>
+</table>
+<p>In a terminal, a shown bar redraws at most 10 times a second (once every 30 seconds when the
+output is not a terminal, e.g. a log file), which cost nothing measurable either (a 7 s
+<a class="reference internal" href="gnn.html#graphoskop.gcn" title="graphoskop.gcn"><code class="xref py py-func docutils literal notranslate"><span class="pre">gcn()</span></code></a> run redrawn 122 times took the same time as without a bar).</p>
+<p>The time left is an estimate from the work done so far: it starts rough and becomes accurate as
+the computation advances (e.g. an adaptive attack of 9 s first estimated 6 s at 2 s, then 8 s at
+3 s). Where units of work differ in size, they are weighted by their expected cost: in adaptive
+attacks each step counts the items still in the network; for path lengths, each point counts the
+sources of the searches times the items still in the network.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="node_vector_analysis.html" class="btn btn-neutral float-left" title="Node vector analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="robustness.html" class="btn btn-neutral float-right" title="Robustness" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

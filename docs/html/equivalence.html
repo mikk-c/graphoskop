@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Equivalence</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.automorphic_equivalence"><code class="docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a></li>
@@ -67,16 +68,24 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -143,6 +152,7 @@ layer of every copy; weights and edge multiplicities are ignored. The whole netw
 (automorphisms can swap isomorphic components). The profiles take two breadth first searches;
 the search for an automorphism is usually immediate, but can take exponential time on rare,
 very symmetric networks. It runs on the CPU. A node is equivalent to itself (score 1).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -189,6 +199,7 @@ profiles <span class="math notranslate nohighlight">\(1 - 1 / N\)</span>.</p>
 <p>With a component index, its nodes are compared (the nodes of other components count as
 unreachable in the profiles, as in <a class="reference internal" href="#graphoskop.automorphic_equivalence" title="graphoskop.automorphic_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">automorphic_equivalence()</span></code></a>); <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>
 compares all nodes of the network, so that isomorphic components are found equivalent.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -249,6 +260,7 @@ multiplicities; a self loop adds its weight once to the diagonal of <span class=
 is computed on its own (pairs in different components have no paths); nodes without edges get
 0. The inverse is a dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix, computed by Cholesky factorization
 (<span class="math notranslate nohighlight">\(I - \frac{\alpha}{\lambda_1} A\)</span> is positive definite) on the device of the network.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -311,6 +323,7 @@ equivalent (the families differ in size), and have no paths between them.</p>
 <p>Every iteration compares every neighbor relation <span class="math notranslate nohighlight">\((i, k)\)</span> with every relation
 <span class="math notranslate nohighlight">\((j, m)\)</span>, <span class="math notranslate nohighlight">\((2m)^2\)</span> comparisons for <span class="math notranslate nohighlight">\(m\)</span> edges, in blocks of about
 <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> numbers on the device of the network.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -352,6 +365,7 @@ the device of the network; then
 <span class="math notranslate nohighlight">\(J_{uv} = M_{uv} / (s_u + s_v - M_{uv})\)</span>, with <span class="math notranslate nohighlight">\(s\)</span> the number (or total weight) of
 neighbors. Pairs of nodes in different components score 0, so a component is computed on its
 own; <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> gives the matrix of the whole network.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -392,6 +406,7 @@ paths between them. See <a class="reference internal" href="#graphoskop.pairwise
 it differs from <a class="reference internal" href="#graphoskop.regular_equivalence" title="graphoskop.regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">regular_equivalence()</span></code></a>; this computes a single pair by iterating
 <span class="math notranslate nohighlight">\(x = \frac{\alpha}{\lambda_1} A x + e_v\)</span> on the device of the network (no <code class="docutils literal notranslate"><span class="pre">n</span></code> by
 <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix), until the vector changes by less than <code class="docutils literal notranslate"><span class="pre">tol</span></code> per node.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -433,6 +448,7 @@ regularly equivalent when they are joined to equivalent nodes, not necessarily t
 See <a class="reference internal" href="#graphoskop.pairwise_regular_equivalence" title="graphoskop.pairwise_regular_equivalence"><code class="xref py py-func docutils literal notranslate"><span class="pre">pairwise_regular_equivalence()</span></code></a> for the algorithm. The scores of a pair depend on
 those of the pairs of their neighbors, and so on, so all pairs of nodes of the components of
 <code class="docutils literal notranslate"><span class="pre">u</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are computed, and the pair is picked.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -485,6 +501,7 @@ are interchangeable). Two nodes without neighbors score 0 (as NetworkX’s
 networks neighbors are those of the supra-graph: copies in different layers are different
 neighbors, and the copies of a node in other layers, joined by couplings, are neighbors too. An
 entity stands for all its copies, with the union of their neighbors.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

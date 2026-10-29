@@ -53,13 +53,20 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Network error correction</a><ul>
@@ -69,9 +76,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -157,7 +166,9 @@ move, takes 11 milliseconds for 960 nodes and 5,800 edges, so reconstructing it 
 <dt class="sig sig-object py" id="graphoskop.fit_nested_block_model">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">fit_nested_block_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'community'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sweeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.fit_nested_block_model" title="Link to this definition"></a></dt>
 <dd><p>Fit the nested degree-corrected stochastic blockmodel (Peixoto, 2014, 2017): the hierarchy of
-groups that minimizes the description length of the network.</p>
+groups that minimizes the description length of the network. The same fit, and those of the
+other blockmodels, are also available for community discovery as
+<a class="reference internal" href="communities.html#graphoskop.block_model_communities" title="graphoskop.block_model_communities"><code class="xref py py-func docutils literal notranslate"><span class="pre">block_model_communities()</span></code></a>.</p>
 <p>The model generates a network in levels. At the bottom, nodes are in groups, and edges are
 placed between groups according to the numbers of edges between every pair of groups, at
 random among their nodes in proportion to the node degrees (degree correction). These numbers
@@ -192,6 +203,7 @@ seeds can give slightly different results.</p>
 <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">+</span> <span class="pre">&quot;_2&quot;</span></code>, … for the levels above (the group of every node).
 Parallel edges count once and self loops are ignored. The bottom level has at most
 <code class="docutils literal notranslate"><span class="pre">max_blocks</span></code> groups (the levels above are dense tables of that size).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -331,6 +343,7 @@ probabilities of the edges.</p>
 <p><code class="docutils literal notranslate"><span class="pre">chains</span></code> independent chains run in parallel threads, each discarding <code class="docutils literal notranslate"><span class="pre">burnin</span></code> sweeps and
 then taking <code class="docutils literal notranslate"><span class="pre">samples</span></code> samples every <code class="docutils literal notranslate"><span class="pre">interval</span></code> sweeps. The chains run in a compiled kernel
 (Numba) on the CPU.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -408,6 +421,7 @@ structure of the rest of the network makes likely. Models, sampling, outputs and
 are as in <a class="reference internal" href="#graphoskop.measured_network_correction" title="graphoskop.measured_network_correction"><code class="xref py py-func docutils literal notranslate"><span class="pre">measured_network_correction()</span></code></a>; the chain starts from the pairs with
 <span class="math notranslate nohighlight">\(Q_{ij} &gt; 1/2\)</span>. Pairs with probability 0 never become edges, pairs with probability 1
 are always edges.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

@@ -1,0 +1,292 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://load_dialog.gd" id="1_load"]
+
+[node name="LoadDialog" type="ConfirmationDialog"]
+title = "Load network"
+size = Vector2i(900, 200)
+ok_button_text = "Import"
+dialog_hide_on_ok = false
+script = ExtResource("1_load")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 972.0
+offset_bottom = 731.0
+theme_override_constants/separation = 8
+
+[node name="Files" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 4
+
+[node name="EdgeLabel" type="Label" parent="Box/Files"]
+layout_mode = 2
+text = "Edge table"
+
+[node name="EdgePath" type="LineEdit" parent="Box/Files"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Required: one row per edge"
+
+[node name="EdgeBrowse" type="Button" parent="Box/Files"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Browse…"
+
+[node name="EdgeSpacer" type="Control" parent="Box/Files"]
+layout_mode = 2
+
+[node name="NodeLabel" type="Label" parent="Box/Files"]
+layout_mode = 2
+text = "Node table"
+
+[node name="NodePath" type="LineEdit" parent="Box/Files"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Optional: node attributes"
+
+[node name="NodeBrowse" type="Button" parent="Box/Files"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Browse…"
+
+[node name="NodeClear" type="Button" parent="Box/Files"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Clear"
+
+[node name="Format" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="SepLabel" type="Label" parent="Box/Format"]
+layout_mode = 2
+text = "Separator"
+
+[node name="Sep" type="OptionButton" parent="Box/Format"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 5
+popup/item_0/text = "Tab"
+popup/item_0/id = 0
+popup/item_1/text = "Comma"
+popup/item_1/id = 1
+popup/item_2/text = "Semicolon"
+popup/item_2/id = 2
+popup/item_3/text = "Pipe"
+popup/item_3/id = 3
+popup/item_4/text = "Whitespace"
+popup/item_4/id = 4
+
+[node name="Header" type="CheckBox" parent="Box/Format"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "First row is a header"
+
+[node name="EdgeTitle" type="Label" parent="Box"]
+layout_mode = 2
+text = "Edge table: first 10 rows"
+
+[node name="EdgePreview" type="Tree" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(880, 180)
+layout_mode = 2
+size_flags_vertical = 3
+column_titles_visible = true
+hide_root = true
+select_mode = 1
+
+[node name="EdgeColumns" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="SourceLabel" type="Label" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Source"
+
+[node name="Source" type="OptionButton" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TargetLabel" type="Label" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Target"
+
+[node name="Target" type="OptionButton" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LayerLabel" type="Label" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Layer"
+
+[node name="Layer" type="OptionButton" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DirectionLabel" type="Label" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Direction"
+
+[node name="Direction" type="OptionButton" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SignLabel" type="Label" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sign"
+
+[node name="Sign" type="OptionButton" parent="Box/EdgeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NodeTitle" type="Label" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Node table: first 10 rows"
+
+[node name="NodePreview" type="Tree" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(880, 180)
+layout_mode = 2
+size_flags_vertical = 3
+column_titles_visible = true
+hide_root = true
+select_mode = 1
+
+[node name="NodeColumns" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Long" type="CheckBox" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Long format"
+
+[node name="NodeIdLabel" type="Label" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Node id"
+
+[node name="NodeId" type="OptionButton" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NodeLayerLabel" type="Label" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Layer"
+
+[node name="NodeLayer" type="OptionButton" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Attribute name"
+
+[node name="AttrName" type="OptionButton" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ValueLabel" type="Label" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Attribute value"
+
+[node name="AttrValue" type="OptionButton" parent="Box/NodeColumns"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Kind" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="KindLabel" type="Label" parent="Box/Kind"]
+layout_mode = 2
+text = "Network"
+
+[node name="Directed" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Directed"
+
+[node name="Bipartite" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bipartite"
+
+[node name="Signed" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Signed"
+
+[node name="Multilayer" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Multilayer"
+
+[node name="Hypergraph" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Hypergraph"
+
+[node name="Simplicial" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Simplicial complex"
+
+[node name="KindSpacer" type="Control" parent="Box/Kind"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DeviceLabel" type="Label" parent="Box/Kind"]
+layout_mode = 2
+text = "Device"
+
+[node name="Device" type="OptionButton" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "CPU"
+popup/item_0/id = 0
+popup/item_1/text = "GPU"
+popup/item_1/id = 1
+
+[node name="Note" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(880, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+autowrap_mode = 3
+
+[node name="Error" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
+autowrap_mode = 3
+
+[node name="EdgeFile" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Edge table"
+file_mode = 0
+access = 2
+use_native_dialog = true
+
+[node name="NodeFile" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Node table"
+file_mode = 0
+access = 2
+use_native_dialog = true

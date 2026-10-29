@@ -5,6 +5,8 @@ Laplacians
 
 .. autofunction:: graphoskop.effective_resistance
 
+.. autofunction:: graphoskop.fundamental_matrix
+
 .. autofunction:: graphoskop.hitting_time
 
 .. autofunction:: graphoskop.laplacian

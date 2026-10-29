@@ -1,0 +1,141 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://visual_panel.gd" id="1_visual"]
+[ext_resource type="Script" path="res://swatch_button.gd" id="2_swatch"]
+[ext_resource type="PackedScene" path="res://color_dialog.tscn" id="3_color"]
+[ext_resource type="PackedScene" path="res://size_dialog.tscn" id="4_size"]
+
+[node name="VisualPanel" type="TabContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+current_tab = 0
+script = ExtResource("1_visual")
+
+[node name="Nodes" type="GridContainer" parent="."]
+theme_override_constants/h_separation = 12
+layout_mode = 2
+columns = 3
+metadata/_tab_index = 0
+
+[node name="ColorLabel" type="Label" parent="Nodes"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "Color"
+
+[node name="NodeColor" type="HBoxContainer" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditNodeColor" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="SizeLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Size"
+
+[node name="NodeSize" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeSize" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="OpacityLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Opacity"
+
+[node name="NodeOpacity" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeOpacity" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="Edges" type="GridContainer" parent="."]
+theme_override_constants/h_separation = 12
+visible = false
+layout_mode = 2
+columns = 3
+metadata/_tab_index = 1
+
+[node name="ColorLabel" type="Label" parent="Edges"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "Color"
+
+[node name="EdgeColor" type="HBoxContainer" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditEdgeColor" type="Button" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="WidthLabel" type="Label" parent="Edges"]
+layout_mode = 2
+text = "Thickness"
+
+[node name="EdgeWidth" type="Label" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditEdgeWidth" type="Button" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="OpacityLabel" type="Label" parent="Edges"]
+layout_mode = 2
+text = "Opacity"
+
+[node name="EdgeOpacity" type="Label" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditEdgeOpacity" type="Button" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="Network" type="GridContainer" parent="."]
+theme_override_constants/h_separation = 12
+visible = false
+layout_mode = 2
+columns = 2
+metadata/_tab_index = 2
+
+[node name="BackgroundLabel" type="Label" parent="Network"]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+text = "Background"
+
+[node name="Background" type="Button" parent="Network"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("2_swatch")
+
+[node name="ColorDialog" parent="." instance=ExtResource("3_color")]
+unique_name_in_owner = true
+visible = false
+
+[node name="SizeDialog" parent="." instance=ExtResource("4_size")]
+unique_name_in_owner = true
+visible = false

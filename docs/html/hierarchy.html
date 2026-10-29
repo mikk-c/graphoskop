@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Laplacians" href="laplacians.html" />
-    <link rel="prev" title="Generators" href="generators.html" /> 
+    <link rel="next" title="Higher-order networks" href="higher_order.html" />
+    <link rel="prev" title="Graphical interface" href="gui.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,23 +53,35 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Hierarchy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.agony_hierarchy"><code class="docutils literal notranslate"><span class="pre">agony_hierarchy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.arborescence_hierarchy"><code class="docutils literal notranslate"><span class="pre">arborescence_hierarchy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.flow_hierarchy"><code class="docutils literal notranslate"><span class="pre">flow_hierarchy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.global_reach_centrality"><code class="docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -101,7 +113,159 @@
 <p>Hierarchy in directed networks: how far the nodes are organized in levels, with some nodes
 reaching (or controlling) many others and being reached by few.</p>
 <p><code class="xref py py-func docutils literal notranslate"><span class="pre">global_reach_centrality()</span></code> measures it from the local reaching centrality of the nodes (see
-<a class="reference internal" href="centrality.html#module-graphoskop.centrality" title="graphoskop.centrality"><code class="xref py py-mod docutils literal notranslate"><span class="pre">centrality</span></code></a>).</p>
+<a class="reference internal" href="centrality.html#module-graphoskop.centrality" title="graphoskop.centrality"><code class="xref py py-mod docutils literal notranslate"><span class="pre">centrality</span></code></a>); <code class="xref py py-func docutils literal notranslate"><span class="pre">flow_hierarchy()</span></code> from the edges (or nodes) in no directed
+cycle, through which flows only go one way; <code class="xref py py-func docutils literal notranslate"><span class="pre">arborescence_hierarchy()</span></code> from the edges that
+survive the reduction of the network to an arborescence; <code class="xref py py-func docutils literal notranslate"><span class="pre">agony_hierarchy()</span></code> from the agony of
+the best division of the nodes into levels.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">global_reach_centrality</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">flow_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                    <span class="c1"># fraction of edges in no cycle</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">flow_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="s2">&quot;nodes&quot;</span><span class="p">)</span>      <span class="c1"># fraction of nodes in no cycle</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">arborescence_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>            <span class="c1"># fraction of edges left in the arborescence</span>
+<span class="n">score</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">arborescence_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">arborescence</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">h</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">agony_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># 1 - agony / number of edges, levels</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.agony_hierarchy">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">agony_hierarchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ranks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.agony_hierarchy" title="Link to this definition"></a></dt>
+<dd><p>Agony (Gupte et al., 2011; Tatti, 2015), a measure of hierarchy: the levels of the nodes, 0 at
+the top, are chosen so that edges point from higher to lower levels as much as possible. An
+edge from <span class="math notranslate nohighlight">\(u\)</span> to <span class="math notranslate nohighlight">\(v\)</span> costs nothing if <span class="math notranslate nohighlight">\(v\)</span> is at least one level below
+<span class="math notranslate nohighlight">\(u\)</span>, and otherwise its agony <span class="math notranslate nohighlight">\(r(u) - r(v) + 1\)</span> (times its weight), so the agony of
+the network is</p>
+<div class="math notranslate nohighlight">
+\[A(G) = \min_r \sum_{(u, v) \in E} w_{uv} \max\left(0, r(u) - r(v) + 1\right),\]</div>
+<p>and its hierarchy <span class="math notranslate nohighlight">\(h = 1 - A(G) / W\)</span>, with <span class="math notranslate nohighlight">\(W\)</span> the total weight of the edges (their
+number without <code class="docutils literal notranslate"><span class="pre">weight</span></code>): 1 for a directed acyclic graph, 0 when every edge is in a directed
+cycle that cannot be ordered (e.g. a directed cycle, whose agony is its length). Self loops
+always cost their weight; parallel edges add their weights.</p>
+<p>The minimum is a linear program whose dual is a maximum circulation: <span class="math notranslate nohighlight">\(A(G)\)</span> is the
+largest total flow of a circulation in which each edge carries at most its weight (for unit
+weights, the largest Eulerian subgraph). It is solved exactly by HiGHS
+(<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.linprog()</span></code>: interior point with crossover, or dual simplex if needed; on the
+CPU), one component at a time, and the levels are the dual values of the flow conservation
+constraints, integers (the network matrix is totally unimodular), shifted so that the top level
+is 0. The levels found are one optimal ranking among possibly many. The time grows faster than
+the number of edges: about 4 s for 100,000 edges and 20 s for 300,000 on two CPU cores.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components
+(agonies and weights summed).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>ranks</strong> – Whether to also return the levels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The hierarchy <span class="math notranslate nohighlight">\(h\)</span>, a float (NaN without edges); with <code class="docutils literal notranslate"><span class="pre">ranks</span></code>, the pair
+<code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">levels)</span></code>, the levels an int64 vector over the nodes of the component, on its device
+(a list of them, one per component, with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>). The agony is
+<span class="math notranslate nohighlight">\((1 - h) W\)</span>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the network is undirected or weights are negative.</p></li>
+<li><p><strong>RuntimeError</strong> – If the linear program solver fails.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">agony_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">h</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">agony_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">ranks</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="n">levels</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.arborescence_hierarchy">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">arborescence_hierarchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arborescence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.arborescence_hierarchy" title="Link to this definition"></a></dt>
+<dd><p>Arborescence hierarchicalness (Coscia, 2018): the fraction of the edges of a directed network
+that survive its reduction to an arborescence (a forest of trees with edges pointing away from
+their roots), <span class="math notranslate nohighlight">\(A_G = |E^*| / |E|\)</span>. It is 1 for a network that already is an
+arborescence, and close to 0 for a network that is one big cycle.</p>
+<p>The reduction has two steps. First, the condensation: every strongly connected component
+collapses into one node, its internal edges are lost, and the edges between two components
+become one (see <a class="reference internal" href="transformations.html#graphoskop.network_condensation" title="graphoskop.network_condensation"><code class="xref py py-func docutils literal notranslate"><span class="pre">network_condensation()</span></code></a>). Then, every node with several parents
+keeps only the edge from the parent with the lowest closeness, <span class="math notranslate nohighlight">\(1 / \sum_j d(i, j)\)</span> over
+the nodes <span class="math notranslate nohighlight">\(j\)</span> it reaches (0 for nodes reaching none): the parent closest to the roots. As
+every node with a parent keeps exactly one edge, <span class="math notranslate nohighlight">\(|E^*|\)</span> is the number of nodes of the
+condensation with at least one parent, so the score needs only the strongly connected
+components (found on the CPU, <span class="math notranslate nohighlight">\(O(n + m)\)</span>); the closeness, a search from every node of the
+condensation (as in <a class="reference internal" href="centrality.html#graphoskop.closeness_centrality" title="graphoskop.closeness_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">closeness_centrality()</span></code></a>), is computed only to return the
+arborescence, and is the costly part. Edges point from higher to lower levels: to read them the other way, reverse
+them with <a class="reference internal" href="transformations.html#graphoskop.flip_edge_direction" title="graphoskop.flip_edge_direction"><code class="xref py py-func docutils literal notranslate"><span class="pre">flip_edge_direction()</span></code></a>. <span class="math notranslate nohighlight">\(|E|\)</span> counts the distinct edges of
+the network (parallel edges once, self loops included).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the whole network.</p></li>
+<li><p><strong>arborescence</strong> – Whether to also return the arborescence.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The score, a float between 0 and 1 (NaN without edges); with <code class="docutils literal notranslate"><span class="pre">arborescence</span></code>, the pair
+<code class="docutils literal notranslate"><span class="pre">(score,</span> <span class="pre">forest)</span></code>, the forest a directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> whose node <code class="docutils literal notranslate"><span class="pre">i</span></code>
+collapses the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th strongly connected component of the network considered (largest
+first), with the qualitative node attribute <code class="docutils literal notranslate"><span class="pre">members</span></code> holding its nodes.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected or multilayer.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">arborescence_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                        <span class="c1"># largest component</span>
+<span class="n">score</span><span class="p">,</span> <span class="n">forest</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">arborescence_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">arborescence</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">forest</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;members&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>             <span class="c1"># nodes of each condensed node</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.flow_hierarchy">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">flow_hierarchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'edges'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.flow_hierarchy" title="Link to this definition"></a></dt>
+<dd><p>Flow hierarchy (Luo and Magee, 2011), a measure of hierarchy: the fraction of the edges that
+are in no directed cycle, i.e. that join two different strongly connected components (a self
+loop is a cycle). It is 1 for a directed acyclic graph, where flows only go down the levels,
+and 0 when every edge is in a cycle (e.g. a strongly connected network).</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the fraction of the total weight; with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;nodes&quot;</span></code>, the fraction of the
+nodes in no cycle (alone in their strongly connected component, without self loop) instead of
+the edges. Strongly connected components are found on the CPU
+(<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.sparse.csgraph.connected_components()</span></code>); in multilayer networks on the
+supra-graph. With <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> all components count.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A directed <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights
+(ignored with <code class="docutils literal notranslate"><span class="pre">by</span> <span class="pre">=</span> <span class="pre">&quot;nodes&quot;</span></code>).</p></li>
+<li><p><strong>by</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;edges&quot;</span></code> (as in the paper) or <code class="docutils literal notranslate"><span class="pre">&quot;nodes&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The flow hierarchy, a float between 0 and 1 (NaN without edges, or without nodes).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is undirected, <code class="docutils literal notranslate"><span class="pre">by</span></code> is not valid, or weights are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gsk</span><span class="o">.</span><span class="n">flow_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                            <span class="c1"># fraction of edges in no cycle</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">flow_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">component</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">flow_hierarchy</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">by</span> <span class="o">=</span> <span class="s2">&quot;nodes&quot;</span><span class="p">)</span>              <span class="c1"># fraction of nodes in no cycle</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.global_reach_centrality">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">global_reach_centrality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.global_reach_centrality" title="Link to this definition"></a></dt>
@@ -111,6 +275,7 @@ the most reaching node exceeds the others,
 centrality of <a class="reference internal" href="centrality.html#graphoskop.reach_centrality" title="graphoskop.reach_centrality"><code class="xref py py-func docutils literal notranslate"><span class="pre">reach_centrality()</span></code></a> and <span class="math notranslate nohighlight">\(C_R^{max}\)</span> its largest value. It
 is 1 for a star with edges out of its center and 0 when every node reaches all the others (e.g.
 a directed cycle). With <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code> the sum and the maximum run over all components.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -142,8 +307,8 @@ does not match.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="generators.html" class="btn btn-neutral float-left" title="Generators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="laplacians.html" class="btn btn-neutral float-right" title="Laplacians" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="gui.html" class="btn btn-neutral float-left" title="Graphical interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="higher_order.html" class="btn btn-neutral float-right" title="Higher-order networks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

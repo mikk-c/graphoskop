@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Link prediction" href="link_prediction.html" />
-    <link rel="prev" title="Hierarchy" href="hierarchy.html" /> 
+    <link rel="next" title="Layouts" href="layouts.html" />
+    <link rel="prev" title="Isomorphism" href="isomorphism.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,14 +53,21 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Laplacians</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.effective_resistance"><code class="docutils literal notranslate"><span class="pre">effective_resistance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.fundamental_matrix"><code class="docutils literal notranslate"><span class="pre">fundamental_matrix()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.hitting_time"><code class="docutils literal notranslate"><span class="pre">hitting_time()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.laplacian"><code class="docutils literal notranslate"><span class="pre">laplacian()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.laplacian_pinv"><code class="docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a></li>
@@ -68,13 +75,16 @@
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.stationary_distribution"><code class="docutils literal notranslate"><span class="pre">stationary_distribution()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -103,7 +113,8 @@
              
   <section id="module-graphoskop.utils">
 <span id="laplacians"></span><h1>Laplacians<a class="headerlink" href="#module-graphoskop.utils" title="Link to this heading"></a></h1>
-<p>Laplacians of network components, their pseudoinverses, and Laplacian solvers.</p>
+<p>Laplacians of network components, their pseudoinverses, and Laplacian solvers; random walks
+(stationary distribution, fundamental matrix).</p>
 <p>All functions take a <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> and a component index (default 0,
 the largest component; <code class="docutils literal notranslate"><span class="pre">None</span></code> applies the function to every component and returns a list).</p>
 <p>For undirected networks the Laplacian is <span class="math notranslate nohighlight">\(D - A\)</span>. For directed networks <code class="docutils literal notranslate"><span class="pre">kind</span></code> selects:</p>
@@ -130,6 +141,20 @@ a component is connected through them; infinitely strong couplings give the Lapl
 <a class="reference internal" href="#graphoskop.laplacian_solver" title="graphoskop.laplacian_solver"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a>. The random walks of <code class="xref py py-func docutils literal notranslate"><span class="pre">stationary_distribution()</span></code> and of
 the Chung Laplacian move along couplings like along any edge, with probability proportional to
 their weight.</p>
+<p>Hypergraphs (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>) use the random walk of Zhou, Huang and Schölkopf (2006):
+from a node, a hyperedge containing it with probability proportional to its weight <span class="math notranslate nohighlight">\(w(e)\)</span>
+(<code class="docutils literal notranslate"><span class="pre">weight</span></code> names a hyperedge attribute; 1 without it), then a node of that hyperedge uniformly,
+itself included. Every function here works on the network of that walk
+(<a class="reference internal" href="higher_order.html#graphoskop.hypergraph_walk_network" title="graphoskop.hypergraph_walk_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_walk_network()</span></code></a>), with weights
+<span class="math notranslate nohighlight">\(A_{uv} = \sum_{e \ni u, v} w(e) / |e|\)</span>: the Laplacian <span class="math notranslate nohighlight">\(D - A\)</span> is the hypergraph
+Laplacian of Zhou et al., effective resistances are those of the incidence graph between nodes,
+and the stationary distribution (without teleportation) is proportional to
+<span class="math notranslate nohighlight">\(\sum_{e \ni u} w(e)\)</span>. Building that network takes memory and time growing with the
+squares of the hyperedge sizes. Other walk models (Carletti et al., 2020; edge-dependent vertex
+weights, Chitra and Raphael, 2019) are networks of <a class="reference internal" href="higher_order.html#graphoskop.hypergraph_walk_network" title="graphoskop.hypergraph_walk_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">hypergraph_walk_network()</span></code></a>
+to pass to these functions. Directed hypergraphs are not supported yet. Simplicial complexes use
+their 1-skeleton, unweighted: its Laplacian is the Hodge Laplacian <span class="math notranslate nohighlight">\(L_0 = B_1 B_1^T\)</span> (see
+<a class="reference internal" href="higher_order.html#graphoskop.hodge_laplacian" title="graphoskop.hodge_laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">hodge_laplacian()</span></code></a> for the Laplacians of edges and higher simplices).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.effective_resistance">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">effective_resistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.effective_resistance" title="Link to this definition"></a></dt>
@@ -141,6 +166,7 @@ with <span class="math notranslate nohighlight">\(L^+\)</span> the pseudoinverse
 <a class="reference internal" href="#graphoskop.laplacian_pinv" title="graphoskop.laplacian_pinv"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_pinv()</span></code></a>, left unchanged), or computed if <code class="docutils literal notranslate"><span class="pre">None</span></code>. A
 computed real symmetric <span class="math notranslate nohighlight">\(L^+\)</span> is turned into <span class="math notranslate nohighlight">\(R\)</span> in place, so no further <code class="docutils literal notranslate"><span class="pre">n</span></code> by
 <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix is allocated.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -167,6 +193,53 @@ of them if <code class="docutils literal notranslate"><span class="pre">componen
 <span class="n">c</span><span class="p">,</span> <span class="n">i</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span>
 <span class="n">c</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">node_map</span><span class="p">[</span><span class="s2">&quot;bob&quot;</span><span class="p">]</span>
 <span class="n">r</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>                                     <span class="c1"># if both are in component 0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.fundamental_matrix">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">fundamental_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.fundamental_matrix" title="Link to this definition"></a></dt>
+<dd><p>Fundamental matrix of the random walk on network components (Kemeny and Snell, 1960):</p>
+<div class="math notranslate nohighlight">
+\[F = (I - W + W^\infty)^{-1} = \sum_{k \geq 0} (W - W^\infty)^k,\]</div>
+<p>with <span class="math notranslate nohighlight">\(W\)</span> the column stochastic transition matrix (<span class="math notranslate nohighlight">\(W_{ji}\)</span> the probability of a step
+from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, so that <span class="math notranslate nohighlight">\(W^k a\)</span> is where the mass <span class="math notranslate nohighlight">\(a\)</span> is after
+<span class="math notranslate nohighlight">\(k\)</span> steps) and <span class="math notranslate nohighlight">\(W^\infty = \pi 1^T\)</span> its limit, every column being the stationary
+distribution <span class="math notranslate nohighlight">\(\pi\)</span>. For a vector <span class="math notranslate nohighlight">\(\delta\)</span> summing to zero,
+<span class="math notranslate nohighlight">\(F \delta = \sum_k W^k \delta\)</span>. Used by <a class="reference internal" href="node_vector_analysis.html#graphoskop.annihilation_distance" title="graphoskop.annihilation_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">annihilation_distance()</span></code></a>.</p>
+<p>At each step the walker follows an out edge with probability proportional to its weight (self
+loops make it stay), or, with probability <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, jumps to a uniformly random node; dangling
+nodes always jump. The walk must have a unique stationary distribution: always on undirected
+components and with <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>; on directed components without teleportation, there must be
+a single group of nodes that the walk cannot leave (nodes outside it are left forever, and get
+no stationary mass). On periodic walks (e.g. bipartite networks without teleportation) <span class="math notranslate nohighlight">\(F\)</span>
+exists, and the series converges in the Cesaro sense (averages of its partial sums).</p>
+<p>Dense: <span class="math notranslate nohighlight">\(O(n^3)\)</span> time and a few <span class="math notranslate nohighlight">\(n^2\)</span> matrices, on the device of the component.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Float64 <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> tensor, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the walk has no unique stationary distribution, or some weights are
+negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">fundamental_matrix</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">annihilation_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;y2000&quot;</span><span class="p">,</span> <span class="s2">&quot;y2010&quot;</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">F</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -199,6 +272,7 @@ times are infinite.</p></li>
 <p>Both are dense <span class="math notranslate nohighlight">\(O(n^3)\)</span> computations in float64 on the device of the component, with a few
 <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrices. In multilayer networks the walk moves along couplings like along any
 edge.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -237,6 +311,7 @@ node index, or a list of them if <code class="docutils literal notranslate"><spa
 <dt class="sig sig-object py" id="graphoskop.laplacian">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">laplacian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.laplacian" title="Link to this definition"></a></dt>
 <dd><p>Laplacian of network components (see the module description for the available kinds).</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -276,6 +351,7 @@ pseudoinverse is computed exactly and in place with a Cholesky factorization: th
 <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.linalg.pinv()</span></code> (singular value decomposition, several <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrices, small
 singular values below its default threshold are treated as zero). For components too large for
 a dense <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix, use <a class="reference internal" href="#graphoskop.laplacian_solver" title="graphoskop.laplacian_solver"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -323,6 +399,7 @@ Both give <span class="math notranslate nohighlight">\(L^+ b\)</span>. Computati
 <li><p>a numeric node attribute, by position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or by name (the result is
 a <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>). Missing values must be filled beforehand, as they propagate as NaN.</p></li>
 </ul>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -363,6 +440,7 @@ with probability <code class="docutils literal notranslate"><span class="pre">al
 always jump. With <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> this is the plain random walk, whose stationary distribution is
 unique only on strongly connected aperiodic components. On undirected networks with
 <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0</span></code> it is proportional to the (weighted) degree.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -395,8 +473,8 @@ of them if <code class="docutils literal notranslate"><span class="pre">componen
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="hierarchy.html" class="btn btn-neutral float-left" title="Hierarchy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="link_prediction.html" class="btn btn-neutral float-right" title="Link prediction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="isomorphism.html" class="btn btn-neutral float-left" title="Isomorphism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="layouts.html" class="btn btn-neutral float-right" title="Layouts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

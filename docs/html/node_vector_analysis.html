@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Robustness" href="robustness.html" />
+    <link rel="next" title="Progress bars" href="progress.html" />
     <link rel="prev" title="Network error correction" href="error_correction.html" /> 
 </head>
 
@@ -53,18 +53,30 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Node vector analysis</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.annihilation_distance"><code class="docutils literal notranslate"><span class="pre">annihilation_distance()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.earth_movers_distance"><code class="docutils literal notranslate"><span class="pre">earth_movers_distance()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.generalized_euclidean"><code class="docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.graph_fourier_basis"><code class="docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.graph_fourier_transform"><code class="docutils literal notranslate"><span class="pre">graph_fourier_transform()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.inverse_graph_fourier_transform"><code class="docutils literal notranslate"><span class="pre">inverse_graph_fourier_transform()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_correlation"><code class="docutils literal notranslate"><span class="pre">network_correlation()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_entropy"><code class="docutils literal notranslate"><span class="pre">network_entropy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.network_variance"><code class="docutils literal notranslate"><span class="pre">network_variance()</span></code></a></li>
@@ -72,9 +84,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.pairwise_network_correlation"><code class="docutils literal notranslate"><span class="pre">pairwise_network_correlation()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -103,13 +117,164 @@
              
   <section id="module-graphoskop.node_vector_analysis">
 <span id="node-vector-analysis"></span><h1>Node vector analysis<a class="headerlink" href="#module-graphoskop.node_vector_analysis" title="Link to this heading"></a></h1>
-<p>Analysis of vectors defined on the nodes of a network: generalized Euclidean distance, network
-correlation, variance and entropy.</p>
+<p>Analysis of vectors defined on the nodes of a network (graph signals): generalized Euclidean
+distance, annihilation distance, earth mover’s distance, network correlation, variance and
+entropy, and the graph Fourier transform.</p>
 <p>In multilayer networks, vectors are defined on the copies <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code> of a component, and
 distances use the supra-Laplacian (see <a class="reference internal" href="laplacians.html"><span class="doc">Laplacians</span></a>): this is the multilayer generalized
 Euclidean distance (Coscia, 2022). An attribute given for a whole entity has its value on every
 copy; for the probability distributions of <code class="xref py py-func docutils literal notranslate"><span class="pre">network_variance()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">network_entropy()</span></code>,
 this gives more mass to the entities present in more layers.</p>
+<p>In hypergraphs and simplicial complexes, vectors are defined on the nodes, and all functions use
+the network of the random walk of Zhou et al. on a hypergraph (<code class="docutils literal notranslate"><span class="pre">weight</span></code> naming a hyperedge
+attribute), or the 1-skeleton of a complex, as the Laplacians do (see <a class="reference internal" href="laplacians.html"><span class="doc">Laplacians</span></a>). Signals
+on the edges, triangles and higher simplices of a complex have their own Hodge decomposition and
+Fourier transform (see <a class="reference internal" href="higher_order.html#topological-signals"><span class="std std-ref">Topological signals</span></a>).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.annihilation_distance">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">annihilation_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.annihilation_distance" title="Link to this definition"></a></dt>
+<dd><p>Annihilation distance between two node vectors (Coscia, Gomez-Lievano, McNerney and Neffke,
+2020, section 3.1.3): the mass of <code class="docutils literal notranslate"><span class="pre">a</span></code> spreads by random walks with positive sign, the mass of
+<code class="docutils literal notranslate"><span class="pre">b</span></code> with negative sign, and wherever they meet they annihilate. After <span class="math notranslate nohighlight">\(k\)</span> steps the net
+mass is <span class="math notranslate nohighlight">\(W^k (a - b)\)</span>, which vanishes as both reach the stationary distribution: the
+faster, the closer the vectors. The distance is the norm of the net mass summed over all steps,</p>
+<div class="math notranslate nohighlight">
+\[\delta(a, b) = \| S \|_2, \quad S = \sum_{k \geq 0} W^k (a - b) = F (a - b),\]</div>
+<p>with <span class="math notranslate nohighlight">\(W\)</span> the column stochastic transition matrix of the walk (<span class="math notranslate nohighlight">\(W_{ji}\)</span> the
+probability of a step from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>, i.e. <span class="math notranslate nohighlight">\(E D^{-1}\)</span> on undirected
+networks) and <span class="math notranslate nohighlight">\(F = (I - W + W^\infty)^{-1}\)</span> its fundamental matrix (see
+<a class="reference internal" href="laplacians.html#graphoskop.fundamental_matrix" title="graphoskop.fundamental_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">fundamental_matrix()</span></code></a>), so <span class="math notranslate nohighlight">\(\delta = \sqrt{(a - b)^T F^T F (a - b)}\)</span>.
+It is a metric on vectors of equal mass (the norm of an invertible linear map).</p>
+<p>The paper writes the step as <span class="math notranslate nohighlight">\(P a\)</span> with the row stochastic <span class="math notranslate nohighlight">\(P = D^{-1} E\)</span>; for the
+mass to move along the edges and <span class="math notranslate nohighlight">\(P^k a\)</span> to reach the stationary distribution (as the paper
+states), the step must be <span class="math notranslate nohighlight">\(P^T a = W a\)</span>, which is used here (the two agree on regular
+networks). The series converges only if the two vectors have the same mass (otherwise the net
+mass tends to a multiple of the stationary distribution and the sum grows without bound), so
+they are rescaled by <code class="docutils literal notranslate"><span class="pre">normalize</span></code> as in <a class="reference internal" href="#graphoskop.earth_movers_distance" title="graphoskop.earth_movers_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">earth_movers_distance()</span></code></a>; and only on aperiodic
+walks: on periodic ones (bipartite networks without teleportation, e.g. a chain) the closed form
+is the Cesaro limit of the series. On undirected networks <span class="math notranslate nohighlight">\((a - b)^T D^{-1} F (a - b)\)</span> is
+exactly <span class="math notranslate nohighlight">\((a - b)^T L^+ (a - b)\)</span>, the square of <a class="reference internal" href="#graphoskop.generalized_euclidean" title="graphoskop.generalized_euclidean"><code class="xref py py-func docutils literal notranslate"><span class="pre">generalized_euclidean()</span></code></a>: the
+annihilation distance weighs the same summed net mass <span class="math notranslate nohighlight">\(S\)</span> without dividing it by the
+degree. In the chain test of the paper (all the mass at one end, then at the other) it is not
+<span class="math notranslate nohighlight">\(\sqrt{n - 1}\)</span> (the generalized Euclidean distance) but grows faster: 4.0, 14.4 and 46.0
+for chains of 5, 10 and 20 nodes.</p>
+<p><span class="math notranslate nohighlight">\(F\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">F</span></code> (from <a class="reference internal" href="laplacians.html#graphoskop.fundamental_matrix" title="graphoskop.fundamental_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">fundamental_matrix()</span></code></a>; pass it to
+reuse it across many pairs of vectors), or computed densely (<code class="docutils literal notranslate"><span class="pre">sparse</span> <span class="pre">=</span> <span class="pre">False</span></code>), or <span class="math notranslate nohighlight">\(S\)</span>
+is obtained without any <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix (<code class="docutils literal notranslate"><span class="pre">sparse</span> <span class="pre">=</span> <span class="pre">True</span></code>): on undirected networks
+without teleportation, exactly as <span class="math notranslate nohighlight">\(S = D L^+ \delta - \pi \, d^T L^+ \delta\)</span> (with
+<span class="math notranslate nohighlight">\(\delta = a - b\)</span>, <span class="math notranslate nohighlight">\(d\)</span> the strengths and <span class="math notranslate nohighlight">\(\pi = d / \sum_i d_i\)</span>), with the
+conjugate gradient of <a class="reference internal" href="laplacians.html#graphoskop.laplacian_solver" title="graphoskop.laplacian_solver"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_solver()</span></code></a> on the device of the network;
+otherwise with GMRES on the CPU, which needs many iterations if the walk mixes slowly (long
+directed chains or cycles without teleportation). By default (<code class="docutils literal notranslate"><span class="pre">sparse</span> <span class="pre">=</span> <span class="pre">None</span></code>), dense up to
+2,000 nodes, sparse above. On two CPU threads, sparse takes about 0.05 seconds on 5,000 nodes
+and 15,000 edges (0.4 seconds on a chain of 3,000 nodes) and 0.7 seconds on 100,000 nodes and
+300,000 edges, dense 4 seconds on 5,000 nodes. The walk must have a unique stationary distribution (see
+<a class="reference internal" href="laplacians.html#graphoskop.fundamental_matrix" title="graphoskop.fundamental_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">fundamental_matrix()</span></code></a>).</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>), with non negative entries.</p></li>
+<li><p><strong>b</strong> – Second node vector, same modalities as <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors and <code class="docutils literal notranslate"><span class="pre">F</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>F</strong> – Cached fundamental matrix, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>sparse</strong> – Use GMRES (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or the dense fundamental matrix (<code class="docutils literal notranslate"><span class="pre">False</span></code>) when <code class="docutils literal notranslate"><span class="pre">F</span></code> is
+<code class="docutils literal notranslate"><span class="pre">None</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> to choose by size.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the walk (needed on directed networks that are not
+strongly connected).</p></li>
+<li><p><strong>normalize</strong> – <code class="docutils literal notranslate"><span class="pre">True</span></code> (both to sum 1), <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> (both to the smaller sum), <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>
+(both to the larger sum) or <code class="docutils literal notranslate"><span class="pre">False</span></code> (sums already equal).</p></li>
+<li><p><strong>tol</strong> – Relative tolerance of GMRES.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Distance, or list of distances if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>; NaN if a vector has
+missing values.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a vector has negative entries, the masses cannot be made equal, or the
+walk has no unique stationary distribution.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">annihilation_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;y2000&quot;</span><span class="p">,</span> <span class="s2">&quot;y2010&quot;</span><span class="p">)</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">fundamental_matrix</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="p">[</span><span class="n">gsk</span><span class="o">.</span><span class="n">annihilation_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">F</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]</span>   <span class="c1"># cached</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">annihilation_distance</span><span class="p">(</span><span class="n">big</span><span class="p">,</span> <span class="s2">&quot;y2000&quot;</span><span class="p">,</span> <span class="s2">&quot;y2010&quot;</span><span class="p">,</span> <span class="n">sparse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.earth_movers_distance">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">earth_movers_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.earth_movers_distance" title="Link to this definition"></a></dt>
+<dd><p>Earth mover’s distance between two node vectors: the least total cost of moving the mass of
+<code class="docutils literal notranslate"><span class="pre">a</span></code> (the amount on every node) so that it becomes <code class="docutils literal notranslate"><span class="pre">b</span></code>, moving a unit of mass from node
+<span class="math notranslate nohighlight">\(i\)</span> to node <span class="math notranslate nohighlight">\(j\)</span> costing the length of the shortest path between them (Wasserstein-1
+distance with the shortest path metric).</p>
+<p>On a network, the optimal transport moves mass along edges, so the distance is the minimum cost
+flow <span class="math notranslate nohighlight">\(\min_f \sum_e l_e f_e\)</span> subject to <span class="math notranslate nohighlight">\(f \geq 0\)</span> and, for every node, inflow
+minus outflow <span class="math notranslate nohighlight">\(= b_i - a_i\)</span> (Beckmann’s formulation): a sparse linear program with one
+variable per edge, instead of one per pair of nodes, solved exactly with HiGHS (on the CPU). On
+directed networks mass moves only along the direction of the edges, and the distance is
+infinite if some mass cannot reach where it is needed; undirected edges carry mass both ways.
+Self loops are ignored. In multilayer networks, mass moves between copies through couplings,
+which cost their length like any edge.</p>
+<p>The solver takes about a second on 10,000 nodes and 30,000 edges, and one to two minutes on
+100,000 nodes and 300,000 edges (one call, without a progress bar).</p>
+<p><code class="docutils literal notranslate"><span class="pre">normalize</span></code> makes the two masses equal: <code class="docutils literal notranslate"><span class="pre">True</span></code> rescales both vectors to sum to 1
+(probability distributions: the distance is then an average path length); <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> rescales the
+vector with the larger sum to the smaller sum, and <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code> the one with the smaller sum to the
+larger sum (keeping the units of the vectors: the distance is in units of mass times length);
+with <code class="docutils literal notranslate"><span class="pre">False</span></code>, the sums must already be equal.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), or vector of length
+<code class="docutils literal notranslate"><span class="pre">n</span></code> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>), with non negative entries.</p></li>
+<li><p><strong>b</strong> – Second node vector, same modalities as <code class="docutils literal notranslate"><span class="pre">a</span></code>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors are given as lists with one entry per component (or as attributes).</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge length, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit lengths.</p></li>
+<li><p><strong>inverse</strong> – Use the reciprocal of <code class="docutils literal notranslate"><span class="pre">weight</span></code> as length (for weights measuring proximity, a
+zero weight then being no edge).</p></li>
+<li><p><strong>normalize</strong> – <code class="docutils literal notranslate"><span class="pre">True</span></code> (both to sum 1), <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> (both to the smaller sum), <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>
+(both to the larger sum) or <code class="docutils literal notranslate"><span class="pre">False</span></code> (no rescaling).</p></li>
+<li><p><strong>flow</strong> – Whether to return the optimal transport too.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Distance (<code class="docutils literal notranslate"><span class="pre">inf</span></code> if impossible, NaN if a vector has missing values); with <code class="docutils literal notranslate"><span class="pre">flow</span></code>,
+<code class="docutils literal notranslate"><span class="pre">(distance,</span> <span class="pre">flows)</span></code>: the mass moved along every edge of the component, from its source to
+its target, as a vector aligned with the edges (store it with
+<a class="reference internal" href="network.html#graphoskop.Network.set_edge_attribute" title="graphoskop.Network.set_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_edge_attribute()</span></code></a>). A list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a vector has negative entries, sums to zero with <code class="docutils literal notranslate"><span class="pre">normalize</span></code>, the sums
+differ without it, <code class="docutils literal notranslate"><span class="pre">normalize</span></code> is not valid, or some lengths are negative.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">earth_movers_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;supply&quot;</span><span class="p">,</span> <span class="s2">&quot;demand&quot;</span><span class="p">)</span>
+<span class="n">d</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">earth_movers_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;supply&quot;</span><span class="p">,</span> <span class="s2">&quot;demand&quot;</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="s2">&quot;km&quot;</span><span class="p">,</span> <span class="n">flow</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">earth_movers_distance</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;supply&quot;</span><span class="p">,</span> <span class="s2">&quot;demand&quot;</span><span class="p">,</span> <span class="n">normalize</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">)</span>   <span class="c1"># demand to the supply total</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;shipped&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.generalized_euclidean">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">generalized_euclidean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.generalized_euclidean" title="Link to this definition"></a></dt>
@@ -123,6 +288,7 @@ densely or, if <code class="docutils literal notranslate"><span class="pre">spar
 <p>For Hermitian Laplacians (undirected, <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>) the quadratic form is non
 negative. The <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> Laplacian is not symmetric, so the quadratic form can be negative, and
 the result is then NaN. Missing attribute values propagate as NaN.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -158,6 +324,161 @@ With <code class="docutils literal notranslate"><span class="pre">None</span></c
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.graph_fourier_basis">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">graph_fourier_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.graph_fourier_basis" title="Link to this definition"></a></dt>
+<dd><p>Graph Fourier basis: the eigenvalues (frequencies) and eigenvectors (Fourier modes) of the
+Laplacian, <span class="math notranslate nohighlight">\(L = U \Lambda U^H\)</span>, in increasing order of frequency (Shuman, Narang,
+Frossard, Ortega and Vandergheynst, 2013). Low frequencies vary little across edges (the
+first one, 0, is constant on a connected undirected network), high frequencies change sign
+between neighbors. Used by <a class="reference internal" href="#graphoskop.graph_fourier_transform" title="graphoskop.graph_fourier_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_transform()</span></code></a> and
+<a class="reference internal" href="#graphoskop.inverse_graph_fourier_transform" title="graphoskop.inverse_graph_fourier_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">inverse_graph_fourier_transform()</span></code></a>; compute it once and pass it as their <code class="docutils literal notranslate"><span class="pre">basis</span></code> to
+transform many signals.</p>
+<p>The Laplacian must be Hermitian: undirected, or <code class="docutils literal notranslate"><span class="pre">kind</span> <span class="pre">=</span> <span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code> on
+directed networks (see <a class="reference internal" href="laplacians.html#graphoskop.laplacian" title="graphoskop.laplacian"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian()</span></code></a>; the magnetic one has complex modes). With
+<code class="docutils literal notranslate"><span class="pre">normalized</span></code>, the Laplacian is <span class="math notranslate nohighlight">\(D^{-1 / 2} L D^{-1 / 2}\)</span> (with <span class="math notranslate nohighlight">\(D\)</span> its diagonal),
+e.g. <span class="math notranslate nohighlight">\(I - D^{-1 / 2} A D^{-1 / 2}\)</span> on undirected networks, whose frequencies are between 0
+and 2.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">None</span></code>, all <code class="docutils literal notranslate"><span class="pre">n</span></code> modes, from a dense eigendecomposition on the device of the
+network (<span class="math notranslate nohighlight">\(O(n^3)\)</span> time, <span class="math notranslate nohighlight">\(n^2\)</span> memory: up to some tens of thousands of nodes on a
+GPU). With <code class="docutils literal notranslate"><span class="pre">k</span></code>, only the <code class="docutils literal notranslate"><span class="pre">k</span></code> lowest frequencies: dense if <code class="docutils literal notranslate"><span class="pre">n</span></code> is up to 2,000 or <code class="docutils literal notranslate"><span class="pre">k</span></code> more
+than a quarter of <code class="docutils literal notranslate"><span class="pre">n</span></code>, otherwise sparse (Lanczos, on the CPU, with <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">k</span></code> memory), for large
+networks. The phase of every mode is fixed (its largest entry, in modulus, is real and
+positive), so the basis is reproducible; modes of repeated frequencies are any orthonormal basis
+of their eigenspace. Computed in double precision.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components
+(returns a list).</p></li>
+<li><p><strong>k</strong> – Number of modes (lowest frequencies), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all.</p></li>
+<li><p><strong>normalized</strong> – Whether to use the normalized Laplacian.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> is not
+Hermitian).</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(frequencies,</span> <span class="pre">modes)</span></code>: vector of length <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix (one mode per
+column), or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the Laplacian is not Hermitian or <code class="docutils literal notranslate"><span class="pre">k</span></code> is not between 1 and <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">freq</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_basis</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                     <span class="c1"># all modes</span>
+<span class="n">freq</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_basis</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">normalized</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.graph_fourier_transform">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">graph_fourier_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.graph_fourier_transform" title="Link to this definition"></a></dt>
+<dd><p>Graph Fourier transform of a signal on the nodes, <span class="math notranslate nohighlight">\(\hat{a} = U^H a\)</span>: its coefficients on
+the Fourier modes of <a class="reference internal" href="#graphoskop.graph_fourier_basis" title="graphoskop.graph_fourier_basis"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a>, from the lowest frequency to the highest. A
+signal that varies little across edges (smooth) has most of its energy in the first
+coefficients; <span class="math notranslate nohighlight">\(\sum_l \lambda_l |\hat{a}_l|^2 = a^H L a\)</span> is its total variation. With
+all <code class="docutils literal notranslate"><span class="pre">n</span></code> modes the transform is invertible (<a class="reference internal" href="#graphoskop.inverse_graph_fourier_transform" title="graphoskop.inverse_graph_fourier_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">inverse_graph_fourier_transform()</span></code></a>) and keeps
+the norm (Parseval); with <code class="docutils literal notranslate"><span class="pre">k</span></code> modes, it gives the <code class="docutils literal notranslate"><span class="pre">k</span></code> lowest frequencies only.</p>
+<p><code class="docutils literal notranslate"><span class="pre">basis</span></code> (from <a class="reference internal" href="#graphoskop.graph_fourier_basis" title="graphoskop.graph_fourier_basis"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a>) is used as given; if <code class="docutils literal notranslate"><span class="pre">None</span></code>, it is computed with
+<code class="docutils literal notranslate"><span class="pre">k</span></code>, <code class="docutils literal notranslate"><span class="pre">normalized</span></code> and the Laplacian arguments (see there). Pass it to transform many
+signals. Missing values (NaN) make all coefficients of their signal NaN.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>a</strong> – Node attribute (position in <code class="docutils literal notranslate"><span class="pre">net.node_attributes</span></code> or name), list of node
+attributes, vector of length <code class="docutils literal notranslate"><span class="pre">n</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">s</span></code> matrix of <code class="docutils literal notranslate"><span class="pre">s</span></code> signals
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, vectors and <code class="docutils literal notranslate"><span class="pre">basis</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>basis</strong> – <code class="docutils literal notranslate"><span class="pre">(frequencies,</span> <span class="pre">modes)</span></code> from <a class="reference internal" href="#graphoskop.graph_fourier_basis" title="graphoskop.graph_fourier_basis"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>k</strong> – Number of modes, if <code class="docutils literal notranslate"><span class="pre">basis</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> for all).</p></li>
+<li><p><strong>normalized</strong> – Whether to use the normalized Laplacian, if <code class="docutils literal notranslate"><span class="pre">basis</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Coefficients: vector of length <code class="docutils literal notranslate"><span class="pre">k</span></code> (or <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">s</span></code> matrix), in double precision
+(complex for the magnetic Laplacian), on the device of the network; or a list of them if
+<code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. The frequencies are <code class="docutils literal notranslate"><span class="pre">basis[0]</span></code>.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">freq</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_basis</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_transform</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;income&quot;</span><span class="p">,</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">)</span>
+<span class="n">C</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_transform</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;income&quot;</span><span class="p">,</span> <span class="s2">&quot;age&quot;</span><span class="p">],</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">)</span>   <span class="c1"># one column each</span>
+<span class="n">low</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">c</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>                   <span class="c1"># energy in the 10 lowest frequencies</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.inverse_graph_fourier_transform">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">inverse_graph_fourier_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalized</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.inverse_graph_fourier_transform" title="Link to this definition"></a></dt>
+<dd><p>Inverse graph Fourier transform, <span class="math notranslate nohighlight">\(a = U \hat{a}\)</span>: the signal on the nodes with the given
+coefficients on the Fourier modes of <a class="reference internal" href="#graphoskop.graph_fourier_basis" title="graphoskop.graph_fourier_basis"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a>. With all <code class="docutils literal notranslate"><span class="pre">n</span></code> modes, it
+recovers the signal of <a class="reference internal" href="#graphoskop.graph_fourier_transform" title="graphoskop.graph_fourier_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_transform()</span></code></a>; with <code class="docutils literal notranslate"><span class="pre">k</span></code> modes, its projection on the
+<code class="docutils literal notranslate"><span class="pre">k</span></code> lowest frequencies (a low pass filter). Changing the coefficients in between filters the
+signal, e.g. <code class="docutils literal notranslate"><span class="pre">h(freq)</span> <span class="pre">*</span> <span class="pre">c</span></code> for a filter <code class="docutils literal notranslate"><span class="pre">h</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">basis</span></code> is used as given, or computed as in <a class="reference internal" href="#graphoskop.graph_fourier_transform" title="graphoskop.graph_fourier_transform"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_transform()</span></code></a>; its number of
+modes must match the number of coefficients.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>coefficients</strong> – Vector of <code class="docutils literal notranslate"><span class="pre">k</span></code> coefficients, or <code class="docutils literal notranslate"><span class="pre">k</span></code> by <code class="docutils literal notranslate"><span class="pre">s</span></code> matrix of <code class="docutils literal notranslate"><span class="pre">s</span></code> signals
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code>).</p></li>
+<li><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.
+With <code class="docutils literal notranslate"><span class="pre">None</span></code>, coefficients and <code class="docutils literal notranslate"><span class="pre">basis</span></code> are given as lists with one entry per component.</p></li>
+<li><p><strong>basis</strong> – <code class="docutils literal notranslate"><span class="pre">(frequencies,</span> <span class="pre">modes)</span></code> from <a class="reference internal" href="#graphoskop.graph_fourier_basis" title="graphoskop.graph_fourier_basis"><code class="xref py py-func docutils literal notranslate"><span class="pre">graph_fourier_basis()</span></code></a>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>k</strong> – Number of modes, if <code class="docutils literal notranslate"><span class="pre">basis</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> for all).</p></li>
+<li><p><strong>normalized</strong> – Whether to use the normalized Laplacian, if <code class="docutils literal notranslate"><span class="pre">basis</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute used as edge weight, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unit weights.</p></li>
+<li><p><strong>kind</strong> – Laplacian of directed networks: <code class="docutils literal notranslate"><span class="pre">&quot;magnetic&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;chung&quot;</span></code>.</p></li>
+<li><p><strong>q</strong> – Charge of the magnetic Laplacian.</p></li>
+<li><p><strong>alpha</strong> – Teleportation probability of the Chung Laplacian.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Node vector of length <code class="docutils literal notranslate"><span class="pre">n</span></code> (or <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">s</span></code> matrix) in double precision, real
+unless the modes are complex, on the device of the network; or a list of them if
+<code class="docutils literal notranslate"><span class="pre">component</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. Store it with <a class="reference internal" href="network.html#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the number of coefficients is not the number of modes.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">freq</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_basis</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">graph_fourier_transform</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;income&quot;</span><span class="p">,</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">)</span>
+<span class="n">smooth</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">inverse_graph_fourier_transform</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="n">freq</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">)</span>
+<span class="n">heat</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">inverse_graph_fourier_transform</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">c</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">freq</span><span class="p">),</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.network_correlation">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">network_correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpinv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.network_correlation" title="Link to this definition"></a></dt>
 <dd><p>Network Pearson correlation (Coscia, 2021; Coscia and Devriendt, 2024,
@@ -181,6 +502,7 @@ times smaller.</p>
 then used as given, and <code class="docutils literal notranslate"><span class="pre">k</span></code>, <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is
 computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (cached dense pseudoinverse) or from scratch, in place, needing one
 <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix besides <code class="docutils literal notranslate"><span class="pre">lpinv</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -236,6 +558,7 @@ instance the one of <a class="reference internal" href="#graphoskop.network_corr
 <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code>
 (cached dense pseudoinverse) or from scratch. As for <a class="reference internal" href="#graphoskop.network_correlation" title="graphoskop.network_correlation"><code class="xref py py-func docutils literal notranslate"><span class="pre">network_correlation()</span></code></a>, choose <code class="docutils literal notranslate"><span class="pre">k</span></code>
 relative to the scale of <span class="math notranslate nohighlight">\(\Omega\)</span>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -285,6 +608,7 @@ negative entries or sums to zero.</p>
 <p><span class="math notranslate nohighlight">\(\Omega\)</span> can be passed precomputed as <code class="docutils literal notranslate"><span class="pre">R</span></code>, to reuse it across calls; it is then used as
 given and left unchanged, and <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> and the Laplacian arguments are ignored. Otherwise it is
 computed from <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (cached dense pseudoinverse) or from scratch.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -330,6 +654,7 @@ plus an <code class="docutils literal notranslate"><span class="pre">n</span></c
 <p><span class="math notranslate nohighlight">\(L^+\)</span> is used as given in <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> (dense tensor or solver). If <code class="docutils literal notranslate"><span class="pre">lpinv</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, a
 solver is built when <code class="docutils literal notranslate"><span class="pre">sparse</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default, usually faster, since
 only <code class="docutils literal notranslate"><span class="pre">k</span></code> solves are needed), and the dense pseudoinverse when <code class="docutils literal notranslate"><span class="pre">sparse</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -376,6 +701,7 @@ a list of them if <code class="docutils literal notranslate"><span class="pre">c
 <span class="math notranslate nohighlight">\(\hat{X}\)</span> the centered attributes, it computes <span class="math notranslate nohighlight">\(G = \hat{X}^T W \hat{X}\)</span> with a single
 product of <span class="math notranslate nohighlight">\(W\)</span> with the <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">k</span></code> matrix <span class="math notranslate nohighlight">\(\hat{X}\)</span>, and then all correlations as
 <span class="math notranslate nohighlight">\(G_{ij} / \sqrt{G_{ii} G_{jj}}\)</span>. <span class="math notranslate nohighlight">\(W\)</span> is computed once, or reused if given.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -420,7 +746,7 @@ a list of them if <code class="docutils literal notranslate"><span class="pre">c
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="error_correction.html" class="btn btn-neutral float-left" title="Network error correction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="robustness.html" class="btn btn-neutral float-right" title="Robustness" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="progress.html" class="btn btn-neutral float-right" title="Progress bars" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

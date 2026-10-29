@@ -1,0 +1,1133 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Layouts &mdash; Graphoskop  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Link prediction" href="link_prediction.html" />
+    <link rel="prev" title="Laplacians" href="laplacians.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Graphoskop
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="network.html">Networks and their attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transformations.html">Transformations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network_statistics.html">Network statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backboning.html">Backboning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bipartite_projections.html">Bipartite projections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
+<li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Layouts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#circular-layouts">Circular layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.circular_layout"><code class="docutils literal notranslate"><span class="pre">circular_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#edge-bundling">Edge bundling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.bundle_edges"><code class="docutils literal notranslate"><span class="pre">bundle_edges()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#force-directed-layouts">Force-directed layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.force_directed_layout"><code class="docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grid-layouts">Grid layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.grid_layout"><code class="docutils literal notranslate"><span class="pre">grid_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchical-layouts">Hierarchical layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.hierarchical_layout"><code class="docutils literal notranslate"><span class="pre">hierarchical_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#matrix-layouts">Matrix layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.matrix_layout"><code class="docutils literal notranslate"><span class="pre">matrix_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#transforming-layouts">Transforming layouts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.mirror_layout"><code class="docutils literal notranslate"><span class="pre">mirror_layout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.remove_overlaps"><code class="docutils literal notranslate"><span class="pre">remove_overlaps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.rotate_layout"><code class="docutils literal notranslate"><span class="pre">rotate_layout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.scale_layout"><code class="docutils literal notranslate"><span class="pre">scale_layout()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#umap">UMAP</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.umap_layout"><code class="docutils literal notranslate"><span class="pre">umap_layout()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
+<li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Graphoskop</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Layouts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/layouts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-graphoskop.layouts">
+<span id="layouts"></span><h1>Layouts<a class="headerlink" href="#module-graphoskop.layouts" title="Link to this heading"></a></h1>
+<p>Network layouts: positions of the nodes in the plane or in space, to draw a network.</p>
+<p>Layout functions store the positions as numeric node attributes <code class="docutils literal notranslate"><span class="pre">pos_x</span></code>, <code class="docutils literal notranslate"><span class="pre">pos_y</span></code> and, in three
+dimensions, <code class="docutils literal notranslate"><span class="pre">pos_z</span></code> (the prefix <code class="docutils literal notranslate"><span class="pre">pos</span></code> can be changed), so that any plotting library can draw
+the network from <a class="reference internal" href="network.html#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a> or from the node table of
+<a class="reference internal" href="network.html#graphoskop.Network.to_pandas_dataframes" title="graphoskop.Network.to_pandas_dataframes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">to_pandas_dataframes()</span></code></a>. They also return the positions as a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<p>Six families of layouts are available: circular, grid and matrix layouts, driven by node
+attributes (groups and orders) and by the edges between groups; force-directed layouts, driven
+by the edges; hierarchical layouts, in layers given by the direction of the edges, by a node
+attribute or by the distance from a root; and UMAP layouts, driven by node vectors (node
+attributes, embeddings, or the adjacency matrix). Any layout can then be mirrored, rotated and
+zoomed, and its overlaps removed, and its edges can be bundled.</p>
+<section id="circular-layouts">
+<h2>Circular layouts<a class="headerlink" href="#circular-layouts" title="Link to this heading"></a></h2>
+<p>Circular layouts put the nodes of every component on a circle. Hierarchical groups become sectors
+of sectors, arranged so that groups sharing many edges are close, and a numeric attribute, or
+the edges to the neighboring sectors, orders the nodes inside each sector.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>      <span class="c1"># inside sectors: by edges to the adjacent sectors</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.circular_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">circular_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.circular_layout" title="Link to this definition"></a></dt>
+<dd><p>Circular layout: the nodes of every component on a circle, in sectors by group (hierarchical
+groups nest, as sectors of sectors), and in each sector in the order given by a numeric
+attribute or by their edges.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">groups</span></code>: one node attribute or a list of them, by decreasing importance: nodes with the
+same value of the first share a sector of the circle; inside it, nodes with the same value
+of the second share a smaller sector; and so on. Attributes can be qualitative or numeric:
+their distinct values are the groups (numeric codes of communities work as groups; nodes
+with missing values form one more group). Empty slots (<code class="docutils literal notranslate"><span class="pre">gap</span></code> times the number of levels
+below the one that changes) separate the sectors: wider gaps between the sectors of the
+first attribute, narrower between finer ones.</p></li>
+<li><p>Sectors are arranged by their edges (<code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span> <span class="pre">True</span></code>), level by level from the first:
+inside the sector of their parent group (around the whole circle for the first attribute),
+groups with many edges between them are placed close, and groups with many edges to the
+previous (next) sector of the parent’s level near its start (end). The arrangement minimizes
+the sum, over pairs of groups, of their edges (or weights) times the distance between the
+centers of their arcs, plus the edges to the adjacent sectors times the distance from
+them: exactly for up to 7 groups in a sector; above, from the order of the Fiedler vector
+(the angle in the spectral embedding, around the whole circle), improved by moving one group
+at a time where it lowers the sum most, up to 50 groups (by swapping neighboring groups up
+to 200; spectral order only above). Groups without edges keep the order of their values.
+With <code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span> <span class="pre">False</span></code>, sectors follow the sorted order of the values (numbers
+numerically, text alphabetically), clockwise from the top, missing values last; useful for
+ordered groups (age classes, years).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">order</span></code>: a numeric node attribute sorting the nodes inside the finest sectors (or around
+the whole circle without <code class="docutils literal notranslate"><span class="pre">groups</span></code>), clockwise by increasing value; missing values last.</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">order</span></code>, nodes inside a sector are sorted by their edges to the two adjacent sectors
+of the same level of detail: if sectors a, b, c follow each other, the nodes of b go from
+those with edges mostly to a (next to a) to those with edges mostly to c (next to c), by
+<span class="math notranslate nohighlight">\((e_c - e_a) / (e_c + e_a)\)</span>; nodes with neither stay in the middle, in the network
+order. This takes one pass over the edges (components with fewer than 3 sectors have no
+distinct neighbors on both sides, so their nodes keep the network order).</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code>, nodes are sorted by their angle in the Laplacian eigenmap of
+their component (<a class="reference internal" href="gnn.html#graphoskop.laplacian_eigenmaps" title="graphoskop.laplacian_eigenmaps"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_eigenmaps()</span></code></a>, 2 dimensions): neighbors end up
+close on the circle, which makes fewer and shorter chords than a random order.</p></li>
+</ul>
+<p>Each sector gets an arc proportional to its number of nodes. Every component has its own
+circle, with consecutive nodes <code class="docutils literal notranslate"><span class="pre">spacing</span></code> apart along it (its radius grows with the number of
+nodes); the circles are packed in rows, largest component first (as in
+<a class="reference internal" href="#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>). Directed networks are treated as undirected.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>groups</strong> – Name of a node attribute, or list of names in order of importance, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>order</strong> – Name of a numeric node attribute sorting the nodes in their sectors, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute: without <code class="docutils literal notranslate"><span class="pre">order</span></code>, nodes are sorted by the
+weights of their edges to the adjacent sectors instead of their number (and the Laplacian
+eigenmap, without <code class="docutils literal notranslate"><span class="pre">groups</span></code>, is weighted); <code class="docutils literal notranslate"><span class="pre">None</span></code> counts edges.</p></li>
+<li><p><strong>spacing</strong> – Distance between consecutive nodes along a circle.</p></li>
+<li><p><strong>gap</strong> – Empty slots between sectors, per level of groups below the level that changes;
+0 for none.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the numeric node attributes <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code>
+where to store the positions, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to only return them.</p></li>
+<li><p><strong>arrange</strong> – Whether to arrange the sectors by their edges (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or in sorted order of
+the group values (<code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, and the columns <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code> (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> with
+<code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If an attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">order</span></code> is not a numeric node attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                  <span class="c1"># neighbors close on the circle</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>                   <span class="c1"># clockwise by age</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">])</span>             <span class="c1"># sectors of sectors</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;age_class&quot;</span><span class="p">,</span> <span class="n">arrange</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>    <span class="c1"># sectors in order of the values</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="edge-bundling">
+<h2>Edge bundling<a class="headerlink" href="#edge-bundling" title="Link to this heading"></a></h2>
+<p>Edge bundling draws the edges as curves that follow a hierarchy of groups of the nodes
+(hierarchical edge bundling, as in graph-tool): edges between the same groups run together, and
+the drawing shows how groups connect rather than a tangle of lines. The hierarchy can be given by
+node attributes (from the coarsest level), such as the levels of a nested blockmodel, or found in
+the layout itself. The curves are returned as chains of cubic Bézier curves (as graph-tool
+does), which plotting libraries draw exactly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">block_model_communities</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                        <span class="c1"># community, community_1, ...</span>
+<span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;community_2&quot;</span><span class="p">,</span> <span class="s2">&quot;community_1&quot;</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">]</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">levels</span><span class="p">)</span>
+<span class="n">bends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bundle_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">levels</span><span class="p">)</span>          <span class="c1"># graph-tool&#39;s look</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">bends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bundle_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">beta</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">)</span>               <span class="c1"># hierarchy of the layout&#39;s space</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.bundle_edges">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">bundle_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.bundle_edges" title="Link to this definition"></a></dt>
+<dd><p>Hierarchical edge bundling (Holten, 2006), as in graph-tool: every edge is drawn as a curve
+that follows the hierarchy of groups of the nodes, so that edges between the same groups run
+together in bundles and the drawing shows the connections between groups rather than a
+tangle of lines.</p>
+<p>The hierarchy is a tree: its leaves are the nodes, above them the groups of the finest level,
+then the groups that contain them, up to one root per component. Every group sits at the
+center (mean position) of its nodes in the current layout. The curve of an edge between
+<span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> is a cubic B-spline whose control points are the path in the tree from
+<span class="math notranslate nohighlight">\(u\)</span> up to the smallest group containing both, and down to <span class="math notranslate nohighlight">\(v\)</span>. As in graph-tool,
+the curve is returned as cubic Bézier curves, which drawing libraries draw exactly at any zoom. The strength
+<code class="docutils literal notranslate"><span class="pre">beta</span></code> straightens the path: every control point <span class="math notranslate nohighlight">\(p_i\)</span> of a path of <span class="math notranslate nohighlight">\(k\)</span> points
+moves to <span class="math notranslate nohighlight">\(\beta p_i + (1 - \beta) (p_0 + \frac{i}{k - 1} (p_{k - 1} - p_0))\)</span>, so that
+<code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">0</span></code> gives straight edges and <code class="docutils literal notranslate"><span class="pre">beta</span> <span class="pre">=</span> <span class="pre">1</span></code> curves that follow the hierarchy closely;
+the default 0.8 is graph-tool’s. Edges within a finest group bend through its center only.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">groups</span></code>: node attributes from the coarsest to the finest level, as the <code class="docutils literal notranslate"><span class="pre">groups</span></code> of
+<a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a> (distinct values are groups, missing values one more group; a group
+of a level is split by the values of the next one). For the look of graph-tool’s nested
+blockmodel drawings, fit the hierarchy with <a class="reference internal" href="communities.html#graphoskop.block_model_communities" title="graphoskop.block_model_communities"><code class="xref py py-func docutils literal notranslate"><span class="pre">block_model_communities()</span></code></a>, which writes the
+levels <code class="docutils literal notranslate"><span class="pre">community</span></code> (finest), <code class="docutils literal notranslate"><span class="pre">community_1</span></code>, …, and use them both for
+<a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a> and here (see the example).</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">groups</span></code>, the hierarchy comes from the layout itself: clusters of the positions
+(k-means), 8 at the first level, 64 at the second, and so on, each split by the clusters of
+the next level, until groups have about 4 nodes. Edges then bundle between regions of the
+drawing, for any layout.</p></li>
+</ul>
+<p>The curve of every edge is a chain of cubic Bézier curves: points 0, 3, 6, … are on the
+curve, the two points between each pair of them are the control points of that piece (piece
+<span class="math notranslate nohighlight">\(i\)</span> is the Bézier curve of points <span class="math notranslate nohighlight">\(3i\)</span> to <span class="math notranslate nohighlight">\(3i + 3\)</span>). Edges have more pieces
+the further apart their nodes are in the hierarchy (one for edges within a finest group).
+Edges are taken as given in input, in the order of <a class="reference internal" href="network.html#graphoskop.Network.edges" title="graphoskop.Network.edges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edges()</span></code></a> over all
+components (<code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>); a self loop stays on its node. Computing the curves takes
+one pass over the edges per level of the hierarchy. The positions are not changed: run the
+function again after another layout.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with positions in the node attributes
+<code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code> (and <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_z</span></code>).</p></li>
+<li><p><strong>groups</strong> – Name of a node attribute, or list of names from the coarsest level to the
+finest, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a hierarchy of the space of the layout.</p></li>
+<li><p><strong>beta</strong> – Strength of the bundling, from 0 (straight edges) to 1.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the position attributes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per Bézier point, edge by edge: the position of
+the edge (<code class="docutils literal notranslate"><span class="pre">edge</span></code>), the position of the point along its curve (<code class="docutils literal notranslate"><span class="pre">point</span></code>, 0 at the source)
+and its coordinates <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> (and <code class="docutils literal notranslate"><span class="pre">z</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the network has no positions with that prefix, or an attribute does not
+exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">beta</span></code> is not between 0 and 1.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathPatch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">block_model_communities</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                          <span class="c1"># community, community_1, ...</span>
+<span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;community_2&quot;</span><span class="p">,</span> <span class="s2">&quot;community_1&quot;</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">]</span>      <span class="c1"># coarsest first</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">circular_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">levels</span><span class="p">)</span>
+<span class="n">bends</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">bundle_edges</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">levels</span><span class="p">)</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">curve</span> <span class="ow">in</span> <span class="n">bends</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;edge&quot;</span><span class="p">):</span>
+   <span class="n">xy</span> <span class="o">=</span> <span class="n">curve</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+   <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">MOVETO</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">Path</span><span class="o">.</span><span class="n">CURVE4</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+   <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">PathPatch</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">edgecolor</span> <span class="o">=</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="force-directed-layouts">
+<h2>Force-directed layouts<a class="headerlink" href="#force-directed-layouts" title="Link to this heading"></a></h2>
+<p>Force-directed layouts treat edges as springs pulling their nodes together and nodes as
+particles pushing each other apart, and let the nodes move until the forces balance. The layout
+of graphoskop aims at the look of organic layouts: groups of nodes that share many edges stay
+together, the drawing takes the shape of the network rather than of a disk, and nodes with few
+edges stay next to their neighbors instead of being thrown to the border.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineCollection</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">planted_partition_graph</span><span class="p">([</span><span class="mi">40</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>          <span class="c1"># node attributes pos_x, pos_y</span>
+<span class="n">xy</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">values</span><span class="p">)}</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xy</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">xy</span><span class="p">[</span><span class="n">b</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)]</span>
+<span class="n">community</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">to_pandas_dataframes</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pos</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">]</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">LineCollection</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">linewidths</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">zorder</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">pos_x</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">pos_y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">community</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;tab10&quot;</span><span class="p">,</span> <span class="n">zorder</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">clustering</span></code> trades uniform edge lengths (0) for groups further apart (1), joined by longer
+edges; the default, 0.25, leans towards uniform edges. Positions in three dimensions are stored in <code class="docutils literal notranslate"><span class="pre">pos_x</span></code>, <code class="docutils literal notranslate"><span class="pre">pos_y</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pos_z</span></code>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.force_directed_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">force_directed_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.force_directed_layout" title="Link to this definition"></a></dt>
+<dd><p>Force-directed layout in the spirit of organic layouts (such as yFiles’ Organic layout): edges
+pull their nodes together, all nodes push each other apart, and the nodes move until the
+forces balance. Groups of nodes sharing many edges end up together, apart from the rest of
+the network; the shape of the drawing follows the network, not a circle or a sphere; nodes
+with one or few edges stay close to their neighbors.</p>
+<p>The layout minimizes the energy of the edge-repulsion model of Noack (2007),</p>
+<div class="math notranslate nohighlight">
+\[U = \sum_{(u, v) \in E} w_{uv} \frac{d_{uv}^a}{a} + C \sum_{u &lt; v}
+\frac{(k_u + 1)(k_v + 1)}{d_{uv}}, \qquad a = 2 - \mathrm{clustering},\]</div>
+<p>where <span class="math notranslate nohighlight">\(d_{uv}\)</span> is the distance between two nodes, <span class="math notranslate nohighlight">\(w_{uv}\)</span> the weight of their
+edge (1 without <code class="docutils literal notranslate"><span class="pre">weight</span></code>) and <span class="math notranslate nohighlight">\(k_u\)</span> the number of neighbors of <span class="math notranslate nohighlight">\(u\)</span>. Three
+choices set its look apart from classical spring embedders (Fruchterman and Reingold):</p>
+<ul class="simple">
+<li><p>Repulsion is weighted by degree (plus one), so every node is pushed away in proportion to
+the edges pulling it back: a leaf is not shot away from its only neighbor by the whole
+network, and hubs, with all their neighbors, keep their distances.</p></li>
+<li><p>The repulsion force decays as <span class="math notranslate nohighlight">\(1 / d^2\)</span>, faster than <span class="math notranslate nohighlight">\(1 / d\)</span>, and there is no
+gravity towards the center and no frame: far away parts of the network do not press the
+drawing into a disk, its shape comes from the edges.</p></li>
+<li><p>The attraction exponent <span class="math notranslate nohighlight">\(a\)</span> sets how strongly groups separate: with <span class="math notranslate nohighlight">\(a = 2\)</span>
+(<code class="docutils literal notranslate"><span class="pre">clustering</span> <span class="pre">=</span> <span class="pre">0</span></code>, springs as in ForceAtlas2) edges have similar lengths and groups
+touch; with <span class="math notranslate nohighlight">\(a = 1\)</span> (<code class="docutils literal notranslate"><span class="pre">clustering</span> <span class="pre">=</span> <span class="pre">1</span></code>, the LinLog attraction of Noack) densely
+connected groups shrink and move apart, joined by long edges, which shows communities best
+but makes trees spiky. Long edges are the edges between groups, stretched by design: on a
+network of 24,880 nodes with 22 communities, 84% of the edges longer than 5 times the median
+joined two communities. The default, 0.25, came from that network: compared with 0.5, it
+halves those long edges (from 3.4% to 1.9% of all edges) while the 10 nearest nodes of a
+node are still 71% in its community (75% with 0.5, 67% with 0). Neither the degree
+weighting of the repulsion nor weighting edges by their common neighbors gave a better
+balance, and the layout does not depend on the seed or on a hotter start.</p></li>
+</ul>
+<p>Each component is laid out on its own. It starts from pivot multidimensional scaling (Brandes
+and Pich, 2006: classical scaling of the hop distances from 50 random pivots), which already
+places nodes as their distances in the network say, then takes <code class="docutils literal notranslate"><span class="pre">iterations</span></code> steps along the
+forces divided by degree plus one, each capped by a temperature cooling from 1 to 0.01 mean
+edge lengths. <span class="math notranslate nohighlight">\(C\)</span> makes the starting scale a stationary point of the energy. After each
+step, nodes with at most 3 neighbors closer than 0.7 mean edge lengths to another such node of
+their component are pushed apart, so that leaves around a hub do not pile up. Repulsion is
+exact, over all pairs, in components of at most 256 nodes (laid out together, in batches);
+in larger ones it is approximated on nested grids, Barnes-Hut style: nodes in the same or
+adjacent cells of the finest grid repel exactly, farther ones as the total degree of their
+cell at its center of mass (errors about 0.1% of the mean force on test layouts), in time
+linear in the number of nodes. Everything runs on the device of the network.</p>
+<p>Finally every component is rotated onto its principal axes (its widest extent along
+<code class="docutils literal notranslate"><span class="pre">pos_x</span></code>), scaled to a mean edge length of <code class="docutils literal notranslate"><span class="pre">edge_length</span></code>, and the components are packed
+in rows, largest first, two edge lengths apart; isolated nodes come last. Directed networks
+are laid out as undirected, self loops are ignored, parallel and reciprocal edges merged
+(weights summed). In multilayer networks every copy of a node is a node of its own, held
+near its other copies by the interlayer edges.</p>
+<p>Runtime, with the default 200 iterations on two CPU threads: about 2.5 s for 1,000 nodes,
+20 s for 10,000 and 110 s for 50,000 (LFR benchmark graphs, average degree 15). Time grows
+about linearly with nodes, edges and iterations; large networks are best laid out on a GPU.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>dimensions</strong> – 2 (<code class="docutils literal notranslate"><span class="pre">pos_x</span></code>, <code class="docutils literal notranslate"><span class="pre">pos_y</span></code>) or 3 (also <code class="docutils literal notranslate"><span class="pre">pos_z</span></code>).</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute: edges with larger weights pull harder (weights
+are rescaled to mean 1), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>iterations</strong> – Number of steps after the initial layout.</p></li>
+<li><p><strong>clustering</strong> – Between 0 and 1: how strongly densely connected groups are kept together
+and apart from the rest (see above).</p></li>
+<li><p><strong>edge_length</strong> – Mean length of the edges in the result.</p></li>
+<li><p><strong>seed</strong> – Seed of the random pivots and of the small initial perturbation, for reproducible
+layouts.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the numeric node attributes <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code>
+(and <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_z</span></code>) where to store the positions, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to only return them.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar (see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
+global setting.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, and one column per dimension (named as the attributes, or <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">z</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> is not 2 or 3, <code class="docutils literal notranslate"><span class="pre">clustering</span></code> is not between 0 and 1,
+<code class="docutils literal notranslate"><span class="pre">iterations</span></code> is negative, or weights are negative or missing.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>    <span class="c1"># also node attributes pos_x, pos_y</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pos</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">pos</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">b</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+   <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">pos_x</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">pos_x</span><span class="p">],</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">pos_y</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">pos_y</span><span class="p">],</span> <span class="n">color</span> <span class="o">=</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">zorder</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">pos_x</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">pos_y</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">zorder</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+<span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">clustering</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>    <span class="c1"># communities further apart</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;pos3d&quot;</span><span class="p">)</span>   <span class="c1"># pos3d_x, pos3d_y, pos3d_z</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="grid-layouts">
+<h2>Grid layouts<a class="headerlink" href="#grid-layouts" title="Link to this heading"></a></h2>
+<p>Grid layouts put the nodes on the cells of a regular grid. They work as circular layouts do, in
+two dimensions: hierarchical groups become blocks of blocks, groups sharing many edges are side
+by side, and inside each block nodes linked to other blocks sit on the border facing them, the
+others in the middle (or a numeric attribute fills the block in reading order).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">])</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.grid_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">grid_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.grid_layout" title="Link to this definition"></a></dt>
+<dd><p>Grid layout: the nodes of every component on the cells of a regular grid, in rectangular
+blocks by group (hierarchical groups nest, as blocks of blocks), the counterpart of
+<a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a> on a grid.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">groups</span></code>: one node attribute or a list of them, by decreasing importance; their distinct
+values are the groups (qualitative or numeric). Every group of the last attribute is a block
+of about square shape (<code class="docutils literal notranslate"><span class="pre">ceil(sqrt(n))</span></code> columns); the blocks of a group of the attribute
+above are packed in rows of about the width of a square holding them, the rows snaking left
+to right and right to left so that consecutive blocks stay side by side; and so on up to the
+whole component. Empty cells (<code class="docutils literal notranslate"><span class="pre">gap</span></code> times the number of levels below the one that
+changes) separate the blocks: wider gaps between the blocks of the first attribute.</p></li>
+<li><p>The order of the blocks follows the arrangement of <a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a> (<code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span>
+<span class="pre">True</span></code>): groups with many edges between them are consecutive, and so side by side, and groups
+with many edges to the previous (next) block of their parent’s level come first (last), along
+the line of the snaking rows instead of around a circle. With <code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span> <span class="pre">False</span></code>, blocks
+follow the sorted order of the values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">order</span></code>: a numeric node attribute filling every block row by row (reading order) by
+increasing value, missing values last.</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">order</span></code>, nodes are placed in their block by their edges to other blocks: each node
+is pulled from the center of its block towards the centers of the blocks of its neighbors in
+other groups (weighted by the edges), as far as the rank of its number of such edges in its
+block, then nodes are snapped to the cells (sorted into columns by their target column, then
+within columns by their target row). Nodes without edges to other groups fill the middle of
+the block, those with many fill its borders, on the side of the blocks they are linked to.</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code>, every component is one block and nodes are snapped from
+their position in the Laplacian eigenmap of the component
+(<a class="reference internal" href="gnn.html#graphoskop.laplacian_eigenmaps" title="graphoskop.laplacian_eigenmaps"><code class="xref py py-func docutils literal notranslate"><span class="pre">laplacian_eigenmaps()</span></code></a>, 2 dimensions), so that neighbors are close; the
+embedding is turned (in steps of 5 degrees) to the angle giving the shortest edges on the
+grid (a lattice network comes back as a lattice).</p></li>
+</ul>
+<p>Columns and rows are <code class="docutils literal notranslate"><span class="pre">spacing</span></code> apart; rows go downwards. Components get their own grids,
+packed in rows, largest first (as in <a class="reference internal" href="#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>). Directed networks are
+treated as undirected.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>groups</strong> – Name of a node attribute, or list of names in order of importance, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>order</strong> – Name of a numeric node attribute sorting the nodes in their blocks, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute weighting the edges in the arrangement of the
+blocks and the placement of the nodes, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>spacing</strong> – Distance between consecutive columns and rows.</p></li>
+<li><p><strong>gap</strong> – Empty cells between blocks, per level of groups below the level that changes; 0
+for none.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the numeric node attributes <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code>
+where to store the positions, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to only return them.</p></li>
+<li><p><strong>arrange</strong> – Whether to arrange the blocks by their edges (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or in sorted order of
+the group values (<code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, and the columns <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code> (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> with
+<code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If an attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">order</span></code> is not a numeric node attribute.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                  <span class="c1"># neighbors close on the grid</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">])</span>             <span class="c1"># blocks of blocks</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">grid_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;age&quot;</span><span class="p">)</span>      <span class="c1"># blocks filled by age</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="hierarchical-layouts">
+<h2>Hierarchical layouts<a class="headerlink" href="#hierarchical-layouts" title="Link to this heading"></a></h2>
+<p>Hierarchical (layered) layouts draw directed acyclic networks with all edges pointing down, trees
+from their root, and any network in layers given by a node attribute, with few edge crossings
+and parents above the middle of their children. Radial layouts put the layers on concentric
+circles instead, the root at the center, each subtree in its own wedge.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;citations.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                   <span class="c1"># edges point down</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="s2">&quot;year&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;right&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;tree.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;ceo&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;radial&quot;</span><span class="p">)</span>   <span class="c1"># inside out</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.hierarchical_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">hierarchical_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'down'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.hierarchical_layout" title="Link to this definition"></a></dt>
+<dd><p>Hierarchical (layered) layout, in the style of Sugiyama, Tagawa and Toda (1981): nodes in
+horizontal layers, edges going from one layer to the next, few edge crossings, and every node
+near the middle of its neighbors.</p>
+<ol class="arabic simple">
+<li><p>Layers. With <code class="docutils literal notranslate"><span class="pre">levels</span></code>, the distinct values of a numeric node attribute, in increasing
+order (for instance a year, or a rank from <a class="reference internal" href="hierarchy.html#graphoskop.agony_hierarchy" title="graphoskop.agony_hierarchy"><code class="xref py py-func docutils literal notranslate"><span class="pre">agony_hierarchy()</span></code></a>); missing
+values make the last layer. Otherwise, in directed networks, every node goes one layer
+below its lowest predecessor (longest path from the sources), so that all edges point
+down; in networks with cycles, the edges that close a cycle in a depth-first search from
+the sources point up instead (as in Graphviz’s <code class="docutils literal notranslate"><span class="pre">dot</span></code>). In undirected
+networks, the layer is the distance from a root: the node given in <code class="docutils literal notranslate"><span class="pre">root</span></code> for its
+component, or the node with most neighbors (trees drawn from their hub).</p></li>
+<li><p>Order in the layers, to reduce crossings: layer after layer, alternately downwards and
+upwards, the nodes of a layer are sorted by the mean position of their neighbors in the
+layers above (below) (barycenter heuristic, 25 passes, the last downwards). Edges spanning several layers count
+with the position of their other end, edges inside a layer are not used.</p></li>
+<li><p>Positions in the layers: every node is pulled to the mean position of its neighbors in the
+layers below (nodes without any, such as leaves, to those above), keeping the order and at
+least <code class="docutils literal notranslate"><span class="pre">spacing</span></code> between consecutive nodes (an isotonic regression per layer, 30 rounds),
+so that parents sit above the middle of their children, as in tidy tree drawings.</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">direction</span> <span class="pre">=</span> <span class="pre">&quot;radial&quot;</span></code>, layers become concentric circles, from the inside out, as the
+radial tree drawings of Eades (1992): in a spanning tree (the parent of a node is its
+neighbor in the closest layer above, the nearest in position), every node gets a wedge of
+the circle proportional to the number of leaves below it, its children splitting the wedge
+in their order in the layers (clockwise from the top), and sits in the middle of its wedge;
+so every leaf has its own angle, whatever its depth, and parents sit at the middle angle of
+their children. Children fan out at most 45 degrees from their parent (their wedges
+shrinking around it if needed), since edges spanning wider angles would bend back inside
+the circle of the parent and cross other edges. A first layer of one node (a root) is at
+the center; every circle is
+<code class="docutils literal notranslate"><span class="pre">layer_spacing</span></code> beyond the previous one, or farther where consecutive nodes on it would
+otherwise be closer than <code class="docutils literal notranslate"><span class="pre">spacing</span></code> (inner circles then grow in proportion, so that radii
+rise evenly). Radial layouts suit trees and hierarchies; edges outside the spanning tree,
+as in networks with many paths between layers, become chords.</p></li>
+</ol>
+<p>Each component is laid out on its own and the components are packed in rows, largest first
+(as in <a class="reference internal" href="#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>levels</strong> – Name of a numeric node attribute giving the layers, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>root</strong> – Without <code class="docutils literal notranslate"><span class="pre">levels</span></code>, in undirected networks: the node id (or a list of ids, one
+per component) at the top; <code class="docutils literal notranslate"><span class="pre">None</span></code> for the node with most neighbors of each component.</p></li>
+<li><p><strong>direction</strong> – Where the layers go: <code class="docutils literal notranslate"><span class="pre">&quot;down&quot;</span></code> (first layer at the top), <code class="docutils literal notranslate"><span class="pre">&quot;up&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;right&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;left&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;radial&quot;</span></code> (first layer at the center, the others on
+concentric circles around it).</p></li>
+<li><p><strong>spacing</strong> – Smallest distance between nodes of a layer.</p></li>
+<li><p><strong>layer_spacing</strong> – Distance between consecutive layers.</p></li>
+<li><p><strong>attribute</strong> – Prefix of the numeric node attributes <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code>
+where to store the positions, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to only return them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, and the columns <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_x</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;attribute&gt;_y</span></code> (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> with
+<code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">levels</span></code> or a root does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">direction</span></code> is unknown.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;citations.tsv&quot;</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                        <span class="c1"># edges point down</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="s2">&quot;year&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;right&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;tree.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;ceo&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">root</span> <span class="o">=</span> <span class="s2">&quot;ceo&quot;</span><span class="p">,</span> <span class="n">direction</span> <span class="o">=</span> <span class="s2">&quot;radial&quot;</span><span class="p">)</span>   <span class="c1"># root at the center</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="matrix-layouts">
+<h2>Matrix layouts<a class="headerlink" href="#matrix-layouts" title="Link to this heading"></a></h2>
+<p>Matrix layouts order the rows and columns of the adjacency matrix, to draw it as a matrix (heat
+map): one order for square matrices, independent orders for the rows and columns of bipartite
+networks. Groups become blocks, and the network’s structure places similar rows and columns next
+to each other; sorting by degree draws nested networks as triangles.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">matrix_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)</span>                  <span class="c1"># communities as blocks on the diagonal</span>
+<span class="n">bip</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;plants_pollinators.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;species.tsv&quot;</span><span class="p">,</span> <span class="n">bipartite</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">matrix_layout</span><span class="p">(</span><span class="n">bip</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">column_order</span> <span class="o">=</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">descending</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.matrix_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">matrix_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descending</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'matrix'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.matrix_layout" title="Link to this definition"></a></dt>
+<dd><p>Order of the rows and columns of the adjacency matrix, to draw it (a matrix, or heat map,
+visualization): the counterpart of <a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a> along a line, with the network’s
+own structure, groups and numeric attributes placing similar rows and columns next to each
+other.</p>
+<p><strong>Square matrices</strong> (one-mode networks): rows and columns follow the same order. With
+<code class="docutils literal notranslate"><span class="pre">groups</span></code> (one node attribute or a list, by decreasing importance), the nodes of every group
+are consecutive, inside the range of their parent group, and groups are arranged as the
+sectors of <a class="reference internal" href="#graphoskop.circular_layout" title="graphoskop.circular_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">circular_layout()</span></code></a>, along a line instead of a circle: groups with many edges
+between them are close (the sum of their edges times their distance is minimized), and groups
+with many edges to the previous (next) group of the level above come first (last); with
+<code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span> <span class="pre">False</span></code>, groups follow the sorted order of their values. Inside the finest groups,
+nodes are sorted by <code class="docutils literal notranslate"><span class="pre">order</span></code>, or else by their edges to the previous and next group, from
+those with edges mostly to the previous one to those with edges mostly to the next one. Without
+<code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code>, nodes are sorted by the Fiedler vector of their component (the
+second eigenvector of the normalized Laplacian: spectral seriation), which puts densely
+connected nodes next to each other: communities become blocks on the diagonal, clearly when
+there are few of them (with many, give them as <code class="docutils literal notranslate"><span class="pre">groups</span></code>, from any community detection).</p>
+<p><strong>Rectangular matrices</strong> (bipartite networks): rows are the nodes of the first type, columns
+those of the second, and each axis has its own groups and order (<code class="docutils literal notranslate"><span class="pre">groups</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code> for
+the rows, <code class="docutils literal notranslate"><span class="pre">column_groups</span></code> and <code class="docutils literal notranslate"><span class="pre">column_order</span></code> for the columns, each a mix of qualitative
+and numeric attributes as above). Rows have no edges between them, so they are placed by
+the columns they are linked to, and columns by their rows: starting from the spectral
+co-clustering order (the Fiedler vector of the bipartite network, Dhillon 2001), each row
+moves to the mean position of its columns and each column to the mean position of its rows,
+alternately, 20 times (the barycenter method of two-layer drawings), groups moving as wholes
+(by the mean of their members, inside their parent group; with <code class="docutils literal notranslate"><span class="pre">arrange</span> <span class="pre">=</span> <span class="pre">False</span></code> in the
+order of their values) and nodes with an <code class="docutils literal notranslate"><span class="pre">order</span></code> sorted by it inside their finest group.
+Dense blocks gather near the diagonal.</p>
+<p><code class="docutils literal notranslate"><span class="pre">order</span> <span class="pre">=</span> <span class="pre">&quot;degree&quot;</span></code> sorts by the sums of the rows (columns), the weighted degree with
+<code class="docutils literal notranslate"><span class="pre">weight</span></code> (in directed networks, in and out edges together); with <code class="docutils literal notranslate"><span class="pre">descending</span> <span class="pre">=</span> <span class="pre">True</span></code>,
+the fullest rows come first, so <code class="docutils literal notranslate"><span class="pre">matrix_layout(net,</span> <span class="pre">order</span> <span class="pre">=</span> <span class="pre">&quot;degree&quot;,</span> <span class="pre">column_order</span> <span class="pre">=</span>
+<span class="pre">&quot;degree&quot;,</span> <span class="pre">descending</span> <span class="pre">=</span> <span class="pre">True)</span></code> draws a nested bipartite network as an upper triangular
+matrix (see <a class="reference internal" href="core_periphery.html#graphoskop.nestedness" title="graphoskop.nestedness"><code class="xref py py-func docutils literal notranslate"><span class="pre">nestedness()</span></code></a>).</p>
+<p>Components follow each other along the diagonal, largest first. The positions are stored as
+one numeric node attribute: the row of a node, which in square matrices is also its column; in
+bipartite networks the row of a node of the first type and the column of a node of the second.</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>groups</strong> – Name of a node attribute, or list of names in order of importance, grouping
+the rows (and columns of square matrices), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>order</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code>, or the name of a numeric node attribute, sorting the rows (and
+columns of square matrices) inside their finest groups, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>column_groups</strong> – As <code class="docutils literal notranslate"><span class="pre">groups</span></code>, for the columns of a bipartite network.</p></li>
+<li><p><strong>column_order</strong> – As <code class="docutils literal notranslate"><span class="pre">order</span></code>, for the columns of a bipartite network.</p></li>
+<li><p><strong>weight</strong> – Name of a numeric edge attribute weighting the edges (in the arrangements, the
+barycenters and <code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>descending</strong> – Whether orders go from the largest value to the smallest.</p></li>
+<li><p><strong>gap</strong> – Empty rows (columns) between groups, per level of groups below the level that
+changes (components count as one more level); 0 for none.</p></li>
+<li><p><strong>attribute</strong> – Name of the numeric node attribute where to store the positions, or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+to only return them.</p></li>
+<li><p><strong>arrange</strong> – Whether to arrange groups by their edges (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or in sorted order of their
+values (<code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, with the column <code class="docutils literal notranslate"><span class="pre">attribute</span></code> (<code class="docutils literal notranslate"><span class="pre">index</span></code> with <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">None</span></code>), the
+position of the node, and, in bipartite networks, the column <code class="docutils literal notranslate"><span class="pre">axis</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;row&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;column&quot;</span></code>).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If an attribute does not exist.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">order</span></code> is neither <code class="docutils literal notranslate"><span class="pre">&quot;degree&quot;</span></code> nor a numeric node attribute, or
+column criteria are given for a network that is not bipartite.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+<span class="n">pos</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">matrix_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;community&quot;</span><span class="p">)[</span><span class="s2">&quot;matrix&quot;</span><span class="p">]</span>     <span class="c1"># communities as diagonal blocks</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="p">[(</span><span class="n">pos</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="n">b</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">],</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">],</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+
+<span class="n">gsk</span><span class="o">.</span><span class="n">matrix_layout</span><span class="p">(</span><span class="n">bip</span><span class="p">,</span> <span class="n">order</span> <span class="o">=</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">column_order</span> <span class="o">=</span> <span class="s2">&quot;degree&quot;</span><span class="p">,</span> <span class="n">descending</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>   <span class="c1"># nested</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">matrix_layout</span><span class="p">(</span><span class="n">bip</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="n">column_groups</span> <span class="o">=</span> <span class="s2">&quot;sector&quot;</span><span class="p">,</span> <span class="n">column_order</span> <span class="o">=</span> <span class="s2">&quot;size&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="transforming-layouts">
+<h2>Transforming layouts<a class="headerlink" href="#transforming-layouts" title="Link to this heading"></a></h2>
+<p>Positions computed by any layout can be mirrored, rotated and zoomed (along both axes or one of
+them) around the center of the drawing, either in the node attributes of the network or in the
+table a layout function returned. Nodes drawn as disks of a given size can be moved apart until
+none overlap, keeping the arrangement of the layout.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>              <span class="c1"># positions in pos_x, pos_y</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">mirror_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>               <span class="c1"># root at the bottom</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">rotate_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">)</span>               <span class="c1"># clockwise: root on the left</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">scale_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>    <span class="c1"># half as tall</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">remove_overlaps</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>             <span class="c1"># disks of diameter 0.3 do not overlap</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.mirror_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">mirror_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.mirror_layout" title="Link to this definition"></a></dt>
+<dd><p>Mirror a layout: flip its <code class="docutils literal notranslate"><span class="pre">axis</span></code> coordinates around the center of the layout (the middle of
+its bounding box), so that the drawing stays in place; <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> swaps left and right, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> top
+and bottom.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with positions in node attributes (changed in
+place), or a table of positions as returned by the layout functions (a new table is
+returned).</p></li>
+<li><p><strong>axis</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code> (3-d layouts) or <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code> (all axes: a rotation by 180
+degrees in two dimensions).</p></li>
+<li><p><strong>attribute</strong> – With a network, the prefix of the position attributes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the new positions, as the layout functions return.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the network has no positions with that prefix.</p></li>
+<li><p><strong>ValueError</strong> – If the axis is unknown.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">hierarchical_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">mirror_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>             <span class="c1"># root at the bottom</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">rotate_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>              <span class="c1"># root on the left</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">scale_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>    <span class="c1"># twice as wide</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.remove_overlaps">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">remove_overlaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.remove_overlaps" title="Link to this definition"></a></dt>
+<dd><p>Remove the overlaps between nodes drawn as disks (spheres in three dimensions), moving them as
+little as possible and keeping their relative positions, with the proximity stress model PRISM
+(Gansner and Hu, 2010).</p>
+<p>Pushing overlapping nodes apart creates new overlaps with their neighbors, and pushing those
+in turn spreads distortions; PRISM moves all nodes at once instead, keeping the layout’s
+structure. The neighbors of every node are the edges of the Delaunay triangulation of the
+positions (the proximity graph): every proximity edge whose two disks overlap gets a desired
+length longer than its current one by the factor that would remove the overlap (at most 1.5
+at a time), every other edge its current length, and the layout is moved to the positions
+that best fit these lengths (stress majorization: least squares on the relative positions,
+weighted by the inverse squared lengths, solved by conjugate gradients). So nodes move apart
+where they overlap and their surroundings follow, with distances and orientations between
+neighbors kept as far as possible. The triangulation is recomputed and the steps repeated
+until no proximity edge overlaps; then pairs that still overlap without being neighbors in the
+triangulation are added to the proximity graph until no two disks overlap. Overlapping edges
+aim 5% beyond the overlap, which avoids a long tail of ever smaller pushes. The center of the
+layout does not move.</p>
+<p>The result is not the layout with the smallest total displacement, which would let overlapping
+groups squeeze through each other, but the one that removes overlaps with the least distortion
+of the arrangement (no node jumps across another). Nodes at the same position are first set
+apart by a tiny random offset (fixed seed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with positions in node attributes (changed in
+place), or a table of positions as returned by the layout functions (a new table is
+returned).</p></li>
+<li><p><strong>size</strong> – Diameter of the nodes, in layout units: a number for all nodes, the name of a
+numeric node attribute (with a network), or one value per node (an array or a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> indexed by node id).</p></li>
+<li><p><strong>margin</strong> – Smallest empty space left between two nodes.</p></li>
+<li><p><strong>attribute</strong> – With a network, the prefix of the position attributes.</p></li>
+<li><p><strong>max_iter</strong> – Most rounds of triangulation and stress majorization; a warning says if
+overlaps remain after them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the new positions, as the layout functions return.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the network has no positions with that prefix, or no such size attribute.</p></li>
+<li><p><strong>ValueError</strong> – If sizes are negative or missing.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">force_directed_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">remove_overlaps</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>                    <span class="c1"># disks of diameter 0.5 (edges ~1 long)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">remove_overlaps</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;degree_size&quot;</span><span class="p">,</span> <span class="n">margin</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.rotate_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">rotate_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.rotate_layout" title="Link to this definition"></a></dt>
+<dd><p>Rotate a layout counterclockwise by <code class="docutils literal notranslate"><span class="pre">degrees</span></code> around the center of the layout (the middle of
+its bounding box). In two dimensions the rotation is in the plane; in three, around the
+<code class="docutils literal notranslate"><span class="pre">axis</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>: in the x-y plane, as seen from above).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with positions in node attributes (changed in
+place), or a table of positions as returned by the layout functions (a new table is
+returned).</p></li>
+<li><p><strong>degrees</strong> – Angle of the rotation, counterclockwise; negative for clockwise.</p></li>
+<li><p><strong>axis</strong> – Axis of the rotation in three dimensions: <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>.</p></li>
+<li><p><strong>attribute</strong> – With a network, the prefix of the position attributes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the new positions, as the layout functions return.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the network has no positions with that prefix.</p></li>
+<li><p><strong>ValueError</strong> – If the axis is unknown.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.scale_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">scale_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.scale_layout" title="Link to this definition"></a></dt>
+<dd><p>Zoom a layout in (<code class="docutils literal notranslate"><span class="pre">factor</span></code> above 1) or out (below 1) around its center (the middle of its
+bounding box), along all axes or only one, which stretches or squeezes the drawing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> with positions in node attributes (changed in
+place), or a table of positions as returned by the layout functions (a new table is
+returned).</p></li>
+<li><p><strong>factor</strong> – Positive scale factor.</p></li>
+<li><p><strong>axis</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;both&quot;</span></code> (all axes), <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code> (3-d layouts).</p></li>
+<li><p><strong>attribute</strong> – With a network, the prefix of the position attributes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of the new positions, as the layout functions return.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>KeyError</strong> – If the network has no positions with that prefix.</p></li>
+<li><p><strong>ValueError</strong> – If the axis is unknown or the factor is not positive.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="umap">
+<h2>UMAP<a class="headerlink" href="#umap" title="Link to this heading"></a></h2>
+<p>UMAP lays out nodes so that those with similar vectors end up close. The vectors can be numeric
+node attributes, node embeddings computed on the fly, or the rows of the adjacency matrix, in
+which case the edges of the network are the neighbor graph that UMAP keeps, and the result is a
+force-directed layout with UMAP’s forces. graphoskop has its own implementation, in PyTorch, so
+it runs on the device of the network and adds no dependency; its neighbor graph matches the one of
+the <code class="docutils literal notranslate"><span class="pre">umap-learn</span></code> package to float precision, and its layouts score as well on trustworthiness
+and on nearest neighbor classification of known groups (handwritten digits, Gaussian blobs).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">lfr_benchmark_graph</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">minc</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">maxc</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>                               <span class="c1"># adjacency matrix</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">node2vec</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;emb&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;emb&quot;</span><span class="p">,</span> <span class="n">metric</span> <span class="o">=</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;pos_n2v&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To follow a network over time, pass the layout of the previous snapshot as <code class="docutils literal notranslate"><span class="pre">initial</span></code>: nodes
+that were already there start at their old positions and are held near them (more firmly with a
+larger <code class="docutils literal notranslate"><span class="pre">alignment</span></code>), new nodes start next to their neighbors, and the layout changes only as much
+as the new edges and nodes require (aligned UMAP).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pos_2024</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges_2024.tsv&quot;</span><span class="p">),</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">net_2025</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges_2025.tsv&quot;</span><span class="p">)</span>
+<span class="n">pos_2025</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net_2025</span><span class="p">,</span> <span class="n">initial</span> <span class="o">=</span> <span class="n">pos_2024</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.umap_layout">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">umap_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_neighbors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'euclidean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pos'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alignment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.umap_layout" title="Link to this definition"></a></dt>
+<dd><p>Layout by UMAP (uniform manifold approximation and projection, McInnes, Healy and Melville,
+2018): nodes with similar vectors end up close, and groups of similar nodes form separate
+clusters. The vectors can be numeric node attributes, node embeddings learned from the
+network, or the network itself:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">attributes</span></code> given: the vectors are those node attributes (for instance an embedding
+already stored with <code class="docutils literal notranslate"><span class="pre">attribute</span> <span class="pre">=</span> <span class="pre">&quot;emb&quot;</span></code> by <a class="reference internal" href="gnn.html#graphoskop.node2vec" title="graphoskop.node2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">node2vec()</span></code></a>, or any numeric
+node attributes);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">embedding</span></code> given: the vectors are computed first, by a node embedding function of
+graphoskop given by name (<code class="docutils literal notranslate"><span class="pre">&quot;node2vec&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;laplacian_eigenmaps&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;gae&quot;</span></code>, …: called
+with its defaults and <code class="docutils literal notranslate"><span class="pre">seed</span></code>) or by any function taking the network and returning one row
+per node (a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, array or tensor), for instance
+<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">net:</span> <span class="pre">gsk.node2vec(net,</span> <span class="pre">dimensions</span> <span class="pre">=</span> <span class="pre">32,</span> <span class="pre">q</span> <span class="pre">=</span> <span class="pre">2)</span></code>;</p></li>
+<li><p>neither: UMAP runs on the adjacency matrix itself, taking the edges of the network as its
+neighbor graph (memberships proportional to <code class="docutils literal notranslate"><span class="pre">weight</span></code>, the largest being 1), which makes it a
+force-directed layout with UMAP’s attraction and repulsion.</p></li>
+</ul>
+<p>With vectors, the neighbor graph links every node to its <code class="docutils literal notranslate"><span class="pre">n_neighbors</span> <span class="pre">-</span> <span class="pre">1</span></code> nearest nodes
+(the node itself counts as a neighbor, as in <code class="docutils literal notranslate"><span class="pre">umap-learn</span></code>; exact search, in chunks, on the
+device of the network: quadratic in the number of nodes),
+with memberships <span class="math notranslate nohighlight">\(\exp(-(d - \rho) / \sigma)\)</span>, where <span class="math notranslate nohighlight">\(\rho\)</span> is the distance to the
+nearest neighbor and <span class="math notranslate nohighlight">\(\sigma\)</span> makes the memberships of each node sum to
+<span class="math notranslate nohighlight">\(\log_2\)</span> <code class="docutils literal notranslate"><span class="pre">n_neighbors</span></code>; the two directions of a pair are merged by the fuzzy union
+<span class="math notranslate nohighlight">\(w_{uv} + w_{vu} - w_{uv} w_{vu}\)</span>.</p>
+<p>The layout starts from pivot multidimensional scaling of each connected component of the
+neighbor graph, the components packed side by side (as in <a class="reference internal" href="#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>),
+then follows UMAP’s optimization: in every epoch each edge is sampled with probability equal to
+its membership and pulls its ends together with the gradient of
+<span class="math notranslate nohighlight">\(\log(1 + a d^{2b})\)</span>, and each sampled edge pushes its first end away from 5 random
+nodes; <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are fit so that similarity in the layout is about 1 up to
+<code class="docutils literal notranslate"><span class="pre">min_dist</span></code> and decays exponentially beyond. All the moves of an epoch are applied at once,
+as GPU implementations do (the reference implementation moves nodes one edge at a time), so
+results agree with the <code class="docutils literal notranslate"><span class="pre">umap-learn</span></code> package in quality, not point by point. The total move
+of a node in an epoch is clipped as a single move is (4 per coordinate, times the learning
+rate): otherwise the thousands of moves of a hub, summed, could throw it far from the rest,
+where UMAP’s attraction, which weakens with distance, cannot bring it back.</p>
+<p><strong>Aligned layouts</strong> (<code class="docutils literal notranslate"><span class="pre">initial</span></code>): to follow a network that changes over time, give the
+positions of the previous snapshot, as in aligned UMAP. Nodes that have one start there and,
+at every epoch, are pulled back towards it by <code class="docutils literal notranslate"><span class="pre">alignment</span></code> times their distance from it (times
+the learning rate), so they move only as much as the new edges and nodes require; new nodes
+start at the mean of their neighbors that have a position (spreading one hop per round, with
+a small random offset), and parts of the network with no such node start beside the old
+layout. On a 2,000-node network with 10% of its edges rewired and 300 new nodes, old nodes moved
+by a median 33% of the width of the layout when laid out again from scratch, 16% with
+<code class="docutils literal notranslate"><span class="pre">alignment</span> <span class="pre">=</span> <span class="pre">0.01</span></code>, 5.5% with 0.1 and 2% with 1, groups staying as compact. Previous
+positions should be in the scale of UMAP layouts (as given by this function).</p>
+<p>Unlike <a class="reference internal" href="#graphoskop.force_directed_layout" title="graphoskop.force_directed_layout"><code class="xref py py-func docutils literal notranslate"><span class="pre">force_directed_layout()</span></code></a>, distances between clusters carry little meaning (groups
+with few edges to the rest can drift far from it), and positions are left as UMAP produces
+them (no rescaling or packing at the end).</p>
+<p>Hypergraphs and simplicial complexes: not supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="network.html#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p></li>
+<li><p><strong>attributes</strong> – Names of numeric node attributes, or a prefix <code class="docutils literal notranslate"><span class="pre">p</span></code> selecting the attribute
+<code class="docutils literal notranslate"><span class="pre">p</span></code> or the attributes <code class="docutils literal notranslate"><span class="pre">p_0</span></code>, <code class="docutils literal notranslate"><span class="pre">p_1</span></code>, … (as stored by the embedding functions); <code class="docutils literal notranslate"><span class="pre">None</span></code>
+to use <code class="docutils literal notranslate"><span class="pre">embedding</span></code> or the adjacency matrix.</p></li>
+<li><p><strong>embedding</strong> – Name of a node embedding function of graphoskop, or a function of the
+network returning one vector per node in the network wide node order; ignored if
+<code class="docutils literal notranslate"><span class="pre">attributes</span></code> is given.</p></li>
+<li><p><strong>dimensions</strong> – 2 (<code class="docutils literal notranslate"><span class="pre">pos_x</span></code>, <code class="docutils literal notranslate"><span class="pre">pos_y</span></code>) or 3 (also <code class="docutils literal notranslate"><span class="pre">pos_z</span></code>).</p></li>
+<li><p><strong>n_neighbors</strong> – Number of neighbors of every node in the neighbor graph of the vectors:
+smaller values keep finer local structure, larger ones more of the global structure.</p></li>
+<li><p><strong>min_dist</strong> – Smallest distance between nodes in the layout, roughly: smaller values pack
+clusters tighter.</p></li>
+<li><p><strong>metric</strong> – Distance between vectors, <code class="docutils literal notranslate"><span class="pre">&quot;euclidean&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cosine&quot;</span></code>.</p></li>
+<li><p><strong>weight</strong> – Without vectors, name of a numeric edge attribute giving the strength of the
+edges, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>epochs</strong> – Number of epochs; <code class="docutils literal notranslate"><span class="pre">None</span></code> is 500 for networks up to 10,000 nodes, 200 above
+(as <code class="docutils literal notranslate"><span class="pre">umap-learn</span></code>).</p></li>
+<li><p><strong>seed</strong> – Seed of the pivots, of the edge sampling and of the negative samples (and of the
+embedding function).</p></li>
+<li><p><strong>attribute</strong> – Prefix of the numeric node attributes where to store the positions, or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> to only return them.</p></li>
+<li><p><strong>progress</strong> – Whether to show a progress bar (see <a class="reference internal" href="progress.html"><span class="doc">Progress bars</span></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> uses the
+global setting.</p></li>
+<li><p><strong>initial</strong> – Previous positions: the prefix of numeric node attributes <code class="docutils literal notranslate"><span class="pre">&lt;initial&gt;_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&lt;initial&gt;_y</span></code> (and <code class="docutils literal notranslate"><span class="pre">&lt;initial&gt;_z</span></code>; missing values for nodes without one), or a table
+indexed by node id with one column per dimension (such as the output of this function on the
+previous snapshot; ids not in the network are ignored); <code class="docutils literal notranslate"><span class="pre">None</span></code> for a new layout.</p></li>
+<li><p><strong>alignment</strong> – With <code class="docutils literal notranslate"><span class="pre">initial</span></code>, how strongly nodes are held at their previous positions:
+0 only starts them there, larger values move them less.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with one row per node, indexed by node id, in the network
+wide node order, and one column per dimension.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">dimensions</span></code> is not 2 or 3, the vectors do not have one row per node
+or have missing values, the metric is unknown, or <code class="docutils literal notranslate"><span class="pre">initial</span></code> does not have one column per
+dimension.</p></li>
+<li><p><strong>KeyError</strong> – If an attribute does not exist.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                                   <span class="c1"># UMAP of the adjacency matrix</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">embedding</span> <span class="o">=</span> <span class="s2">&quot;node2vec&quot;</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># UMAP of node2vec vectors</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">node2vec</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;emb&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;emb&quot;</span><span class="p">,</span> <span class="n">metric</span> <span class="o">=</span> <span class="s2">&quot;cosine&quot;</span><span class="p">)</span>         <span class="c1"># stored vectors emb_0 ... emb_63</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="s2">&quot;income&quot;</span><span class="p">],</span> <span class="n">attribute</span> <span class="o">=</span> <span class="s2">&quot;pos_attr&quot;</span><span class="p">)</span>
+
+<span class="n">pos</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges_2024.tsv&quot;</span><span class="p">),</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges_2025.tsv&quot;</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">umap_layout</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">initial</span> <span class="o">=</span> <span class="n">pos</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>          <span class="c1"># aligned with the 2024 layout</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="laplacians.html" class="btn btn-neutral float-left" title="Laplacians" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="link_prediction.html" class="btn btn-neutral float-right" title="Link prediction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

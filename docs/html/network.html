@@ -16,6 +16,7 @@
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -47,13 +48,17 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Networks and their attributes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.load_network"><code class="docutils literal notranslate"><span class="pre">load_network()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.save_network"><code class="docutils literal notranslate"><span class="pre">save_network()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.load_matrix"><code class="docutils literal notranslate"><span class="pre">load_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#graphoskop.save_matrix"><code class="docutils literal notranslate"><span class="pre">save_matrix()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.load_pickled_network"><code class="docutils literal notranslate"><span class="pre">load_pickled_network()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.Network"><code class="docutils literal notranslate"><span class="pre">Network</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.interlayer_mask"><code class="docutils literal notranslate"><span class="pre">Network.interlayer_mask()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.get_node_attribute"><code class="docutils literal notranslate"><span class="pre">Network.get_node_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.set_node_attribute"><code class="docutils literal notranslate"><span class="pre">Network.set_node_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.remove_node_attribute"><code class="docutils literal notranslate"><span class="pre">Network.remove_node_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.get_edge_attribute"><code class="docutils literal notranslate"><span class="pre">Network.get_edge_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.set_edge_attribute"><code class="docutils literal notranslate"><span class="pre">Network.set_edge_attribute()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.remove_edge_attribute"><code class="docutils literal notranslate"><span class="pre">Network.remove_edge_attribute()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.number_of_nodes"><code class="docutils literal notranslate"><span class="pre">Network.number_of_nodes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.number_of_edges"><code class="docutils literal notranslate"><span class="pre">Network.number_of_edges()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphoskop.Network.edges"><code class="docutils literal notranslate"><span class="pre">Network.edges()</span></code></a></li>
@@ -64,6 +69,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#graphoskop.BIPARTITE"><code class="docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#numeric-and-qualitative-node-attributes">Numeric and qualitative node attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#numeric-and-qualitative-edge-attributes">Numeric and qualitative edge attributes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#several-values-per-node-overlapping-communities">Several values per node: overlapping communities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bipartite-networks">Bipartite networks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#multilayer-networks">Multilayer networks</a></li>
@@ -77,20 +83,29 @@
 <li class="toctree-l1"><a class="reference internal" href="centrality.html">Centrality</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coloring.html">Coloring and independent sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="communities.html">Communities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_periphery.html">Core-periphery structure</a></li>
 <li class="toctree-l1"><a class="reference internal" href="epidemics.html">Epidemics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="equivalence.html">Equivalence</a></li>
 <li class="toctree-l1"><a class="reference internal" href="exploration.html">Exploration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ergm.html">Exponential random graph models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frequent_subgraphs.html">Frequent subgraph mining</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnn.html">Graph neural networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">Graphical interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hierarchy.html">Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="higher_order.html">Higher-order networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isomorphism.html">Isomorphism</a></li>
 <li class="toctree-l1"><a class="reference internal" href="laplacians.html">Laplacians</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layouts.html">Layouts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="link_prediction.html">Link prediction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multilayer.html">Multilayer networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="error_correction.html">Network error correction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="node_vector_analysis.html">Node vector analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Progress bars</a></li>
 <li class="toctree-l1"><a class="reference internal" href="robustness.html">Robustness</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shortest_paths.html">Shortest paths</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed.html">Signed networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synchronization.html">Synchronization</a></li>
 </ul>
 
         </div>
@@ -119,33 +134,48 @@
              
   <section id="module-graphoskop.network">
 <span id="networks-and-their-attributes"></span><h1>Networks and their attributes<a class="headerlink" href="#module-graphoskop.network" title="Link to this heading"></a></h1>
-<p>Network container, loading of networks from edge list and node attribute tables, conversion
-back to tables, and saving to disk.</p>
+<p>Network container, loading of networks from edge list and node attribute tables or from
+(bi)adjacency matrices, conversion back to tables and matrices, and saving to disk.</p>
 <p>Node attributes are either numeric or qualitative. Numeric attributes are stored in the
 <code class="docutils literal notranslate"><span class="pre">node_attr</span></code> tensor of each component, on the device of the network. Qualitative attributes
 (strings, categories, any non-numeric value) are stored once for the whole network in
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">Network.qualitative_node_attr</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that always stays in CPU
 memory, whatever the device.</p>
+<p>Edge attributes are numeric or qualitative too, and are stored the same way: numeric ones in the
+<code class="docutils literal notranslate"><span class="pre">edge_attr</span></code> tensor of each component, on the device of the network; qualitative ones once for
+the whole network in <code class="xref py py-attr docutils literal notranslate"><span class="pre">Network.qualitative_edge_attr</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of
+categorical columns that always stays in CPU memory, with one row per edge as given in input (an
+undirected edge once, although <code class="docutils literal notranslate"><span class="pre">edge_index</span></code> stores it in both directions).</p>
 <p>A network loaded with <code class="docutils literal notranslate"><span class="pre">bipartite</span> <span class="pre">=</span> <span class="pre">True</span></code> has two node types, given by the mandatory node
-attribute <code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code>, and no edge between two nodes of the same type.</p>
+attribute <code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code>, and no edge between two nodes of the same type. A network loaded from
+a rectangular matrix with <code class="xref py py-func docutils literal notranslate"><span class="pre">load_matrix()</span></code> is bipartite, with the types set from the rows and
+the columns.</p>
 <p>A network loaded with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code> is stored as its supra-graph: every node is a copy of
 an entity in one layer, with input id <code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code>, and intra-layer edges, couplings
 (interlayer edges between copies of the same entity) and other interlayer edges are all ordinary
 edges (see <a class="reference internal" href="multilayer.html"><span class="doc">Multilayer networks</span></a>).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.load_network">
-<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">load_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multilayer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interlayer_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.load_network" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">load_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multilayer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'layer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interlayer_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupling_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.load_network" title="Link to this definition"></a></dt>
 <dd><p>Load a network from an edge list and a node attribute table, given as files or as
 <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
 <p>Node ids can be arbitrary strings. Ids read from files are strings; ids in a DataFrame are kept
-as they are, so the edge and node tables must use the same type (e.g. both <code class="docutils literal notranslate"><span class="pre">int</span></code>). DataFrames
+as they are. If some tables have integer ids and others text ids (e.g. an edge file and a node
+DataFrame with integer ids), the integer ids are converted to text, so that <code class="docutils literal notranslate"><span class="pre">8593</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;8593&quot;</span></code> are the same node; other mismatches (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;8593.0&quot;</span></code>) are not fixed, and a
+warning says so when no node of the node table appears in the edge table. DataFrames
 are not modified, and their column names play the role of the header row. Nodes are split by
 weakly connected component and remapped to <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code>, with <code class="docutils literal notranslate"><span class="pre">index</span></code> from 0 to
 n - 1. Nodes appearing only in the node table become isolated components. In undirected
 networks every edge is stored in both directions (input edges first, then their reverses, self
 loops once), following the torch_geometric convention. Every component has an <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code>
-and a <code class="docutils literal notranslate"><span class="pre">node_attr</span></code> tensor, with zero columns when there are no such attributes. Only numeric
-edge attributes are stored.</p>
+and a <code class="docutils literal notranslate"><span class="pre">node_attr</span></code> tensor, with zero columns when there are no such attributes.</p>
+<p>Edge attributes whose column is numeric (or boolean) are numeric; the others (text, any value
+that is not a number) are qualitative. In files, the type of a column is decided on the whole
+column: a column with both numbers and text is qualitative, and all its values are text (<code class="docutils literal notranslate"><span class="pre">3</span></code>
+and <code class="docutils literal notranslate"><span class="pre">&quot;3&quot;</span></code> are the same value). Numeric ones are stored in <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code> on <code class="docutils literal notranslate"><span class="pre">device</span></code>,
+qualitative ones in <code class="xref py py-attr docutils literal notranslate"><span class="pre">Network.qualitative_edge_attr</span></code>, always in CPU memory, as for node
+attributes.</p>
 <p>Node attributes whose values are all numbers (or booleans) are numeric, and are stored in
 <code class="docutils literal notranslate"><span class="pre">node_attr</span></code> on <code class="docutils literal notranslate"><span class="pre">device</span></code>. The others are qualitative, and are stored in
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">Network.qualitative_node_attr</span></code>, always in CPU memory. In long format, this is decided
@@ -219,6 +249,10 @@ stay in CPU memory.</p></li>
 <li><p><strong>coupling_weight</strong> – Value of every edge attribute of the generated couplings: a positive
 number, or an <code class="docutils literal notranslate"><span class="pre">L</span></code> by <code class="docutils literal notranslate"><span class="pre">L</span></code> matrix indexed by layer positions.</p></li>
 <li><p><strong>layers</strong> – Order of the layers, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for their sort order.</p></li>
+<li><p><strong>node_columns</strong> – Names or positions of the key columns of the node table, in this order:
+node id (wide), or node id, attribute name and value (long); in multilayer networks, entity
+and layer first. Other columns are attributes (wide) or ignored (long). <code class="docutils literal notranslate"><span class="pre">None</span></code> for the
+first columns of the table, in that order.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -258,6 +292,10 @@ without <code class="docutils literal notranslate"><span class="pre">multilayer<
 <span class="n">nodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">],</span> <span class="s2">&quot;attribute&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">34</span><span class="p">,</span> <span class="s2">&quot;Rome&quot;</span><span class="p">]})</span>
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;from&quot;</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="s2">&quot;to&quot;</span><span class="p">,</span> <span class="n">node_format</span> <span class="o">=</span> <span class="s2">&quot;long&quot;</span><span class="p">)</span>
 
+<span class="c1"># long table with its columns in another order, named</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span><span class="p">)</span>             <span class="c1"># columns: band, value, attribute</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">node_format</span> <span class="o">=</span> <span class="s2">&quot;long&quot;</span><span class="p">,</span> <span class="n">node_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;band&quot;</span><span class="p">,</span> <span class="s2">&quot;attribute&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">])</span>
+
 <span class="c1"># bipartite: users and the items they bought</span>
 <span class="n">edges</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">],</span> <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;i1&quot;</span><span class="p">,</span> <span class="s2">&quot;i2&quot;</span><span class="p">,</span> <span class="s2">&quot;i1&quot;</span><span class="p">]})</span>
 <span class="n">nodes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;u1&quot;</span><span class="p">,</span> <span class="s2">&quot;u2&quot;</span><span class="p">,</span> <span class="s2">&quot;i1&quot;</span><span class="p">,</span> <span class="s2">&quot;i2&quot;</span><span class="p">,</span> <span class="s2">&quot;i3&quot;</span><span class="p">],</span> <span class="s2">&quot;bipartite_type&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="s2">&quot;item&quot;</span><span class="p">]})</span>
@@ -296,6 +334,16 @@ wide format, numeric values absent from a long table are written as 0.</p>
 <p>A node with several values of an attribute (see <a class="reference internal" href="#overlapping-communities"><span class="std std-ref">Several values per node: overlapping communities</span></a>) gets one row per
 value in a long table, which loads back as several values. A wide table cannot hold them: the
 long format is then the default, and asking for the wide one raises <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<p>A hypergraph or simplicial complex (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>) writes the three tables of
+<a class="reference internal" href="#graphoskop.Network.to_pandas_dataframes" title="graphoskop.Network.to_pandas_dataframes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Network.to_pandas_dataframes()</span></code></a> to <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_memberships.tsv&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_nodes.tsv&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_hyperedges.tsv&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">&quot;_simplices.tsv&quot;</span></code>), which
+load back with <a class="reference internal" href="higher_order.html#graphoskop.load_hypergraph" title="graphoskop.load_hypergraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_hypergraph()</span></code></a> or
+<a class="reference internal" href="higher_order.html#graphoskop.load_simplicial_complex" title="graphoskop.load_simplicial_complex"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_simplicial_complex()</span></code></a> (same <code class="docutils literal notranslate"><span class="pre">sep</span></code>, <code class="docutils literal notranslate"><span class="pre">node_format</span></code> and <code class="docutils literal notranslate"><span class="pre">directed</span></code>);
+the size estimates below are not made for them. Hyperedge labels read back as text, as node
+ids. The attributes of the <span class="math notranslate nohighlight">\(d\)</span>-simplices of a complex
+(<a class="reference internal" href="higher_order.html#graphoskop.Network.set_simplex_attribute" title="graphoskop.Network.set_simplex_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Network.set_simplex_attribute()</span></code></a>) go to <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_simplices_d.tsv&quot;</span></code>, one row per
+simplex with a value, its nodes first: after loading the complex, set them back with
+<code class="docutils literal notranslate"><span class="pre">net.set_simplex_attribute(pd.read_csv(prefix</span> <span class="pre">+</span> <span class="pre">&quot;_simplices_1.tsv&quot;,</span> <span class="pre">sep</span> <span class="pre">=</span> <span class="pre">&quot;\t&quot;),</span> <span class="pre">dimension</span> <span class="pre">=</span> <span class="pre">1)</span></code>.</p>
 <p>A multilayer network also writes its interlayer edges (couplings included) to
 <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;_interlayer.tsv&quot;</span></code>, and always writes the node table (one row per copy, with the
 entity and the layer). The files load back with <code class="docutils literal notranslate"><span class="pre">multilayer</span> <span class="pre">=</span> <span class="pre">True</span></code>,
@@ -310,6 +358,7 @@ formats is always written in the smaller one, with a warning.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">pickle</span> <span class="pre">=</span> <span class="pre">True</span></code>, the <a class="reference internal" href="#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a> object is written as it is to <code class="docutils literal notranslate"><span class="pre">prefix</span> <span class="pre">+</span> <span class="pre">&quot;.pt&quot;</span></code>
 with <code class="xref py py-func docutils literal notranslate"><span class="pre">torch.save()</span></code>, tensors on their current device, and is read back with
 <a class="reference internal" href="#graphoskop.load_pickled_network" title="graphoskop.load_pickled_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_pickled_network()</span></code></a>.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -351,6 +400,112 @@ chosen format and smaller in the other one.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.load_matrix">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">load_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.load_matrix" title="Link to this definition"></a></dt>
+<dd><p>Load a network from its adjacency matrix, or the biadjacency matrix of a bipartite network: a
+dense text file of numbers, a NumPy array (or anything <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.asarray()</span></code> reads, such as a
+list of lists or a CPU tensor), or a SciPy sparse matrix.</p>
+<p>Every non-zero entry <span class="math notranslate nohighlight">\((i, j)\)</span> is an edge from node <span class="math notranslate nohighlight">\(i\)</span> to node <span class="math notranslate nohighlight">\(j\)</span>, with the
+entry as its edge attribute <code class="docutils literal notranslate"><span class="pre">weight</span></code>, unless all the non-zero entries are 1 (or <code class="docutils literal notranslate"><span class="pre">weight</span></code> is
+<code class="docutils literal notranslate"><span class="pre">None</span></code>), when the network is unweighted. Diagonal entries of a square matrix are self loops.
+An undirected network is read from the upper triangle (diagonal included) of its symmetric
+matrix. Nodes without edges (empty rows and columns) are kept, as isolated nodes.</p>
+<p>A rectangular matrix is a bipartite network: rows are the nodes of type 0 and columns the nodes
+of type 1, joined by the non-zero entries. The node attribute <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> is set
+automatically (0 for rows, 1 for columns), so no node table is needed. A square matrix is read
+as bipartite only with <code class="docutils literal notranslate"><span class="pre">bipartite</span> <span class="pre">=</span> <span class="pre">True</span></code>.</p>
+<p>Nodes are numbered by their position: <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code>, or, if bipartite, <code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">-</span> <span class="pre">1</span></code>
+for the rows and <code class="docutils literal notranslate"><span class="pre">R</span></code> to <code class="docutils literal notranslate"><span class="pre">R</span> <span class="pre">+</span> <span class="pre">C</span> <span class="pre">-</span> <span class="pre">1</span></code> for the columns, unless <code class="docutils literal notranslate"><span class="pre">ids</span></code> are given. Node
+attributes can come from a wide node table (first column the node id, then one column per
+attribute), matched to these ids; then the network is built by <a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – File path, array-like, or <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse</span></code> matrix.</p></li>
+<li><p><strong>nodes</strong> – Wide node attribute table, as a file path (read with <code class="docutils literal notranslate"><span class="pre">node_sep</span></code>, with a header
+row) or a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>ids</strong> – Node ids in matrix order: a sequence of <code class="docutils literal notranslate"><span class="pre">n</span></code> ids, or, if bipartite, a pair
+<code class="docutils literal notranslate"><span class="pre">(row_ids,</span> <span class="pre">column_ids)</span></code>; <code class="docutils literal notranslate"><span class="pre">None</span></code> for positions.</p></li>
+<li><p><strong>directed</strong> – Whether edges are directed; <code class="docutils literal notranslate"><span class="pre">None</span></code> for directed if the (square, not
+bipartite) matrix is not symmetric, undirected otherwise.</p></li>
+<li><p><strong>bipartite</strong> – Whether the matrix is a biadjacency matrix; <code class="docutils literal notranslate"><span class="pre">None</span></code> for rectangular
+matrices only.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute holding the entries, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for unweighted.</p></li>
+<li><p><strong>sep</strong> – Separator of the columns of a matrix file; <code class="docutils literal notranslate"><span class="pre">None</span></code> for any whitespace.</p></li>
+<li><p><strong>node_sep</strong> – Separator of the columns of a node table file.</p></li>
+<li><p><strong>device</strong> – Device where all tensors are created, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;cuda&quot;</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The loaded <a class="reference internal" href="#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If a rectangular matrix is not read as bipartite, an undirected network has
+a matrix that is not symmetric, <code class="docutils literal notranslate"><span class="pre">ids</span></code> do not match the matrix or repeat, or the node table
+has a <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> column for a matrix read as bipartite.</p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="s2">&quot;adjacency.txt&quot;</span><span class="p">)</span>                     <span class="c1"># whitespace separated numbers</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]))</span>          <span class="c1"># undirected: symmetric</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">,</span> <span class="s2">&quot;carol&quot;</span><span class="p">],</span> <span class="n">nodes</span> <span class="o">=</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">)</span>
+
+<span class="c1"># bipartite: 3 plants (rows, type 0) and 4 pollinators (columns, type 1)</span>
+<span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+<span class="n">gsk</span><span class="o">.</span><span class="n">nestedness</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sp</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">density</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">),</span> <span class="n">directed</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="graphoskop.save_matrix">
+<span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">save_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weight'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\t'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.save_matrix" title="Link to this definition"></a></dt>
+<dd><p>The adjacency matrix of a network, or the biadjacency matrix of a bipartite network, optionally
+written to a dense text file, which <a class="reference internal" href="#graphoskop.load_matrix" title="graphoskop.load_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_matrix()</span></code></a> reads back.</p>
+<p>Rows and columns follow the network wide node order (component by component); in bipartite
+networks rows are the nodes of type 0 and columns the nodes of type 1, each in that order. Entry
+<span class="math notranslate nohighlight">\((i, j)\)</span> is the sum of the attribute <code class="docutils literal notranslate"><span class="pre">weight</span></code> of the edges from <span class="math notranslate nohighlight">\(i\)</span> to <span class="math notranslate nohighlight">\(j\)</span>,
+or their number if <code class="docutils literal notranslate"><span class="pre">weight</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> or not an edge attribute. Undirected networks give
+symmetric matrices, with self loops once on the diagonal. Node attributes are not written: use
+<a class="reference internal" href="#graphoskop.save_network" title="graphoskop.save_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_network()</span></code></a> to keep them, or pass them back to <a class="reference internal" href="#graphoskop.load_matrix" title="graphoskop.load_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_matrix()</span></code></a> with the ids.</p>
+<p>Hypergraphs and simplicial complexes: supported (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> – A <a class="reference internal" href="#graphoskop.Network" title="graphoskop.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>, not multilayer.</p></li>
+<li><p><strong>path</strong> – File to write the dense matrix to (no header, <code class="docutils literal notranslate"><span class="pre">sep</span></code> between columns), or
+<code class="docutils literal notranslate"><span class="pre">None</span></code> not to write it.</p></li>
+<li><p><strong>weight</strong> – Name of the edge attribute summed in the entries, or <code class="docutils literal notranslate"><span class="pre">None</span></code> to count edges.</p></li>
+<li><p><strong>sparse</strong> – Whether to return a <code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code> instead of a dense
+<code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> (the file, if any, is dense either way).</p></li>
+<li><p><strong>sep</strong> – Column separator of the file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(matrix,</span> <span class="pre">ids)</span></code>: the float64 matrix and the node ids in its order, or, if bipartite,
+a pair <code class="docutils literal notranslate"><span class="pre">(row_ids,</span> <span class="pre">column_ids)</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the network is multilayer.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">A</span><span class="p">,</span> <span class="n">ids</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">save_matrix</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>                              <span class="c1"># dense NumPy array</span>
+<span class="n">A</span><span class="p">,</span> <span class="n">ids</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">save_matrix</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s2">&quot;adjacency.txt&quot;</span><span class="p">)</span>             <span class="c1"># also written to disk</span>
+<span class="n">back</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_matrix</span><span class="p">(</span><span class="s2">&quot;adjacency.txt&quot;</span><span class="p">,</span> <span class="n">ids</span> <span class="o">=</span> <span class="n">ids</span><span class="p">,</span> <span class="n">directed</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">directed</span><span class="p">)</span>
+<span class="n">M</span><span class="p">,</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">save_matrix</span><span class="p">(</span><span class="n">bipartite_net</span><span class="p">,</span> <span class="n">sparse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="graphoskop.load_pickled_network">
 <span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">load_pickled_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.load_pickled_network" title="Link to this definition"></a></dt>
 <dd><p>Read a network written by <a class="reference internal" href="#graphoskop.save_network" title="graphoskop.save_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_network()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">pickle</span> <span class="pre">=</span> <span class="pre">True</span></code>.</p>
@@ -371,7 +526,7 @@ to keep the device they were saved from. Qualitative attributes stay in CPU memo
 
 <dl class="py class">
 <dt class="sig sig-object py" id="graphoskop.Network">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">Network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_node_attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_node_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">graphoskop.</span></span><span class="sig-name descname"><span class="pre">Network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">components</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_node_attr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_node_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wide'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bipartite_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_edge_attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualitative_edge_attr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network" title="Link to this definition"></a></dt>
 <dd><p>A network split into its weakly connected components.</p>
 <p>Nodes are ordered network wide by component, then by index within the component: component
 <code class="docutils literal notranslate"><span class="pre">c</span></code> holds the positions <code class="docutils literal notranslate"><span class="pre">node_offsets[c]</span></code> to <code class="docutils literal notranslate"><span class="pre">node_offsets[c</span> <span class="pre">+</span> <span class="pre">1]</span> <span class="pre">-</span> <span class="pre">1</span></code> of this order. In
@@ -399,6 +554,13 @@ long format, columns <code class="docutils literal notranslate"><span class="pre
 <code class="docutils literal notranslate"><span class="pre">value</span></code> (both categorical), one row per stored value.</p></li>
 <li><p><strong>node_format</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;wide&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;long&quot;</span></code>, the format of the node table.</p></li>
 <li><p><strong>edge_attributes</strong> – Numeric edge attribute names; position <code class="docutils literal notranslate"><span class="pre">j</span></code> is column <code class="docutils literal notranslate"><span class="pre">j</span></code> of <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code>.</p></li>
+<li><p><strong>qualitative_edge_attributes</strong> – Qualitative edge attribute names, in order of appearance. A
+name is never in both lists.</p></li>
+<li><p><strong>qualitative_edge_attr</strong> – Qualitative edge attributes, in CPU memory (<code class="docutils literal notranslate"><span class="pre">None</span></code> if there are
+none): one categorical column per attribute and one row per input edge, in the network wide edge order: component by
+component, and within a component in the order of the input edges (the first columns of
+<code class="docutils literal notranslate"><span class="pre">edge_index</span></code>; in undirected networks the reverse copies that follow them share the rows of
+their edges).</p></li>
 <li><p><strong>directed</strong> – Whether the edges are directed.</p></li>
 <li><p><strong>bipartite_labels</strong> – In bipartite networks, the values of <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> of type 0 and
 type 1, in this order (sorted); <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
@@ -412,6 +574,12 @@ layer (by type first, then by layer, in bipartite networks).</p></li>
 <li><p><strong>entity_ids</strong> – In multilayer networks, the input ids of the entities; <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
 <li><p><strong>entity_map</strong> – In multilayer networks, maps each entity to the list of the internal ids
 <code class="docutils literal notranslate"><span class="pre">(component,</span> <span class="pre">index)</span></code> of its copies, in layer order; <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p></li>
+<li><p><strong>higher_order</strong> – <code class="docutils literal notranslate"><span class="pre">&quot;hypergraph&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;simplicial&quot;</span></code> for hypergraphs and simplicial
+complexes, <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>). They are stored as bipartite
+networks of nodes (type 0, first in every component) and hyperedges or facets (type 1, ids
+<a class="reference internal" href="higher_order.html#graphoskop.Hyperedge" title="graphoskop.Hyperedge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Hyperedge</span></code></a> or <a class="reference internal" href="higher_order.html#graphoskop.Simplex" title="graphoskop.Simplex"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simplex</span></code></a>); <a class="reference internal" href="#graphoskop.Network.number_of_nodes" title="graphoskop.Network.number_of_nodes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_nodes()</span></code></a> and
+<a class="reference internal" href="#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a> then cover the nodes only, and <a class="reference internal" href="#graphoskop.Network.edges" title="graphoskop.Network.edges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edges()</span></code></a> gives the
+memberships.</p></li>
 </ul>
 </dd>
 </dl>
@@ -423,8 +591,12 @@ layer (by type first, then by layer, in bipartite networks).</p></li>
 <span class="n">w</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>            <span class="c1"># vector over the edges of component 0</span>
 <span class="n">w_ab</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="n">edge</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>   <span class="c1"># one edge, None if absent</span>
 <span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;log_weight&quot;</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>   <span class="c1"># new attribute, NaN in other components</span>
+<span class="n">kind</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">)</span>           <span class="c1"># qualitative: NumPy array, on the CPU</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;tie&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;strong&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span>   <span class="c1"># new qualitative attribute</span>
 <span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;age&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span> <span class="kc">None</span><span class="p">)</span>
 <span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>   <span class="c1"># new qualitative attribute</span>
+<span class="n">net</span><span class="o">.</span><span class="n">remove_node_attribute</span><span class="p">(</span><span class="s2">&quot;group&quot;</span><span class="p">)</span>              <span class="c1"># gone from all nodes</span>
+<span class="n">net</span><span class="o">.</span><span class="n">remove_edge_attribute</span><span class="p">(</span><span class="s2">&quot;log_weight&quot;</span><span class="p">)</span>         <span class="c1"># gone from all edges</span>
 <span class="n">net</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(),</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(),</span> <span class="n">net</span><span class="o">.</span><span class="n">number_of_components</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -453,6 +625,10 @@ component; all <code class="docutils literal notranslate"><span class="pre">Fals
 nodes without a value for the attribute get 0. The vector is a copy, ordered by internal node
 index, on the device of the component. Qualitative attributes are returned as a NumPy object
 array, with NaN for missing values.</p>
+<p>In hypergraphs and simplicial complexes, the vector covers the nodes only (the first
+<a class="reference internal" href="#graphoskop.Network.number_of_nodes" title="graphoskop.Network.number_of_nodes"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_nodes()</span></code></a> of the component); hyperedge and facet values are read with
+<a class="reference internal" href="higher_order.html#graphoskop.Network.get_hyperedge_attribute" title="graphoskop.Network.get_hyperedge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_hyperedge_attribute()</span></code></a> and <a class="reference internal" href="higher_order.html#graphoskop.Network.get_facet_attribute" title="graphoskop.Network.get_facet_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_facet_attribute()</span></code></a>. Nodes, hyperedges and
+facets share attribute names: an attribute has values on both sides, missing where not given.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -535,14 +711,39 @@ is not multilayer.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.Network.remove_node_attribute">
+<span class="sig-name descname"><span class="pre">remove_node_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.remove_node_attribute" title="Link to this definition"></a></dt>
+<dd><p>Remove a node attribute, numeric or qualitative, from all the nodes (in place).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> – Attribute name.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>KeyError</strong> – If there is no node attribute with that name.</p></li>
+<li><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">key</span></code> is <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a> in a bipartite network (node types fix
+the node order).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span><span class="o">.</span><span class="n">remove_node_attribute</span><span class="p">(</span><span class="s2">&quot;age&quot;</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">node_attributes</span>                <span class="c1"># &quot;age&quot; is gone</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="graphoskop.Network.get_edge_attribute">
 <span class="sig-name descname"><span class="pre">get_edge_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.get_edge_attribute" title="Link to this definition"></a></dt>
 <dd><p>Edge attribute as a vector over the edges of a component, or its value on one edge.</p>
 <p>The vector is a copy, aligned with the columns of <code class="docutils literal notranslate"><span class="pre">edge_index</span></code>, on the device of the
 component. In undirected networks every edge is stored in both directions, so each value
 appears twice (self loops once), as in <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code>.</p>
+<p>Qualitative attributes are returned as a NumPy object array, on the CPU, with NaN for missing
+values.</p>
 <p>With <code class="docutils literal notranslate"><span class="pre">edge</span> <span class="pre">=</span> <span class="pre">(u,</span> <span class="pre">v)</span></code>, given by input node ids, the value on the edge between <code class="docutils literal notranslate"><span class="pre">u</span></code> and
-<code class="docutils literal notranslate"><span class="pre">v</span></code> is returned instead, as a Python number, and <code class="docutils literal notranslate"><span class="pre">component</span></code> is ignored. In directed
+<code class="docutils literal notranslate"><span class="pre">v</span></code> is returned instead, as a Python value, and <code class="docutils literal notranslate"><span class="pre">component</span></code> is ignored. In directed
 networks the edge goes from <code class="docutils literal notranslate"><span class="pre">u</span></code> to <code class="docutils literal notranslate"><span class="pre">v</span></code>; in undirected networks the order does not matter.
 If the edge is not in the network (including when a node is not), <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned. If
 there are parallel edges, the list of their values is returned, in input order.</p>
@@ -556,7 +757,7 @@ there are parallel edges, the list of their values is returned, in input order.<
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Vector with one entry per stored edge, or a list of them if <code class="docutils literal notranslate"><span class="pre">component</span></code> is
-<code class="docutils literal notranslate"><span class="pre">None</span></code>; with <code class="docutils literal notranslate"><span class="pre">edge</span></code>, a number, a list of numbers or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">None</span></code>; with <code class="docutils literal notranslate"><span class="pre">edge</span></code>, a value, a list of values or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>KeyError</strong> – If there is no edge attribute with that name.</p>
@@ -568,11 +769,14 @@ there are parallel edges, the list of their values is returned, in input order.<
 <dt class="sig sig-object py" id="graphoskop.Network.set_edge_attribute">
 <span class="sig-name descname"><span class="pre">set_edge_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.set_edge_attribute" title="Link to this definition"></a></dt>
 <dd><p>Set an edge attribute on the edges of a component, creating it if it does not exist.</p>
-<p>A new attribute is appended to <code class="xref py py-attr docutils literal notranslate"><span class="pre">edge_attributes</span></code> and to <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code> of every
-component; components not set get NaN. Values are aligned with the columns of
-<code class="docutils literal notranslate"><span class="pre">edge_index</span></code>, as returned by <a class="reference internal" href="#graphoskop.Network.get_edge_attribute" title="graphoskop.Network.get_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_edge_attribute()</span></code></a>: in undirected networks both
-directions of an edge are stored and should get the same value. Values are cast to the dtype
-of <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code>.</p>
+<p>A new attribute is numeric if its values are numbers (or booleans), qualitative otherwise;
+it is appended to <code class="xref py py-attr docutils literal notranslate"><span class="pre">edge_attributes</span></code> (a new column of <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code> in every component)
+or to <code class="xref py py-attr docutils literal notranslate"><span class="pre">qualitative_edge_attributes</span></code> (a new column of <code class="xref py py-attr docutils literal notranslate"><span class="pre">qualitative_edge_attr</span></code>);
+components not set get NaN. Values are aligned with the columns of <code class="docutils literal notranslate"><span class="pre">edge_index</span></code>, as
+returned by <a class="reference internal" href="#graphoskop.Network.get_edge_attribute" title="graphoskop.Network.get_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_edge_attribute()</span></code></a>: in undirected networks both directions of an edge are
+stored, and the value of the first one (the input edge) is kept for a qualitative attribute.
+Numeric values are cast to the dtype of <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code>; the values of a qualitative attribute
+can be anything hashable (NaN or <code class="docutils literal notranslate"><span class="pre">None</span></code> for missing values).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -585,16 +789,38 @@ if <code class="docutils literal notranslate"><span class="pre">component</span>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>KeyError</strong> – If <code class="docutils literal notranslate"><span class="pre">key</span></code> is a position and there is no edge attribute there.</p></li>
-<li><p><strong>ValueError</strong> – If a vector does not have one value per stored edge.</p></li>
+<li><p><strong>ValueError</strong> – If a vector does not have one value per stored edge, or if non-numeric
+values are given for a numeric attribute.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="graphoskop.Network.remove_edge_attribute">
+<span class="sig-name descname"><span class="pre">remove_edge_attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.remove_edge_attribute" title="Link to this definition"></a></dt>
+<dd><p>Remove an edge attribute, numeric or qualitative, from all the edges (in place).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> – Attribute name.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If there is no edge attribute with that name.</p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span><span class="o">.</span><span class="n">remove_edge_attribute</span><span class="p">(</span><span class="s2">&quot;weight&quot;</span><span class="p">)</span>
+<span class="n">net</span><span class="o">.</span><span class="n">edge_attributes</span>                <span class="c1"># &quot;weight&quot; is gone</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="graphoskop.Network.number_of_nodes">
 <span class="sig-name descname"><span class="pre">number_of_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.number_of_nodes" title="Link to this definition"></a></dt>
-<dd><p>Number of nodes, isolated nodes included.</p>
+<dd><p>Number of nodes, isolated nodes included. In hypergraphs and simplicial complexes, the
+hyperedges and facets are not counted (see <a class="reference internal" href="higher_order.html#graphoskop.Network.number_of_hyperedges" title="graphoskop.Network.number_of_hyperedges"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_hyperedges()</span></code></a> and
+<a class="reference internal" href="higher_order.html#graphoskop.Network.number_of_facets" title="graphoskop.Network.number_of_facets"><code class="xref py py-meth docutils literal notranslate"><span class="pre">number_of_facets()</span></code></a>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>component</strong> – Index of the component (0 is the largest), or <code class="docutils literal notranslate"><span class="pre">None</span></code> for all components.</p>
@@ -609,7 +835,8 @@ if <code class="docutils literal notranslate"><span class="pre">component</span>
 <dt class="sig sig-object py" id="graphoskop.Network.number_of_edges">
 <span class="sig-name descname"><span class="pre">number_of_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.number_of_edges" title="Link to this definition"></a></dt>
 <dd><p>Number of edges, as given in input: in undirected networks each edge counts once, although it
-is stored in both directions. Parallel edges and self loops count.</p>
+is stored in both directions. Parallel edges and self loops count. In hypergraphs and
+simplicial complexes, the edges are the memberships of nodes in hyperedges or facets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -632,15 +859,17 @@ or <code class="docutils literal notranslate"><span class="pre">&quot;inter&quot
 <span class="sig-name descname"><span class="pre">edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.edges" title="Link to this definition"></a></dt>
 <dd><p>Iterate over the edges, as given in input: in undirected networks each edge comes once
 (the reverse copies stored by <a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> are left out); parallel edges and self
-loops come as they are.</p>
+loops come as they are. In hypergraphs and simplicial complexes, the edges are the
+memberships: (node, hyperedge or facet), or (hyperedge, node) for the heads of directed
+hyperedges, with their attributes.</p>
 <ul class="simple">
 <li><p>By default, an edge is a pair <code class="docutils literal notranslate"><span class="pre">(i,</span> <span class="pre">j)</span></code> of the indices of its endpoints in the component,
 the internal ids of the nodes, as in <code class="docutils literal notranslate"><span class="pre">edge_index</span></code>; with <code class="docutils literal notranslate"><span class="pre">component</span> <span class="pre">=</span> <span class="pre">None</span></code>, the edges
 of all the components, as pairs of internal ids <code class="docutils literal notranslate"><span class="pre">((c,</span> <span class="pre">i),</span> <span class="pre">(c,</span> <span class="pre">j))</span></code>.</p></li>
 <li><p>With <code class="docutils literal notranslate"><span class="pre">labels</span> <span class="pre">=</span> <span class="pre">True</span></code>, the input ids of the endpoints instead (<code class="docutils literal notranslate"><span class="pre">(entity,</span> <span class="pre">layer)</span></code> copies
 in multilayer networks).</p></li>
-<li><p>With <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">True</span></code>, a third element: a dictionary of the numeric edge attributes of the
-edge, by name; with <code class="docutils literal notranslate"><span class="pre">data</span></code> the name of an edge attribute, its value.</p></li>
+<li><p>With <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">True</span></code>, a third element: a dictionary of the edge attributes of the edge
+(numeric and qualitative), by name; with <code class="docutils literal notranslate"><span class="pre">data</span></code> the name of an edge attribute, its value.</p></li>
 </ul>
 <p>The edges are read from the device once, so iterating is a plain Python loop.</p>
 <dl class="field-list simple">
@@ -703,6 +932,10 @@ network.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if planar.</p>
 </dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – For hypergraphs and simplicial complexes (test their incidence graph,
+<a class="reference internal" href="higher_order.html#graphoskop.incidence_network" title="graphoskop.incidence_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">incidence_network()</span></code></a>, or their clique expansion).</p>
+</dd>
 </dl>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
@@ -719,9 +952,10 @@ network.</p>
 <span class="sig-name descname"><span class="pre">to_pandas_dataframes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#graphoskop.Network.to_pandas_dataframes" title="Link to this definition"></a></dt>
 <dd><p>Edges and nodes of all components, with their attributes, as <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
 <p>The edge table has columns <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code> (input node ids), then one column per
-edge attribute. Edges are grouped by component, in input order within each component. In
-undirected networks each edge appears once, as in the input (the reverse copies stored by
-<a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> are dropped).</p>
+numeric edge attribute, then one per qualitative edge attribute (with its values). Edges are
+grouped by component, in input order within each component. In undirected networks each
+edge appears once, as in the input (the reverse copies stored by <a class="reference internal" href="#graphoskop.load_network" title="graphoskop.load_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_network()</span></code></a> are
+dropped).</p>
 <p>The node table is returned only if there are node attributes (always in bipartite networks,
 which have <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a>). Nodes are in the network wide node order. Wide node tables
 give a <code class="docutils literal notranslate"><span class="pre">node</span></code> column, then one column per numeric attribute, then one (categorical) column
@@ -742,10 +976,26 @@ then the edge attributes;</p></li>
 attributes as above. In long format, a copy without any value gets a row with a missing
 attribute and value, so that copies without edges are not lost.</p></li>
 </ul>
+<p>Hypergraphs and simplicial complexes (see <a class="reference internal" href="higher_order.html"><span class="doc">Higher-order networks</span></a>) always give three tables,
+<code class="docutils literal notranslate"><span class="pre">(memberships,</span> <span class="pre">nodes,</span> <span class="pre">hyperedges)</span></code> or <code class="docutils literal notranslate"><span class="pre">(memberships,</span> <span class="pre">nodes,</span> <span class="pre">simplices)</span></code>, which load back
+with <a class="reference internal" href="higher_order.html#graphoskop.load_hypergraph" title="graphoskop.load_hypergraph"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_hypergraph()</span></code></a> (directed hypergraphs with <code class="docutils literal notranslate"><span class="pre">directed</span> <span class="pre">=</span> <span class="pre">True</span></code>) or
+<a class="reference internal" href="higher_order.html#graphoskop.load_simplicial_complex" title="graphoskop.load_simplicial_complex"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_simplicial_complex()</span></code></a>, in the same <code class="docutils literal notranslate"><span class="pre">node_format</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">memberships</span></code>: columns <code class="docutils literal notranslate"><span class="pre">node</span></code> and <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> (the label) or <code class="docutils literal notranslate"><span class="pre">simplex</span></code> (the position
+of the facet, from 0, in the network wide order), then <code class="docutils literal notranslate"><span class="pre">direction</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;head&quot;</span></code>) in directed hypergraphs, then the membership attributes;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code>: the node table, without <a class="reference internal" href="#graphoskop.BIPARTITE" title="graphoskop.BIPARTITE"><code class="xref py py-data docutils literal notranslate"><span class="pre">BIPARTITE</span></code></a>, with the attributes that have values
+on some node;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hyperedges</span></code> (<code class="docutils literal notranslate"><span class="pre">simplices</span></code>): the same for the hyperedges (facets), with their label
+(position) in a first column <code class="docutils literal notranslate"><span class="pre">hyperedge</span></code> (<code class="docutils literal notranslate"><span class="pre">simplex</span></code>).</p></li>
+</ul>
+<p>In long format, a node, hyperedge or facet without any value gets a row with a missing
+attribute and value, so that isolated nodes and empty hyperedges are not lost.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The edge table, or <code class="docutils literal notranslate"><span class="pre">(edges,</span> <span class="pre">nodes)</span></code> if there are node attributes, or
-<code class="docutils literal notranslate"><span class="pre">(edges,</span> <span class="pre">interlayer,</span> <span class="pre">nodes)</span></code> for multilayer networks.</p>
+<code class="docutils literal notranslate"><span class="pre">(edges,</span> <span class="pre">interlayer,</span> <span class="pre">nodes)</span></code> for multilayer networks, or three tables for hypergraphs
+and simplicial complexes.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If an attribute is named like one of the id columns.</p>
@@ -785,10 +1035,10 @@ network, and are what Laplacian solvers and node vector analysis work on. Qualit
 attributes (strings, categories) cannot be used by these computations, so they never take GPU
 memory: they are kept once for the whole network in <code class="docutils literal notranslate"><span class="pre">Network.qualitative_node_attr</span></code>, a
 <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of categorical columns in CPU memory, with rows in the network wide node
-order (component by component). Both kinds are read and written by name with
-<a class="reference internal" href="#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a> and <a class="reference internal" href="#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>,
-which also sets several attributes at once from a table matched by node id, and
-are kept by <a class="reference internal" href="backboning.html#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> and <a class="reference internal" href="backboning.html#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>.</p>
+order (component by component). Both kinds are read, written and removed by name with
+<a class="reference internal" href="#graphoskop.Network.get_node_attribute" title="graphoskop.Network.get_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_node_attribute()</span></code></a>, <a class="reference internal" href="#graphoskop.Network.set_node_attribute" title="graphoskop.Network.set_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_node_attribute()</span></code></a>
+(which also sets several attributes at once from a table matched by node id) and
+<a class="reference internal" href="#graphoskop.Network.remove_node_attribute" title="graphoskop.Network.remove_node_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_node_attribute()</span></code></a>, and are kept by <a class="reference internal" href="backboning.html#graphoskop.extract_backbone" title="graphoskop.extract_backbone"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_backbone()</span></code></a> and <a class="reference internal" href="backboning.html#graphoskop.spanning_tree" title="graphoskop.spanning_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">spanning_tree()</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">graphoskop</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">gsk</span>
 
 <span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes.tsv&quot;</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
@@ -796,6 +1046,37 @@ are kept by <a class="reference internal" href="backboning.html#graphoskop.extra
 <span class="n">net</span><span class="o">.</span><span class="n">qualitative_node_attributes</span>   <span class="c1"># [&quot;city&quot;]: in CPU memory</span>
 <span class="n">net</span><span class="o">.</span><span class="n">get_node_attribute</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span>    <span class="c1"># NumPy object array over the nodes of component 0</span>
 <span class="n">net</span><span class="o">.</span><span class="n">set_node_attribute</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">node_column</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>   <span class="c1"># one attribute per other column</span>
+<span class="n">net</span><span class="o">.</span><span class="n">remove_node_attribute</span><span class="p">(</span><span class="s2">&quot;height&quot;</span><span class="p">)</span>                      <span class="c1"># numeric or qualitative</span>
+</pre></div>
+</div>
+</section>
+<section id="numeric-and-qualitative-edge-attributes">
+<h2>Numeric and qualitative edge attributes<a class="headerlink" href="#numeric-and-qualitative-edge-attributes" title="Link to this heading"></a></h2>
+<p>Edge attributes are numeric (numbers, booleans) or qualitative (text, any other value), decided
+column by column when loading and by the values given to
+<a class="reference internal" href="#graphoskop.Network.set_edge_attribute" title="graphoskop.Network.set_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_edge_attribute()</span></code></a>, and are stored as node attributes are (and removed
+by name with <a class="reference internal" href="#graphoskop.Network.remove_edge_attribute" title="graphoskop.Network.remove_edge_attribute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">remove_edge_attribute()</span></code></a>). Numeric
+edge attributes live in the <code class="docutils literal notranslate"><span class="pre">edge_attr</span></code> tensor of each component, on the device of the network
+(<code class="docutils literal notranslate"><span class="pre">Network.edge_attributes</span></code>). Qualitative ones never take GPU memory: they are kept once for the
+whole network in <code class="docutils literal notranslate"><span class="pre">Network.qualitative_edge_attr</span></code>, a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> of categorical
+columns in CPU memory (<code class="docutils literal notranslate"><span class="pre">Network.qualitative_edge_attributes</span></code>), with one row per edge as given in
+input, in the network wide edge order (component by component, input order within a component);
+the two stored directions of an undirected edge share its row. Every transformation that moves,
+copies or drops edges carries both along. Functions that need numbers (weights, signs, scores)
+refuse a qualitative attribute with a <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code>. When edges merge
+(<a class="reference internal" href="transformations.html#graphoskop.to_undirected" title="graphoskop.to_undirected"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_undirected()</span></code></a>, <a class="reference internal" href="transformations.html#graphoskop.remove_parallel_edges" title="graphoskop.remove_parallel_edges"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_parallel_edges()</span></code></a>,
+<a class="reference internal" href="transformations.html#graphoskop.quotient_network" title="graphoskop.quotient_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">quotient_network()</span></code></a>, <a class="reference internal" href="multilayer.html#graphoskop.aggregate_network" title="graphoskop.aggregate_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_network()</span></code></a>), a qualitative
+attribute keeps the distinct values of the merged edges: their value if they agree, a tuple of the
+distinct values otherwise. Qualitative edge attributes can be compared by
+<a class="reference internal" href="isomorphism.html#graphoskop.is_isomorphic" title="graphoskop.is_isomorphic"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_isomorphic()</span></code></a> and serve as edge labels in
+<a class="reference internal" href="frequent_subgraphs.html#graphoskop.transactional_graph_mining" title="graphoskop.transactional_graph_mining"><code class="xref py py-func docutils literal notranslate"><span class="pre">transactional_graph_mining()</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">net</span> <span class="o">=</span> <span class="n">gsk</span><span class="o">.</span><span class="n">load_network</span><span class="p">(</span><span class="s2">&quot;edges.tsv&quot;</span><span class="p">)</span>                <span class="c1"># columns source, target, weight, kind</span>
+<span class="n">net</span><span class="o">.</span><span class="n">edge_attributes</span>                                 <span class="c1"># [&quot;weight&quot;]</span>
+<span class="n">net</span><span class="o">.</span><span class="n">qualitative_edge_attributes</span>                     <span class="c1"># [&quot;kind&quot;]</span>
+<span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">)</span>                      <span class="c1"># NumPy object array, on the CPU</span>
+<span class="n">net</span><span class="o">.</span><span class="n">get_edge_attribute</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">,</span> <span class="n">edge</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;bob&quot;</span><span class="p">))</span>   <span class="c1"># e.g. &quot;friend&quot;</span>
+<span class="n">net</span><span class="o">.</span><span class="n">set_edge_attribute</span><span class="p">(</span><span class="s2">&quot;tie&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;strong&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">net</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">edge_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">net</span><span class="o">.</span><span class="n">remove_edge_attribute</span><span class="p">(</span><span class="s2">&quot;kind&quot;</span><span class="p">)</span>                   <span class="c1"># numeric or qualitative</span>
 </pre></div>
 </div>
 </section>

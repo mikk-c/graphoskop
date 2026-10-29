@@ -23,10 +23,12 @@ Graphoskop
    frequent_subgraphs
    generators
    gnn
+   gui
    hierarchy
    higher_order
    isomorphism
    laplacians
+   layouts
    link_prediction
    multilayer
    error_correction

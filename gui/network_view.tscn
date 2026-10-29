@@ -1,0 +1,49 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://network_view.gd" id="1_view"]
+[ext_resource type="Shader" path="res://node.gdshader" id="2_node"]
+[ext_resource type="Shader" path="res://edge.gdshader" id="3_edge"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_node"]
+shader = ExtResource("2_node")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_edge"]
+shader = ExtResource("3_edge")
+
+[node name="NetworkView" type="SubViewportContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = " "
+stretch = true
+script = ExtResource("1_view")
+
+[node name="Viewport" type="SubViewport" parent="."]
+handle_input_locally = false
+size = Vector2i(800, 600)
+render_target_update_mode = 1
+
+[node name="Back" type="CanvasLayer" parent="Viewport"]
+layer = -1
+
+[node name="Background" type="ColorRect" parent="Viewport/Back"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Edges" type="MultiMeshInstance2D" parent="Viewport"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_edge")
+
+[node name="Nodes" type="MultiMeshInstance2D" parent="Viewport"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_node")
+
+[node name="Highlight" type="Node2D" parent="Viewport"]
+unique_name_in_owner = true

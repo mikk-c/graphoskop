@@ -46,7 +46,7 @@ func _ready() -> void:
    %Palette.item_selected.connect(func(_i): _on_palette())
    %Classes.value_changed.connect(func(_v): if not _building: _recolor(); _place())
    %Method.item_selected.connect(func(i): _spec.method = METHODS[i]; _place())
-   %Log.toggled.connect(func(b): if not _building: _spec.log = b; _place() if _spec.get("method", "quantiles") != "custom" else _emit())
+   %Log.toggled.connect(_on_log)
    %Auto.pressed.connect(_automatic)
    %Clear.pressed.connect(func(): _spec.palette_name = ""; _spec.palette = [CLEARED]; _spec.overrides = []; _show(); _emit())
    %Single.color_changed.connect(func(c): _spec.color = "#" + c.to_html(false); _emit())
@@ -187,6 +187,21 @@ func _place() -> void:
    _show()
 
 
+## Logarithmic scale on or off. Quantiles are the same values on both scales (the logarithm keeps
+## the order), so turning it on with quantiles places the stops evenly spaced on the logarithm of
+## the values instead; natural breaks and evenly spaced stops are placed again on the new scale.
+func _on_log(on: bool) -> void:
+   if _building:
+      return
+   _spec.log = on
+   if on and _spec.get("method", "quantiles") == "quantiles":
+      _spec.method = "equal"
+   if _spec.method == "custom":
+      _emit()
+   else:
+      _place()
+
+
 ## Rebuilds the controls from the specification.
 func _show() -> void:
    _building = true
@@ -234,7 +249,7 @@ func _show() -> void:
          if not a.numeric:
             notes.append("Values are numbered in their order, from 0 (%s) to %d (%s)." % [a["values"][0] if a["values"].size() > 0 else "", a.count - 1, a["values"][a.count - 1] if a.count <= a["values"].size() else "…"])
          if _spec.get("log", false) and not a.positive:
-            notes.append("Not all values are positive: the logarithm is taken of the values minus the smallest, plus 1.")
+            notes.append("Not all values are positive: they are shifted above 0 by the gap between the two smallest values before the logarithm.")
       else:
          var palette: Array = _spec.palette
          var overrides := {}

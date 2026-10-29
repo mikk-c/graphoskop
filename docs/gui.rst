@@ -16,6 +16,41 @@ While a long function runs, the progress bar of the status bar is updated once p
 Analysis
 --------
 
+**Analysis › Centrality** computes a centrality of every node with the library (see
+:doc:`centrality`): alpha, betweenness, closeness, degree, eigenvector, flow, harmonic, HITS
+(hub and authority scores), k-core (coreness), Katz, PageRank, reach and SpringRank, and the
+betweenness of every edge. Each opens a dialog with its parameters (the dialog also names the
+attribute written), then stores the values as a node attribute (an edge attribute for edge
+betweenness), for all components, e.g.
+
+.. code-block:: python
+
+   net.set_node_attribute("betweenness", gsk.betweenness_centrality(net, component = None), None)
+
+The values can then be used for colors, sizes or opacities in the `Visual elements`_ panel; no
+analysis changes the look of the drawing by itself. HITS writes two attributes,
+``hits_hub`` and ``hits_authority``. Errors of the library (e.g. reach centrality and
+SpringRank need directed networks) are shown in the dialog.
+
+**Degree** has one more option, **plot**: the complementary cumulative degree distribution (the
+fraction of nodes with degree :math:`k` or more, on log-log axes) with the best fit of
+:func:`~graphoskop.degree_power_law` (Clauset, Shalizi and Newman: the smallest degree of the
+power-law regime, the exponent, and the tests against the exponential, the lognormal and the
+power law with exponential cutoff), in a window that says whether the degree distribution is a
+power law (with its exponent and the share of nodes in the power-law regime), with the warnings
+of the tests (e.g. when a lognormal fits as well). The plot has no title; the colors of its
+elements (data, fit, smallest degree of the fit) have color buttons under it, and the plot is
+drawn again with them (:data:`gsk_worker.PLOT_ELEMENTS`). **Save PNG…** and **Save PDF…** write
+the plot, with its colors, to a file (:func:`gsk_worker.degree_plot`, PNG at 200 dpi). The plot
+window will show the other plots of the interface too. The fit is part of the code:
+
+.. code-block:: python
+
+   fit = gsk.degree_power_law(net, ccdf = True)
+
+The plot needs matplotlib in the Python environment of the worker (``pip install
+graphoskop[gui]``); weighted degrees cannot be fitted.
+
 **Analysis › Community discovery** lists every community discovery algorithm of the library (see
 :doc:`communities`): BigCLAM, DEMON, hierarchical random graphs, Infomap, label propagation,
 Leiden, link communities (hierarchical, and from the line graph), OSLOM and stochastic
@@ -28,9 +63,9 @@ the code panel, e.g.
    gsk.leiden_communities(net, resolution = 2)
 
 The communities are written as an attribute (``community`` by default, ``link_community`` for
-link communities; the dialog can change the name), shown in the data panel, and the nodes are
-colored by it on a qualitative scale (the edges, for link communities), which can then be
-changed in the `Visual elements`_ panel. The view keeps its zoom and center. Hypergraphs and
+link communities; the dialog can change the name), shown in the data panel, which can then be
+used for colors in the `Visual elements`_ panel. The look of the drawing does not change, and
+the view keeps its zoom and center. Hypergraphs and
 simplicial complexes are analyzed as the incidence networks that are drawn.
 
 Architecture
@@ -65,8 +100,10 @@ The scripts of the interface:
 * ``environments.gd``: finds the Python environments the worker can run in.
 * ``app_settings.gd``: the memory of the application between sessions (see `Settings`_).
 * ``load_dialog.gd`` (``load_dialog.tscn``): the load dialog.
-* ``params_dialog.gd`` (``params_dialog.tscn``): the parameters of a generator, a layout or a
-  community discovery algorithm.
+* ``params_dialog.gd`` (``params_dialog.tscn``): the parameters of a generator, a layout or an
+  analysis.
+* ``task_dialog.gd`` (``task_dialog.tscn``): the dialog of a long task, with Abort.
+* ``plot_window.gd`` (``plot_window.tscn``): the plot of the degree distribution.
 * ``network_view.gd`` (``network_view.tscn``): the visualization panel of one network, with the
   shaders ``node.gdshader`` (discs of at least 3 pixels), ``edge.gdshader`` (lines of a sixth
   of the node diameter, at least 1 pixel) and ``curve.gdshader`` (bundled edges: cubic Bézier
@@ -157,6 +194,7 @@ of the library (see :doc:`layouts`):
 * **Grid**: :func:`~graphoskop.grid_layout`;
 * **Hierarchical**: :func:`~graphoskop.hierarchical_layout`;
 * **Hierarchical, radial**: :func:`~graphoskop.hierarchical_layout` with ``direction = "radial"``;
+* **Matrix**: :func:`~graphoskop.matrix_layout`, drawn as the adjacency matrix (see below);
 * **UMAP**: :func:`~graphoskop.umap_layout`.
 
 Each opens a dialog with the parameters of the layout, with the same controls as for the
@@ -174,6 +212,16 @@ button shows them). For example, a circular layout with sectors by ``country`` a
 
 The number of dimensions and the prefix of the position attributes are not offered: the
 interface draws the two dimensions of ``pos``.
+
+**Matrix** orders the rows and columns of the adjacency matrix with
+:func:`~graphoskop.matrix_layout` (groups and orders of rows, and of columns in bipartite
+networks; the order menus also offer ``degree``), and draws the network as the matrix: every
+edge is a square cell, at the row of its source and the column of its target (both cells for
+undirected edges; in bipartite networks, and in the incidence networks of hypergraphs and
+simplicial complexes, rows are the nodes of the first type and columns the others), in the
+colors and opacities of the edges. The nodes are drawn left of their rows (columns of bipartite
+networks: above them), with their colors and sizes, tooltips and selection. The matrix stays
+until another layout is run (see :func:`gsk_worker.drawing`).
 
 Further items transform the current layout: **Mirror left to right** and **Mirror top to
 bottom** (:func:`~graphoskop.mirror_layout`), **Rotate 90° counterclockwise** and **Rotate 90°
@@ -260,6 +308,17 @@ loaded.
 Main window
 -----------
 
+When a function of the library (loading, generating, a layout, an analysis) runs for more than
+0.8 seconds, a dialog opens (above the dialog that started it): what runs, its progress bar for
+functions with one, the time elapsed and left, and **Abort**. Abort interrupts the function as
+soon as Python code runs again (at once for most functions; a long call into compiled code, e.g.
+a Numba kernel, finishes first): it then fails with the error ``Aborted``, shown in the dialog
+that started it, and nothing changes in the network or in the code. If the function has not
+stopped 5 seconds later, the button becomes **Force stop**: the worker is stopped and started
+again, and the open networks are rebuilt by running their code. Closing the dialog leaves the
+function running. The dialog updates once per second, so it takes no time from the function.
+
+
 * The menu bar: File (**Load network…**, **Save image…**: the visualization panel of the current
   network as a PNG image, twice as large as on screen, without the selection ring), Edit,
   Select, Layout (see `Layouts`_), Analysis (see `Analysis`_), Simulation, Generators (see
@@ -301,6 +360,12 @@ Python worker
 
 .. autodata:: gsk_worker.BENDS
 
+.. autodata:: gsk_worker.CENTRALITIES
+   :no-value:
+
+.. autodata:: gsk_worker.CENTRALITY_HIDDEN
+   :no-value:
+
 .. autodata:: gsk_worker.CHOICES
    :no-value:
 
@@ -315,6 +380,9 @@ Python worker
 .. autodata:: gsk_worker.EDGE_COLOR
 
 .. autodata:: gsk_worker.EDGE_STRIDE
+
+.. autodata:: gsk_worker.EXTRA_CHOICES
+   :no-value:
 
 .. autodata:: gsk_worker.GENERATORS
    :no-value:
@@ -361,7 +429,7 @@ Python worker
 
 .. autodata:: gsk_worker.PROGRESS_INTERVAL
 
-.. autodata:: gsk_worker.QUALITATIVE_PALETTE
+.. autodata:: gsk_worker.PLOT_ELEMENTS
    :no-value:
 
 .. autodata:: gsk_worker.RANGES
@@ -380,13 +448,16 @@ Python worker
 
 .. autofunction:: gsk_worker.attributes
 
-.. autofunction:: gsk_worker.bent
+
+.. autofunction:: gsk_worker.centrality_code
 
 .. autofunction:: gsk_worker.breaks
 
 .. autofunction:: gsk_worker.colors
 
 .. autofunction:: gsk_worker.default_style
+
+.. autofunction:: gsk_worker.degree_plot
 
 .. autofunction:: gsk_worker.distinct
 
@@ -397,6 +468,8 @@ Python worker
 .. autofunction:: gsk_worker.environment
 
 .. autofunction:: gsk_worker.generator_code
+
+.. autofunction:: gsk_worker.last_layout
 
 .. autofunction:: gsk_worker.layout_code
 
@@ -438,13 +511,16 @@ Python worker
 
 .. autofunction:: gsk_worker.transform
 
+.. autofunction:: gsk_worker.verdict_text
+
 .. autofunction:: gsk_worker.widget
 
 Running the interface
 ---------------------
 
 The interface needs Godot 4.7 and a Python environment with the dependencies of graphoskop
-(PyTorch, PyTorch Geometric, NumPy, SciPy, pandas, Numba, tqdm). graphoskop itself does not
+(PyTorch, PyTorch Geometric, NumPy, SciPy, pandas, Numba, tqdm), and matplotlib for plots
+(``pip install graphoskop[gui]`` installs it). graphoskop itself does not
 need to be installed: the worker imports the library from the source tree that holds the
 ``gui`` folder, so that the interface and the library always match, even when another version of
 graphoskop is installed in the environment. Without the source tree (e.g. an exported
@@ -497,8 +573,9 @@ Each row sums up the current choice (a swatch or the colors of the scale); its *
 opens a dialog. Changes in the dialogs apply to the drawing as they are made; **Cancel** restores
 what was there when the dialog opened. Colors and sizes do not change the network or the code:
 they are part of the drawing only, computed by the worker (:func:`gsk_worker.colors`,
-:func:`gsk_worker.sizes`, :func:`gsk_worker.opacities`), and kept by new layouts and when networks are rebuilt in another
-environment.
+:func:`gsk_worker.sizes`, :func:`gsk_worker.opacities`), and kept by new layouts, by analyses
+and when networks are rebuilt in another environment. They change only when the user changes
+them: no function of the interface recolors or resizes anything by itself.
 
 Colors
 ~~~~~~
@@ -516,7 +593,11 @@ quantitative scales, qualitative ones for qualitative scales; the menu shows the
   **evenly spaced** from the smallest to the largest value, or at **natural breaks** (the class
   boundaries of :func:`gsk_worker.natural_breaks`). The values and colors of the stops can be
   edited (placement: custom). With **Logarithmic scale**, values are placed and interpolated on
-  the logarithm of the values (see :func:`gsk_worker.transform`). Values beyond the first or last
+  the logarithm of the values (see :func:`gsk_worker.transform`; values at or below 0 are
+  shifted above 0 by the gap between the two smallest values). Quantiles are the same values on
+  both scales (the logarithm keeps the order of the values), so turning the logarithmic scale
+  on with quantiles places the stops evenly spaced on the logarithm instead; natural breaks and
+  evenly spaced stops are placed again on the logarithmic scale. Values beyond the first or last
   stop get its color. Qualitative attributes count as the positions of their values in order
   (numbers numerically, then texts alphabetically; see :func:`gsk_worker.distinct`).
 * **Qualitative scale**: every distinct value gets the next color of the palette, in the order of
@@ -537,8 +618,8 @@ The palettes are those of `ColorBrewer 2.0 <https://colorbrewer2.org>`_, by Cynt
 Opacity
 ~~~~~~~
 
-Nodes and edges can be made transparent: one opacity for all (from 0, transparent, to 1,
-opaque, the default), or opacities given by one of their attributes, from the **Smallest**
+Nodes and edges can be made transparent, with sliders: one opacity for all (from 0,
+transparent, to 1, opaque, the default), or opacities given by one of their attributes, from the **Smallest**
 opacity for the smallest value to the **Largest** for the largest, on a linear or logarithmic
 scale (missing values get the smallest). Lower edge opacities show the bundles of
 :func:`~graphoskop.bundle_edges` where many edges overlap. Saved images keep the opacities.

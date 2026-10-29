@@ -20,7 +20,8 @@ Requests have a ``cmd`` (see :data:`COMMANDS`) and an ``id``, which the reply re
 it connects, the worker sends a first frame with ``cmd = "hello"``, then imports the library and
 sends a second one with ``cmd = "ready"`` (its ``ok`` tells whether the import worked). While a
 function with a progress bar runs, the worker also sends frames with ``cmd = "progress"`` (see
-:class:`ProgressBar`).
+:class:`ProgressBar`). A frame with ``cmd = "abort"`` interrupts the command running (see
+:func:`main`).
 
 Every tab of the interface has its own namespace (a dictionary), where the code shown in the code
 panel of that tab runs: the code panel always shows exactly the code that produced what is drawn.
@@ -29,14 +30,17 @@ default diameter of the drawn nodes (``__size__``) and the tables of the data pa
 (``__tables__``).
 """
 
+import _thread
 import ast
 import inspect
 import json
 import os
+import queue
 import re
 import socket
 import struct
 import sys
+import threading
 import time
 import traceback
 
@@ -80,12 +84,16 @@ PROGRESS_INTERVAL = 1.
 SHOWN_DEFAULTS = {"directed": "False", "self_loops": "False", "device": "\"cpu\"", ("girvan_newman_graph", "l"): "4", ("girvan_newman_graph", "k"): "32", ("girvan_newman_graph", "degree"): "16", ("growing_manifold", "d"): "2", ("lfr_benchmark_graph", "beta"): "1.5", ("infomap_communities", "directed"): ""}
 #: Hints shown in empty fields of the parameter dialog, for parameters whose default ``None``
 #: has no value of its own.
-HINTS = {"seed": "random", ("geometric_graph", "m"): "unused (r)", ("geometric_graph", "positions"): "random", ("kronecker_graph", "n"): "from k", ("lfr_benchmark_graph", "muw"): "unweighted", ("lfr_benchmark_graph", "minc"): "smallest degree", ("lfr_benchmark_graph", "maxc"): "maxk", ("mixed_membership_block_model", "threshold"): "1 / (k + 1)", ("mixed_membership_block_model", "memberships"): "from n and alpha", ("nested_block_model", "degrees"): "uniform", "groups": "none", "order": "by the edges", "weight": "unweighted", "levels": "from the edges", "root": "most neighbors", "attributes": "adjacency matrix", "embedding": "none", "epochs": "automatic", "initial": "none", ("bundle_edges", "groups"): "from the layout", ("bigclam_communities", "groups"): "automatic", ("block_model_communities", "groups"): "automatic", ("block_model_communities", "threshold"): "1 / (groups + 1)", ("hierarchical_link_communities", "threshold"): "best partition density", ("hierarchical_random_graph_communities", "chains"): "one per thread", ("infomap_communities", "directed"): "as the network", ("infomap_communities", "physical"): "none", ("leiden_communities", "initial"): "singletons"}
+HINTS = {"seed": "random", ("geometric_graph", "m"): "unused (r)", ("geometric_graph", "positions"): "random", ("kronecker_graph", "n"): "from k", ("lfr_benchmark_graph", "muw"): "unweighted", ("lfr_benchmark_graph", "minc"): "smallest degree", ("lfr_benchmark_graph", "maxc"): "maxk", ("mixed_membership_block_model", "threshold"): "1 / (k + 1)", ("mixed_membership_block_model", "memberships"): "from n and alpha", ("nested_block_model", "degrees"): "uniform", "groups": "none", "order": "by the edges", "weight": "unweighted", "levels": "from the edges", "root": "most neighbors", "attributes": "adjacency matrix", "embedding": "none", "epochs": "automatic", "initial": "none", ("bundle_edges", "groups"): "from the layout", ("bigclam_communities", "groups"): "automatic", ("block_model_communities", "groups"): "automatic", ("block_model_communities", "threshold"): "1 / (groups + 1)", ("hierarchical_link_communities", "threshold"): "best partition density", ("hierarchical_random_graph_communities", "chains"): "one per thread", ("infomap_communities", "directed"): "as the network", ("infomap_communities", "physical"): "none", ("leiden_communities", "initial"): "singletons", "column_groups": "none", "column_order": "by the edges"}
 #: Parameters of layouts and community discovery that take attribute names (by name, or by
 #: function and name): the kind of attribute (``"nodes"`` or ``"edges"``) and whether several
 #: names can be given (a list); the dialog offers the attributes of the network. (``groups`` of
 #: community discovery is a number.)
-CHOICES = {"groups": ("nodes", True), "order": ("nodes", False), "levels": ("nodes", False), "attributes": ("nodes", True), "weight": ("edges", False), ("leiden_communities", "initial"): ("nodes", False), ("infomap_communities", "physical"): ("nodes", False)}
+CHOICES = {"groups": ("nodes", True), "order": ("nodes", False), "levels": ("nodes", False), "attributes": ("nodes", True), "weight": ("edges", False), ("leiden_communities", "initial"): ("nodes", False), ("infomap_communities", "physical"): ("nodes", False), "column_groups": ("nodes", True), "column_order": ("nodes", False)}
+#: Values offered before the attribute names in the menus of some attribute parameters (by
+#: function and name): the matrix layout also sorts by ``"degree"``.
+EXTRA_CHOICES = {("matrix_layout", "order"): ["\"degree\""], ("matrix_layout", "column_order"): ["\"degree\""]}
+
 #: Parameters of layouts not shown in the parameter dialog: the network (layouts work on the
 #: network of the tab), the prefix of the positions (the interface draws ``pos``), the number of
 #: dimensions (it draws two) and the progress bar (it shows it). Generators hide only ``net``
@@ -93,10 +101,10 @@ CHOICES = {"groups": ("nodes", True), "order": ("nodes", False), "levels": ("nod
 HIDDEN = {"net", "layout", "attribute", "dimensions", "progress"}
 #: Parameters chosen from a list of values (Python source code; ``""`` is ``None``, shown with its
 #: hint), by name or by function and name: the dialog shows a menu.
-OPTIONS = {"direction": ["\"down\"", "\"up\"", "\"left\"", "\"right\"", "\"radial\""], "metric": ["\"euclidean\"", "\"cosine\""], "rewire": ["\"target\"", "\"both\"", "\"add\""], ("mirror_layout", "axis"): ["\"x\"", "\"y\"", "\"both\""], ("rotate_layout", "axis"): ["\"z\"", "\"x\"", "\"y\""], "embedding": ["", "\"node2vec\"", "\"laplacian_eigenmaps\"", "\"locally_linear_embedding\"", "\"struc2vec\""], "model": ["\"nested_block_model\"", "\"stochastic_block_model\"", "\"degree_corrected_block_model\"", "\"planted_partition_graph\"", "\"mixed_membership_block_model\""], "quality": ["\"modularity\"", "\"cpm\""], "strategy": ["\"semisynchronous\"", "\"asynchronous\""], "line_graph": ["\"random_walk\"", "\"weighted\"", "\"plain\""], ("infomap_communities", "directed"): ["", "True", "False"]}
+OPTIONS = {"direction": ["\"down\"", "\"up\"", "\"left\"", "\"right\"", "\"radial\""], "metric": ["\"euclidean\"", "\"cosine\""], "rewire": ["\"target\"", "\"both\"", "\"add\""], ("mirror_layout", "axis"): ["\"x\"", "\"y\"", "\"both\""], ("rotate_layout", "axis"): ["\"z\"", "\"x\"", "\"y\""], "embedding": ["", "\"node2vec\"", "\"laplacian_eigenmaps\"", "\"locally_linear_embedding\"", "\"struc2vec\""], "model": ["\"nested_block_model\"", "\"stochastic_block_model\"", "\"degree_corrected_block_model\"", "\"planted_partition_graph\"", "\"mixed_membership_block_model\""], "quality": ["\"modularity\"", "\"cpm\""], "strategy": ["\"semisynchronous\"", "\"asynchronous\""], "line_graph": ["\"random_walk\"", "\"weighted\"", "\"plain\""], ("infomap_communities", "directed"): ["", "True", "False"], ("degree", "direction"): ["\"out\"", "\"in\"", "\"total\""], ("degree", "by"): ["\"layer\"", "\"entity\""], ("closeness_centrality", "direction"): ["\"out\"", "\"in\""], ("harmonic_centrality", "direction"): ["\"out\"", "\"in\""], ("reach_centrality", "direction"): ["\"out\"", "\"in\""], ("eigenvector_centrality", "direction"): ["\"in\"", "\"out\""], ("katz_centrality", "direction"): ["\"in\"", "\"out\""], ("alpha_centrality", "direction"): ["\"in\"", "\"out\""], "mode": ["\"all\"", "\"in\"", "\"out\""]}
 #: Numeric parameters between two bounds: smallest and largest value and step; the dialog shows a
 #: slider next to the number.
-RANGES = {"p": (0., 1., 0.0001), "mu": (0., 1., 0.01), "p_in": (0., 1., 0.0001), "p_out": (0., 1., 0.0001), "clustering": (0., 1., 0.01), "alignment": (0., 1., 0.01), "min_dist": (0., 1., 0.01), ("growing_manifold", "p"): (0., 0.99, 0.01), ("rotate_layout", "degrees"): (-180., 180., 1.), ("bundle_edges", "beta"): (0., 1., 0.01), "epsilon": (0.01, 1., 0.01), "consensus": (0.5, 0.99, 0.01), "tolerance": (0., 1., 0.01), "union": (0., 1., 0.01), "teleportation": (0., 1., 0.01)}
+RANGES = {"p": (0., 1., 0.0001), "mu": (0., 1., 0.01), "p_in": (0., 1., 0.0001), "p_out": (0., 1., 0.0001), "clustering": (0., 1., 0.01), "alignment": (0., 1., 0.01), "min_dist": (0., 1., 0.01), ("growing_manifold", "p"): (0., 0.99, 0.01), ("rotate_layout", "degrees"): (-180., 180., 1.), ("bundle_edges", "beta"): (0., 1., 0.01), "epsilon": (0.01, 1., 0.01), "damping": (0., 1., 0.01), "consensus": (0.5, 0.99, 0.01), "tolerance": (0., 1., 0.01), "union": (0., 1., 0.01), "teleportation": (0., 1., 0.01)}
 #: Parameters taking a text (a name), written without quotes in the dialog (by name, or by
 #: function and name).
 STRINGS = {"attribute", "position", "initial", ("lfr_benchmark_graph", "weight")}
@@ -108,11 +116,12 @@ LISTS = {"sizes", "degrees", "probs", "edges", "initiator", "dimensions", "membe
 #: Integer parameters: their smallest value; the dialog shows a number with arrows.
 INTEGERS = {"n": 1, "m": 0, "l": 1, "d": 1, "degree": 1, "iterations": 0, "n_neighbors": 2, "rounds": 0, "tries": 1, "max_iter": 1, "max_blocks": 1, "mixing": 0, "repair": 0, "maxk": 1, "on": 0, "om": 1, "points": 2, "max_groups": 2, "min_size": 1, "samples": 1, "burnin": 0, "interval": 1, "trials": 1, "sweeps": 1, "max_communities": 1, "iterations": 1, "runs": 1, ("barabasi_albert_graph", "k"): 1, ("caveman_graph", "k"): 1, ("watts_strogatz_graph", "k"): 2, ("kronecker_graph", "k"): 1, ("girvan_newman_graph", "k"): 1}
 #: Other numeric parameters: their smallest value and step; the dialog shows a number with arrows.
-NUMBERS = {"spacing": (0., 0.1), "gap": (0., 0.5), "edge_length": (0., 0.1), "layer_spacing": (0., 0.1), "size": (0., 0.1), "margin": (0., 0.01), "t1": (1., 0.1), "t2": (1., 0.1), "r": (0., 0.01), ("geometric_graph", "p"): (1., 0.5), ("lfr_benchmark_graph", "beta"): (0., 0.1), ("lfr_benchmark_graph", "k"): (1., 1.), ("holme_kim_graph", "k"): (1., 1.), ("copying_graph", "k"): (1., 1.), ("link_selection_graph", "k"): (1., 1.), "resolution": (0., 0.1), "randomness": (0., 0.001)}
+NUMBERS = {"spacing": (0., 0.1), "gap": (0., 0.5), "edge_length": (0., 0.1), "layer_spacing": (0., 0.1), "size": (0., 0.1), "margin": (0., 0.01), "t1": (1., 0.1), "t2": (1., 0.1), "r": (0., 0.01), ("geometric_graph", "p"): (1., 0.5), ("lfr_benchmark_graph", "beta"): (0., 0.1), ("lfr_benchmark_graph", "k"): (1., 1.), ("holme_kim_graph", "k"): (1., 1.), ("copying_graph", "k"): (1., 1.), ("link_selection_graph", "k"): (1., 1.), "resolution": (0., 0.1), "randomness": (0., 0.001), ("katz_centrality", "alpha"): (0., 0.01), ("katz_centrality", "beta"): (0., 0.1), ("alpha_centrality", "alpha"): (0., 0.1), ("alpha_centrality", "exo"): (0., 0.1), ("springrank", "alpha"): (0., 0.1)}
 
 gsk = None
 _sock = None
 _spaces = {}
+_busy = False
 
 
 def _send(sock, header, payload = b""):
@@ -124,9 +133,7 @@ def _send(sock, header, payload = b""):
    :param payload: Bytes after the header.
    """
    h = json.dumps(header).encode("utf-8")
-   sock.sendall(struct.pack("<II", len(h), len(payload)) + h)
-   if payload:
-      sock.sendall(payload)
+   sock.sendall(struct.pack("<II", len(h), len(payload)) + h + payload)   # one call: an abort cannot cut a frame
 
 
 def _receive(sock, n):
@@ -308,15 +315,16 @@ def signature(function, net = None):
    its description ``doc`` (from the ``:param:`` lines of the docstring) and the ``widget`` that
    sets it (:func:`widget`).
 
-   :param function: Name of a function of :data:`GENERATORS`, :data:`LAYOUTS` or
-      :data:`COMMUNITIES`.
+   :param function: Name of a function of :data:`GENERATORS`, :data:`LAYOUTS`,
+      :data:`COMMUNITIES` or :data:`CENTRALITIES` (these get two more parameters: ``attribute``,
+      where the values go, and, for ``degree``, ``plot``, see :func:`centrality_code`).
    :param net: The network the function runs on, or ``None``.
    :return: Dictionary with ``params``.
    """
    f = getattr(gsk, function)
    doc = inspect.getdoc(f) or ""
    descriptions = {m.group(1): " ".join(m.group(2).split()) for m in re.finditer(r":param (\w+): (.*?)(?=\n:|\Z)", doc, re.S)}
-   hidden = HIDDEN if function in LAYOUTS else {"net", "progress"}   # community discovery shows ``attribute``
+   hidden = HIDDEN if function in LAYOUTS else (CENTRALITY_HIDDEN if function in CENTRALITIES else {"net", "progress"})   # community discovery shows ``attribute``
    params = []
    for p in inspect.signature(f).parameters.values():
       if p.name in hidden:
@@ -329,6 +337,11 @@ def signature(function, net = None):
       param = {"name": p.name, "default": shown, "hint": hint, "doc": descriptions.get(p.name, "")}
       param["widget"] = widget(function, p.name, shown, hint, net)
       params.append(param)
+   if function in CENTRALITIES:   # where the values go, and the plot of the degree distribution
+      what = "edge" if CENTRALITIES[function][1] == "edges" else "node"
+      params.insert(0, {"name": "attribute", "default": literal(CENTRALITIES[function][0]), "hint": "", "doc": f"Name of the {what} attribute written" + (" (with _hub and _authority)" if function == "hits" else ""), "widget": {"kind": "string"}})
+      if function == "degree":
+         params.append({"name": "plot", "default": "False", "hint": "", "doc": "Plot the complementary cumulative degree distribution with the best power-law fit and the tests of :func:`~graphoskop.degree_power_law` (unweighted degrees)", "widget": {"kind": "bool"}})
    return {"params": params}
 
 
@@ -340,8 +353,8 @@ def widget(function, name, shown, hint, net = None):
    * ``{"kind": "bool"}`` for defaults ``True`` and ``False`` (a check box);
    * ``{"kind": "choice", "options": [...]}`` for :data:`OPTIONS` (a menu);
    * ``{"kind": "attribute", "choices": "nodes" or "edges", "multiple": bool}`` for the
-     attribute names of :data:`CHOICES`, in layouts and community discovery (a menu of the
-     attributes of the network; check boxes for several);
+     attribute names of :data:`CHOICES`, in layouts and analyses (a menu of the attributes of
+     the network, after the values of :data:`EXTRA_CHOICES`; check boxes for several);
    * ``{"kind": "string"}`` for :data:`STRINGS` and ``{"kind": "node", "numeric": bool}`` for
      :data:`NODES` (fields without quotes; node ids are numbers if the ids of the network are);
    * ``{"kind": "list"}`` for :data:`LISTS` (a field of numbers separated by commas);
@@ -373,9 +386,9 @@ def widget(function, name, shown, hint, net = None):
    options = OPTIONS.get((function, name), OPTIONS.get(name))
    if options is not None:
       return {"kind": "choice", "options": options}
-   choice = CHOICES.get((function, name), CHOICES.get(name) if function in LAYOUTS or (function in COMMUNITIES and name == "weight") else None)
+   choice = CHOICES.get((function, name), CHOICES.get(name) if function in LAYOUTS or (function in COMMUNITIES | set(CENTRALITIES) and name == "weight") else None)
    if choice is not None:
-      return {"kind": "attribute", "choices": choice[0], "multiple": choice[1]}
+      return {"kind": "attribute", "choices": choice[0], "multiple": choice[1], "extra": EXTRA_CHOICES.get((function, name), [])}
    if (function, name) in STRINGS or name in STRINGS:
       return {"kind": "string"}
    if name in NODES:
@@ -539,7 +552,10 @@ def numbers(values):
 def transform(x, log):
    """
    The numbers of a scale, logarithmic if ``log``: :math:`\\log_{10} x` if all values are positive,
-   else :math:`\\log_{10} (x - m + 1)` with :math:`m` the smallest value (so that it maps to 0).
+   else :math:`\\log_{10} (x - m + d)` with :math:`m` the smallest value and :math:`d` the
+   smallest positive difference from it (the distance between the two smallest values): values
+   at or below 0 (e.g. betweenness 0) are moved above 0 by as little as the data allow, so that the
+   scale spreads small values as the logarithm of positive values does, whatever their magnitude.
 
    :param x: Numbers (NaN for missing values).
    :param log: Whether to take logarithms.
@@ -547,10 +563,21 @@ def transform(x, log):
    """
    if not log:
       return lambda v: np.asarray(v, dtype = float)
+   shift = _shift(x)
+   return lambda v: np.log10(np.asarray(v, dtype = float) + shift)
+
+
+def _shift(x):
+   """
+   What :func:`transform` adds to the values before their logarithm: 0 if all are positive, else
+   :math:`d - m` (see there; 1 - m if all values are equal).
+   """
    ok = x[~np.isnan(x)]
    m = ok.min() if len(ok) else 1.
-   shift = 0. if m > 0 else 1. - m
-   return lambda v: np.log10(np.asarray(v, dtype = float) + shift)
+   if m > 0:
+      return 0.
+   above = ok[ok > m] - m
+   return (above.min() if len(above) else 1.) - m
 
 
 def _inverse(x, log):
@@ -559,9 +586,7 @@ def _inverse(x, log):
    """
    if not log:
       return lambda t: np.asarray(t, dtype = float)
-   ok = x[~np.isnan(x)]
-   m = ok.min() if len(ok) else 1.
-   shift = 0. if m > 0 else 1. - m
+   shift = _shift(x)
    return lambda t: 10. ** np.asarray(t, dtype = float) - shift
 
 
@@ -788,7 +813,7 @@ def pick_grid(x, y, size):
    return {"x0": x0, "y0": y0, "cell": cell, "gx": gx, "gy": gy}, order.astype(np.int32), starts
 
 
-def drawing(net, size = None, style = None, attribute = "pos", bends = None):
+def drawing(net, size = None, style = None, attribute = "pos", bends = None, matrix = None):
    """
    Drawing of a laid out network, as buffers of Godot ``MultiMesh`` resources: one instance per
    node (a disc, its diameter in the transform and in the custom data) and one per edge (a quad
@@ -800,6 +825,14 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None):
    the opacity, :func:`opacities`); nodes also have their diameter as custom data. The y axis is
    flipped, since it points down on screen.
 
+   With ``matrix`` (the node attribute written by :func:`~graphoskop.matrix_layout`), the network
+   is drawn as its adjacency matrix: every edge is a unit square (a cell, in the edge colors and
+   opacities) at the column of its target and the row of its source (both cells of undirected
+   edges in square matrices; in bipartite networks, the row of the node of the first type and the
+   column of the other), and the nodes are drawn next to their row, on the left (nodes of the
+   second type of bipartite networks above their column), keeping their colors, sizes, tooltips
+   and selection.
+
    :param net: A :class:`~graphoskop.Network` with the numeric node attributes
       ``<attribute>_x`` and ``<attribute>_y``.
    :param size: Default diameter of the nodes, or ``None`` for :func:`node_size`.
@@ -807,14 +840,23 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None):
    :param attribute: Prefix of the position attributes.
    :param bends: Curves of the edges, as returned by :func:`~graphoskop.bundle_edges`, or
       ``None`` for straight edges.
+   :param matrix: Name of the node attribute of a matrix layout, or ``None`` for a node-link
+      drawing.
    :return: Dictionary with the node and edge buffers (float32 arrays), whether edges are curves
-      (``curved``), the node ids joined by ``"\\x1f"`` (UTF-8), the picking grid
+      (``curved``) or matrix cells (``cells``), the node ids joined by ``"\\x1f"`` (UTF-8), the picking grid
       (:func:`pick_grid`), the bounding box ``[x0, y0, x1, y1]``, the default diameter of the
       nodes and the largest one.
    """
    import torch
-   x = torch.cat(net.get_node_attribute(f"{attribute}_x", None)).double().cpu().numpy()
-   y = -torch.cat(net.get_node_attribute(f"{attribute}_y", None)).double().cpu().numpy()
+   if matrix is not None:
+      place = torch.cat(net.get_node_attribute(matrix, None)).double().cpu().numpy()
+      sizes_ = np.diff(net.node_offsets)
+      local = np.arange(len(place)) - np.repeat(net.node_offsets[:-1], sizes_)
+      column = local >= np.repeat(net.bipartite_split, sizes_) if net.bipartite_split is not None else np.zeros(len(place), bool)
+      x, y = np.where(column, place, -1.), np.where(column, -1., place)   # rows on the left, columns on top
+   else:
+      x = torch.cat(net.get_node_attribute(f"{attribute}_x", None)).double().cpu().numpy()
+      y = -torch.cat(net.get_node_attribute(f"{attribute}_y", None)).double().cpu().numpy()
    style = style or default_style(net)
    n = len(x)
    size = node_size(x, y) if size is None else size
@@ -835,7 +877,20 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None):
    c = colors(edge_values(net, es["attribute"]) if es and es.get("attribute") else m, es, EDGE_COLOR)
    eo = style.get("edge_opacity")
    c[:, 3] *= opacities(edge_values(net, eo["attribute"]) if eo and eo.get("attribute") else m, eo)
-   if bends is not None and m and bends["edge"].nunique() == m:   # one instance per Bezier piece
+   if matrix is not None:   # one unit square per cell
+      if net.bipartite_split is not None:
+         rows = np.where(column[s], t, s)
+         cols = np.where(column[s], s, t)
+         ce = c
+      elif net.directed:
+         rows, cols, ce = s, t, c
+      else:
+         rows, cols, ce = np.concatenate([s, t]), np.concatenate([t, s]), np.concatenate([c, c])
+      E = np.zeros((len(rows), EDGE_STRIDE), dtype = np.float32)
+      E[:, 0], E[:, 5] = 1., 1.
+      E[:, 3], E[:, 7] = place[cols], place[rows]
+      E[:, 8:] = ce
+   elif bends is not None and m and bends["edge"].nunique() == m:   # one instance per Bezier piece
       P = bends[["x", "y"]].to_numpy(dtype = float) * [1., -1.]
       e, at = bends["edge"].to_numpy(), bends["point"].to_numpy()
       first = np.flatnonzero((at % 3 == 0) & np.append(e[1:] == e[:-1], False))
@@ -857,7 +912,9 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None):
    grid, order, starts = pick_grid(x, y, biggest)
    ids = "\x1f".join(str(i) for i in _ids(net)).encode("utf-8")
    box = [float(x.min()), float(y.min()), float(x.max()), float(y.max())] if n else [0., 0., 1., 1.]
-   return {"nodes": N, "edges": E, "curved": E.shape[1] == CURVE_STRIDE, "ids": ids, "grid": grid, "order": order, "starts": starts, "box": box, "size": size, "biggest": biggest}
+   if matrix is not None and len(E):
+      box = [min(box[0], float(E[:, 3].min()) - 0.5), min(box[1], float(E[:, 7].min()) - 0.5), max(box[2], float(E[:, 3].max()) + 0.5), max(box[3], float(E[:, 7].max()) + 0.5)]
+   return {"nodes": N, "edges": E, "curved": E.shape[1] == CURVE_STRIDE, "cells": matrix is not None, "ids": ids, "grid": grid, "order": order, "starts": starts, "box": box, "size": size, "biggest": biggest}
 
 
 def subdivisions(pieces):
@@ -1010,7 +1067,7 @@ def _new(request, code):
    _spaces.pop(request["tab"], None)
    try:
       full = _run(request["tab"], code)
-   except Exception:
+   except BaseException:   # also an abort
       _spaces.pop(request["tab"], None)
       raise
    net = _spaces[request["tab"]]["net"]
@@ -1040,53 +1097,236 @@ def _draw(ns, code, keep = False):
    buffer, edge buffer, ids, grid order, grid starts, in this order), the grid, the box, the
    default and largest node diameters and the style. The default node diameter of the tab is
    recomputed for the layout, unless ``keep`` (transformations of a layout and changes of style
-   keep it). Edges are drawn as the curves of ``bends`` when no layout came after them
-   (:func:`bent`).
+   keep it). Edges are drawn as the curves of ``bends`` when no layout came after them, and the
+   network as its adjacency matrix when the last layout is :func:`~graphoskop.matrix_layout`
+   (:func:`last_layout`).
    """
    draw = ns.get("inc", ns["net"])
-   if "pos_x" not in draw.node_attributes:
+   last = last_layout(ns["__code__"])
+   matrix = _matrix_attribute(ns, last) if last == "matrix_layout" else None
+   if "pos_x" not in draw.node_attributes and matrix is None:
       return {"code": code, "nodes": 0}, b""
    ns["__style__"] = dict(default_style(draw), **ns.get("__style__", {}))
-   bends = ns.get("bends") if bent(ns["__code__"]) else None
-   d = drawing(draw, ns.get("__size__") if keep else None, ns["__style__"], bends = bends)
+   bends = ns.get("bends") if last == "bundle_edges" else None
+   d = drawing(draw, ns.get("__size__") if keep else None, ns["__style__"], bends = bends, matrix = matrix)
    ns["__size__"] = d["size"]
    parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes()]
-   header = {"code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "curved": d["curved"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
+   header = {"code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
    return header, b"".join(parts)
 
 
-def bent(code):
+def centrality_code(ns, function, arguments):
    """
-   Whether the edges are drawn bundled: the last line of code that bundles the edges
-   (:data:`BENDS`) or changes the layout (a function of :data:`LAYOUTS`) bundles them.
+   Code computing a centrality of :data:`CENTRALITIES` for all the nodes (or edges) of the drawn
+   network of a tab, and storing it as an attribute (:meth:`~graphoskop.Network.set_node_attribute`
+   or :meth:`~graphoskop.Network.set_edge_attribute`), e.g.
+   ``net.set_node_attribute("betweenness", gsk.betweenness_centrality(net, component = None),
+   None)``. With ``plot`` (degree only), also the fit of a power law to the degree distribution,
+   ``fit = gsk.degree_power_law(net, ccdf = True)``.
+
+   :param ns: Namespace of the tab.
+   :param function: Name of the function.
+   :param arguments: Parameter name to Python source code, with ``attribute`` (the name, by
+      default the one of :data:`CENTRALITIES`) and ``plot`` (``"True"`` or ``"False"``).
+   :return: List of lines of code, name of the attribute and whether to plot.
+   :raises ValueError: If a value is not a Python expression, or the plot is asked for weighted
+      degrees.
+   """
+   arguments = dict(arguments)
+   name = ast.literal_eval(arguments.pop("attribute")) if "attribute" in arguments else CENTRALITIES[function][0]
+   plot = arguments.pop("plot", "False") == "True"
+   if plot and arguments.get("weight", "None") != "None":
+      raise ValueError("the power-law fit needs integer degrees: leave weight empty to plot the degree distribution")
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   higher = ns["net"].higher_order is not None
+   lines = ["inc = gsk.incidence_network(net)"] if higher and "inc" not in ns else []
+   target = "inc" if higher else "net"
+   extra = "".join(f", {k} = {v.strip()}" for k, v in arguments.items())
+   call = f"gsk.degree({target}, distribution = None, component = None{extra})" if function == "degree" else f"gsk.{function}({target}, component = None{extra})"
+   kind = CENTRALITIES[function][1]
+   if kind == "hits":
+      lines += [f"hubs, authorities = {call}", f"{target}.set_node_attribute({literal(name + '_hub')}, hubs, None)", f"{target}.set_node_attribute({literal(name + '_authority')}, authorities, None)"]
+      name += "_hub"
+   else:
+      lines.append(f"{target}.set_{'edge' if kind == 'edges' else 'node'}_attribute({literal(name)}, {call}, None)")
+   if plot:
+      direction = f", direction = {arguments['direction'].strip()}" if "direction" in arguments else ""
+      lines.append(f"fit = gsk.degree_power_law({target}{direction}, ccdf = True)")
+   return lines, name, plot
+
+
+def _centrality(request):
+   """
+   Command ``centrality``: runs the code of :func:`centrality_code` in the namespace of a tab, and
+   replies with the code and the drawing (unchanged in its look: the values become an attribute,
+   which the user can choose for colors or sizes);
+   with ``plot``, also with the plot of the degree distribution (:func:`degree_plot`): its PNG
+   image as the last part of the payload, and ``plot`` in the header (:func:`_plot_header`, with
+   the ``verdict``, ``text`` and ``warnings`` of the fit).
+   """
+   ns = _spaces[request["tab"]]
+   function, arguments = request["function"], dict(request.get("arguments") or {})
+   if function not in CENTRALITIES:
+      raise ValueError(f"unknown centrality: {function}")
+   lines, name, plot = centrality_code(ns, function, arguments)
+   if plot:
+      import matplotlib   # before running anything: the plot needs it
+   import warnings
+   with warnings.catch_warnings(record = True) as caught:
+      warnings.simplefilter("always")
+      code = _run(request["tab"], lines)
+   draw = _drawn(ns)
+   header, payload = _draw(ns, code, True)
+   if plot:
+      fit = ns["fit"]
+      degrees = node_values(draw, name)
+      ns["__plot__"] = {"kind": "degree", "data": {"degrees": degrees, "fit": fit}, "colors": dict(PLOT_ELEMENTS["degree"][1])}
+      png = _render(ns["__plot__"], "png")
+      notes = [str(w.message) for w in caught if any(t in str(w.message).lower() for t in ("power", "lognormal", "exponential")) and not str(w.message).startswith("the degree distribution is not a power law")]   # the verdict says it
+      header["plot"] = dict(_plot_header(ns["__plot__"]), verdict = fit["verdict"], text = verdict_text(fit), warnings = notes)
+      header["parts"].append(len(png))
+      payload += png
+   return header, payload
+
+
+def verdict_text(fit):
+   """
+   One sentence on a fit of :func:`~graphoskop.degree_power_law`: whether the degree distribution
+   is a power law, with its exponent and the range of degrees fitted.
+   """
+   if fit["verdict"] == "not a power law":
+      return f"The degree distribution is not a power law: an exponential fits better (rate {fit['rate']:.3g}, degrees from {fit['k_min']})."
+   cutoff = f", with an exponential cutoff (λ = {fit['cutoff']:.3g})" if fit["verdict"] == "power law with exponential cutoff" else ""
+   return f"The degree distribution is a power law{cutoff}: exponent α = {fit['exponent']:.3g} for degrees from {fit['k_min']} ({100 * fit['tail_fraction']:.1f}% of the nodes)."
+
+
+def degree_plot(degrees, fit, colors = None, format = "png", path = None, dpi = 100):
+   """
+   Plot of the complementary cumulative degree distribution (the fraction of nodes with degree
+   :math:`k` or more, log-log axes), with the best fit of :func:`~graphoskop.degree_power_law`
+   from its smallest degree, drawn with matplotlib (needed for plots only), without a title.
+
+   :param degrees: Degrees of the nodes.
+   :param fit: Result of :func:`~graphoskop.degree_power_law` with ``ccdf = True``.
+   :param colors: Colors of the elements of the plot (``data``, ``fit``, ``k_min``, see
+      :data:`PLOT_ELEMENTS`), or ``None`` for the defaults.
+   :param format: ``"png"`` or ``"pdf"``.
+   :param path: File to write, or ``None`` to return the bytes.
+   :param dpi: Resolution of PNG images (the figure is 8 by 5.5 inches).
+   :return: The bytes of the image, or ``None`` with ``path``.
+   """
+   import io
+   import matplotlib
+   matplotlib.use("Agg")
+   from matplotlib.figure import Figure
+   colors = dict(PLOT_ELEMENTS["degree"][1], **(colors or {}))
+   k = np.asarray(degrees, dtype = float)
+   k = k[~np.isnan(k)]
+   values, counts = np.unique(k[k > 0], return_counts = True)
+   ccdf = (np.cumsum(counts[::-1])[::-1]) / max(len(k), 1)
+   fig = Figure(figsize = (8, 5.5))
+   ax = fig.add_subplot()
+   ax.loglog(values, ccdf, "o", ms = 4, color = colors["data"], alpha = 0.8, label = "data")
+   table = fit["ccdf"]
+   label = {"power law": f"power law, α = {fit['exponent']:.3g}", "power law with exponential cutoff": f"power law with cutoff, α = {fit['exponent']:.3g}, λ = {fit['cutoff']:.3g}", "exponential": f"exponential, λ = {fit.get('rate', float('nan')):.3g}"}[fit["model"]]
+   ax.loglog(table["degree"], table["fit"], "-", lw = 2, color = colors["fit"], label = f"{label} (k ≥ {fit['k_min']})")
+   ax.axvline(fit["k_min"], color = colors["k_min"], ls = "--", lw = 1)
+   ax.set_xlabel("degree k")
+   ax.set_ylabel("fraction of nodes with degree ≥ k")
+   ax.legend(frameon = False)
+   fig.tight_layout()
+   out = path if path is not None else io.BytesIO()
+   fig.savefig(out, format = format, dpi = dpi)
+   return None if path is not None else out.getvalue()
+
+
+#: Plots of the plot window: their function and the colors of their elements, which the user can
+#: change (key: default color), with the label of each in the window.
+PLOT_ELEMENTS = {"degree": (degree_plot, {"data": "#377eb8", "fit": "#e41a1c", "k_min": "#999999"}, {"data": "Data", "fit": "Fit", "k_min": "Smallest degree of the fit"})}
+
+
+def _render(plot, format, path = None, dpi = 100):
+   """
+   Draws a plot kept in a namespace (``kind``, ``data`` and ``colors``) with its function of
+   :data:`PLOT_ELEMENTS`.
+   """
+   return PLOT_ELEMENTS[plot["kind"]][0](**plot["data"], colors = plot["colors"], format = format, path = path, dpi = dpi)
+
+
+def _plot_header(plot):
+   """
+   What the plot window needs to let the user change colors: ``elements``, a list of [key, label,
+   color].
+   """
+   labels = PLOT_ELEMENTS[plot["kind"]][2]
+   return {"elements": [[k, labels[k], c] for k, c in plot["colors"].items()]}
+
+
+def _replot(request):
+   """
+   Command ``replot``: draws the last plot of a tab again with new ``colors`` (element key to
+   ``#rrggbb``), and replies with the PNG image as payload.
+   """
+   plot = _spaces[request["tab"]]["__plot__"]
+   plot["colors"].update({k: v for k, v in (request.get("colors") or {}).items() if k in plot["colors"]})
+   return _plot_header(plot), _render(plot, "png")
+
+
+def _save_plot(request):
+   """
+   Command ``save_plot``: writes the last plot of a tab (with its current colors) to ``path``, as
+   PNG (200 dpi) or PDF, by the extension of the path.
+   """
+   ns = _spaces[request["tab"]]
+   if "__plot__" not in ns:
+      raise ValueError("no plot to save")
+   path = request["path"]
+   _render(ns["__plot__"], "pdf" if path.lower().endswith(".pdf") else "png", path, 200)
+   return {"path": path}, b""
+
+
+def last_layout(code):
+   """
+   The function of the last line of code that changes the drawing: ``"bundle_edges"`` for the
+   line bundling the edges (:data:`BENDS`), else the function of :data:`LAYOUTS` of the last line
+   calling one (``None`` if none). Edges are drawn bundled after ``bundle_edges``, the network as
+   a matrix after ``matrix_layout``; any other layout draws nodes and straight edges again.
 
    :param code: Lines of code of a tab.
    """
    for line in reversed(code):
       if line.startswith(BENDS):
-         return True
-      if any(line.startswith(f"gsk.{f}(") for f in LAYOUTS):
-         return False
-   return False
+         return "bundle_edges"
+      for f in LAYOUTS:
+         if line.startswith(f"gsk.{f}("):
+            return f
+   return None
+
+
+def _matrix_attribute(ns, last):
+   """
+   Name of the node attribute of the last matrix layout of a tab (``attribute`` of its call,
+   ``"matrix"`` by default).
+   """
+   line = next(l for l in reversed(ns["__code__"]) if l.startswith("gsk.matrix_layout("))
+   m = re.search(r"attribute\s*=\s*(\"[^\"]*\"|'[^']*')", line)
+   return ast.literal_eval(m.group(1)) if m else "matrix"
 
 
 def _communities(request):
    """
    Command ``communities``: runs a function of :data:`COMMUNITIES` (``function``, ``arguments``) on
-   the drawn network of a tab (:func:`layout_code`), colors the nodes (the edges, for link
-   communities) by the attribute it wrote, on a qualitative scale (:data:`QUALITATIVE_PALETTE`),
-   and replies with the code and the drawing.
+   the drawn network of a tab (:func:`layout_code`), and replies with the code and the drawing. The
+   communities become an attribute; the look of the drawing does not change (colors and sizes are
+   always the user's choice, in the visual elements panel).
    """
    ns = _spaces[request["tab"]]
    function, arguments = request["function"], dict(request.get("arguments") or {})
    code = _run(request["tab"], layout_code(ns, function, arguments))
-   name = ast.literal_eval(arguments["attribute"]) if "attribute" in arguments else inspect.signature(getattr(gsk, function)).parameters["attribute"].default
-   draw = _drawn(ns)
-   if not isinstance(name, str):
-      return _draw(ns, code, True)
-   key = "edges" if name in list(draw.edge_attributes) + list(draw.qualitative_edge_attributes) else "nodes"
-   ns["__style__"] = dict(ns.get("__style__") or default_style(draw))
-   ns["__style__"][key] = {"attribute": name, "scale": "qualitative", "palette_name": "Set1", "palette": QUALITATIVE_PALETTE, "overrides": [], "missing": MISSING_COLOR}
    return _draw(ns, code, True)
 
 
@@ -1159,7 +1399,7 @@ def _signature(request):
    Command ``signature``: :func:`signature` of a generator, a layout or a community discovery
    function, for the drawn network of the tab ``tab`` (if given).
    """
-   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES:
+   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES):
       raise ValueError(f"unknown function: {request['function']}")
    tab = request.get("tab")
    return signature(request["function"], _drawn(_spaces[tab]) if tab in _spaces else None), b""
@@ -1195,11 +1435,11 @@ def _close(request):
 
 
 #: Commands understood by the worker.
-COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close}
+COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot}
 
-#: Functions of the Layout menu: layouts of node-link diagrams, transformations of layouts, and
-#: edge bundling.
-LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "umap_layout", "mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges"}
+#: Functions of the Layout menu: layouts of node-link diagrams, the matrix layout (drawn as the
+#: adjacency matrix), transformations of layouts, and edge bundling.
+LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "matrix_layout", "umap_layout", "mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges"}
 
 #: Functions of :data:`LAYOUTS` transforming the current layout (or bundling its edges): the drawn
 #: nodes keep their size, and ``remove_overlaps`` gets it as ``size`` (unless given), to remove
@@ -1212,10 +1452,13 @@ NODE_SIZES_NOTE = "# node_sizes: relative sizes of the drawn nodes, a function o
 
 #: Functions of Analysis › Community discovery: the community discovery functions of the library.
 COMMUNITIES = {"bigclam_communities", "block_model_communities", "demon_communities", "hierarchical_link_communities", "hierarchical_random_graph_communities", "infomap_communities", "label_propagation_communities", "leiden_communities", "line_graph_communities", "oslom_communities"}
-#: Colors of qualitative scales set by the interface (ColorBrewer's Set1, the default palette of
-#: the color dialog).
-QUALITATIVE_PALETTE = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
-
+#: Functions of Analysis › Centrality: name of the attribute they write by default, and what
+#: they give: ``"nodes"`` (a value per node), ``"edges"`` (a value per edge) or ``"hits"`` (hub
+#: and authority scores, written as ``<attribute>_hub`` and ``<attribute>_authority``).
+CENTRALITIES = {"alpha_centrality": ("alpha", "nodes"), "betweenness_centrality": ("betweenness", "nodes"), "closeness_centrality": ("closeness", "nodes"), "degree": ("degree", "nodes"), "edge_betweenness_centrality": ("edge_betweenness", "edges"), "eigenvector_centrality": ("eigenvector", "nodes"), "flow_centrality": ("flow", "nodes"), "harmonic_centrality": ("harmonic", "nodes"), "hits": ("hits", "hits"), "katz_centrality": ("katz", "nodes"), "k_core_centrality": ("coreness", "nodes"), "pagerank": ("pagerank", "nodes"), "reach_centrality": ("reach", "nodes"), "springrank": ("springrank", "nodes")}
+#: Parameters of the centralities not shown in the parameter dialog: the interface computes them
+#: for all components, with the default numerical settings.
+CENTRALITY_HIDDEN = {"net", "component", "node", "distribution", "lengths", "batch_size", "n_jobs", "tol", "max_iter", "personalization", "progress"}
 #: Functions of the Generators menu: the generators of synthetic networks of the library (not
 #: :func:`~graphoskop.graphrnn`, which learns from a network).
 GENERATORS = {"chain_graph", "gnm_random_graph", "gnp_random_graph", "configuration_model", "kronecker_graph", "geometric_graph", "caveman_graph", "watts_strogatz_graph", "barabasi_albert_graph", "link_selection_graph", "copying_graph", "holme_kim_graph", "planted_partition_graph", "stochastic_block_model", "degree_corrected_block_model", "mixed_membership_block_model", "nested_block_model", "girvan_newman_graph", "lfr_benchmark_graph", "growing_manifold", "simplicial_configuration_model", "hypergraph_configuration_model"}
@@ -1248,15 +1491,61 @@ def _import():
    import torch
    gsk = graphoskop
    sys.modules["graphoskop.progress"]._tqdm = lambda: ProgressBar
-   return {"version": getattr(gsk, "__version__", None), "cuda": torch.cuda.is_available()}
+   return {"version": _version(), "cuda": torch.cuda.is_available()}
+
+
+def _version():
+   """
+   Version of the library: its ``__version__`` (when known), else the version in the ``pyproject.toml`` of its
+   source tree, else the version of the installed package (``None`` if none is found).
+   """
+   version = getattr(gsk, "__version__", None)
+   version = None if version == "unknown" else version   # the library's own fallback outside an installation
+   pyproject = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(gsk.__file__))), "pyproject.toml")
+   if version is None and os.path.isfile(pyproject):
+      with open(pyproject) as f:
+         m = re.search(r'^version\s*=\s*"([^"]+)"', f.read(), re.M)
+      version = m.group(1) if m else None
+   if version is None:
+      try:
+         from importlib.metadata import version as installed
+         version = installed("graphoskop")
+      except Exception:
+         pass
+   return version
+
+
+def _reader(sock, requests):
+   """
+   Reads the frames of the interface (in a thread of its own) into ``requests``, and ``None`` when
+   the connection closes. An ``abort`` frame does not wait in the queue: it interrupts the command
+   running, if any, which then fails with :class:`KeyboardInterrupt` (raised as soon as Python
+   code runs again: a long call into compiled code finishes first).
+   """
+   while True:
+      lengths = _receive(sock, 8)
+      if lengths is None:
+         requests.put(None)
+         return
+      h, p = struct.unpack("<II", lengths)
+      request = json.loads(_receive(sock, h).decode("utf-8"))
+      _receive(sock, p) if p else None
+      if request.get("cmd") == "abort":
+         if _busy:
+            _thread.interrupt_main()
+      else:
+         requests.put(request)
 
 
 def main(port):
    """
-   Connects to the interface on ``port`` and serves its requests until the connection closes.
+   Connects to the interface on ``port`` and serves its requests, one at a time and in order,
+   until the connection closes. A command interrupted by an ``abort`` frame (see :func:`_reader`)
+   replies ``ok = False`` with the error ``"Aborted"``.
 
    :param port: TCP port where the interface listens, on 127.0.0.1.
    """
+   global _busy
    global _sock
    sock = socket.create_connection(("127.0.0.1", port))
    _send(sock, {"cmd": "hello", "ok": True, "python": sys.version.split()[0], "executable": sys.executable, "environment": environment()})
@@ -1266,18 +1555,27 @@ def main(port):
       _send(sock, {"cmd": "ready", "ok": False, "error": f"{type(e).__name__}: {e}", "traceback": traceback.format_exc()})
       return
    _sock = sock
+   requests = queue.Queue()
+   threading.Thread(target = _reader, args = (sock, requests), daemon = True).start()
    while True:
-      lengths = _receive(sock, 8)
-      if lengths is None:
+      try:
+         request = requests.get()
+      except KeyboardInterrupt:   # an abort that came as its command ended
+         continue
+      if request is None:
          return
-      h, p = struct.unpack("<II", lengths)
-      request = json.loads(_receive(sock, h).decode("utf-8"))
-      _receive(sock, p) if p else None
       reply, payload = {"cmd": request.get("cmd"), "id": request.get("id"), "ok": True}, b""
       try:
+         _busy = True
          extra, payload = COMMANDS[request["cmd"]](request)
+         _busy = False
          reply.update(extra)
+      except KeyboardInterrupt:
+         _busy = False
+         reply.update(ok = False, error = "Aborted")
+         payload = b""
       except Exception as e:
+         _busy = False
          reply.update(ok = False, error = f"{type(e).__name__}: {e}", traceback = traceback.format_exc())
          payload = b""
          traceback.print_exc()

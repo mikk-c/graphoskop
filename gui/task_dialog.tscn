@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://task_dialog.gd" id="1_task"]
+
+[node name="TaskDialog" type="AcceptDialog"]
+title = "Running"
+size = Vector2i(420, 160)
+ok_button_text = "Abort"
+dialog_hide_on_ok = false
+script = ExtResource("1_task")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 412.0
+offset_bottom = 111.0
+
+[node name="Task" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Bar" type="ProgressBar" parent="Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="Time" type="Label" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="Delay" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.8
+one_shot = true
+
+[node name="Clock" type="Timer" parent="."]
+unique_name_in_owner = true
+
+[node name="Grace" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 5.0
+one_shot = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://worker.gd" id="2_worker"]
@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://visual_panel.tscn" id="5_visual"]
 [ext_resource type="PackedScene" path="res://data_panel.tscn" id="6_data"]
 [ext_resource type="PackedScene" path="res://params_dialog.tscn" id="7_params"]
+[ext_resource type="PackedScene" path="res://task_dialog.tscn" id="8_task"]
+[ext_resource type="PackedScene" path="res://plot_window.tscn" id="9_plot"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -233,3 +235,11 @@ title = "Python interpreter"
 file_mode = 0
 access = 2
 use_native_dialog = true
+
+[node name="TaskDialog" parent="." instance=ExtResource("8_task")]
+unique_name_in_owner = true
+visible = false
+
+[node name="PlotWindow" parent="." instance=ExtResource("9_plot")]
+unique_name_in_owner = true
+visible = false

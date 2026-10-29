@@ -20,6 +20,7 @@ const LAYOUTS := [
    ["Grid…", "grid_layout", {}, true],
    ["Hierarchical…", "hierarchical_layout", {}, true],
    ["Hierarchical, radial…", "hierarchical_layout", {"direction": "\"radial\""}, true],
+   ["Matrix…", "matrix_layout", {}, true],
    ["UMAP…", "umap_layout", {}, true],
    ["", "", {}, false],
    ["Mirror left to right", "mirror_layout", {}, false],
@@ -30,6 +31,23 @@ const LAYOUTS := [
    ["Remove overlaps", "remove_overlaps", {}, false],
    ["", "", {}, false],
    ["Bundle edges…", "bundle_edges", {}, true],
+]
+## Items of Analysis › Centrality: label and function (degree also plots the degree distribution).
+const CENTRALITIES := [
+   ["Alpha…", "alpha_centrality"],
+   ["Betweenness…", "betweenness_centrality"],
+   ["Closeness…", "closeness_centrality"],
+   ["Degree…", "degree"],
+   ["Edge betweenness…", "edge_betweenness_centrality"],
+   ["Eigenvector…", "eigenvector_centrality"],
+   ["Flow…", "flow_centrality"],
+   ["Harmonic…", "harmonic_centrality"],
+   ["HITS (hubs and authorities)…", "hits"],
+   ["k-core (coreness)…", "k_core_centrality"],
+   ["Katz…", "katz_centrality"],
+   ["PageRank…", "pagerank"],
+   ["Reach…", "reach_centrality"],
+   ["SpringRank…", "springrank"],
 ]
 ## Items of Analysis › Community discovery, as in the documentation of the library: label and
 ## function.
@@ -84,6 +102,12 @@ const GENERATORS := [
 ## visual elements panel}.
 var _tabs := []
 var _next_tab := 0
+## Callbacks of the tasks running in the worker (see [method _task]), by task id.
+var _pending := {}
+var _next_task := 0
+## The task dialog (kept here: it moves into the dialog that started a task, outside the unique
+## names of this scene).
+@onready var _task_dialog: AcceptDialog = $TaskDialog
 var _choose_python: Button
 var _found := PackedStringArray()
 
@@ -98,10 +122,20 @@ func _ready() -> void:
    %ImageDialog.file_selected.connect(_save_image)
    _menu(%Layout, LAYOUTS)
    %Layout.id_pressed.connect(_run_layout)
+   var centralities := PopupMenu.new()
+   _menu(centralities, CENTRALITIES)
+   centralities.id_pressed.connect(func(id): _run_analysis("centrality", "Centrality", CENTRALITIES[id]))
+   %Analysis.add_submenu_node_item("Centrality", centralities)
    var communities := PopupMenu.new()
    _menu(communities, COMMUNITIES)
-   communities.id_pressed.connect(_run_communities)
+   communities.id_pressed.connect(func(id): _run_analysis("communities", "Community discovery", COMMUNITIES[id]))
    %Analysis.add_submenu_node_item("Community discovery", communities)
+   %Worker.progress.connect(_task_dialog.progress)
+   _task_dialog.abort_requested.connect(%Worker.abort)
+   _task_dialog.force_stop_requested.connect(_force_stop)
+   _task_dialog.host = _task_host
+   %PlotWindow.save_requested.connect(_save_plot)
+   %PlotWindow.colors_changed.connect(_replot)
    _menu(%Generators, GENERATORS)
    %Generators.id_pressed.connect(_open_generator)
    %Tabs.tab_changed.connect(_show_tab)
@@ -231,17 +265,60 @@ func _switch_python(python: String) -> void:
       return
    Environments.choose(python)
    _start_worker()
+   _rebuild_tabs()
+
+
+## Rebuilds the networks of the open tabs in the worker by running their code again, with the same
+## style (after a change of environment or a restart).
+func _rebuild_tabs() -> void:
    for tab in _tabs:
-      %Status.text = "Rebuilding the open networks…"
-      %Worker.request({"cmd": "replay", "tab": tab.id, "code": tab.code, "style": tab.style}, func(reply, payload):
+      _task("Rebuilding %s…" % tab.name, {"cmd": "replay", "tab": tab.id, "code": tab.code, "style": tab.style}, func(reply, payload):
          if not _tabs.has(tab):
             return
          if not reply.ok:
-            _message("Python environment", "%s could not be rebuilt in this environment, and was closed:\n%s" % [tab.name, reply.error])
+            _message("Python environment", "%s could not be rebuilt, and was closed:\n%s" % [tab.name, reply.error])
             _close_tab(_tabs.find(tab))
             return
          _drawn(tab, reply, payload)
          %Status.text = "Ready")
+
+
+## Sends a request that runs the library (it may take long): the status bar says [param text], the
+## task dialog opens if it lasts (with Abort), and [param callback] gets the reply.
+func _task(text: String, request: Dictionary, callback: Callable) -> void:
+   %Status.text = text
+   _next_task += 1
+   var id := _next_task
+   _pending[id] = callback
+   _task_dialog.begin(text)
+   %Worker.request(request, func(reply, payload):
+      _pending.erase(id)
+      if _pending.is_empty():
+         _task_dialog.end()
+      _progress_done()
+      callback.call(reply, payload))
+
+
+## The window the task dialog opens in: the dialog that started the task (which stays open, to
+## show an error), so that the task dialog is drawn above it, or else the main window.
+func _task_host() -> Window:
+   for dialog: Window in [%ParamsDialog, %LoadDialog]:
+      if dialog.visible:
+         return dialog
+   return get_window()
+
+
+## Force stop of the task dialog: the worker is stopped and started again, the tasks fail (their
+## dialogs show it), and the open networks are rebuilt from their code.
+func _force_stop() -> void:
+   var callbacks := _pending.values()
+   _pending.clear()
+   _task_dialog.end()
+   _progress_done()
+   _start_worker()
+   for callback in callbacks:
+      callback.call({"ok": false, "error": "Stopped: the Python worker was restarted."}, PackedByteArray())
+   _rebuild_tabs()
 
 
 func _message(title: String, text: String, python := false) -> void:
@@ -291,9 +368,7 @@ func _new_tab(name: String, request: Dictionary, done := Callable()) -> void:
    _next_tab += 1
    var id := _next_tab
    request.tab = id
-   %Status.text = "Creating %s…" % name
-   %Worker.request(request, func(reply, _payload):
-      _progress_done()
+   _task("Creating %s…" % name, request, func(reply, _payload):
       if not reply.ok:
          %Status.text = "Could not create %s" % name
          _failed(name, str(reply.error), done)
@@ -335,38 +410,56 @@ func _run_layout(id: int) -> void:
          _message("Layout", str(reply.error)))
 
 
-## Analysis › Community discovery: opens the parameter dialog of a community discovery function,
-## then runs it on the current network; the worker colors the nodes (the edges, for link
-## communities) by the communities found.
-func _run_communities(id: int) -> void:
+## Analysis menu: opens the parameter dialog of an analysis ([param item]: label and function) for
+## the current network, then runs it with the worker command [param cmd] ("communities" or
+## "centrality"): the results become attributes; the look of the drawing does not change.
+## Degree centrality can also plot the degree distribution.
+func _run_analysis(cmd: String, heading: String, item: Array) -> void:
    var tab := _current()
    if tab.is_empty():
       return
-   var item: Array = COMMUNITIES[id]
    %Worker.request({"cmd": "signature", "function": item[1], "tab": tab.id}, func(reply, _payload):
       if not reply.ok:
-         _message("Community discovery", str(reply.error))
+         _message(heading, str(reply.error))
          return
       %ParamsDialog.open("%s (gsk.%s)" % [item[0].trim_suffix("…"), item[1]], reply, {}, "Run", tab.attributes, func(arguments, done):
-         %Status.text = "%s: running %s…" % [tab.name, item[1]]
-         %Worker.request({"cmd": "communities", "tab": tab.id, "function": item[1], "arguments": arguments}, func(r, payload):
-            _progress_done()
+         _task("%s: running %s…" % [tab.name, item[1]], {"cmd": cmd, "tab": tab.id, "function": item[1], "arguments": arguments, "name": tab.name}, func(r, payload):
             if not _tabs.has(tab):
                return
             %Status.text = tab.summary
             if not r.ok:
-               _failed("Community discovery", str(r.error), done)
+               _failed(heading, str(r.error), done)
                return
             done.call("")
-            _drawn(tab, r, payload, true))))
+            _drawn(tab, r, payload, true)
+            if r.has("plot"):
+               var parts: Array = r.parts
+               var png: PackedByteArray = payload.slice(payload.size() - int(parts.back()))
+               %PlotWindow.show_plot(tab.id, "Degree distribution of %s" % tab.name, png, r.plot.elements, r.plot.text, r.plot.warnings))))
+
+
+## Draws the plot of the plot window again with new [param colors] (element key to color).
+func _replot(tab_id: int, colors: Dictionary) -> void:
+   %Worker.request({"cmd": "replot", "tab": tab_id, "colors": colors}, func(reply, payload):
+      if reply.ok:
+         %PlotWindow.set_image(payload)
+      else:
+         _message("Plot", str(reply.error)))
+
+
+## Saves the plot of the plot window (PNG or PDF, by the extension of [param path]).
+func _save_plot(tab_id: int, path: String) -> void:
+   %Worker.request({"cmd": "save_plot", "tab": tab_id, "path": path}, func(reply, _p):
+      if reply.ok:
+         %Status.text = "Saved %s" % path.get_file()
+      else:
+         _message("Plot", str(reply.error)))
 
 
 ## Runs a layout function of the library on the network of a tab, then draws it; [param done]
 ## (from a parameter dialog) gets the error, or an empty text when the layout ran.
 func _layout(tab: Dictionary, function: String, arguments: Dictionary, done := Callable()) -> void:
-   %Status.text = "%s: running %s…" % [tab.name, function]
-   %Worker.request({"cmd": "layout", "tab": tab.id, "function": function, "arguments": arguments}, func(reply, payload):
-      _progress_done()
+   _task("%s: running %s…" % [tab.name, function], {"cmd": "layout", "tab": tab.id, "function": function, "arguments": arguments}, func(reply, payload):
       if not _tabs.has(tab):
          return
       %Status.text = tab.summary

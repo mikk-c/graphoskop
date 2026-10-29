@@ -89,7 +89,7 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
       at += int(n)
    _buffer = parts[0].to_float32_array()
    _fill(_nodes.multimesh, int(header.nodes), _buffer)
-   _edge_kind(header.get("curved", false), int(header.get("subdivisions", 16)))
+   _edge_kind("cells" if header.get("cells", false) else ("curves" if header.get("curved", false) else "lines"), int(header.get("subdivisions", 16)))
    _fill(_edges.multimesh, int(header.edges), parts[1].to_float32_array())
    ids = parts[2].get_string_from_utf8().split(char(31)) if int(header.nodes) > 0 else PackedStringArray()
    _order = parts[3].to_int32_array()
@@ -111,16 +111,19 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
       fit()
 
 
-## Edges as straight quads, or as Bézier pieces drawn with [param subdivisions] segments each
-## (the format of the multimesh can change only while it is empty).
-func _edge_kind(curved: bool, subdivisions: int) -> void:
+## Edges as straight quads ([param kind] "lines", the edge shader setting their width), as Bézier
+## pieces drawn with [param subdivisions] segments each ("curves"), or as the unit squares of the
+## cells of a matrix ("cells", without shader). The format of the multimesh can change only
+## while it is empty.
+func _edge_kind(kind: String, subdivisions: int) -> void:
    var mm := _edges.multimesh
+   var curved := kind == "curves"
    var mesh: Mesh = _strip(subdivisions) if curved else QuadMesh.new()
    if mm.use_custom_data != curved or (curved and mm.mesh != mesh):
       mm.instance_count = 0
       mm.use_custom_data = curved
       mm.mesh = mesh
-   _edges.material = _curved if curved else _straight
+   _edges.material = {"lines": _straight, "curves": _curved, "cells": null}[kind]
    _uniforms(zoom)
 
 
@@ -179,7 +182,8 @@ func _set_zoom(z: float) -> void:
 func _uniforms(z: float) -> void:
    _nodes.material.set_shader_parameter("zoom", z)
    _nodes.material.set_shader_parameter("min_pixels", NODE_PIXELS)
-   _edges.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION, EDGE_PIXELS / z))
+   if _edges.material is ShaderMaterial:
+      _edges.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION, EDGE_PIXELS / z))
 
 
 ## Applies [member center] and [member zoom], and draws the viewport once, at the next frame.

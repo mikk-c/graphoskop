@@ -4,7 +4,7 @@ extends AcceptDialog
 ## smallest value for the smallest attribute value to the largest for the largest, on a linear or
 ## logarithmic scale. Sizes are relative to the default ones (1 ×); node areas, not diameters,
 ## grow linearly with the values, edge widths and opacities grow linearly. Opacities go from 0
-## (transparent) to 1 (opaque). Changes apply as they are made; Cancel restores the values the
+## (transparent) to 1 (opaque), set with sliders. Changes apply as they are made; Cancel restores the values the
 ## dialog opened with. The dialog edits a size or opacity specification (see [code]sizes[/code]
 ## and [code]opacities[/code] in the worker).
 
@@ -16,7 +16,7 @@ signal changed(spec: Dictionary)
 const KINDS := {
    "area": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 2.0, "suffix": "×", "single": "Single size"},
    "width": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 3.0, "suffix": "×", "single": "Single size"},
-   "opacity": {"key": "opacity", "max": 1.0, "step": 0.05, "low": 0.2, "high": 1.0, "suffix": "", "single": "Single opacity"},
+   "opacity": {"key": "opacity", "max": 1.0, "step": 0.01, "low": 0.2, "high": 1.0, "suffix": "", "single": "Single opacity"},
 }
 
 var _spec := {}
@@ -46,13 +46,19 @@ func open(heading: String, spec: Dictionary, attributes: Array, kind: String) ->
    _original = spec.duplicate(true)
    _attributes = attributes
    _kind = kind
+   _building = true   # setting the ranges changes the values: not an edit
    var k: Dictionary = KINDS[kind]
-   for spin: SpinBox in [%Single, %Min, %Max]:
+   for pair in [[%Single, %SingleSlider], [%Min, %MinSlider], [%Max, %MaxSlider]]:
+      var spin: SpinBox = pair[0]
       spin.min_value = 0.0 if kind == "opacity" else 0.05
       spin.max_value = k.max
       spin.step = k.step
       spin.suffix = k.suffix
+      pair[1].visible = kind == "opacity"
+      if kind == "opacity":
+         pair[1].share(spin)
    %SingleLabel.text = "Opacity" if kind == "opacity" else "Size"
+   %ByLabel.text = "Opacity by" if kind == "opacity" else "Size by"
    _show()
    reset_size()
    popup_centered()
@@ -80,9 +86,9 @@ func _show() -> void:
          selected = i + 1
    %By.select(selected)
    var single := selected == 0
-   for n in [%SingleLabel, %Single]:
+   for n in [%SingleLabel, %SingleRow]:
       n.visible = single
-   for n in [%MinLabel, %Min, %MaxLabel, %Max, %LogLabel, %Log]:
+   for n in [%MinLabel, %MinRow, %MaxLabel, %MaxRow, %LogLabel, %Log]:
       n.visible = not single
    %Single.value = _spec.get(k.key, 1.0)
    %Min.value = _spec.get("min", k.low)

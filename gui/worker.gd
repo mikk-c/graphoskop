@@ -72,6 +72,18 @@ func request(header: Dictionary, callback: Callable) -> void:
       _send(header)
 
 
+## Asks the worker to interrupt the request it is running (sent at once, not after the queued
+## requests); the request then fails with the error "Aborted".
+func abort() -> void:
+   if _peer != null and not info.is_empty():
+      _send({"cmd": "abort"})
+
+
+## Whether requests are waiting for their replies.
+func busy() -> bool:
+   return not _callbacks.is_empty()
+
+
 func _send(header: Dictionary) -> void:
    var h := JSON.stringify(header, "", false).to_utf8_buffer()   # keys in their order (arguments of calls)
    var frame := PackedByteArray()

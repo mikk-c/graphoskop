@@ -18,6 +18,7 @@ layout_mode = 2
 columns = 2
 
 [node name="ByLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 text = "Size by"
@@ -34,7 +35,20 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Size"
 
-[node name="Single" type="SpinBox" parent="Box/Grid"]
+[node name="SingleRow" type="HBoxContainer" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SingleSlider" type="HSlider" parent="Box/Grid/SingleRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+
+[node name="Single" type="SpinBox" parent="Box/Grid/SingleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -49,7 +63,20 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Smallest"
 
-[node name="Min" type="SpinBox" parent="Box/Grid"]
+[node name="MinRow" type="HBoxContainer" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MinSlider" type="HSlider" parent="Box/Grid/MinRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+
+[node name="Min" type="SpinBox" parent="Box/Grid/MinRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
@@ -64,7 +91,20 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Largest"
 
-[node name="Max" type="SpinBox" parent="Box/Grid"]
+[node name="MaxRow" type="HBoxContainer" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MaxSlider" type="HSlider" parent="Box/Grid/MaxRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+
+[node name="Max" type="SpinBox" parent="Box/Grid/MaxRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0

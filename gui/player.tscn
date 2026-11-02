@@ -1,0 +1,95 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://player.gd" id="1_player"]
+
+[node name="Player" type="PanelContainer"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_player")
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Run" type="Label" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Run whose history is shown"
+
+[node name="Start" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Back to step 0"
+
+[node name="Back" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Previous step"
+
+[node name="Play" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Play or pause"
+
+[node name="Forward" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Next step"
+
+[node name="End" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "To the last step"
+
+[node name="Timeline" type="HSlider" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+tooltip_text = "Step shown"
+
+[node name="Step" type="Label" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Speed" type="SpinBox" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 60.0
+value = 5.0
+suffix = "steps/s"
+tooltip_text = "Speed of play"
+
+[node name="States" type="HBoxContainer" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Show" type="CheckBox" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Color the nodes by their state at the step shown"
+text = "States"
+
+[node name="Export" type="Button" parent="Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Saves the spread, from step 0 to the last step, as an animation (GIF or MP4 video) at the speed of play"
+text = "Export…"
+
+[node name="ExportDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Export the animation"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.gif ; GIF animation", "*.mp4 ; MP4 video")
+use_native_dialog = true
+
+[node name="Timer" type="Timer" parent="."]
+unique_name_in_owner = true

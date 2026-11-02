@@ -89,7 +89,9 @@ Grid layouts
 Grid layouts put the nodes on the cells of a regular grid. They work as circular layouts do, in
 two dimensions: hierarchical groups become blocks of blocks, groups sharing many edges are side
 by side, and inside each block nodes linked to other blocks sit on the border facing them, the
-others in the middle (or a numeric attribute fills the block in reading order).
+others in the middle (or a numeric attribute fills the block in reading order). With
+``fast = True`` the edges are not read at all: nodes fill their blocks in their order, the
+cheapest layout there is, meant as a first placement of large networks.
 
 .. code-block:: python
 
@@ -98,6 +100,7 @@ others in the middle (or a numeric attribute fills the block in reading order).
    net = gsk.load_network("edges.tsv", "nodes.tsv")
    gsk.grid_layout(net, ["region", "city"])
    gsk.grid_layout(net, "community", order = "age")
+   gsk.grid_layout(net, fast = True)                  # in node order, at once: a first placement
 
 .. autofunction:: graphoskop.grid_layout
 

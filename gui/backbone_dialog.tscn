@@ -1,0 +1,120 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://backbone_dialog.gd" id="1_bb"]
+
+[node name="BackboneDialog" type="AcceptDialog"]
+title = "Backbone"
+size = Vector2i(780, 600)
+exclusive = false
+ok_button_text = "Extract backbone"
+dialog_hide_on_ok = false
+script = ExtResource("1_bb")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 772.0
+offset_bottom = 551.0
+
+[node name="Plot" type="TextureRect" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(760, 420)
+layout_mode = 2
+stretch_mode = 2
+
+[node name="Overlay" type="Control" parent="Box/Plot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Options" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="Components" type="CheckBox" parent="Box/Options"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Also plots the number of components with more than one node, on a second y axis"
+text = "Components (right axis)"
+
+[node name="Left" type="Button" parent="Box/Options"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Shows the thresholds of the few edges far below all the others, left out of the plot"
+toggle_mode = true
+text = "Extend to the left"
+
+[node name="Right" type="Button" parent="Box/Options"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Shows the thresholds of the few edges far above all the others, left out of the plot"
+toggle_mode = true
+text = "Extend to the right"
+
+[node name="Row" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="ThresholdLabel" type="Label" parent="Box/Row"]
+layout_mode = 2
+text = "Threshold"
+
+[node name="Slider" type="HSlider" parent="Box/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.0
+tooltip_text = "Threshold of the backbone: the edges whose significance is above it are kept"
+
+[node name="Value" type="SpinBox" parent="Box/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+step = 1e-06
+tooltip_text = "Threshold of the backbone (can be typed)"
+
+[node name="Snaps" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Extraction" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="ExtractionLabel" type="Label" parent="Box/Extraction"]
+layout_mode = 2
+text = "Extract with"
+
+[node name="KeepIsolates" type="CheckBox" parent="Box/Extraction"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Keeps the nodes left without edges, as isolated nodes (otherwise they are dropped)"
+text = "Isolated nodes kept"
+
+[node name="ReconnectComponents" type="CheckBox" parent="Box/Extraction"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Adds back the fewest, most significant dropped edges that keep every original component connected (isolated nodes included)"
+text = "Components reconnected"
+
+[node name="ReconnectIsolates" type="CheckBox" parent="Box/Extraction"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Gives back to every node left without edges its most significant dropped edge"
+text = "Isolated nodes reconnected"
+
+[node name="Stats" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Debounce" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.15
+one_shot = true

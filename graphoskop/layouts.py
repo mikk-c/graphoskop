@@ -1126,6 +1126,7 @@ def circular_layout(net, groups = None, order = None, weight = None, spacing = 1
       where to store the positions, or ``None`` to only return them.
    :param arrange: Whether to arrange the sectors by their edges (``True``) or in sorted order of
       the group values (``False``).
+   :param fast: Whether to place the nodes in node order without reading the edges.
    :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
       wide node order, and the columns ``<attribute>_x``, ``<attribute>_y`` (``x``, ``y`` with
       ``attribute = None``).
@@ -1745,7 +1746,7 @@ def _snap(block, tx, ty, height, tie):
 
 
 @_higher_order()
-def grid_layout(net, groups = None, order = None, weight = None, spacing = 1., gap = 1., attribute = "pos", arrange = True):
+def grid_layout(net, groups = None, order = None, weight = None, spacing = 1., gap = 1., attribute = "pos", arrange = True, fast = False):
    """
    Grid layout: the nodes of every component on the cells of a regular grid, in rectangular
    blocks by group (hierarchical groups nest, as blocks of blocks), the counterpart of
@@ -1776,6 +1777,10 @@ def grid_layout(net, groups = None, order = None, weight = None, spacing = 1., g
      (:func:`~graphoskop.laplacian_eigenmaps`, 2 dimensions), so that neighbors are close; the
      embedding is turned (in steps of 5 degrees) to the angle giving the shortest edges on the
      grid (a lattice network comes back as a lattice).
+   - With ``fast = True``, edges are not read at all: blocks follow the sorted order of the values
+     (as with ``arrange = False``) and, without ``order``, nodes fill their block row by row in
+     the network wide node order. This is the cheapest layout there is (a few vectorized
+     operations, no randomness), meant as a first placement of a large network.
 
    Columns and rows are ``spacing`` apart; rows go downwards. Components get their own grids,
    packed in rows, largest first (as in :func:`force_directed_layout`). Directed networks are
@@ -1809,14 +1814,16 @@ def grid_layout(net, groups = None, order = None, weight = None, spacing = 1., g
       gsk.grid_layout(net)                                  # neighbors close on the grid
       gsk.grid_layout(net, ["country", "city"])             # blocks of blocks
       gsk.grid_layout(net, "community", order = "age")      # blocks filled by age
+      gsk.grid_layout(net, fast = True)                     # in node order, instantly
    """
    sizes = np.diff(net.node_offsets)
    n = int(sizes.sum())
    comp = np.repeat(np.arange(len(sizes)), sizes)
    names = [groups] if isinstance(groups, str) else list(groups or [])
    G = np.stack([_codes(net, a) for a in names], 1) if names else np.zeros((n, 0), dtype = np.int64)
-   s, t, w = _all_edges(net, weight)
-   if names and arrange:
+   if not fast:
+      s, t, w = _all_edges(net, weight)
+   if names and arrange and not fast:
       G = _arrange_groups(G, comp, s, t, w, cyclic = False)
    L = G.shape[1]
    gid = [_consecutive(np.column_stack([comp, G[:, :l]])) for l in range(L + 1)]   # groups of every level, in order
@@ -1849,6 +1856,11 @@ def grid_layout(net, groups = None, order = None, weight = None, spacing = 1., g
          raise ValueError(f"order must be a numeric node attribute, got {order!r}")
       v = torch.cat(net.get_node_attribute(order, None)).double().cpu().numpy()
       o = np.lexsort((tie, np.where(np.isnan(v), np.inf, v), fine))
+      r = np.empty(n, dtype = np.int64)
+      r[o] = np.arange(n) - np.searchsorted(fine[o], fine[o])
+      col, row = r % bw[fine], r // bw[fine]
+   elif fast:   # node order, which keeps the nodes of a block together
+      o = np.argsort(fine, kind = "stable")
       r = np.empty(n, dtype = np.int64)
       r[o] = np.arange(n) - np.searchsorted(fine[o], fine[o])
       col, row = r % bw[fine], r // bw[fine]

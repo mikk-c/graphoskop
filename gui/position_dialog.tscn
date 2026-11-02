@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://position_dialog.gd" id="1_position"]
+
+[node name="PositionDialog" type="AcceptDialog"]
+title = "Node positions"
+size = Vector2i(400, 160)
+script = ExtResource("1_position")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 392.0
+offset_bottom = 111.0
+
+[node name="Grid" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 2
+
+[node name="XLabel" type="Label" parent="Box/Grid"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "x from"
+
+[node name="X" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Horizontal position of the nodes: the layout, or a numeric node attribute"
+
+[node name="YLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "y from"
+
+[node name="Y" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Vertical position of the nodes (up): the layout, or a numeric node attribute"
+
+[node name="Note" type="Label" parent="Box"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.7)
+text = "Attributes override the layout, now and after new layouts. Nodes without a value go to the smallest one."
+autowrap_mode = 3

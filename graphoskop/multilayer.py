@@ -45,7 +45,7 @@ def _flat_tables(net):
    :param net: Network, not multilayer.
    :return: ``(edges, nodes)``.
    """
-   tables = net.to_pandas_dataframes()
+   tables = net._dataframes(True)
    if isinstance(tables, tuple):
       return tables
    ids = np.concatenate(net.node_ids)

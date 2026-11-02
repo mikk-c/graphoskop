@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://visual_panel.gd" id="1_visual"]
 [ext_resource type="Script" path="res://swatch_button.gd" id="2_swatch"]
 [ext_resource type="PackedScene" path="res://color_dialog.tscn" id="3_color"]
 [ext_resource type="PackedScene" path="res://size_dialog.tscn" id="4_size"]
+[ext_resource type="PackedScene" path="res://position_dialog.tscn" id="5_position"]
 
 [node name="VisualPanel" type="TabContainer"]
 size_flags_horizontal = 3
@@ -58,6 +59,21 @@ size_flags_horizontal = 3
 text_overrun_behavior = 3
 
 [node name="EditNodeOpacity" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit…"
+
+[node name="PositionLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Position"
+
+[node name="NodePosition" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodePosition" type="Button" parent="Nodes"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Edit…"
@@ -132,10 +148,74 @@ layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("2_swatch")
 
+[node name="TurnLabel" type="Label" parent="Network"]
+layout_mode = 2
+text = "Rotation"
+
+[node name="TurnRow" type="HBoxContainer" parent="Network"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TurnSlider" type="HSlider" parent="Network/TurnRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = -180.0
+max_value = 180.0
+tooltip_text = "Rotation of the view, in degrees (counterclockwise)"
+
+[node name="Turn" type="SpinBox" parent="Network/TurnRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -180.0
+max_value = 180.0
+suffix = "°"
+
+[node name="ScaleLabel" type="Label" parent="Network"]
+layout_mode = 2
+text = "Scale"
+
+[node name="ScaleRow" type="HBoxContainer" parent="Network"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScaleSlider" type="HSlider" parent="Network/ScaleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = -1.0
+max_value = 2.0
+step = 0.01
+tooltip_text = "Scale of the layout: the distances between the nodes, from a tenth to a hundred times those of the layout, without changing the size of the nodes on screen"
+
+[node name="Scale" type="SpinBox" parent="Network/ScaleRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+min_value = 0.1
+max_value = 100.0
+step = 0.01
+value = 1.0
+exp_edit = true
+suffix = "×"
+tooltip_text = "Scale of the layout (can be typed)"
+
+[node name="ResetScale" type="Button" parent="Network/ScaleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset"
+tooltip_text = "Puts the nodes back at the distances of the layout"
+
 [node name="ColorDialog" parent="." instance=ExtResource("3_color")]
 unique_name_in_owner = true
 visible = false
 
 [node name="SizeDialog" parent="." instance=ExtResource("4_size")]
+unique_name_in_owner = true
+visible = false
+
+[node name="PositionDialog" parent="." instance=ExtResource("5_position")]
 unique_name_in_owner = true
 visible = false

@@ -147,6 +147,16 @@ Simple contagion
       gsk.sir_model(net, 0.2, 0.1, runs = 1, max_steps = 1, resume = True)
       states = net.get_node_attribute("state")                     # "S", "I" or "R" for each node
 
+   # the states at every step of the last run, to replay the spread
+   sir = gsk.sir_model(net, 0.2, 0.1, 5, history = True)
+   net.get_node_attribute("state_0")                                # seeds "I", others "S"
+   net.get_node_attribute("state_12")                               # states at step 12
+
+   # when every node was first infected (and recovered) in the last run
+   sir = gsk.sir_model(net, 0.2, 0.1, 5, onsets = True)
+   net.get_node_attribute("state_first_I")                          # steps, NaN if never infected
+   net.get_node_attribute("state_first_R")
+
    # immunization: 5% of the nodes, never infected ("V" in the stored states)
    sir = gsk.sir_model(net, 0.2, 0.1, 5, immunize = 0.05)                                 # at random
    sir = gsk.sir_model(net, 0.2, 0.1, 5, immunize = 0.05, strategy = "friend_of_random")  # acquaintances

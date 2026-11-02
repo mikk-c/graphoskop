@@ -385,6 +385,9 @@ class Network:
       :raises KeyError: If there is no node attribute with that name.
       """
       if component is None:
+         if isinstance(key, str) and key in self.qualitative_node_attributes and self.node_format == "wide":   # the whole column at once
+            v = np.split(np.asarray(self.qualitative_node_attr[key], dtype = object), self.node_offsets[1:-1])
+            return v if self.higher_order is None else [x[:k] for x, k in zip(v, self.bipartite_split)]
          return [self.get_node_attribute(key, c) for c in range(len(self.components))]
       v = self._node_vector(key, component)
       return v if self.higher_order is None else v[:self.bipartite_split[component]]
@@ -1558,6 +1561,14 @@ class Network:
          edges, nodes = net.to_pandas_dataframes()
          edges.to_csv("scored_edges.tsv", sep = "\\t", index = False)
       """
+      return self._dataframes()
+
+   def _dataframes(self, categorical = False):
+      """
+      Body of :meth:`to_pandas_dataframes`; with ``categorical``, the qualitative node attributes of
+      wide tables stay categorical columns (for tables loaded back into a network: no new
+      factorization of their values).
+      """
       if self.higher_order is not None:
          return self._higher_order_tables()
       ml = self.layer_labels is not None
@@ -1593,8 +1604,7 @@ class Network:
       Q = self.qualitative_node_attr
       if self.node_format == "wide":
          nodes = pd.DataFrame(np.concatenate([d.node_attr.cpu().numpy() for d in self.components]), columns = self.node_attributes)
-         for a in self.qualitative_node_attributes:
-            nodes[a] = Q[a].to_numpy()
+         nodes = pd.concat([nodes, pd.DataFrame({a: Q[a].array if categorical else Q[a].to_numpy() for a in self.qualitative_node_attributes}, index = nodes.index)], axis = 1)   # all the columns at once
          for k in reversed(list(idc)):
             nodes.insert(0, k, idc[k])
          return (edges, interlayer, nodes) if ml else (edges, nodes)
@@ -1851,7 +1861,8 @@ def _memberships(values):
    :param values: Sequence of values.
    :return: :class:`numpy.ndarray` of objects.
    """
-   v = pd.Series(list(values), dtype = object)
+   x = np.asarray(values, dtype = object) if hasattr(values, "__array__") else None   # arrays (also categorical) at once
+   v = pd.Series(x if x is not None and x.ndim == 1 else list(values), dtype = object)
    if pd.api.types.infer_dtype(v, skipna = True) in ("string", "integer", "floating", "mixed-integer-float", "boolean", "empty"):
       return v.to_numpy()
    try:   # each distinct value once
@@ -2542,7 +2553,8 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
             row = _positions(perm)[key]
             Q = {}
             for a in quals:   # as category codes: no Python object per value
-               cat = pd.Categorical(_memberships(feats[a]))
+               col = feats[a]
+               cat = col.array.remove_unused_categories() if isinstance(col.dtype, pd.CategoricalDtype) else pd.Categorical(_memberships(col))   # already categorical: no new factorization
                c = np.full(n, -1, dtype = cat.codes.dtype)
                c[row] = cat.codes
                Q[a] = pd.Categorical.from_codes(c, cat.categories)
@@ -3010,7 +3022,7 @@ def load_pickled_network(path, device = None):
 
 
 @_higher_order()
-def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = None, weight = "weight", sep = None, node_sep = "\t", device = "cpu"):
+def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = None, weight = "weight", sep = None, node_sep = "\t", device = "cpu", header = False):
    """
    Load a network from its adjacency matrix, or the biadjacency matrix of a bipartite network: a
    dense text file of numbers, a NumPy array (or anything :func:`numpy.asarray` reads, such as a
@@ -3030,7 +3042,11 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
    Nodes are numbered by their position: ``0`` to ``n - 1``, or, if bipartite, ``0`` to ``R - 1``
    for the rows and ``R`` to ``R + C - 1`` for the columns, unless ``ids`` are given. Node
    attributes can come from a wide node table (first column the node id, then one column per
-   attribute), matched to these ids; then the network is built by :func:`load_network`.
+   attribute), matched to these ids; then the network is built by :func:`load_network`. A matrix
+   file with ``header = True`` has the ids of the columns in its first row and those of the rows in
+   its first column (the top left cell is ignored); they are the ids unless ``ids`` are given (the
+   rows and the columns of a square matrix not read as bipartite must have the same ids, in the
+   same order); they are read as texts.
 
    :param matrix: File path, array-like, or :class:`scipy.sparse` matrix.
    :param nodes: Wide node attribute table, as a file path (read with ``node_sep``, with a header
@@ -3045,10 +3061,12 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
    :param sep: Separator of the columns of a matrix file; ``None`` for any whitespace.
    :param node_sep: Separator of the columns of a node table file.
    :param device: Device where all tensors are created, e.g. ``"cuda"``.
+   :param header: Whether a matrix file has the ids in its first row and first column.
    :return: The loaded :class:`Network`.
    :raises ValueError: If a rectangular matrix is not read as bipartite, an undirected network has
-      a matrix that is not symmetric, ``ids`` do not match the matrix or repeat, or the node table
-      has a :data:`BIPARTITE` column for a matrix read as bipartite.
+      a matrix that is not symmetric, ``ids`` do not match the matrix or repeat, the rows and the
+      columns of a square matrix file with a header have different ids, or the node table has a
+      :data:`BIPARTITE` column for a matrix read as bipartite.
 
    Examples:
 
@@ -3060,6 +3078,7 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
       net = gsk.load_matrix("adjacency.txt")                     # whitespace separated numbers
       net = gsk.load_matrix(np.array([[0, 1], [1, 0]]))          # undirected: symmetric
       net = gsk.load_matrix(A, ids = ["alice", "bob", "carol"], nodes = "nodes.tsv")
+      net = gsk.load_matrix("labeled.csv", sep = ",", header = True)   # ids in the first row and column
 
       # bipartite: 3 plants (rows, type 0) and 4 pollinators (columns, type 1)
       M = np.array([[1, 1, 1, 1], [1, 1, 0, 0], [1, 0, 0, 0]])
@@ -3069,8 +3088,14 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
       import scipy.sparse as sp
       net = gsk.load_matrix(sp.random(1000, 1000, density = 0.01), directed = True, device = "cuda")
    """
+   labels = None
    if isinstance(matrix, (str, bytes)) or hasattr(matrix, "__fspath__"):
-      matrix = pd.read_csv(matrix, sep = r"\s+" if sep is None else sep, header = None).to_numpy(dtype = float)
+      if header:   # ids of the columns in the first row, of the rows in the first column
+         df = pd.read_csv(matrix, sep = r"\s+" if sep is None else sep, header = 0, index_col = 0)
+         labels = (np.asarray(df.index.astype(str), dtype = object), np.asarray(df.columns.astype(str), dtype = object))
+         matrix = df.to_numpy(dtype = float)
+      else:
+         matrix = pd.read_csv(matrix, sep = r"\s+" if sep is None else sep, header = None).to_numpy(dtype = float)
    M = sp.coo_matrix(matrix if sp.issparse(matrix) else np.asarray(matrix))
    M.sum_duplicates()
    M.eliminate_zeros()
@@ -3083,6 +3108,10 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
       directed = not sym if directed is None else directed
       if not directed and not sym:
          raise ValueError("an undirected network needs a symmetric matrix")
+   if ids is None and labels is not None:
+      if not bipartite and list(labels[0]) != list(labels[1]):
+         raise ValueError("the rows and the columns of a square matrix must have the same ids, in the same order (or read it as bipartite)")
+      ids = labels if bipartite else labels[0]
    if ids is None:
       rid, cid = np.arange(R), (np.arange(R, R + C) if bipartite else np.arange(C))
    elif bipartite:

@@ -77,7 +77,7 @@ func open(heading: String, sig: Dictionary, presets: Dictionary, ok_text: String
                control = _checks(names, start, p.hint)
             else:
                var extra: Array = w.get("extra", [])
-               var options := [""]
+               var options := [w.get("empty", "")]   # the hint
                options.append_array(extra)
                options.append_array(names.map(func(a): return JSON.stringify(a)))
                var labels := [p.hint]

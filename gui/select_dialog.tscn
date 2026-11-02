@@ -1,0 +1,95 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://select_dialog.gd" id="1_select"]
+
+[node name="SelectDialog" type="ConfirmationDialog"]
+title = "Select by attribute"
+size = Vector2i(420, 200)
+ok_button_text = "Select"
+dialog_hide_on_ok = false
+script = ExtResource("1_select")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 412.0
+offset_bottom = 151.0
+
+[node name="Grid" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 2
+
+[node name="KindLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "Select"
+
+[node name="Kind" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+item_count = 2
+selected = 0
+popup/item_0/text = "Nodes"
+popup/item_0/id = 0
+popup/item_1/text = "Edges"
+popup/item_1/id = 1
+
+[node name="AttributeLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "whose"
+
+[node name="Attribute" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="OpLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "is"
+
+[node name="Op" type="OptionButton" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+tooltip_text = "Condition: numbers are compared as numbers; contains matches a part of the text, or one of several values"
+
+[node name="ValueLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "Value"
+
+[node name="Value" type="HBoxContainer" parent="Box/Grid"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="Number" type="SpinBox" parent="Box/Grid/Value"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.0
+allow_greater = true
+allow_lesser = true
+custom_arrow_step = 1.0
+
+[node name="Values" type="OptionButton" parent="Box/Grid/Value"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Text" type="LineEdit" parent="Box/Grid/Value"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "value"
+
+[node name="Add" type="CheckBox" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add to the current selection"
+
+[node name="Error" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
+autowrap_mode = 3

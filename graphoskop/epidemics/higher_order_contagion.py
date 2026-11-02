@@ -45,7 +45,8 @@ from numba import njit, prange
 
 from .._policy import _higher_order
 from ..ergms import _random
-from .simple_contagion import _initial, _size, _sums, _table
+from ..progress import _bar
+from .simple_contagion import _history, _initial, _onsets, _push, _size, _sums, _table
 
 
 @njit(cache = True)
@@ -72,7 +73,7 @@ def _toggle(g, sign, gptr, gmem, lb, acc, nact, sure, state, listed, front, nf):
 
 
 @njit(cache = True, parallel = True)
-def _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, seeds, removed, immune, mu, sis, max_steps, window, tolerance, rng, total, square, ends, finals, last):
+def _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, seeds, removed, immune, mu, sis, max_steps, window, tolerance, rng, total, square, ends, finals, last, hist, nhist):
    """
    Runs of the SI, SIS or SIR model with group channels, in parallel: thread ``b`` simulates runs
    ``b``, ``b + B``, ..., with the bookkeeping of
@@ -108,6 +109,11 @@ def _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, seeds, remove
    :param ends: Last step of every run, written in place.
    :param finals: Number of nodes in each state at the end of every run, written in place.
    :param last: State of every node at the end of the last run, written in place.
+   :param hist: Changes of state of the last run, rows ``(node, step, state)``, written in place
+      up to its length (no rows: not recorded; see
+      :func:`~graphoskop.epidemics.simple_contagion._history`).
+   :param nhist: Number of changes of the last run (one value), written in place, even beyond the
+      length of ``hist``.
    """
    R, B, n, G = rng.shape[0], total.shape[0], nptr.shape[0] - 1, gptr.shape[0] - 1
    for b in prange(B):
@@ -132,16 +138,23 @@ def _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, seeds, remove
          sure[:] = 0
          ecnt[:] = 0
          listed[:] = False
+         rh = r == R - 1 and hist.shape[0] > 0   # recording the history of the last run
          for v in removed:
             state[v] = 2
+            if rh:
+               _push(hist, nhist, v, 0, 2)
          nV = immune.shape[1]
          for v in immune[r % immune.shape[0]]:
             state[v] = 4
+            if rh:
+               _push(hist, nhist, v, 0, 4)
          nn, nr, ni, nf = 0, 0, 0, 0
          for v in seeds[r % seeds.shape[0]]:
             state[v] = 1
             new[nn] = v
             nn += 1
+            if rh:
+               _push(hist, nhist, v, 0, 1)
          nR, t, m2 = removed.shape[0], 0, 0.
          while True:
             for i in range(nn):   # newly infected: counts of their neighbors and groups
@@ -223,8 +236,12 @@ def _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, seeds, remove
                ni = keep
             for i in range(nn):
                state[new[i]] = 1
+               if rh:
+                  _push(hist, nhist, new[i], t, 1)
             for i in range(nr):
                state[rec[i]] = 0 if sis else 2
+               if rh:
+                  _push(hist, nhist, rec[i], t, 0 if sis else 2)
             if not sis:
                nR += nr
          ends[r] = t
@@ -312,11 +329,15 @@ def _co_members(nptr, ngrp, n):
    return A.indptr.astype(np.int64), A.indices.astype(np.int64)
 
 
-def _simulate_groups(net, model, beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, window, tolerance, immunize, strategy):
+def _simulate_groups(net, model, beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, window, tolerance, immunize, strategy, history = False, onsets = False, progress = None):
    """
    Body of the higher-order contagion models (see the module description).
 
    :param model: ``"SI"``, ``"SIS"`` or ``"SIR"``.
+   :param history: Whether to store the states of every step of the last run.
+   :param onsets: Whether to store the first steps in I and R of the last run (see
+      :func:`~graphoskop.epidemics.simple_contagion._onsets`).
+   :param progress: Whether to show a progress bar of the runs (``None``: global setting).
    :return: The table of the states over time.
    """
    if net.higher_order is None:
@@ -331,6 +352,8 @@ def _simulate_groups(net, model, beta, mu, threshold, seeds, ranking, selection,
       raise ValueError(f"unknown selection: {selection}")
    if runs < 1 or max_steps < 0:
       raise ValueError("runs must be positive and max_steps non negative")
+   if (history or onsets) and attribute is None:
+      raise ValueError("history and onsets store the states in attributes named after attribute: give an attribute")
    window = int(window or 0)
    if window < 0 or tolerance < 0:
       raise ValueError("window and tolerance must be non negative")
@@ -345,13 +368,33 @@ def _simulate_groups(net, model, beta, mu, threshold, seeds, ranking, selection,
    total, square = np.zeros((B, max_steps + 1, 3)), np.zeros((B, max_steps + 1, 3))
    ends, finals, last = np.zeros(runs, dtype = np.int64), np.zeros((runs, 3)), np.zeros(n, dtype = np.uint8)
    states = rs.integers(1, 2 ** 63, size = runs, dtype = np.uint64)
-   _run_groups(eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need, out, removed, imm, 0. if model == "SI" else float(mu), model == "SIS", int(max_steps), window, float(tolerance), states, total, square, ends, finals, last)
+   hist, nhist = np.zeros((3 * n + 1 if history or onsets else 0, 3), dtype = np.int64), np.zeros(1, dtype = np.int64)   # SI, SIR: at most 3 changes per node
+   none = np.zeros((0, 3), dtype = np.int64)
+   args = (eptr, enbr, lb1, nptr, ngrp, gptr, gmem, lb, need)
+   rest = (0. if model == "SI" else float(mu), model == "SIS", int(max_steps), window, float(tolerance))
+   last_state = states[-1:].copy()   # the kernel advances the states
+   chunk = B * max(1, -(-runs // (20 * B)))   # runs per call: the bar moves at least 20 times
+   with _bar(runs, f"higher-order {model} model", progress) as bar:
+      for a in range(0, runs, chunk):
+         k = min(chunk, runs - a)
+         r = np.arange(a, a + k)
+         final = a + k == runs
+         _run_groups(*args, out[r % out.shape[0]], removed, imm[r % imm.shape[0]], *rest, states[a:a + k], total, square, ends[a:a + k], finals[a:a + k], last, hist if final else none, nhist if final else np.zeros(1, dtype = np.int64))
+         bar.update(k)
+   if nhist[0] > hist.shape[0]:   # SIS: more changes than room; the last run again, alone
+      hist = np.zeros((nhist[0], 3), dtype = np.int64)
+      _run_groups(*args, out[(runs - 1) % out.shape[0]][None], removed, imm[(runs - 1) % imm.shape[0]][None], *rest, last_state, np.zeros((1, max_steps + 1, 3)), np.zeros((1, max_steps + 1, 3)), np.zeros(1, dtype = np.int64), np.zeros((1, 3)), np.zeros(n, dtype = np.uint8), hist, np.zeros(1, dtype = np.int64))
    total, square = _sums(total, square, ends, finals, n)
-   return _table(net, comps, off, component, attribute, last, total, square, runs, model)
+   table = _table(net, comps, off, component, attribute, last, total, square, runs, model)
+   if history:
+      _history(net, comps, off, component, attribute, hist[:nhist[0]], int(ends[-1]))
+   if onsets:
+      _onsets(net, off, component, attribute, hist[:nhist[0]], model)
+   return table
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def higher_order_si_model(net, beta, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
+def higher_order_si_model(net, beta, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    SI model of higher-order contagion on a simplicial complex or a hypergraph: a susceptible node
    is infected through each group of order :math:`\\omega` (a simplex, or a hyperedge of
@@ -381,6 +424,15 @@ def higher_order_si_model(net, beta, threshold = None, seeds = 1, ranking = None
    :param immunize: Nodes to immunize at step 0 (see :func:`~graphoskop.si_model`); acquaintance
       immunization picks a node sharing a simplex or hyperedge with a random node.
    :param strategy: How to choose the immunized nodes (see :func:`~graphoskop.si_model`).
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``: the mean fraction of nodes in each state and
       its 95% confidence interval.
@@ -396,11 +448,11 @@ def higher_order_si_model(net, beta, threshold = None, seeds = 1, ranking = None
       net = gsk.load_simplicial_complex("groups.tsv")
       si = gsk.higher_order_si_model(net, [0.05, 0.3], seeds = 5)       # edges, then triangles
    """
-   return _simulate_groups(net, "SI", beta, 0., threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, 0, 0., immunize, strategy)
+   return _simulate_groups(net, "SI", beta, 0., threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, 0, 0., immunize, strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def higher_order_sis_model(net, beta, mu, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
+def higher_order_sis_model(net, beta, mu, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    SIS model of higher-order contagion on a simplicial complex or a hypergraph: the simplicial
    contagion model of Iacopini, Petri, Barrat and Latora (2019). A susceptible node is infected
@@ -438,6 +490,15 @@ def higher_order_sis_model(net, beta, mu, threshold = None, seeds = 1, ranking =
    :param tolerance: Relative tolerance of the plateau test.
    :param immunize: Nodes to immunize at step 0.
    :param strategy: How to choose them.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``.
    :raises ValueError: If ``net`` is a plain network or a directed hypergraph, or a parameter is
@@ -457,11 +518,11 @@ def higher_order_sis_model(net, beta, mu, threshold = None, seeds = 1, ranking =
       low = gsk.higher_order_sis_model(net, beta, mu, seeds = 0.01, window = 0)     # dies out
       high = gsk.higher_order_sis_model(net, beta, mu, seeds = 0.4)     # endemic
    """
-   return _simulate_groups(net, "SIS", beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, window, tolerance, immunize, strategy)
+   return _simulate_groups(net, "SIS", beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, window, tolerance, immunize, strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def higher_order_sir_model(net, beta, mu, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
+def higher_order_sir_model(net, beta, mu, threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, attribute = "state", resume = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    SIR model of higher-order contagion on a simplicial complex or a hypergraph: infection through
    groups as in :func:`higher_order_si_model`; infected nodes recover with probability ``mu`` per
@@ -484,6 +545,16 @@ def higher_order_sir_model(net, beta, mu, threshold = None, seeds = 1, ranking =
    :param resume: Whether to start every run from the states stored in ``attribute``.
    :param immunize: Nodes to immunize at step 0.
    :param strategy: How to choose them.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``, and the
+      first step at which it recovered (or was removed), as ``f"{attribute}_first_R"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``I`` and ``R``
       and their 95% confidence intervals (``_low``, ``_high``).
    :raises ValueError: If ``net`` is a plain network or a directed hypergraph, or a parameter is
@@ -498,4 +569,4 @@ def higher_order_sir_model(net, beta, mu, threshold = None, seeds = 1, ranking =
       net = gsk.load_hypergraph("meetings.tsv")
       sir = gsk.higher_order_sir_model(net, {1: 0.2, 2: 0.2, 3: 0.4}, 0.1, threshold = 0.5, seeds = 3)
    """
-   return _simulate_groups(net, "SIR", beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, 0, 0., immunize, strategy)
+   return _simulate_groups(net, "SIR", beta, mu, threshold, seeds, ranking, selection, runs, max_steps, component, seed, attribute, resume, 0, 0., immunize, strategy, history = history, onsets = onsets, progress = progress)

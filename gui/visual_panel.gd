@@ -1,15 +1,25 @@
 extends TabContainer
-## Visual elements panel, with three tabs: Nodes (color, size and opacity), Edges (color,
-## thickness and opacity) and Network (background). Each row sums up the current choice; its Edit button opens the dialog
+## Visual elements panel, with three tabs: Nodes (color, size, opacity and position: the layout,
+## or numeric node attributes for x and y, position_dialog.gd), Edges (color, thickness and
+## opacity) and Network (background, rotation of the view, scale of the layout). The scale
+## multiplies the distances between the nodes on screen (a tenth to a hundred times those of the
+## layout, on a logarithmic slider) without changing their size on screen: it blows up the layout,
+## so that crowded nodes come apart; Reset puts it back to 1. (The mouse wheel zooms the view,
+## nodes included, and does not touch the scale.) Each row sums up the current choice; its Edit button opens the dialog
 ## that changes it (color_dialog.gd, size_dialog.gd). The panel edits the style of the drawing of
 ## the current network: [code]{"nodes": color, "edges": color, "node_size": size, "edge_width":
-## size, "node_opacity": opacity, "edge_opacity": opacity, "background": "#rrggbb"}[/code] (see
+## size, "node_opacity": opacity, "edge_opacity": opacity, "position": {"x": name, "y": name},
+## "background": "#rrggbb"}[/code] (see
 ## [code]default_style[/code] in the worker).
 
 ## Emitted when the colors or sizes of nodes or edges change, with the whole style.
 signal style_changed(style: Dictionary)
 ## Emitted when the background color changes.
 signal background_changed(color: Color)
+## Emitted when the rotation of the view changes (degrees, counterclockwise).
+signal turn_changed(degrees: float)
+## Emitted when the scale of the layout changes (1: the distances of the layout).
+signal scale_changed(factor: float)
 
 ## Function (attribute, kind, method, k, log, done) asking the worker for stop values (set by the
 ## main scene).
@@ -28,7 +38,31 @@ func _ready() -> void:
    %EditEdgeOpacity.pressed.connect(func(): _edit_size("edge_opacity", "Edge opacity", "edges", "opacity"))
    %ColorDialog.changed.connect(_changed)
    %SizeDialog.changed.connect(_changed)
+   %EditNodePosition.pressed.connect(func(): _editing = "position"; %PositionDialog.open(_style.get("position", {}), _attributes.get("nodes", [])))
+   %PositionDialog.changed.connect(_changed)
    %Background.color_changed.connect(func(c): _style.background = "#" + c.to_html(false); background_changed.emit(c))
+   %TurnSlider.share(%Turn)
+   %Turn.value_changed.connect(func(v): turn_changed.emit(v))
+   %ScaleSlider.value_changed.connect(func(v): _scale(pow(10.0, v)))
+   %Scale.value_changed.connect(_scale)
+   %ResetScale.pressed.connect(func(): _scale(1.0))
+
+
+func _scale(factor: float) -> void:
+   show_scale(factor)
+   scale_changed.emit(factor)
+
+
+## Shows the scale of the layout [param factor] (without changing the view).
+func show_scale(factor: float) -> void:
+   %ScaleSlider.set_value_no_signal(clampf(log(factor) / log(10.0), -1.0, 2.0))
+   %Scale.set_value_no_signal(factor)
+
+
+## Shows the rotation of the view, [param degrees], without changing it.
+func show_turn(degrees: float) -> void:
+   %Turn.set_value_no_signal(degrees)
+   %TurnSlider.set_value_no_signal(degrees)
 
 
 func _edit_color(key: String, heading: String, default_color: Color) -> void:
@@ -63,6 +97,13 @@ func _summarize() -> void:
    %EdgeWidth.text = _size_summary(_style.get("edge_width", {}))
    %NodeOpacity.text = _size_summary(_style.get("node_opacity", {}), "opacity")
    %EdgeOpacity.text = _size_summary(_style.get("edge_opacity", {}), "opacity")
+   var p: Dictionary = _style.get("position", {})
+   var axes := []
+   for axis in ["x", "y"]:
+      if p.get(axis) != null:
+         axes.append("%s: %s" % [axis, p[axis]])
+   %NodePosition.text = "the layout" if axes.is_empty() else ", ".join(axes)
+   %NodePosition.tooltip_text = %NodePosition.text
 
 
 ## Swatch or color ramp of a color specification, and what it colors by.

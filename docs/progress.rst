@@ -40,6 +40,12 @@ Function                            Before     Bar off    Bar shown  Delay 5 s
 ``nestedness``, 40 nulls            15.53 s    15.18 s    15.25 s    14.84 s  
 ==================================  =========  =========  =========  =========
 
+The epidemic models got their bars later: their runs are now simulated in up to 20 calls of the
+compiled code instead of one, to move the bar, which costs nothing measurable either (bars off,
+best of 3: :func:`~graphoskop.sir_model` on 100,000 nodes and 1,000,000 edges, 100 runs, 2.45 s
+before and 2.55 s after; :func:`~graphoskop.sis_model`, 300 steps, 25.6 s and 26.0 s;
+:func:`~graphoskop.si_model` with 1,000 tiny outbreaks on 1,000,000 nodes, 0.38 s and 0.37 s).
+
 In a terminal, a shown bar redraws at most 10 times a second (once every 30 seconds when the
 output is not a terminal, e.g. a log file), which cost nothing measurable either (a 7 s
 :func:`~graphoskop.gcn` run redrawn 122 times took the same time as without a bar).

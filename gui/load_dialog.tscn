@@ -21,6 +21,7 @@ layout_mode = 2
 columns = 4
 
 [node name="EdgeLabel" type="Label" parent="Box/Files"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Edge table"
 
@@ -88,6 +89,7 @@ button_pressed = true
 text = "First row is a header"
 
 [node name="EdgeTitle" type="Label" parent="Box"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Edge table: first 10 rows"
 
@@ -101,6 +103,7 @@ hide_root = true
 select_mode = 1
 
 [node name="EdgeColumns" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="SourceLabel" type="Label" parent="Box/EdgeColumns"]
@@ -213,6 +216,12 @@ layout_mode = 2
 [node name="KindLabel" type="Label" parent="Box/Kind"]
 layout_mode = 2
 text = "Network"
+
+[node name="Matrix" type="CheckBox" parent="Box/Kind"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "The file is an adjacency matrix (or the biadjacency matrix of a bipartite network), not an edge table"
+text = "Adjacency matrix"
 
 [node name="Directed" type="CheckBox" parent="Box/Kind"]
 unique_name_in_owner = true

@@ -1,18 +1,41 @@
 extends AcceptDialog
-## Window of a plot drawn by the worker with matplotlib (for now, the degree distribution:
-## complementary cumulative distribution on log-log axes, with the best power-law fit), without a
-## title, with a text (e.g. the verdict of the fit: whether the distribution is a power law) and
-## notes (its warnings). The colors of the elements of the plot can be changed (each with a color
-## button: the worker draws the plot again). Save PNG… and Save PDF… write the plot, with its
-## colors, to a file (PNG at 200 dpi).
+## Window of a plot drawn by the worker with matplotlib (the degree distribution: complementary
+## cumulative distribution on log-log axes, with the best power-law fit; the comparison of runs
+## of epidemic models; or the distribution of an attribute), without a title, with a text (e.g.
+## the verdict of the fit: whether the distribution is a power law) and notes (its warnings). Tick
+## marks are inside the axes.
+##
+## The distribution of an attribute is plotted as a count, PDF, CDF or CCDF (Plot menu; count and
+## PDF only for qualitative attributes); choosing one draws its series in its usual way (bars for
+## count and PDF, lines for CDF and CCDF), and empty axis labels are automatic. The plot of a
+## randomization test (the null networks and the observed value) has the same menu for the tail of
+## its pseudo p-value (right, left, two-sided), which the text under the plot gives.
+##
+## Under the plot: the color of every element (each with a color button) and, for data series,
+## how they are drawn (lines, points, lines with points, or bars); for each axis, linear or
+## logarithmic scale, its label (any text) and its range (from, to: empty for automatic); the
+## font size (the font is the default font of gnuplot, Helvetica, or one with the same metrics).
+## The worker draws the plot again after every change (after a short pause). Save PNG… and Save
+## PDF… write the plot as shown to a file (PNG at 200 dpi).
 
 ## Emitted with the path chosen to save the plot of the network of tab [param tab].
 signal save_requested(tab: int, path: String)
-## Emitted (after a short pause) with the colors of the elements of the plot (key to "#rrggbb").
-signal colors_changed(tab: int, colors: Dictionary)
+## Emitted (after a short pause) with the colors of the elements of the plot (key to "#rrggbb"),
+## the styles of its data series (key to "lines", "points", "linespoints" or "bars") and its
+## options (xlog, ylog, font_size, xlabel, ylabel, xmin, xmax, ymin, ymax, and kind for
+## distributions).
+signal changed(tab: int, colors: Dictionary, styles: Dictionary, options: Dictionary)
+
+## Labels of the styles of data series, as in the worker ([code]PLOT_STYLES[/code]).
+const STYLE_LABELS := {"lines": "lines", "points": "points", "linespoints": "lines and points", "bars": "bars"}
 
 var _tab := -1
 var _colors := {}
+var _styles := {}
+var _menus := {}
+var _style_names := []
+var _kinds := []
+var _file := "plot"
 
 
 func _ready() -> void:
@@ -20,38 +43,104 @@ func _ready() -> void:
    %SavePDF.pressed.connect(func(): _ask("pdf"))
    %SaveDialog.file_selected.connect(func(path):
       AppSettings.store_folder("plots", path)
-      if not %Debounce.is_stopped():   # colors changed just before: they go first
+      if not %Debounce.is_stopped():   # changes made just before go first
          %Debounce.stop()
-         colors_changed.emit(_tab, _colors.duplicate())
+         _emit()
       save_requested.emit(_tab, path))
-   %Debounce.timeout.connect(func(): colors_changed.emit(_tab, _colors.duplicate()))
+   %Debounce.timeout.connect(_emit)
+   for b in [%XLog, %YLog]:
+      b.item_selected.connect(func(_i): %Debounce.start())
+   for e in [%XLabel, %YLabel, %XMin, %XMax, %YMin, %YMax]:
+      e.text_changed.connect(func(_t): %Debounce.start())
+   %FontSize.value_changed.connect(func(_v): %Debounce.start())
+   %Kind.item_selected.connect(func(i):
+      for key in _menus:   # the usual style of the kind
+         _styles[key] = _kinds[i][2]
+         _menus[key].select(maxi(_style_names.find(_kinds[i][2]), 0))
+      %Debounce.start())
+
+
+func _emit() -> void:
+   var options := {"xlog": %XLog.selected == 1, "ylog": %YLog.selected == 1, "font_size": %FontSize.value, "xlabel": %XLabel.text, "ylabel": %YLabel.text}
+   for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]:
+      var t: String = pair[1].text.strip_edges()
+      if t.is_empty() or t.is_valid_float():   # half-typed numbers wait
+         options[pair[0]] = float(t) if not t.is_empty() else null
+   if not _kinds.is_empty():
+      options.kind = _kinds[%Kind.selected][0]
+   changed.emit(_tab, _colors.duplicate(), _styles.duplicate(), options)
 
 
 ## Shows the plot [param png] (image bytes) of the network of tab [param tab] in a window titled
-## [param heading], with color buttons for its [param elements] ([key, label, color]), the
-## [param verdict] and the [param warnings] of the fit.
-func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array, verdict: String, warnings: Array) -> void:
+## [param heading], with a color button for each of its [param elements] ([key, label, color,
+## style], style empty for elements that are not data series), a menu of [param styles] for each
+## data series, its [param options], and the [param verdict] and [param warnings] of the fit (all
+## from the worker); [param file] is the name proposed to save it; [param kinds] are the kinds of
+## a distribution or the tails of a randomization test ([key, label, usual style]; empty for
+## other plots), chosen in a menu labeled [param kind_label].
+func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array, options: Dictionary, styles: Array, verdict: String, warnings: Array, file := "degree_distribution", kinds := [], kind_label := "Plot") -> void:
    _tab = tab
+   _file = file
    title = heading
    set_image(png)
    _colors = {}
+   _styles = {}
+   _menus = {}
+   _style_names = styles
+   _kinds = kinds
+   %KindRow.visible = not kinds.is_empty()
+   %KindLabel.text = kind_label
+   %Kind.clear()
+   for k in kinds:
+      %Kind.add_item(k[1])
+   %Kind.select(maxi(kinds.map(func(k): return k[0]).find(options.get("kind", "")), 0) if not kinds.is_empty() else -1)
+   for pair in [[%XLabel, "xlabel"], [%YLabel, "ylabel"]]:   # plots whose empty labels are automatic
+      pair[0].placeholder_text = "automatic" if not kinds.is_empty() or str(options.get(pair[1], "")).is_empty() else ""
    for child in %Colors.get_children():
+      %Colors.remove_child(child)
       child.queue_free()
    for e in elements:
+      var key: String = e[0]
+      var box := HBoxContainer.new()
       var label := Label.new()
       label.text = e[1]
-      %Colors.add_child(label)
+      box.add_child(label)
       var button := SwatchButton.new()
       button.color = Color(e[2])
-      var key: String = e[0]
       button.color_changed.connect(func(c): _colors[key] = "#" + c.to_html(false); %Debounce.start())
-      %Colors.add_child(button)
+      box.add_child(button)
       _colors[key] = e[2]
+      if e.size() > 3 and not str(e[3]).is_empty():
+         var menu := OptionButton.new()
+         for st in styles:
+            menu.add_item(STYLE_LABELS.get(st, st))
+         menu.select(maxi(styles.find(e[3]), 0))
+         menu.tooltip_text = "How %s is drawn" % e[1]
+         menu.item_selected.connect(func(i): _styles[key] = styles[i]; %Debounce.start())
+         box.add_child(menu)
+         _styles[key] = e[3]
+         _menus[key] = menu
+      %Colors.add_child(box)
+   %XLog.select(1 if options.get("xlog", false) else 0)
+   %YLog.select(1 if options.get("ylog", false) else 0)
+   %XLabel.text = str(options.get("xlabel", ""))
+   %YLabel.text = str(options.get("ylabel", ""))
+   for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]:
+      var v = options.get(pair[0])
+      pair[1].text = "" if v == null else str(v)
+   %FontSize.set_value_no_signal(options.get("font_size", 14))
+   %Debounce.stop()
    %Verdict.text = verdict
    %Warnings.text = "\n".join(warnings)
    %Warnings.visible = not warnings.is_empty()
+   size = Vector2i.ZERO
    reset_size()
    popup_centered()
+
+
+## Shows the text under the plot (e.g. the pseudo p-value of a randomization test).
+func show_text(text: String) -> void:
+   %Verdict.text = text
 
 
 ## Shows the image [param png] (PNG bytes) of the plot.
@@ -65,5 +154,5 @@ func _ask(format: String) -> void:
    %SaveDialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
    %SaveDialog.filters = PackedStringArray(["*.%s ; %s" % [format, format.to_upper()]])
    %SaveDialog.current_dir = AppSettings.folder("plots")
-   %SaveDialog.current_file = "degree_distribution.%s" % format
+   %SaveDialog.current_file = "%s.%s" % [_file, format]
    %SaveDialog.popup_centered_ratio(0.6)

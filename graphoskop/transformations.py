@@ -1172,7 +1172,7 @@ def _collapse_nodes(net, N, node_combine):
 
 
 @_higher_order()
-def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loops = True):
+def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loops = True, counts = None, qualitative = None):
    """
    Quotient network: the nodes of each set collapse into a single node.
 
@@ -1190,8 +1190,15 @@ def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loo
    The numeric node attributes of a collapsed node combine those of its nodes with
    ``node_combine``, ignoring missing values (and, in long sparse node tables, nodes without a
    value); its qualitative attributes have all the distinct values of its nodes, several values
-   being stored as for overlapping communities (see :ref:`overlapping-communities`). In bipartite
-   networks, a set must have nodes of a single type.
+   being stored as for overlapping communities (see :ref:`overlapping-communities`); with
+   ``qualitative``, only the qualitative node attributes listed are kept (e.g. the ones the sets
+   were made from, whose values are then one per collapsed node), the others are dropped (the node
+   types of bipartite networks are always kept). In bipartite networks, a set must have nodes of a
+   single type.
+
+   With ``counts``, the nodes and the edges of the quotient get the numeric attribute of that name
+   with the number of nodes collapsed into each node (1 for nodes in no set) and the number of
+   edges merged into each edge (whatever ``combine`` is).
 
    In multilayer networks the sets hold entities: the copies of the entities of a set collapse,
    layer by layer, into the copies of a new entity, and interlayer edges are merged like the
@@ -1203,10 +1210,14 @@ def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loo
    :param combine: ``"sum"``, ``"mean"`` or ``"max"``, for the edge attributes.
    :param node_combine: ``"sum"``, ``"mean"`` or ``"max"``, for the numeric node attributes.
    :param self_loops: Keep the edges within a set, as self loops of its node.
+   :param counts: Name of the node and edge attribute counting the collapsed nodes and merged
+      edges, or ``None`` for none.
+   :param qualitative: Names of the qualitative node attributes to keep, or ``None`` for all.
    :return: The quotient network, a new :class:`~graphoskop.Network`.
    :raises KeyError: If a node is not in the network.
    :raises ValueError: If a node is in two sets, if ``combine`` or ``node_combine`` is not valid,
-      or if a set has nodes of both types of a bipartite network.
+      if a set has nodes of both types of a bipartite network, or if ``counts`` is already the name
+      of an attribute.
 
    Example:
 
@@ -1217,10 +1228,13 @@ def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loo
       net = gsk.load_network("edges.tsv", "nodes.tsv")
       teams = gsk.quotient_network(net, [{"alice", "bob"}, {"carol", "dave", "erin"}])   # nodes 0 and 1
       blocks = gsk.quotient_network(net, communities, self_loops = False)
+      groups = gsk.quotient_network(net, communities, counts = "count", qualitative = [])   # sizes of the blocks and of their links
    """
    for x in (combine, node_combine):
       if x not in ("sum", "mean", "max"):
          raise ValueError(f"unknown way to combine values: {x}")
+   if counts is not None and counts in set(net.node_attributes) | set(net.qualitative_node_attributes) | set(net.edge_attributes) | set(net.qualitative_edge_attributes):
+      raise ValueError(f"{counts!r} is already an attribute: choose another name for the counts")
    ml = net.layer_labels is not None
    new = {}
    for b, S in enumerate(sets):
@@ -1256,8 +1270,25 @@ def quotient_network(net, sets, combine = "sum", node_combine = "mean", self_loo
             T[c] = relabel(T[c])
    if not self_loops:
       E = E[(E["source"] != E["target"]).to_numpy()]
-   q = _reload(net, E, I, _collapse_nodes(net, N, node_combine))
-   return remove_parallel_edges(q, combine)
+   keys = ["node"] if not ml else ["node", LAYER]
+   if qualitative is not None:   # the qualitative attributes left out are dropped
+      drop = [a for a in net.qualitative_node_attributes if a not in set(qualitative) and a != BIPARTITE]
+      N = N.drop(columns = drop) if net.node_format == "wide" else N[~N["attribute"].isin(drop).to_numpy()]
+   if counts is not None:   # collapsed nodes per node (rows of the wide table, declarations of the long one)
+      sizes = (N if net.node_format == "wide" else N[N["attribute"].isna().to_numpy()]).groupby(keys, sort = False).size().rename(counts).reset_index()
+      E = E.assign(**{counts: 1.})
+      I = I.assign(**{counts: 1.}) if I is not None else None
+   N = _collapse_nodes(net, N, node_combine)
+   if counts is not None:
+      if net.node_format == "wide":
+         N = N.merge(sizes, on = keys, how = "left")
+      else:
+         N = pd.concat([N, sizes.rename(columns = {counts: "value"}).assign(attribute = counts)], ignore_index = True)
+   q = _reload(net, E, I, N)
+   out = remove_parallel_edges(q, combine)
+   if counts is not None and combine != "sum":   # the edge counts are sums whatever combine is (same merged edges, same order)
+      out.set_edge_attribute(counts, remove_parallel_edges(q, "sum").get_edge_attribute(counts, None), None)
+   return out
 
 
 @_higher_order()

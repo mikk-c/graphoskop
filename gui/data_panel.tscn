@@ -22,3 +22,8 @@ metadata/_tab_index = 1
 visible = false
 layout_mode = 2
 metadata/_tab_index = 2
+
+[node name="Tables" parent="." instance=ExtResource("2_table")]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 3

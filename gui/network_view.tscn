@@ -1,14 +1,22 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://network_view.gd" id="1_view"]
 [ext_resource type="Shader" path="res://node.gdshader" id="2_node"]
 [ext_resource type="Shader" path="res://edge.gdshader" id="3_edge"]
+[ext_resource type="Shader" path="res://ring.gdshader" id="4_ring"]
+[ext_resource type="Shader" path="res://loop.gdshader" id="5_loop"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_node"]
 shader = ExtResource("2_node")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_edge"]
 shader = ExtResource("3_edge")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ring"]
+shader = ExtResource("4_ring")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_loop"]
+shader = ExtResource("5_loop")
 
 [node name="NetworkView" type="SubViewportContainer"]
 anchors_preset = 15
@@ -41,9 +49,17 @@ mouse_filter = 2
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_edge")
 
+[node name="Loops" type="MultiMeshInstance2D" parent="Viewport"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_loop")
+
 [node name="Nodes" type="MultiMeshInstance2D" parent="Viewport"]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_node")
+
+[node name="Rings" type="MultiMeshInstance2D" parent="Viewport"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_ring")
 
 [node name="Highlight" type="Node2D" parent="Viewport"]
 unique_name_in_owner = true

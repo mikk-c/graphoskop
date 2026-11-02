@@ -17,7 +17,7 @@ A function with a bar has a ``progress`` parameter: ``None`` (default) follows
 (e.g. :func:`~graphoskop.randomization_test` of :func:`~graphoskop.edge_swap`), the inner
 functions show none: the outer bar covers them (and if it is off, they are off too).
 
-Functions with a bar: :func:`~graphoskop.cascade_failures` (average path length), :func:`~graphoskop.diffpool`,
+Functions with a bar: :func:`~graphoskop.cascade_failures` (average path length), the epidemic models (runs: :func:`~graphoskop.si_model`, :func:`~graphoskop.sis_model`, :func:`~graphoskop.sir_model` and their complex contagion and higher-order versions), :func:`~graphoskop.diffpool`,
 :func:`~graphoskop.edge_removal` and :func:`~graphoskop.node_removal` (average path length, or
 ``recompute``), :func:`~graphoskop.edge_swap`, :func:`~graphoskop.force_directed_layout`, :func:`~graphoskop.gae`, :func:`~graphoskop.gat`, :func:`~graphoskop.gatv2`,
 :func:`~graphoskop.gcn`, :func:`~graphoskop.graphrnn` and :meth:`~graphoskop.GraphRNNFit.simulate`, :func:`~graphoskop.graphsage`,

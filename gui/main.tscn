@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://worker.gd" id="2_worker"]
@@ -9,6 +9,10 @@
 [ext_resource type="PackedScene" path="res://params_dialog.tscn" id="7_params"]
 [ext_resource type="PackedScene" path="res://task_dialog.tscn" id="8_task"]
 [ext_resource type="PackedScene" path="res://plot_window.tscn" id="9_plot"]
+[ext_resource type="PackedScene" path="res://select_dialog.tscn" id="10_select"]
+[ext_resource type="PackedScene" path="res://epidemics_dialog.tscn" id="11_epidemics"]
+[ext_resource type="PackedScene" path="res://player.tscn" id="12_player"]
+[ext_resource type="PackedScene" path="res://backbone_dialog.tscn" id="13_backbone"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -37,6 +41,7 @@ grow_vertical = 2
 theme_override_constants/separation = 0
 
 [node name="Menus" type="MenuBar" parent="Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 flat = true
 
@@ -49,8 +54,10 @@ item_1/text = "Save image…"
 item_1/id = 1
 
 [node name="Edit" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
 
 [node name="Select" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
 
 [node name="Layout" type="PopupMenu" parent="Layout/Menus"]
 unique_name_in_owner = true
@@ -59,16 +66,40 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 
 [node name="Simulation" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
 
 [node name="Generators" type="PopupMenu" parent="Layout/Menus"]
 unique_name_in_owner = true
 
 [node name="Help" type="PopupMenu" parent="Layout/Menus"]
 
-[node name="Tabs" type="TabBar" parent="Layout"]
+[node name="TabRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Tabs" type="TabBar" parent="Layout/TabRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 tab_close_display_policy = 1
+
+[node name="FindBy" type="OptionButton" parent="Layout/TabRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+fit_to_longest_item = false
+clip_text = true
+tooltip_text = "What to search: the node ids, or a node attribute"
+
+[node name="Find" type="LineEdit" parent="Layout/TabRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+placeholder_text = "Find a node…"
+clear_button_enabled = true
+tooltip_text = "Finds the nodes whose id (or attribute) is the text or contains it, ignoring case; Enter searches"
+
+[node name="Found" type="PopupMenu" parent="Layout/TabRow/Find"]
+unique_name_in_owner = true
 
 [node name="Panels" type="VSplitContainer" parent="Layout"]
 layout_mode = 2
@@ -116,6 +147,24 @@ text = "File › Load network… or Generators to open a network"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="DrawAnyway" type="Button" parent="Layout/Panels/Top/Views"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = 40.0
+offset_right = 60.0
+offset_bottom = 71.0
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Draws the network anyway (it may take long, or fail for lack of memory)"
+text = "Draw anyway"
+
 [node name="FitButton" type="Button" parent="Layout/Panels/Top/Views"]
 unique_name_in_owner = true
 visible = false
@@ -133,6 +182,11 @@ tooltip_text = "Fit the network to the panel"
 focus_mode = 0
 text = "Fit"
 
+
+[node name="Player" parent="Layout/Panels/Top/Views" instance=ExtResource("12_player")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
 [node name="Bottom" type="HSplitContainer" parent="Layout/Panels"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -206,6 +260,15 @@ text = "Python…"
 [node name="EnvMenu" type="PopupMenu" parent="Layout/StatusBar"]
 unique_name_in_owner = true
 
+[node name="Blocker" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.55)
+
 [node name="Worker" type="Node" parent="."]
 unique_name_in_owner = true
 script = ExtResource("2_worker")
@@ -241,5 +304,17 @@ unique_name_in_owner = true
 visible = false
 
 [node name="PlotWindow" parent="." instance=ExtResource("9_plot")]
+unique_name_in_owner = true
+visible = false
+
+[node name="SelectDialog" parent="." instance=ExtResource("10_select")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Epidemics" parent="." instance=ExtResource("11_epidemics")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Backbone" parent="." instance=ExtResource("13_backbone")]
 unique_name_in_owner = true
 visible = false

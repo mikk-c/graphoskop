@@ -1,17 +1,38 @@
 extends SubViewportContainer
 ## Visualization panel of one network: its nodes and edges, as two MultiMesh instances (one draw
-## call each), filled with the buffers computed by the Python worker. Drag to pan, scroll to zoom.
-## When nodes are large enough on screen ([constant SELECT_PIXELS]), hovering a node shows its id
-## and clicking it selects it (clicking elsewhere clears the selection).
+## call each), filled with the buffers computed by the Python worker. Drag the background to pan,
+## scroll to zoom; the view can be rotated ([member turn]) and the layout scaled ([member spread]:
+## the distances between nodes grow, not their size on screen). When nodes are large enough on screen
+## ([constant SELECT_PIXELS]):
 ##
-## The viewport is drawn only after a change (new drawing, pan, zoom, resize, selection), so an
-## idle view costs nothing and does not compete with the worker for the processor or the GPU. (A
-## Camera2D would make Godot redraw at every frame: the view is moved with the canvas transform
+## - hovering a node shows its id; clicking it selects it (clicking elsewhere clears the
+##   selection), and Shift-clicking adds it to the selection or takes it out;
+## - clicking an edge (within [constant EDGE_PICK_PIXELS] pixels; in matrix views, its cell)
+##   selects it, Shift-clicking adds it to the selection or takes it out;
+## - Shift-dragging on the background (at any zoom) draws a rectangle, which adds the nodes in it
+##   and the edges crossing it to the selection;
+## - dragging a node moves it, with the other selected nodes if it is one of them (not in matrix
+##   views, nor when the positions come from node attributes): the nodes and their straight edges
+##   follow the mouse, and the new positions go to the worker when the mouse is released
+##   ([signal nodes_moved]).
+##
+## Self loops are circles above their node (loop.gdshader), drawn from a buffer of the worker
+## (one instance per loop), which follow the node when it is dragged.
+##
+## Selected nodes get rings drawn by the GPU (ring.gdshader: any number of them); selected edges
+## are drawn over, as lines, curves or cell outlines (the first [constant MAX_HIGHLIGHTS]). Nodes can also be colored by
+## the states of an epidemic ([method show_states]), over the colors of the style.
+##
+## The viewport is drawn only after a change (new drawing, pan, zoom, resize, selection, drag), so
+## an idle view costs nothing and does not compete with the worker for the processor or the GPU.
+## (A Camera2D would make Godot redraw at every frame: the view is moved with the canvas transform
 ## instead.)
 
-## Emitted when the selection changes: the position of the node in the drawing and its id, or -1
-## and "" when the selection is cleared.
-signal node_selected(index: int, id: String)
+## Emitted when the selected nodes or edges change.
+signal selection_changed
+## Emitted when dragged nodes are dropped: their positions in the drawing order, and their new
+## positions (drawing coordinates, y down).
+signal nodes_moved(nodes: PackedInt32Array, positions: PackedVector2Array)
 
 ## Minimum diameter of a node on screen, in pixels.
 const NODE_PIXELS := 3.0
@@ -25,50 +46,83 @@ const EDGE_STRIDE := 12
 const CURVE_STRIDE := 16
 ## Shader of bundled edges (cubic Bézier pieces computed by the GPU).
 const CurveShader := preload("res://curve.gdshader")
-## Smallest default diameter of the nodes on screen, in pixels, at which they can be hovered and
-## selected.
+## Smallest default diameter of the nodes on screen, in pixels, at which they can be hovered,
+## selected and dragged.
 const SELECT_PIXELS := 6.0
+## Largest distance, in pixels, from the cursor to an edge that is picked.
+const EDGE_PICK_PIXELS := 4.0
+## Points per Bézier piece of bundled edges in picking and highlighting.
+const CURVE_POINTS := 9
 ## Largest move of the mouse, in pixels, between press and release that counts as a click.
 const CLICK_PIXELS := 4.0
 ## Zoom factor of one wheel step.
 const ZOOM_STEP := 1.15
 ## Empty space around the network when it is fitted to the view, in pixels.
 const FIT_MARGIN := 8.0
+## Most selected edges highlighted (beyond, the first ones only).
+const MAX_HIGHLIGHTS := 20000
+## Color of the selection marks.
+const MARK_COLOR := Color(0.1, 0.1, 0.1)
 
 ## World point at the center of the view.
 var center := Vector2.ZERO
 ## Pixels per world unit.
 var zoom := 1.0
+## Rotation of the view, in degrees, counterclockwise (a visual setting: positions do not change).
+var turn := 0.0
+## Scale of the layout (a visual setting: positions do not change): the view is zoomed by it, and
+## nodes and edges are drawn this many times thinner in world units, so that they keep their size
+## on screen while the distances between them grow.
+var spread := 1.0
 ## Default diameter of the nodes in world units (each node has its own, in the buffer).
 var node_size := 0.5
 ## Input ids of the nodes, in the drawing order.
 var ids := PackedStringArray()
-## Position of the selected node in the drawing, or -1.
-var selected := -1
+## Positions (in the drawing order of the worker) of the selected edges.
+var selected_edges := PackedInt32Array()
+var _chosen := {}
 var _box := Rect2(0, 0, 1, 1)
+## Box of the node positions, and the largest node diameter (world units).
 var _extent := Rect2(0, 0, 1, 1)
+var _biggest := 0.5
 var _fitted := false
 var _buffer := PackedFloat32Array()
+var _edge_data := PackedFloat32Array()
+var _src := PackedInt32Array()
+var _dst := PackedInt32Array()
+var _kind := "lines"
 var _grid := {}
 var _order := PackedInt32Array()
 var _starts := PackedInt32Array()
 var _press := Vector2.ZERO
+var _pressed := false
+var _mode := ""
+var _press_node := -1
+var _press_edge := -1
+var _movable := true
+var _style_buffer := PackedFloat32Array()
+var _pieces := {}
+var _rect_end := Vector2.ZERO
+var _drag_edges := PackedInt32Array()
 var _straight: Material
 var _curved := ShaderMaterial.new()
 var _strips := {}
-var _pressed := false
 @onready var _viewport: SubViewport = $Viewport
 @onready var _nodes: MultiMeshInstance2D = %Nodes
 @onready var _edges: MultiMeshInstance2D = %Edges
 @onready var _highlight: Node2D = %Highlight
+@onready var _rings: MultiMeshInstance2D = %Rings
+@onready var _loops: MultiMeshInstance2D = %Loops
+var _loop_data := PackedFloat32Array()
+var _rings_dirty := true
 
 
 func _ready() -> void:
-   for item in [_nodes, _edges]:
+   for item in [_nodes, _edges, _rings, _loops]:
       var mm := MultiMesh.new()
       mm.transform_format = MultiMesh.TRANSFORM_2D
       mm.use_colors = true
-      mm.use_custom_data = item == _nodes
+      mm.use_custom_data = item != _edges
       mm.mesh = QuadMesh.new()
       item.multimesh = mm
       item.material = item.material.duplicate()
@@ -79,8 +133,9 @@ func _ready() -> void:
 
 
 ## Shows a network: [param header] is a reply of the worker with a drawing, [param payload] its
-## parts (node buffer, edge buffer, ids, grid order, grid starts). The view is fitted to the
-## network unless [param keep_view] (e.g. after a change of colors).
+## parts (node buffer, edge buffer, ids, grid order, grid starts, sources and targets of the
+## edges, self loop buffer). The view is fitted to the network unless [param keep_view] (e.g. after a change of
+## colors). The selection is kept while its nodes and edges exist.
 func show_network(header: Dictionary, payload: PackedByteArray, keep_view := false) -> void:
    var parts := []
    var at := 0
@@ -89,21 +144,41 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
       at += int(n)
    _buffer = parts[0].to_float32_array()
    _fill(_nodes.multimesh, int(header.nodes), _buffer)
-   _edge_kind("cells" if header.get("cells", false) else ("curves" if header.get("curved", false) else "lines"), int(header.get("subdivisions", 16)))
-   _fill(_edges.multimesh, int(header.edges), parts[1].to_float32_array())
+   _style_buffer = _buffer.duplicate()
+   _pieces = {}
+   _kind = "cells" if header.get("cells", false) else ("curves" if header.get("curved", false) else "lines")
+   _movable = header.get("movable", _kind != "cells")   # not matrix views, nor positions from attributes
+   _edge_kind(_kind, int(header.get("subdivisions", 16)))
+   _edge_data = parts[1].to_float32_array()
+   _fill(_edges.multimesh, int(header.edges), _edge_data)
    ids = parts[2].get_string_from_utf8().split(char(31)) if int(header.nodes) > 0 else PackedStringArray()
    _order = parts[3].to_int32_array()
    _starts = parts[4].to_int32_array()
+   _src = parts[5].to_int32_array() if parts.size() > 6 else PackedInt32Array()
+   _dst = parts[6].to_int32_array() if parts.size() > 6 else PackedInt32Array()
+   _loop_data = parts[7].to_float32_array() if int(header.get("loops", 0)) > 0 else PackedFloat32Array()
+   _fill(_loops.multimesh, int(header.get("loops", 0)), _loop_data)
    _grid = header.grid
    var b: Array = header.box
    node_size = header.node_size
    _box = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(header.get("biggest", node_size))
-   _extent = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(header.get("biggest", node_size) / 2)
+   _extent = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
+   _biggest = header.get("biggest", node_size)
    var aabb := AABB(Vector3(_box.position.x, _box.position.y, -1), Vector3(_box.size.x, _box.size.y, 2))
    _nodes.multimesh.custom_aabb = aabb
    _edges.multimesh.custom_aabb = aabb
-   if selected >= ids.size():
-      select(-1)
+   _loops.multimesh.custom_aabb = aabb.grow(header.get("biggest", node_size) * 2)
+   var n := ids.size()
+   var kept := {}
+   for i in _chosen:
+      if i < n:
+         kept[i] = true
+   var edges := PackedInt32Array(Array(selected_edges).filter(func(e): return e < _src.size()))
+   if kept.size() != _chosen.size() or edges.size() != selected_edges.size():
+      _chosen = kept
+      selected_edges = edges
+      selection_changed.emit()
+   _rings_dirty = true
    _highlight.queue_redraw()
    if keep_view:
       _set_zoom(zoom)
@@ -160,15 +235,34 @@ func set_background(color: Color) -> void:
    _redraw()
 
 
-## Zooms and centers the view so that the whole network (nodes included, with their sizes) fills
-## it, [constant FIT_MARGIN] pixels from its borders.
+## Zooms and centers the view so that the whole network (nodes included, with their sizes as
+## drawn at the current [member spread], and self loops, as turned) fills it, [constant FIT_MARGIN] pixels from its
+## borders.
 func fit() -> void:
    if size.x < 1 or size.y < 1:
       return
    _fitted = true
-   center = _extent.get_center()
+   var extent := _extent.grow(_biggest * (1.0 if _loops.multimesh.instance_count > 0 else 0.5) / spread)   # loops rise about a diameter above their node
+   center = extent.get_center()
+   var half := extent.size / 2
+   var r := deg_to_rad(turn)
+   var span := Vector2(absf(half.x * cos(r)) + absf(half.y * sin(r)), absf(half.x * sin(r)) + absf(half.y * cos(r))) * 2
    var room := (size - Vector2(2, 2) * FIT_MARGIN).max(Vector2.ONE)
-   _set_zoom(minf(room.x / maxf(_extent.size.x, 1e-6), room.y / maxf(_extent.size.y, 1e-6)))
+   _set_zoom(minf(room.x / maxf(span.x, 1e-6), room.y / maxf(span.y, 1e-6)))
+
+
+## Sets the scale of the layout to [param factor] (1: the distances of the layout), keeping the
+## center of the view and the size of the nodes on screen.
+func set_spread(factor: float) -> void:
+   var z := zoom * factor / spread
+   spread = factor
+   _set_zoom(z)
+
+
+## Turns the view by [param degrees] (counterclockwise), around its center.
+func set_turn(degrees: float) -> void:
+   turn = degrees
+   _redraw()
 
 
 func _set_zoom(z: float) -> void:
@@ -180,21 +274,43 @@ func _set_zoom(z: float) -> void:
 
 ## Sets the shader parameters for the zoom [param z] (pixels per world unit).
 func _uniforms(z: float) -> void:
-   _nodes.material.set_shader_parameter("zoom", z)
-   _nodes.material.set_shader_parameter("min_pixels", NODE_PIXELS)
+   for item in [_nodes, _rings]:
+      item.material.set_shader_parameter("zoom", z)
+      item.material.set_shader_parameter("min_pixels", NODE_PIXELS)
+      item.material.set_shader_parameter("spread", spread)
    if _edges.material is ShaderMaterial:
-      _edges.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION, EDGE_PIXELS / z))
+      _edges.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION / spread, EDGE_PIXELS / z))
+   _loops.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION / spread, EDGE_PIXELS / z))
+   _loops.material.set_shader_parameter("spread", spread)
 
 
-## Applies [member center] and [member zoom], and draws the viewport once, at the next frame.
+## The canvas transform of a view of [param view_size] pixels at zoom [param z]: the world turned
+## by [member turn] (counterclockwise on screen, y down) and scaled around [member center].
+func _view_transform(view_size: Vector2, z: float) -> Transform2D:
+   var r := -deg_to_rad(turn)
+   return Transform2D(r, Vector2(z, z), 0., view_size / 2 - (center * z).rotated(r))
+
+
+## World point under the point [param q] of the view.
+func _to_world(q: Vector2) -> Vector2:
+   return center + ((q - size / 2) / zoom).rotated(deg_to_rad(turn))
+
+
+## Point of the view of the world point [param p].
+func _to_screen(p: Vector2) -> Vector2:
+   return ((p - center) * zoom).rotated(-deg_to_rad(turn)) + size / 2
+
+
+## Applies [member center], [member zoom] and [member turn], and draws the viewport once, at the
+## next frame.
 func _redraw() -> void:
-   _viewport.canvas_transform = Transform2D(0., Vector2(zoom, zoom), 0., Vector2(_viewport.size) / 2 - center * zoom)
+   _viewport.canvas_transform = _view_transform(Vector2(_viewport.size), zoom)
    _viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
-## Image of the view as on screen, [param scale] times larger (without the selection ring): drawn
-## once by an off-screen viewport sharing the 2D world of the view, over the background color. The
-## view itself is not touched.
+## Image of the view as on screen, [param scale] times larger (without the selection marks):
+## drawn once by an off-screen viewport sharing the 2D world of the view, over the background
+## color. The view itself is not touched.
 func capture(scale := 2) -> Image:
    var z := zoom
    var vp := SubViewport.new()
@@ -207,23 +323,25 @@ func capture(scale := 2) -> Image:
    rect.size = Vector2(vp.size)
    back.add_child(rect)
    vp.add_child(back)
-   vp.canvas_transform = Transform2D(0., Vector2(z * scale, z * scale), 0., Vector2(vp.size) / 2 - center * z * scale)
    vp.render_target_update_mode = SubViewport.UPDATE_ONCE
    _highlight.visible = false
+   _rings.visible = false
    _uniforms(z * scale)
    get_tree().root.add_child(vp)
+   vp.canvas_transform = _view_transform(Vector2(vp.size), z * scale)   # once in the tree, with its canvas
    await RenderingServer.frame_post_draw
    var drawn := vp.get_texture().get_image()
    vp.queue_free()
    _highlight.visible = true
+   _rings.visible = true
    _set_zoom(z)
    drawn.convert(Image.FORMAT_RGBA8)
    return drawn
 
 
-## Whether nodes are large enough on screen to be hovered and selected.
+## Whether nodes are large enough on screen to be hovered, selected and dragged.
 func selectable() -> bool:
-   return node_size * zoom >= SELECT_PIXELS
+   return node_size * zoom / spread >= SELECT_PIXELS
 
 
 ## Position in the drawing of the node under [param at] (local coordinates), or -1: among the
@@ -233,7 +351,7 @@ func selectable() -> bool:
 func pick(at: Vector2) -> int:
    if not selectable() or _grid.is_empty():
       return -1
-   var w := center + (at - size / 2) / zoom
+   var w := _to_world(at)
    var cell: float = _grid.cell
    var gx: int = _grid.gx
    var gy: int = _grid.gy
@@ -246,29 +364,230 @@ func pick(at: Vector2) -> int:
          for k in range(_starts[c], _starts[c + 1]):
             var i := _order[k]
             var d := w.distance_to(Vector2(_buffer[i * NODE_STRIDE + 3], _buffer[i * NODE_STRIDE + 7]))
-            if d <= _buffer[i * NODE_STRIDE] / 2 and i > best:
+            if d <= _buffer[i * NODE_STRIDE] / 2 / spread and i > best:
                best = i
    return best
 
 
-## Selects the node at position [param index] of the drawing (-1 clears the selection).
-func select(index: int) -> void:
-   if index == selected:
+## Centers the view on the node [param i] (a position in the drawing order), zooming in if the
+## nodes are too small there to be told apart and selected.
+func focus(i: int) -> void:
+   if i < 0 or i >= ids.size():
       return
-   selected = index
+   center = _position(i)
+   if not selectable():
+      _set_zoom(2.0 * SELECT_PIXELS * spread / maxf(node_size, 1e-9))
+   _redraw()
+
+
+## Positions in the drawing of the selected nodes, in increasing order.
+func selected_nodes() -> PackedInt32Array:
+   var nodes := PackedInt32Array(_chosen.keys())
+   nodes.sort()
+   return nodes
+
+
+## Selects the nodes [param nodes] and the edges [param edges] (positions in the drawing order).
+func set_selection(nodes: PackedInt32Array, edges := PackedInt32Array()) -> void:
+   _chosen = {}
+   for i in nodes:
+      if i >= 0 and i < ids.size():
+         _chosen[i] = true
+   selected_edges = edges
+   _rings_dirty = true
    _highlight.queue_redraw()
    _redraw()
-   node_selected.emit(index, ids[index] if index >= 0 else "")
+   selection_changed.emit()
 
 
-## Ring around the selected node, 2 pixels wide.
+## Selects the node at position [param index] of the drawing alone (-1 clears the selection).
+func select(index: int) -> void:
+   set_selection(PackedInt32Array([index]) if index >= 0 else PackedInt32Array())
+
+
+## The rings of the selected nodes: one instance each, with the transform and the diameter of the
+## node (from the node buffer) and the color of the marks.
+func _fill_rings() -> void:
+   var data := PackedFloat32Array()
+   data.resize(_chosen.size() * NODE_STRIDE)
+   var j := 0
+   for i in _chosen:
+      if i * NODE_STRIDE + NODE_STRIDE > _buffer.size():
+         continue
+      for f in NODE_STRIDE:
+         data[j * NODE_STRIDE + f] = _buffer[i * NODE_STRIDE + f]
+      data[j * NODE_STRIDE + 8] = MARK_COLOR.r
+      data[j * NODE_STRIDE + 9] = MARK_COLOR.g
+      data[j * NODE_STRIDE + 10] = MARK_COLOR.b
+      data[j * NODE_STRIDE + 11] = 1.0
+      j += 1
+   _fill(_rings.multimesh, j, data.slice(0, j * NODE_STRIDE))
+   _rings.multimesh.custom_aabb = _nodes.multimesh.custom_aabb
+
+
+## Lines on the selected edges (2 pixels wide), and the rectangle being drawn; the rings of the
+## selected nodes are filled again if the selection or the positions changed (not for a zoom: the
+## ring shader follows it).
 func _draw_highlight() -> void:
-   if selected < 0 or selected * NODE_STRIDE + 7 >= _buffer.size():
-      return
-   var i := selected * NODE_STRIDE
-   var p := Vector2(_buffer[i + 3], _buffer[i + 7])
-   var r := maxf(_buffer[i], NODE_PIXELS / zoom) / 2 + 2.0 / zoom
-   _highlight.draw_arc(p, r, 0, TAU, 48, Color(0.1, 0.1, 0.1), 2.0 / zoom, true)
+   var w := 2.0 / zoom
+   if _rings_dirty:
+      _rings_dirty = false
+      _fill_rings()
+   for e in selected_edges.slice(0, MAX_HIGHLIGHTS):
+      if e < _src.size():
+         for line in _edge_lines(e):
+            _highlight.draw_polyline(line, MARK_COLOR, w)
+   if _mode == "rect":
+      var a := _to_world(_press)
+      var c := _to_world(_rect_end)
+      var b := _to_world(Vector2(_rect_end.x, _press.y))
+      var d := _to_world(Vector2(_press.x, _rect_end.y))
+      _highlight.draw_polyline(PackedVector2Array([a, b, c, d, a]), MARK_COLOR, w / 2)
+
+
+## Position in the drawing of the edge under [param at] (local coordinates), or -1: the nearest
+## edge within [constant EDGE_PICK_PIXELS] pixels (in matrix views, the edge of the cell under the
+## point), when nodes are large enough on screen to be selected ([method selectable]).
+func pick_edge(at: Vector2) -> int:
+   if not selectable() or _src.is_empty():
+      return -1
+   var w := _to_world(at)
+   var m := _src.size()
+   var best := -1
+   var reach := EDGE_PICK_PIXELS / zoom
+   if _kind == "cells":
+      for c in _edge_data.size() / EDGE_STRIDE:
+         var k := c * EDGE_STRIDE
+         if absf(w.x - _edge_data[k + 3]) <= 0.5 and absf(w.y - _edge_data[k + 7]) <= 0.5:
+            return c % m
+   elif _kind == "curves":
+      for p in _edge_data.size() / CURVE_STRIDE:
+         var line := _piece(p)
+         for j in line.size() - 1:
+            var d := Geometry2D.get_closest_point_to_segment(w, line[j], line[j + 1]).distance_to(w)
+            if d < reach:
+               reach = d
+               best = int(_edge_data[p * CURVE_STRIDE + 15])
+   else:
+      for e in m:
+         var d := Geometry2D.get_closest_point_to_segment(w, _position(_src[e]), _position(_dst[e])).distance_to(w)
+         if d < reach:
+            reach = d
+            best = e
+   return best
+
+
+## Positions in the drawing of the edges that cross the rectangle [param area] (local
+## coordinates): edges with a point in it, or crossing one of its sides; in matrix views, edges
+## with a cell overlapping it.
+func edges_in(area: Rect2) -> PackedInt32Array:
+   var found := {}
+   var m := _src.size()
+   var corners := [area.position, Vector2(area.end.x, area.position.y), area.end, Vector2(area.position.x, area.end.y)]
+   var crosses := func(a: Vector2, b: Vector2) -> bool:
+      if area.has_point(a) or area.has_point(b):
+         return true
+      for j in 4:
+         if Geometry2D.segment_intersects_segment(a, b, corners[j], corners[(j + 1) % 4]) != null:
+            return true
+      return false
+   if _kind == "cells":
+      for c in _edge_data.size() / EDGE_STRIDE:
+         var k := c * EDGE_STRIDE
+         var o := Vector2(_edge_data[k + 3], _edge_data[k + 7])
+         var cell := Rect2(_to_screen(o), Vector2.ZERO)
+         for corner in [Vector2(-0.5, -0.5), Vector2(0.5, -0.5), Vector2(0.5, 0.5), Vector2(-0.5, 0.5)]:
+            cell = cell.expand(_to_screen(o + corner))
+         if cell.intersects(area):
+            found[c % m] = true
+   elif _kind == "curves":
+      for p in _edge_data.size() / CURVE_STRIDE:
+         var line := _piece(p)
+         for j in line.size() - 1:
+            if crosses.call(_to_screen(line[j]), _to_screen(line[j + 1])):
+               found[int(_edge_data[p * CURVE_STRIDE + 15])] = true
+               break
+   else:
+      for e in m:
+         if crosses.call(_to_screen(_position(_src[e])), _to_screen(_position(_dst[e]))):
+            found[e] = true
+   var edges := PackedInt32Array(found.keys())
+   edges.sort()
+   return edges
+
+
+## Points of the Bézier piece [param p] of bundled edges (world coordinates).
+func _piece(p: int) -> PackedVector2Array:
+   var k := p * CURVE_STRIDE
+   var p0 := Vector2(_edge_data[k + 3], _edge_data[k + 7])
+   var p1 := Vector2(_edge_data[k], _edge_data[k + 4])
+   var p2 := Vector2(_edge_data[k + 1], _edge_data[k + 5])
+   var p3 := Vector2(_edge_data[k + 12], _edge_data[k + 13])
+   var line := PackedVector2Array()
+   for j in CURVE_POINTS:
+      var t := float(j) / (CURVE_POINTS - 1)
+      var u := 1.0 - t
+      line.append(u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3)
+   return line
+
+
+## Lines drawing the edge [param e] (world coordinates): a segment, the pieces of its curve, or the
+## outlines of its cells.
+func _edge_lines(e: int) -> Array:
+   if _kind == "cells":
+      var lines := []
+      var m := _src.size()
+      for c in [e, e + m]:
+         if c * EDGE_STRIDE < _edge_data.size():
+            var o := Vector2(_edge_data[c * EDGE_STRIDE + 3], _edge_data[c * EDGE_STRIDE + 7])
+            lines.append(PackedVector2Array([o + Vector2(-0.5, -0.5), o + Vector2(0.5, -0.5), o + Vector2(0.5, 0.5), o + Vector2(-0.5, 0.5), o + Vector2(-0.5, -0.5)]))
+      return lines
+   if _kind == "curves":
+      if _pieces.is_empty():
+         for p in _edge_data.size() / CURVE_STRIDE:
+            var f := int(_edge_data[p * CURVE_STRIDE + 15])
+            if not _pieces.has(f):
+               _pieces[f] = []
+            _pieces[f].append(p)
+      return _pieces.get(e, []).map(func(p): return _piece(p))
+   return [PackedVector2Array([_position(_src[e]), _position(_dst[e])])]
+
+
+## Colors the nodes by state: node [code]i[/code] gets [code]palette[codes[i]][/code] (codes beyond
+## the palette, e.g. 255 for nodes without a state, keep the color of the style), with the opacity
+## of the style; only the [param nodes] given, or all of them with [param all].
+func show_states(codes: PackedByteArray, palette: Array, nodes := PackedInt32Array(), all := true) -> void:
+   var count := ids.size() if all else nodes.size()
+   for j in count:
+      var i: int = j if all else nodes[j]
+      var k := i * NODE_STRIDE
+      var c: int = codes[i] if i < codes.size() else 255
+      if c < palette.size():
+         var color: Color = palette[c]
+         _buffer[k + 8] = color.r
+         _buffer[k + 9] = color.g
+         _buffer[k + 10] = color.b
+      else:
+         _buffer[k + 8] = _style_buffer[k + 8]
+         _buffer[k + 9] = _style_buffer[k + 9]
+         _buffer[k + 10] = _style_buffer[k + 10]
+   _nodes.multimesh.buffer = _buffer
+   _redraw()
+
+
+## Gives the nodes back the colors of the style (after [method show_states]).
+func hide_states() -> void:
+   for i in ids.size():
+      var k := i * NODE_STRIDE
+      _buffer[k + 8] = _style_buffer[k + 8]
+      _buffer[k + 9] = _style_buffer[k + 9]
+      _buffer[k + 10] = _style_buffer[k + 10]
+   _nodes.multimesh.buffer = _buffer
+   _redraw()
+
+
+func _position(i: int) -> Vector2:
+   return Vector2(_buffer[i * NODE_STRIDE + 3], _buffer[i * NODE_STRIDE + 7])
 
 
 ## Tooltip: the id of the node under the cursor.
@@ -282,18 +601,152 @@ func _gui_input(event: InputEvent) -> void:
       if event.pressed:
          _press = event.position
          _pressed = true
+         _press_node = pick(event.position)
+         _press_edge = pick_edge(event.position) if _press_node < 0 else -1
+         _mode = "node" if _press_node >= 0 else ("edge" if _press_edge >= 0 else ("rect" if event.shift_pressed else "pan"))
+         _rect_end = _press
       elif _pressed:
          _pressed = false
-         if event.position.distance_to(_press) <= CLICK_PIXELS:
-            select(pick(event.position))
+         _release(event)
       accept_event()
-   elif event is InputEventMouseMotion and event.button_mask & (MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_MIDDLE):
-      center -= event.relative / zoom
-      _redraw()
+   elif event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT and _pressed:
+      _drag(event)
+      accept_event()
+   elif event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_MIDDLE:
+      _pan(event.relative)
       accept_event()
    elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
       var factor := ZOOM_STEP if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP
-      var offset: Vector2 = (event.position - size / 2) / zoom
+      var offset: Vector2 = ((event.position - size / 2) / zoom).rotated(deg_to_rad(turn))
       center += offset - offset / factor   # keeps the point under the cursor still
       _set_zoom(zoom * factor)
       accept_event()
+
+
+func _pan(relative: Vector2) -> void:
+   center -= (relative / zoom).rotated(deg_to_rad(turn))
+   _redraw()
+
+
+## Mouse moved with the left button down: pans, drags nodes or draws the rectangle.
+func _drag(event: InputEventMouseMotion) -> void:
+   if _mode == "edge" and event.position.distance_to(_press) > CLICK_PIXELS:   # not a click on the edge
+      _mode = "rect" if event.shift_pressed else "pan"
+      if _mode == "pan":
+         _pan(event.position - _press - event.relative)
+   if _mode == "pan":
+      _pan(event.relative)
+   elif _mode == "rect":
+      _rect_end = event.position
+      _highlight.queue_redraw()
+      _redraw()
+   elif _mode == "node" and event.position.distance_to(_press) > CLICK_PIXELS and _movable:
+      if not _chosen.has(_press_node):
+         if not event.shift_pressed:
+            _chosen = {}
+         _chosen[_press_node] = true
+         selection_changed.emit()
+      _start_drag()
+      _mode = "drag"
+      _move_by(((event.position - _press) / zoom).rotated(deg_to_rad(turn)))
+   elif _mode == "drag":
+      _move_by((event.relative / zoom).rotated(deg_to_rad(turn)))
+
+
+## The edges of the selected nodes, which follow them while they are dragged (straight edges).
+func _start_drag() -> void:
+   _drag_edges = PackedInt32Array()
+   if _kind != "lines":
+      return
+   for e in _src.size():
+      if _chosen.has(_src[e]) or _chosen.has(_dst[e]):
+         _drag_edges.append(e)
+
+
+## Moves the selected nodes by [param delta] (world units), with their edges.
+func _move_by(delta: Vector2) -> void:
+   var nm := _nodes.multimesh
+   for i in _chosen:
+      var k: int = i * NODE_STRIDE
+      _buffer[k + 3] += delta.x
+      _buffer[k + 7] += delta.y
+      nm.set_instance_transform_2d(i, Transform2D(Vector2(_buffer[k], 0), Vector2(0, _buffer[k + 5]), Vector2(_buffer[k + 3], _buffer[k + 7])))
+   var em := _edges.multimesh
+   for e in _drag_edges:
+      var a := _position(_src[e])
+      var b := _position(_dst[e])
+      var k := e * EDGE_STRIDE
+      var w := Vector2(_edge_data[k + 1], _edge_data[k + 5]).length()
+      var along := b - a
+      var normal := Vector2(-along.y, along.x).normalized() * w
+      _edge_data[k] = along.x
+      _edge_data[k + 4] = along.y
+      _edge_data[k + 1] = normal.x
+      _edge_data[k + 5] = normal.y
+      em.set_instance_transform_2d(e, Transform2D(along, normal, (a + b) / 2))
+   var lm := _loops.multimesh
+   for j in lm.instance_count:   # the loops of the moved nodes (custom data w: the node)
+      var k := j * NODE_STRIDE
+      var i := int(_loop_data[k + 15])
+      if _chosen.has(i):
+         var p := _position(i)
+         _loop_data[k + 3] = p.x
+         _loop_data[k + 7] = p.y
+         lm.set_instance_transform_2d(j, Transform2D(Vector2(_loop_data[k], 0), Vector2(0, _loop_data[k + 5]), p))
+   _rings_dirty = true
+   _highlight.queue_redraw()
+   _redraw()
+
+
+## Mouse released: drops dragged nodes, selects the nodes in the rectangle, or (a click) selects
+## the node under the cursor (Shift: adds it or takes it out), or clears the selection.
+func _release(event: InputEventMouseButton) -> void:
+   var mode := _mode
+   _mode = ""
+   if mode == "drag":
+      var nodes := selected_nodes()
+      var positions := PackedVector2Array()
+      for i in nodes:
+         positions.append(_position(i))
+      nodes_moved.emit(nodes, positions)
+      return
+   if mode == "rect":
+      var area := Rect2(_press, Vector2.ZERO).expand(event.position)
+      for i in ids.size():
+         if area.has_point(_to_screen(_position(i))):
+            _chosen[i] = true
+      var edges := selected_edges.duplicate()
+      for e in edges_in(area):
+         if not edges.has(e):
+            edges.append(e)
+      selected_edges = edges
+      _rings_dirty = true
+      _highlight.queue_redraw()
+      _redraw()
+      selection_changed.emit()
+      return
+   if event.position.distance_to(_press) > CLICK_PIXELS:
+      return
+   if _press_node >= 0 and event.shift_pressed:
+      if _chosen.has(_press_node):
+         _chosen.erase(_press_node)
+      else:
+         _chosen[_press_node] = true
+      _rings_dirty = true
+      _highlight.queue_redraw()
+      _redraw()
+      selection_changed.emit()
+   elif _press_node >= 0:
+      select(_press_node)
+   elif _press_edge >= 0 and event.shift_pressed:
+      var edges := selected_edges.duplicate()
+      var at := edges.find(_press_edge)
+      if at >= 0:
+         edges.remove_at(at)
+      else:
+         edges.append(_press_edge)
+      set_selection(selected_nodes(), edges)
+   elif _press_edge >= 0:
+      set_selection(PackedInt32Array(), PackedInt32Array([_press_edge]))
+   elif not event.shift_pressed and (not _chosen.is_empty() or not selected_edges.is_empty()):
+      set_selection(PackedInt32Array())

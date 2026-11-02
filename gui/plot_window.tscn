@@ -34,12 +34,135 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0.7)
 autowrap_mode = 3
 
-[node name="Colors" type="HBoxContainer" parent="Box"]
+[node name="KindRow" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="KindLabel" type="Label" parent="Box/KindRow"]
 unique_name_in_owner = true
 layout_mode = 2
+text = "Plot"
+
+[node name="Kind" type="OptionButton" parent="Box/KindRow"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "What is plotted: the number of values (in each bin), their fraction (probability density for bins), or the fraction of values at most (CDF) or at least (CCDF) as large"
+
+[node name="Colors" type="HFlowContainer" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(800, 0)
+layout_mode = 2
+
+[node name="XAxis" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="XScaleLabel" type="Label" parent="Box/XAxis"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "x axis"
+
+[node name="XLog" type="OptionButton" parent="Box/XAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+item_count = 2
+popup/item_0/text = "linear"
+popup/item_0/id = 0
+popup/item_1/text = "logarithmic"
+popup/item_1/id = 1
+
+[node name="XLabel" type="LineEdit" parent="Box/XAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Label of the x axis"
+
+[node name="XFromLabel" type="Label" parent="Box/XAxis"]
+layout_mode = 2
+text = "from"
+
+[node name="XMin" type="LineEdit" parent="Box/XAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Smallest value shown on the x axis (empty: automatic)"
+
+[node name="XToLabel" type="Label" parent="Box/XAxis"]
+layout_mode = 2
+text = "to"
+
+[node name="XMax" type="LineEdit" parent="Box/XAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Largest value shown on the x axis (empty: automatic)"
+
+[node name="YAxis" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="YScaleLabel" type="Label" parent="Box/YAxis"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "y axis"
+
+[node name="YLog" type="OptionButton" parent="Box/YAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+item_count = 2
+popup/item_0/text = "linear"
+popup/item_0/id = 0
+popup/item_1/text = "logarithmic"
+popup/item_1/id = 1
+
+[node name="YLabel" type="LineEdit" parent="Box/YAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Label of the y axis"
+
+[node name="YFromLabel" type="Label" parent="Box/YAxis"]
+layout_mode = 2
+text = "from"
+
+[node name="YMin" type="LineEdit" parent="Box/YAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Smallest value shown on the y axis (empty: automatic)"
+
+[node name="YToLabel" type="Label" parent="Box/YAxis"]
+layout_mode = 2
+text = "to"
+
+[node name="YMax" type="LineEdit" parent="Box/YAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Largest value shown on the y axis (empty: automatic)"
 
 [node name="Buttons" type="HBoxContainer" parent="Box"]
 layout_mode = 2
+
+[node name="FontLabel" type="Label" parent="Box/Buttons"]
+layout_mode = 2
+text = "Font size"
+
+[node name="FontSize" type="SpinBox" parent="Box/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 4.0
+max_value = 72.0
+value = 14.0
+suffix = "pt"
+tooltip_text = "Size of the text of the plot, in points"
+
+[node name="Space" type="Control" parent="Box/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="SavePNG" type="Button" parent="Box/Buttons"]
 unique_name_in_owner = true

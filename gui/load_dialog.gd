@@ -1,7 +1,10 @@
 extends ConfirmationDialog
 ## Load dialog: decides how [code]gsk.load_network[/code] (or [code]load_hypergraph[/code],
-## [code]load_simplicial_complex[/code]) is called. The previews are read by the Python worker, as
-## the library will read the files.
+## [code]load_simplicial_complex[/code], or [code]load_matrix[/code] for an adjacency matrix) is
+## called. The previews are read by the Python worker, as the library will read the files. With
+## Adjacency matrix, the first file is the matrix: Header means ids in its first row and column,
+## Directed and Bipartite unchecked are found from the matrix, and the node table has the node id
+## in its first column.
 
 ## Emitted on Import, with the description of the call read by [code]load_code[/code] of the
 ## worker, and a function to call with the error, or an empty text once the network is loaded:
@@ -18,6 +21,12 @@ var _node_columns := PackedStringArray()
 var _run := 0
 
 
+## Width of the menus of columns, in pixels (long column names are cut).
+const COLUMN_MENU_WIDTH := 150
+## Smallest width of a column of the previews, in pixels (longer texts are cut; the table scrolls).
+const PREVIEW_COLUMN_WIDTH := 80
+
+
 func _ready() -> void:
    canceled.connect(func(): _run += 1; get_ok_button().disabled = false)
    %EdgeBrowse.pressed.connect(_browse_edges)
@@ -32,9 +41,14 @@ func _ready() -> void:
    %Sep.item_selected.connect(func(_i): _preview_edges(); _preview_nodes())
    %Header.toggled.connect(func(_b): _preview_edges(); _preview_nodes())
    %Multilayer.toggled.connect(func(_b): _node_defaults(); _update())
-   for box in [%Directed, %Bipartite, %Signed, %Hypergraph, %Simplicial, %Long]:
+   for box in [%Matrix, %Directed, %Bipartite, %Signed, %Hypergraph, %Simplicial, %Long]:
       box.toggled.connect(func(_b): _update())
    confirmed.connect(_on_import)
+   for ob in $Box/EdgeColumns.get_children() + %NodeColumns.get_children():   # long column names must not widen the dialog
+      if ob is OptionButton:
+         ob.fit_to_longest_item = false
+         ob.clip_text = true
+         ob.custom_minimum_size.x = COLUMN_MENU_WIDTH
    _update()
 
 
@@ -114,6 +128,8 @@ func _preview(path: String, tree: Tree, done: Callable) -> void:
          tree.set_column_title(j, columns[j] if %Header.button_pressed else "column %d" % j)
          tree.set_column_title_alignment(j, HORIZONTAL_ALIGNMENT_LEFT)
          tree.set_column_expand(j, true)
+         tree.set_column_clip_content(j, true)
+         tree.set_column_custom_minimum_width(j, PREVIEW_COLUMN_WIDTH)
       var root := tree.create_item()
       for row in reply.rows:
          var item := tree.create_item(root)
@@ -152,12 +168,18 @@ func _update() -> void:
    var hyper: bool = %Hypergraph.button_pressed
    var simplicial: bool = %Simplicial.button_pressed
    var higher := hyper or simplicial
-   _allow(%Simplicial, not hyper)
-   _allow(%Hypergraph, not simplicial)
+   var matrix: bool = %Matrix.button_pressed
+   _allow(%Matrix, not higher and not %Multilayer.button_pressed and not %Signed.button_pressed)
+   _allow(%Simplicial, not hyper and not matrix)
+   _allow(%Hypergraph, not simplicial and not matrix)
    _allow(%Directed, not simplicial)
    _allow(%Bipartite, not higher)
-   _allow(%Signed, not higher and not %Multilayer.button_pressed)
-   _allow(%Multilayer, not higher and not %Signed.button_pressed)
+   _allow(%Signed, not higher and not %Multilayer.button_pressed and not matrix)
+   _allow(%Multilayer, not higher and not %Signed.button_pressed and not matrix)
+   _allow(%Long, not matrix)
+   %EdgeLabel.text = "Matrix" if matrix else "Edge table"
+   %EdgeTitle.text = "%s: first 10 rows" % %EdgeLabel.text
+   %EdgeColumns.visible = not matrix
    %SourceLabel.text = "Node" if higher else "Source"
    %TargetLabel.text = "Hyperedge" if hyper else ("Simplex" if simplicial else "Target")
    var edges := not _edge_columns.is_empty()
@@ -169,7 +191,7 @@ func _update() -> void:
    %SignLabel.visible = %Sign.visible
    var nodes := not _node_columns.is_empty()
    var long: bool = %Long.button_pressed
-   %NodeColumns.visible = nodes
+   %NodeColumns.visible = nodes and not matrix
    %NodeId.visible = nodes and not higher
    %NodeIdLabel.visible = %NodeId.visible
    %NodeIdLabel.text = "Entity" if %Multilayer.button_pressed else "Node id"
@@ -180,7 +202,9 @@ func _update() -> void:
    %AttrValue.visible = %AttrName.visible
    %ValueLabel.visible = %AttrName.visible
    var notes := PackedStringArray()
-   if %Bipartite.button_pressed:
+   if matrix:
+      notes.append("One row and one column per node (rows of one type and columns of the other for bipartite networks); non-zero entries are edges, their values the weights unless all are 1. Unchecked, Directed and Bipartite are found from the matrix (not symmetric: directed; not square: bipartite). With Header, the ids are in the first row and column. The node table has the node id in its first column.")
+   elif %Bipartite.button_pressed:
       notes.append("Bipartite networks need a node table giving every node its type in the column \"bipartite_type\".")
    if higher:
       notes.append("Each row of the edge table is a node in a %s. The node table has the node id in its first column (then the attribute name and value, in long format)." % ("hyperedge" if hyper else "simplex"))
@@ -204,7 +228,7 @@ func _column(ob: OptionButton, columns: PackedStringArray) -> Variant:
 
 func _on_import() -> void:
    var hyper: bool = %Hypergraph.button_pressed
-   var kind := "hypergraph" if hyper else ("simplicial" if %Simplicial.button_pressed else "network")
+   var kind := "matrix" if %Matrix.button_pressed else ("hypergraph" if hyper else ("simplicial" if %Simplicial.button_pressed else "network"))
    var spec := {
       "edges": %EdgePath.text,
       "nodes": null if %NodePath.text.strip_edges().is_empty() else %NodePath.text,

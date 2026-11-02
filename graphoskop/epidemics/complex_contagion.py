@@ -75,7 +75,7 @@ from .simple_contagion import _simulate
 
 
 @_higher_order()
-def complex_si_model(net, beta, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random"):
+def complex_si_model(net, beta, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SI model with complex contagion, and return the fraction of nodes in each state
    at every time step, averaged over independent runs.
@@ -117,6 +117,15 @@ def complex_si_model(net, beta, reinforcement = "classical", threshold = None, d
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``; with ``forest``, a pair (table, forest
       :class:`~graphoskop.Network`).
@@ -146,11 +155,11 @@ def complex_si_model(net, beta, reinforcement = "classical", threshold = None, d
       edges = forest.to_pandas_dataframes()                               # source infected target at step
       trees = gsk.connected_components_nodes(forest)                      # one tree per seed
    """
-   return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order()
-def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, forest = False, immunize = None, strategy = "random"):
+def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, forest = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SIS model with complex contagion, and return the fraction of nodes in each state
    at every time step, averaged over independent runs.
@@ -191,6 +200,15 @@ def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = No
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``; with ``forest``, a pair (table, network of the
       infections).
@@ -208,11 +226,11 @@ def complex_sis_model(net, beta, mu, reinforcement = "classical", threshold = No
       sis = gsk.complex_sis_model(net, 0.05, 0.2, "classical", seeds = 10)
       sis = gsk.complex_sis_model(net, 0.5, 0.1, "threshold", 2, seeds = 0.1)
    """
-   return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, decay, forest, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, decay, forest, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order()
-def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random"):
+def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = None, decay = 0.5, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, forest = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SIR model with complex contagion, and return the fraction of nodes in each state
    at every time step, averaged over independent runs.
@@ -252,6 +270,16 @@ def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = No
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``, and the
+      first step at which it recovered (or was removed), as ``f"{attribute}_first_R"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``I`` and ``R`` and
       their confidence intervals (``S_low``, ``S_high``, ...); with ``forest``, a pair (table,
       forest :class:`~graphoskop.Network`).
@@ -271,11 +299,11 @@ def complex_sir_model(net, beta, mu, reinforcement = "classical", threshold = No
       sir["R"].iloc[-1]                                                    # final size
       sir = gsk.complex_sir_model(net, 0.2, 0.1, "decreasing", decay = 0.7, seeds = 5)
    """
-   return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, reinforcement = reinforcement, threshold = threshold, decay = decay, forest = forest, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order()
-def complex_nonprogressive_model(net, beta, reinforcement = "threshold", threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
+def complex_nonprogressive_model(net, beta, reinforcement = "threshold", threshold = None, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the non progressive threshold model, and return the fraction of nodes in each state
    at every time step, averaged over independent runs.
@@ -327,6 +355,15 @@ def complex_nonprogressive_model(net, beta, reinforcement = "threshold", thresho
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``.
    :raises ValueError: As :func:`~graphoskop.sis_model`, if ``reinforcement`` is not
@@ -343,4 +380,4 @@ def complex_nonprogressive_model(net, beta, reinforcement = "threshold", thresho
       held = gsk.complex_nonprogressive_model(net, 1, "cascade", 0.3, seeds = 0.2, ranking = "age")
       held["I"].iloc[-1]                                                           # share still infected
    """
-   return _simulate(net, "SIS", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, immunize = immunize, strategy = strategy, revert = True)
+   return _simulate(net, "SIS", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, reinforcement, threshold, immunize = immunize, strategy = strategy, revert = True, history = history, onsets = onsets, progress = progress)

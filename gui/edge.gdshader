@@ -1,5 +1,5 @@
-// Edges: quads whose width is the default width (in world units, set from the zoom so that it is
-// at least one pixel) times the relative width of each edge (the length of its second axis, set
+// Edges: quads whose width is the default width (in world units, set from the zoom and the scale
+// of the layout so that it follows the size of the nodes on screen and is at least one pixel) times the relative width of each edge (the length of its second axis, set
 // by the worker).
 shader_type canvas_item;
 

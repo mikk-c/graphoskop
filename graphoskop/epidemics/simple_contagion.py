@@ -22,7 +22,12 @@ The infection starts from seed nodes, chosen at random or from a ranking of the 
 centrality), and many independent runs are simulated in parallel and averaged. After the
 simulation, the state of every node at the end of the last run is stored as a qualitative node
 attribute (``"S"``, ``"I"`` or ``"R"``), from which a later simulation can start, e.g. to follow
-an epidemic one step at a time.
+an epidemic one step at a time. With ``history = True``, the state of every node at every step of
+the last run is stored too, as the qualitative node attributes ``state_0``, ``state_1``, ... (named
+after ``attribute``), to replay how the epidemic spread. With ``onsets = True``, the first step at
+which every node became infected in the last run is stored as the numeric node attribute
+``state_first_I`` (and in SIR models the first step at which it recovered, ``state_first_R``;
+missing for the nodes that never did), e.g. to color the nodes by when the epidemic reached them.
 
 All the models can immunize nodes at step 0 (``immunize``): immunized nodes are never infected,
 so they never infect either. They are given as node ids, or as a number of nodes (a fraction of
@@ -55,6 +60,7 @@ from scipy.stats import t as student
 
 from .._policy import _higher_order
 from ..ergms import _random
+from ..progress import _bar
 
 #: Labels of the states, by code.
 STATES = ("S", "I", "R")
@@ -62,6 +68,17 @@ STATES = ("S", "I", "R")
 #: Label of every state code of the engines: 3 is a susceptible node in the exposed list, 4 an
 #: immunized node.
 LABELS = np.array(["S", "I", "R", "S", "V"], dtype = object)
+
+
+@njit(cache = True)
+def _push(hist, nhist, v, t, s):
+   """
+   Records that node ``v`` is in state ``s`` from step ``t`` on, as row ``(v, t, s)`` of
+   ``hist`` if there is room, and counts it in ``nhist[0]`` even beyond.
+   """
+   if nhist[0] < hist.shape[0]:
+      hist[nhist[0], 0], hist[nhist[0], 1], hist[nhist[0], 2] = v, t, s
+   nhist[0] += 1
 
 
 @njit(cache = True, parallel = True)
@@ -147,7 +164,7 @@ def _draw_immune(ptr, nbr, friend, k, excl, rng, out):
 
 
 @njit(cache = True, parallel = True)
-def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, rng, total, square, ends, finals, last, ev, nev):
+def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, rng, total, square, ends, finals, last, ev, nev, hist, nhist):
    """
    Runs of the SI, SIS or SIR model, in parallel: thread ``b`` simulates runs ``b``, ``b + B``,
    ... and adds the number of nodes in each state at each step to ``total[b]`` (and its square to
@@ -197,6 +214,11 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
       in place up to its length (no rows: not recorded).
    :param nev: Number of infections of the last run (one value), written in place, even beyond
       the length of ``ev``.
+   :param hist: Changes of state of the last run, as rows ``(node, step, state)`` (states at step
+      0 included: seeds, removed and immunized nodes), written in place up to its length (no
+      rows: not recorded; see :func:`_history`).
+   :param nhist: Number of changes of the last run (one value), written in place, even beyond the
+      length of ``hist``.
    """
    R, B, n = rng.shape[0], total.shape[0], ptr.shape[0] - 1
    complex_, ic, revert = kind > 0, kind >= 3, stay.shape[0] > 0
@@ -216,22 +238,29 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
       cum = np.zeros(max_steps + 2, dtype = np.int64)   # cumulative number of infected nodes, for the plateau test
       for r in range(b, R, B):
          st = rng[r:r + 1]
+         rh = r == R - 1 and hist.shape[0] > 0   # recording the history of the last run
          nt, nf, ni, nn, nr = 0, 0, 0, 0, 0
          for v in removed:
             state[v] = 2
             mark[v] = True
             touched[nt] = v
             nt += 1
+            if rh:
+               _push(hist, nhist, v, 0, 2)
          nV = immune.shape[1]
          for v in immune[r % immune.shape[0]]:
             state[v] = 4
             mark[v] = True
             touched[nt] = v
             nt += 1
+            if rh:
+               _push(hist, nhist, v, 0, 4)
          for v in seeds[r % seeds.shape[0]]:
             state[v] = 1
             new[nn] = v
             nn += 1
+            if rh:
+               _push(hist, nhist, v, 0, 1)
             if not mark[v]:
                mark[v] = True
                touched[nt] = v
@@ -326,8 +355,12 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
             for i in range(nn):
                state[new[i]] = 1
                fail[new[i]] = 0
+               if rh:
+                  _push(hist, nhist, new[i], t, 1)
             for i in range(nr):
                state[rec[i]] = 0 if sis else 2
+               if rh:
+                  _push(hist, nhist, rec[i], t, 0 if sis else 2)
             if not sis:
                nR += nr
          ends[r] = t
@@ -342,7 +375,7 @@ def _run_numba(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
             state[v], cnt[v], mark[v], fail[v] = 0, 0, False, 0
 
 
-def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, runs, seed, batch, record = False):
+def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay, pe, decay, max_steps, window, tolerance, runs, seed, batch, record = False, history = False, bar = None):
    """
    Runs of the SI, SIS or SIR model on the device of ``ptr``, all the runs of a batch at once:
    node ``v`` of run ``r`` is entry ``r * n + v`` of the state vectors, and every step draws all
@@ -371,10 +404,13 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
    :param seed: Seed of the random numbers.
    :param batch: Number of runs simulated at once.
    :param record: Whether to record who infected whom in the last run (cascades).
+   :param history: Whether to record the changes of state of the last run.
+   :param bar: Progress bar, updated after every batch, or ``None``.
    :return: Sums over the runs of the fraction of nodes in each state at each step, and of their
       squares (steps by 3, finished runs count with their final value), as NumPy arrays, the state
-      of every node at the end of the last run, and its infections as rows ``(origin, target,
-      step)`` (NumPy array, empty if not recorded).
+      of every node at the end of the last run, its infections as rows ``(origin, target, step)``
+      (NumPy array, empty if not recorded), its changes of state as rows ``(node, step, state)``
+      (NumPy array, empty if not recorded) and its last step.
    """
    dev, n = ptr.device, ptr.shape[0] - 1
    gen = torch.Generator(device = dev)
@@ -392,7 +428,7 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
       pos = ptr[u][rep] + torch.arange(rep.shape[0], device = dev) - (torch.cumsum(deg, 0) - deg)[rep]
       return nbr[pos] + (x // n)[rep] * n, pos, x[rep]
 
-   total, square, events = [], [], []
+   total, square, events, changes = [], [], [], []
    for a in range(0, runs, batch):
       R = min(batch, runs - a)
       base = torch.arange(R, device = dev) * n
@@ -405,6 +441,11 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
       nV = float(immune.shape[1])
       new = (seeds[torch.arange(a, a + R, device = dev) % seeds.shape[0]] + base[:, None]).reshape(-1)
       state[new] = 1
+      keep = history and a + R == runs   # the history of the last run
+      if keep:
+         z = state[(R - 1) * n:]
+         v = torch.nonzero(z).flatten()   # removed, immunized and seed nodes
+         changes.append(torch.stack([v, torch.zeros_like(v), z[v].long()], 1))
       inf, rec, front = empty, empty, empty
       nI = torch.zeros(R, dtype = torch.float64, device = dev)
       nR = torch.full((R,), float(removed.shape[0]), dtype = torch.float64, device = dev)
@@ -484,16 +525,24 @@ def _run_torch(ptr, nbr, seeds, removed, immune, beta, mu, sis, kind, need, stay
          if kind == 4:
             fail[new] = 0
          state[rec] = 0 if sis else 2
+         if keep:
+            for x, code in ((new, 1), (rec, 0 if sis else 2)):
+               v = x[x // n == R - 1] % n
+               changes.append(torch.stack([v, torch.full_like(v, t), torch.full_like(v, code)], 1))
          if not sis:
             nR += count(rec)
+      if bar is not None:
+         bar.update(R)
       X = torch.stack(xs)   # steps by 3 by runs
       total.append(X.sum(2).cpu().numpy())
       square.append((X * X).sum(2).cpu().numpy())
    T = max(len(x) for x in total)
    pad = lambda x: np.concatenate([x, np.repeat(x[-1:], T - len(x), 0)])   # finished batches stay at their final value
    ev = torch.cat(events).cpu().numpy() if events else np.zeros((0, 3), dtype = np.int64)
-   ev = ev[ev[:, 2] <= (t if last_end is None else last_end)]   # attempts decided at the last step were never applied
-   return sum(pad(x) for x in total), sum(pad(x) for x in square), state[(R - 1) * n:].cpu().numpy(), ev
+   end = t if last_end is None else last_end
+   ev = ev[ev[:, 2] <= end]   # attempts decided at the last step were never applied
+   hist = torch.cat(changes).cpu().numpy() if changes else np.zeros((0, 3), dtype = np.int64)
+   return sum(pad(x) for x in total), sum(pad(x) for x in square), state[(R - 1) * n:].cpu().numpy(), ev, hist, end
 
 
 def _size(net, component):
@@ -662,6 +711,65 @@ def _initial(net, comps, off, model, seeds, ranking, selection, runs, attribute,
    return out, removed, imm
 
 
+def _history(net, comps, off, component, attribute, hist, end):
+   """
+   Store the state of every node at every step of the last run, as the qualitative node
+   attributes ``f"{attribute}_{t}"`` for ``t`` from 0 to ``end``, replacing those of an earlier
+   history (any qualitative node attribute named ``attribute``, an underscore and a number).
+
+   :param hist: Changes of state of the last run, rows ``(node, step, state code)`` (positions in
+      the nodes of ``comps``; see :data:`LABELS`).
+   :param end: Last step of the last run.
+   """
+   old = [a for a in net.qualitative_node_attributes if a.startswith(attribute + "_") and a[len(attribute) + 1:].isdigit()]
+   code = np.zeros(int(off[-1]), dtype = np.int64)   # every node susceptible before step 0
+   hist = hist[np.argsort(hist[:, 1], kind = "stable")]
+   at = np.searchsorted(hist[:, 1], np.arange(end + 2))
+   if net.node_format != "wide" or net.higher_order is not None:   # one attribute at a time
+      for a in old:
+         net.remove_node_attribute(a)
+      for t in range(end + 1):
+         h = hist[at[t]:at[t + 1]]
+         code[h[:, 0]] = h[:, 2]
+         labels = np.split(LABELS[code], off[1:-1])
+         net.set_node_attribute(f"{attribute}_{t}", labels if component is None else labels[0], component)
+      return
+   # wide tables: all the steps at once, as categorical columns (other components: missing)
+   where = np.concatenate([np.arange(net.node_offsets[c], net.node_offsets[c + 1]) for c in comps])
+   names = np.array(["I", "R", "S", "V"], dtype = object)
+   category = np.array([2, 0, 1, 2, 3], dtype = np.int8)   # of every state code (see LABELS)
+   full = np.full(int(net.node_offsets[-1]), -1, dtype = np.int8)
+   columns = {}
+   for t in range(end + 1):
+      h = hist[at[t]:at[t + 1]]
+      code[h[:, 0]] = h[:, 2]
+      full[where] = category[code]
+      columns[f"{attribute}_{t}"] = pd.Categorical.from_codes(full.copy(), names).remove_unused_categories()
+   Q = net.qualitative_node_attr.drop(columns = old)
+   net.qualitative_node_attr = pd.concat([Q, pd.DataFrame(columns, index = Q.index)], axis = 1)
+   net.qualitative_node_attributes = [a for a in net.qualitative_node_attributes if a not in old] + list(columns)
+
+
+def _onsets(net, off, component, attribute, hist, model):
+   """
+   Store the first step at which every node became infected in the last run, as the numeric node
+   attribute ``f"{attribute}_first_I"``, and with ``model = "SIR"`` the first step at which it
+   recovered (or was removed), as ``f"{attribute}_first_R"``; missing (NaN) for nodes that never
+   did.
+
+   :param hist: Changes of state of the last run, rows ``(node, step, state code)`` (positions in
+      the nodes of the simulated components; see :data:`LABELS`).
+   :param model: ``"SI"``, ``"SIS"`` or ``"SIR"``.
+   """
+   for code, x in [(1, "I"), (2, "R")][:2 if model == "SIR" else 1]:
+      first = np.full(int(off[-1]), np.inf)
+      h = hist[hist[:, 2] == code]
+      np.minimum.at(first, h[:, 0], h[:, 1].astype(float))
+      first[np.isinf(first)] = np.nan
+      values = np.split(first, off[1:-1])
+      net.set_node_attribute(f"{attribute}_first_{x}", values if component is None else values[0], component)
+
+
 def _table(net, comps, off, component, attribute, last, total, square, runs, model):
    """
    Store the final states of the last run, and return the table of the states over time (see
@@ -689,7 +797,7 @@ def _table(net, comps, off, component, attribute, last, total, square, runs, mod
    return table
 
 
-def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window = None, tolerance = 0., reinforcement = None, threshold = None, decay = 1., forest = False, immunize = None, strategy = "random", revert = False):
+def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window = None, tolerance = 0., reinforcement = None, threshold = None, decay = 1., forest = False, immunize = None, strategy = "random", revert = False, history = False, onsets = False, progress = None):
    """
    Body of the simple and complex contagion models.
 
@@ -707,6 +815,11 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
    :param strategy: How to choose them.
    :param revert: Non progressive threshold model (``model = "SIS"``, no ``mu``): an infected node
       whose infected neighbors fall below its threshold becomes susceptible.
+   :param history: Whether to store the states of every step of the last run (see
+      :func:`_history`).
+   :param onsets: Whether to store the first steps in I and R of the last run (see
+      :func:`_onsets`).
+   :param progress: Whether to show a progress bar of the runs (``None``: global setting).
    :return: The table of the states over time, and the forest if asked.
    """
    pairwise = not isinstance(beta, (int, float, np.number))   # a table of probabilities per pair
@@ -730,6 +843,9 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
       raise ValueError(f"reinforcement {reinforcement!r} needs a threshold")
    if runs < 1 or max_steps < 0:
       raise ValueError("runs must be positive and max_steps non negative")
+   if (history or onsets) and attribute is None:
+      raise ValueError("history and onsets store the states in attributes named after attribute: give an attribute")
+   record = history or onsets
    window = int(window or 0)
    if window < 0 or tolerance < 0:
       raise ValueError("window and tolerance must be non negative")
@@ -795,27 +911,42 @@ def _simulate(net, model, beta, mu, seeds, ranking, selection, runs, max_steps, 
    # simulation
    mu, sis = (0., False) if model == "SI" else (0. if revert else float(mu), model == "SIS")
    kind, beta = {None: 0, "classical": 1, "threshold": 2, "cascade": 2, "independent": 3, "decreasing": 4}[reinforcement], 0. if pairwise else float(beta)
+   desc = "non progressive model" if revert else ("complex " if reinforcement else "") + f"{model} model"
    if engine == "numba":
       B = min(runs, numba.get_num_threads())
       total, square = np.zeros((B, max_steps + 1, 3)), np.zeros((B, max_steps + 1, 3))
       ends, finals, last = np.zeros(runs, dtype = np.int64), np.zeros((runs, 3)), np.zeros(n, dtype = np.uint8)
       states = rs.integers(1, 2 ** 63, size = runs, dtype = np.uint64)
       ev, nev = np.zeros((n if forest else 0, 3), dtype = np.int64), np.zeros(1, dtype = np.int64)
+      hist, nhist = np.zeros((3 * n + 1 if record else 0, 3), dtype = np.int64), np.zeros(1, dtype = np.int64)   # SI, SIR: at most 3 changes per node
+      none = np.zeros((0, 3), dtype = np.int64)
       args = (ptr.numpy(), nbr.numpy())
       rest = (beta, mu, sis, kind, need, stay, pe, float(decay), int(max_steps), window, float(tolerance))
       last_state = states[-1:].copy()   # the kernel advances the states
-      _run_numba(*args, out, removed, imm, *rest, states, total, square, ends, finals, last, ev, nev)
-      if nev[0] > ev.shape[0]:   # SIS: more infections than nodes; the last run again, alone, with room for all
-         ev, one = np.zeros((nev[0], 3), dtype = np.int64), np.zeros(1, dtype = np.int64)
-         _run_numba(*args, out[(runs - 1) % out.shape[0]][None], removed, imm[(runs - 1) % imm.shape[0]][None], *rest, last_state, np.zeros((1, max_steps + 1, 3)), np.zeros((1, max_steps + 1, 3)), np.zeros(1, dtype = np.int64), np.zeros((1, 3)), np.zeros(n, dtype = np.uint8), ev, one)
-      ev = ev[:nev[0]]
-      ev = ev[ev[:, 2] <= ends[-1]]   # attempts decided at the last step were never applied
+      chunk = B * max(1, -(-runs // (20 * B)))   # runs per call: the bar moves at least 20 times
+      with _bar(runs, desc, progress) as bar:
+         for a in range(0, runs, chunk):
+            k = min(chunk, runs - a)
+            r = np.arange(a, a + k)
+            final = a + k == runs   # the last run is the last one of this call
+            _run_numba(*args, out[r % out.shape[0]], removed, imm[r % imm.shape[0]], *rest, states[a:a + k], total, square, ends[a:a + k], finals[a:a + k], last, ev if final else none, nev if final else np.zeros(1, dtype = np.int64), hist if final else none, nhist if final else np.zeros(1, dtype = np.int64))
+            bar.update(k)
+      if nev[0] > ev.shape[0] or nhist[0] > hist.shape[0]:   # SIS: more changes than room; the last run again, alone, with room for all
+         ev, hist = np.zeros((nev[0] if forest else 0, 3), dtype = np.int64), np.zeros((nhist[0] if record else 0, 3), dtype = np.int64)
+         _run_numba(*args, out[(runs - 1) % out.shape[0]][None], removed, imm[(runs - 1) % imm.shape[0]][None], *rest, last_state, np.zeros((1, max_steps + 1, 3)), np.zeros((1, max_steps + 1, 3)), np.zeros(1, dtype = np.int64), np.zeros((1, 3)), np.zeros(n, dtype = np.uint8), ev, np.zeros(1, dtype = np.int64), hist, np.zeros(1, dtype = np.int64))
+      ev, hist, end = ev[:nev[0]], hist[:nhist[0]], int(ends[-1])
+      ev = ev[ev[:, 2] <= end]   # attempts decided at the last step were never applied
       total, square = _sums(total, square, ends, finals, n)
    else:
       tensor = lambda a: torch.as_tensor(a, device = dev)
-      total, square, last, ev = _run_torch(ptr, nbr, tensor(out), tensor(removed), tensor(imm), beta, mu, sis, kind, tensor(need), tensor(stay), tensor(pe), float(decay), int(max_steps), window, float(tolerance), runs, int(rs.integers(2 ** 62)), batch or max(1, 2 ** 27 // n), forest)
+      with _bar(runs, desc, progress) as bar:
+         total, square, last, ev, hist, end = _run_torch(ptr, nbr, tensor(out), tensor(removed), tensor(imm), beta, mu, sis, kind, tensor(need), tensor(stay), tensor(pe), float(decay), int(max_steps), window, float(tolerance), runs, int(rs.integers(2 ** 62)), batch or max(1, 2 ** 27 // n), forest, record, bar)
 
    table = _table(net, comps, off, component, attribute, last, total, square, runs, model)
+   if history:
+      _history(net, comps, off, component, attribute, hist, end)
+   if onsets:
+      _onsets(net, off, component, attribute, hist, model)
    if not forest:
       return table
    return table, _forest(net, comps, out[(runs - 1) % out.shape[0]], ev)
@@ -847,7 +978,7 @@ def _forest(net, comps, roots, ev):
 
 
 @_higher_order()
-def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
+def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SI (Susceptible-Infected) model, and return the fraction of nodes in each state
    at every time step, averaged over independent runs.
@@ -919,6 +1050,15 @@ def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step (0 is the start), with columns ``S`` and
       ``I`` (mean fraction of nodes in each state), ``S_low``, ``S_high``, ``I_low`` and
       ``I_high`` (confidence intervals).
@@ -941,15 +1081,18 @@ def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100
       pr = gsk.pagerank(net, component = None)
       si = gsk.si_model(net, 0.1, 5, ranking = pr, selection = "weighted", component = None)
 
+      gsk.si_model(net, 0.1, 5, history = True)                       # states at every step of the last run
+      net.get_node_attribute("state_3")                               # "S" or "I" at step 3
+      gsk.si_model(net, 0.1, 5, onsets = True)                        # step at which every node was infected
       gsk.si_model(net, 0.1, 5, runs = 1, max_steps = 0)              # seeds only, step 0
       for step in range(10):                                          # then one step at a time
          gsk.si_model(net, 0.1, runs = 1, max_steps = 1, resume = True)
    """
-   return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SI", beta, 0., seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order()
-def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random"):
+def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, window = 100, tolerance = 0.01, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SIS (Susceptible-Infected-Susceptible) model, and return the fraction of nodes in
    each state at every time step, averaged over independent runs.
@@ -994,6 +1137,15 @@ def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``.
    :raises ValueError: As :func:`si_model`, or if ``mu``, ``window`` or ``tolerance`` is not
@@ -1010,11 +1162,11 @@ def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
       sis["I"].iloc[-1]                                               # endemic level
       sis = gsk.sis_model(net, 0.1, 0.05, 5, window = None, max_steps = 2000)   # no plateau test
    """
-   return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SIS", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, window, tolerance, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)
 
 
 @_higher_order()
-def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random"):
+def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs = 100, max_steps = 1000, component = 0, seed = None, engine = None, batch = None, attribute = "state", resume = False, immunize = None, strategy = "random", history = False, onsets = False, progress = None):
    """
    Simulate the SIR (Susceptible-Infected-Removed) model, and return the fraction of nodes in
    each state at every time step, averaged over independent runs.
@@ -1045,6 +1197,16 @@ def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
    :param strategy: With a number of nodes to immunize: ``"random"``, ``"friend_of_random"``, or
       node values (vector, dictionary or :class:`pandas.Series`, name of a numeric node
       attribute) whose largest ones are immunized. Ignored with node ids.
+   :param history: Whether to store also the state of every node at every step of the last run,
+      as the qualitative node attributes ``f"{attribute}_{t}"`` (``state_0``, ``state_1``, ...,
+      up to the last step of the run), e.g. to replay the spread step by step; the attributes of
+      an earlier history are replaced. Needs ``attribute``.
+   :param onsets: Whether to store also the first step at which every node became infected in
+      the last run, as the numeric node attribute ``f"{attribute}_first_I"``, and the
+      first step at which it recovered (or was removed), as ``f"{attribute}_first_R"``; missing
+      for nodes that never did. Needs ``attribute``.
+   :param progress: Whether to show a progress bar of the runs (``None``: as set by
+      :func:`~graphoskop.set_progress`; see :doc:`progress`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``I`` and ``R`` and
       their confidence intervals (``S_low``, ``S_high``, ...).
    :raises ValueError: As :func:`si_model`, or if ``mu`` is not valid.
@@ -1060,4 +1222,4 @@ def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
       sir["R"].iloc[-1]                                               # final size of the epidemic
       sir["I"].idxmax()                                               # step of the peak
    """
-   return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, immunize = immunize, strategy = strategy)
+   return _simulate(net, "SIR", beta, mu, seeds, ranking, selection, runs, max_steps, component, seed, engine, batch, attribute, resume, immunize = immunize, strategy = strategy, history = history, onsets = onsets, progress = progress)

@@ -1803,12 +1803,20 @@ def _bb_rows(arrays, thresholds, directed):
 
 
 @_higher_order()
-def test_bb_thresholds(net, min_threshold, max_threshold, step, score = "nc_score"):
+def test_bb_thresholds(net, min_threshold = None, max_threshold = None, step = None, score = "nc_score", quantiles = None):
    """
    Size of the backbones given by a regular grid of thresholds, to help choosing one.
 
    The thresholds go from ``min_threshold`` to ``max_threshold`` (included if on the grid) in
-   steps of ``step``, and edges are kept as in :func:`extract_backbone` (without reconnection).
+   steps of ``step``. With ``quantiles`` instead (an integer :math:`k`), they follow the edges:
+   below the smallest significance of the edges (every edge kept), the significances that
+   keep about :math:`(k - 1) / k, (k - 2) / k, \\ldots, 1 / k` of the edges (quantiles of the
+   significances), and above the largest significance (no edge kept), :math:`k + 1` thresholds, so that
+   the backbones are evenly spread even when the significances are not (e.g. z-scores with a long
+   tail). The first and last thresholds are a little below the smallest significance and above the
+   largest. The significance of an edge is ``score / sdev`` if the score has a standard deviation,
+   otherwise ``score``; edges with a NaN significance are left out of the quantiles. Edges are
+   kept as in :func:`extract_backbone` (without reconnection).
    For each threshold the result reports, in absolute terms and as a percentage of the original
    network (the same statistic computed on ``net``):
 
@@ -1822,15 +1830,19 @@ def test_bb_thresholds(net, min_threshold, max_threshold, step, score = "nc_scor
    each threshold.
 
    :param net: A :class:`~graphoskop.Network`.
-   :param min_threshold: First threshold.
-   :param max_threshold: Last threshold.
-   :param step: Distance between consecutive thresholds, positive.
+   :param min_threshold: First threshold (not needed with ``quantiles``).
+   :param max_threshold: Last threshold (not needed with ``quantiles``).
+   :param step: Distance between consecutive thresholds, positive (not needed with
+      ``quantiles``).
    :param score: Name of the edge attribute with the score (its standard deviation, if any, is
       found as in :func:`extract_backbone`).
+   :param quantiles: Number of steps from keeping every edge to keeping none, at the quantiles of
+      the significances, or ``None`` for the regular grid.
    :return: :class:`pandas.DataFrame` with one row per threshold and columns ``threshold``,
       ``nodes``, ``nodes_pct``, ``edges``, ``edges_pct``, ``avg_degree``, ``avg_degree_pct``,
       ``components``, ``components_pct``.
-   :raises ValueError: If ``step`` is not positive or ``max_threshold < min_threshold``.
+   :raises ValueError: If ``step`` is not positive or ``max_threshold < min_threshold`` (regular
+      grid), or if ``quantiles`` is not a positive integer or no edge has a significance.
 
    Example:
 
@@ -1841,12 +1853,28 @@ def test_bb_thresholds(net, min_threshold, max_threshold, step, score = "nc_scor
       net = gsk.load_network("edges.tsv", directed = True)
       gsk.noise_corrected(net)
       table = gsk.test_bb_thresholds(net, 1, 3, 0.25)   # z-scores 1, 1.25, ..., 3
+      table = gsk.test_bb_thresholds(net, quantiles = 100)   # from all the edges to none, 1% at a time
    """
-   if step <= 0 or max_threshold < min_threshold:
-      raise ValueError("step must be positive and max_threshold at least min_threshold")
-   k = int(np.floor((max_threshold - min_threshold) / step + 1e-9)) + 1
-   thresholds = np.round(min_threshold + step * np.arange(k), 10).tolist()
-   return pd.DataFrame(_bb_rows(_edge_arrays(net, score, _sdev(net, score)), thresholds, net.directed), columns = _COLUMNS)
+   arrays = _edge_arrays(net, score, _sdev(net, score))
+   if quantiles is not None:
+      if int(quantiles) != quantiles or quantiles < 1:
+         raise ValueError(f"quantiles must be a positive integer, got {quantiles}")
+      s, t, sc, sd, n = arrays
+      z = sc.astype(np.float64) if sd is None else sc.astype(np.float64) / sd
+      z = np.sort(z[np.isfinite(z)])
+      if not len(z):
+         raise ValueError(f"no edge has a finite significance in {score!r}")
+      margin = 1e-5 * max(1., abs(z[0]), abs(z[-1]), z[-1] - z[0])   # beyond the rounding of the scores to their dtype
+      inner = z[np.minimum((np.arange(1, int(quantiles)) * len(z)) // int(quantiles), len(z) - 1) - 1] if quantiles > 1 else z[:0]
+      thresholds = [float(z[0] - margin)] + [float(x) for x in np.maximum(inner, z[0])] + [float(z[-1] + margin)]
+   else:
+      if step is None or min_threshold is None or max_threshold is None:
+         raise ValueError("give min_threshold, max_threshold and step, or quantiles")
+      if step <= 0 or max_threshold < min_threshold:
+         raise ValueError("step must be positive and max_threshold at least min_threshold")
+      k = int(np.floor((max_threshold - min_threshold) / step + 1e-9)) + 1
+      thresholds = np.round(min_threshold + step * np.arange(k), 10).tolist()
+   return pd.DataFrame(_bb_rows(arrays, thresholds, net.directed), columns = _COLUMNS)
 
 
 @_higher_order()
@@ -1866,6 +1894,10 @@ def find_bb_thresholds(net, target_degree = None, score = "nc_score"):
      than one node differs from ``net`` (a component splits into pieces with more than one node,
      or vanishes into isolated nodes). Nodes falling off a component without splitting it are
      reported by ``first_isolate``.
+   * ``max_separation``: threshold with the largest difference between the share of the nodes
+     that are not isolated and the share of the edges that are kept (``nodes_pct - edges_pct``):
+     the backbone keeping as many nodes as possible with as few edges as possible. The smallest
+     such threshold if several tie; NaN without edges.
    * ``target_degree``: smallest threshold at which the average degree (as in
      :func:`test_bb_thresholds`) reaches ``target_degree``, from above if it is lower than the
      average degree of ``net`` and from below otherwise.
@@ -1879,7 +1911,8 @@ def find_bb_thresholds(net, target_degree = None, score = "nc_score"):
    :param score: Name of the edge attribute with the score (its standard deviation, if any, is
       found as in :func:`extract_backbone`).
    :return: :class:`pandas.DataFrame` with a ``criterion`` column and the columns of
-      :func:`test_bb_thresholds`, one row per criterion.
+      :func:`test_bb_thresholds`, one row per criterion (``first_isolate``,
+      ``first_component_break``, ``max_separation``, then ``target_degree`` if asked).
 
    Example:
 
@@ -1922,12 +1955,22 @@ def find_bb_thresholds(net, target_degree = None, score = "nc_score"):
    broken = lower[state != C0]
    component = broken.min() if len(broken) else np.nan
 
-   # target degree: edges and non-isolated nodes above each candidate threshold
+   # edges and non-isolated nodes above each candidate threshold (the significance of an edge)
+   u = np.unique(z)
+   E = len(z) - np.searchsorted(np.sort(z), u, side = "right")
+   N = len(best) - np.searchsorted(np.sort(best), u, side = "right")
+
+   # max separation: largest share of non-isolated nodes minus share of edges, at finite thresholds
+   separation, gap = np.nan, np.nan
+   fin = np.isfinite(u)
+   if fin.any() and N0:
+      gaps = 100 * N[fin] / N0 - 100 * E[fin] / len(z)
+      k = int(np.argmax(gaps))   # the first (smallest threshold) of the ties
+      separation, gap = u[fin][k], gaps[k]
+
+   # target degree
    degree = np.nan
    if target_degree is not None:
-      u = np.unique(z)
-      E = len(z) - np.searchsorted(np.sort(z), u, side = "right")
-      N = len(best) - np.searchsorted(np.sort(best), u, side = "right")
       with np.errstate(divide = "ignore", invalid = "ignore"):
          D = np.where(N > 0, (E if net.directed else 2 * E) / N, np.nan)
       hit = u[(D <= target_degree) if D0 >= target_degree else (D >= target_degree)]
@@ -1935,9 +1978,10 @@ def find_bb_thresholds(net, target_degree = None, score = "nc_score"):
 
    checks = [("first_isolate", isolate, lambda N, E, D, C: N < N0),
       ("first_component_break", component, lambda N, E, D, C: C != C0),
+      ("max_separation", separation, lambda N, E, D, C: abs(100 * N / N0 - 100 * E / len(z) - gap) < 1e-9),
       ("target_degree", degree, lambda N, E, D, C: (D <= target_degree) if D0 >= target_degree else (D >= target_degree))]
    names, thresholds = [], []
-   for name, thr, ok in checks[:2 if target_degree is None else 3]:
+   for name, thr, ok in checks[:3 if target_degree is None else 4]:
       if np.isfinite(thr) and sd is not None:   # rounding of score > threshold * sdev
          thr = float(np.float32(thr))
          for _ in range(64):

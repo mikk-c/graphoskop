@@ -105,6 +105,38 @@ class _Attributes:
       return P - self.m[:stop, None].to(Y.dtype) * Y.sum(0)[None, :]
 
 
+def _columns(net, X, attributes):
+   """
+   The columns of ``node_attr`` (dense or sparse CSR) of the chosen attributes, in their order.
+
+   :param net: Network.
+   :param X: ``node_attr`` of a component.
+   :param attributes: Names or positions in ``net.node_attributes``, or ``None`` for all.
+   :return: ``X`` or its chosen columns.
+   :raises ValueError: If an attribute is not a numeric node attribute.
+   """
+   if attributes is None:
+      return X
+   names = list(net.node_attributes)
+   index = []
+   for a in ([attributes] if isinstance(attributes, (str, int, np.integer)) else attributes):
+      if isinstance(a, (int, np.integer)) and 0 <= a < len(names):
+         index.append(int(a))
+      elif isinstance(a, str) and a in names:
+         index.append(names.index(a))
+      else:
+         raise ValueError(f"{a!r} is not a numeric node attribute")
+   if X.layout != torch.sparse_csr:
+      return X[:, torch.tensor(index, device = X.device)]
+   with _quiet_sparse():
+      C = X.to_sparse_coo().coalesce()
+      new = torch.full((X.shape[1],), -1, dtype = torch.long, device = X.device)
+      new[torch.tensor(index, device = X.device)] = torch.arange(len(index), device = X.device)
+      r, c = C.indices()
+      keep = new[c] >= 0
+      return torch.sparse_coo_tensor(torch.stack([r[keep], new[c[keep]]]), C.values()[keep], (X.shape[0], len(index))).coalesce().to_sparse_csr()
+
+
 def _pairwise(attrs, apply, finish, output_device, output_dtype):
    """
    Build a symmetric ``k`` by ``k`` result one block of attributes at a time.
@@ -138,7 +170,7 @@ def _pairwise(attrs, apply, finish, output_device, output_dtype):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Generalized Euclidean distance :math:`\\sqrt{(a - b)^H L^+ (a - b)}` between two node vectors,
    or norm :math:`\\sqrt{a^H L^+ a}` of a single one, with :math:`L^+` the pseudoinverse of the
@@ -162,7 +194,8 @@ def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse 
    :param lpinv: Cached pseudoinverse or solver, or ``None``.
    :param sparse: Compute a solver instead of the dense pseudoinverse when ``lpinv`` is ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Distance, or list of distances if ``component`` is ``None``.
@@ -203,7 +236,7 @@ def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse 
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = None, weight = None, kind = "out", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64):
+def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64, attributes = None):
    """
    Generalized Euclidean distances between all pairs of node attributes.
 
@@ -226,7 +259,8 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
    :param sparse: Laplacian solver (``True`` or ``None``) or dense pseudoinverse (``False``) when
       ``lpinv`` is ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :param output_device: Device of the result, ``None`` for the device of the component. With
@@ -236,7 +270,10 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
    :param output_dtype: Dtype of the result. ``torch.float32`` halves its memory (a ``k`` by ``k``
       float64 matrix needs :math:`8 k^2` bytes, 3.2 GB for 20,000 attributes); the computation
       itself stays in double precision.
-   :return: ``k`` by ``k`` tensor, rows and columns ordered as ``net.node_attributes``, or
+   :param attributes: The numeric node attributes compared (names or positions in
+      ``net.node_attributes``), or ``None`` for all of them.
+   :return: ``k`` by ``k`` tensor, rows and columns ordered as ``net.node_attributes`` (or as
+      ``attributes``), or
       a list of them if ``component`` is ``None``. NaN where the quadratic form is negative
       (possible only for the ``"out"`` Laplacian) or for attributes with missing values.
 
@@ -249,12 +286,13 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
       net = gsk.load_network("edges.tsv", "nodes.tsv")
       D = gsk.pairwise_generalized_euclidean(net, weight = "weight")
       D = gsk.pairwise_generalized_euclidean(net, weight = "weight", output_device = "cpu")
+      D = gsk.pairwise_generalized_euclidean(net, attributes = ["age", "income", "height"])
    """
    net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
-      return [pairwise_generalized_euclidean(net, c, pick(lpinv, c), sparse, weight, kind, q, alpha, output_device, output_dtype) for c in range(len(net.components))]
-   attrs = _Attributes(net.components[component].node_attr, "rows")
+      return [pairwise_generalized_euclidean(net, c, pick(lpinv, c), sparse, weight, kind, q, alpha, output_device, output_dtype, attributes) for c in range(len(net.components))]
+   attrs = _Attributes(_columns(net, net.components[component].node_attr, attributes), "rows")
    if lpinv is None:
       lpinv = (laplacian_pinv if sparse is False else laplacian_solver)(net, component, weight, kind, q, alpha)
    hermitian = not net.directed or kind != "out"
@@ -277,7 +315,7 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Network Pearson correlation (Coscia, 2021; Coscia and Devriendt, 2024,
    https://arxiv.org/abs/2402.09489):
@@ -316,7 +354,8 @@ def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None,
    :param k: Scale of the effective resistance in :math:`W = e^{-k \\Omega}`.
    :param lpinv: Cached dense pseudoinverse of the Laplacian, or ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Correlation, or list of correlations if ``component`` is ``None``. NaN for constant
@@ -347,7 +386,7 @@ def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None,
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64):
+def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64, attributes = None):
    """
    Network Pearson correlations between all pairs of node attributes.
 
@@ -363,7 +402,8 @@ def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = No
    :param k: Scale of the effective resistance in :math:`W = e^{-k \\Omega}`.
    :param lpinv: Cached dense pseudoinverse of the Laplacian, or ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :param output_device: Device of the result, ``None`` for the device of the component. With
@@ -373,7 +413,10 @@ def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = No
    :param output_dtype: Dtype of the result. ``torch.float32`` halves its memory (a ``k`` by ``k``
       float64 matrix needs :math:`8 k^2` bytes, 3.2 GB for 20,000 attributes); the computation
       itself stays in double precision.
-   :return: ``k`` by ``k`` tensor, rows and columns ordered as ``net.node_attributes``, or
+   :param attributes: The numeric node attributes compared (names or positions in
+      ``net.node_attributes``), or ``None`` for all of them.
+   :return: ``k`` by ``k`` tensor, rows and columns ordered as ``net.node_attributes`` (or as
+      ``attributes``), or
       a list of them if ``component`` is ``None``. NaN for constant attributes or missing values.
 
    Example:
@@ -385,12 +428,13 @@ def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = No
       net = gsk.load_network("edges.tsv", "nodes.tsv")
       C = gsk.pairwise_network_correlation(net, weight = "weight")
       C = gsk.pairwise_network_correlation(net, weight = "weight", output_device = "cpu")
+      C = gsk.pairwise_network_correlation(net, attributes = ["age", "income", "height"])
    """
    net, weight = _walk_view(net, weight)
    if component is None:
       pick = lambda x, c: x[c] if isinstance(x, list) else x
-      return [pairwise_network_correlation(net, c, pick(W, c), k, pick(lpinv, c), weight, kind, q, alpha, output_device, output_dtype) for c in range(len(net.components))]
-   attrs = _Attributes(net.components[component].node_attr, "columns")
+      return [pairwise_network_correlation(net, c, pick(W, c), k, pick(lpinv, c), weight, kind, q, alpha, output_device, output_dtype, attributes) for c in range(len(net.components))]
+   attrs = _Attributes(_columns(net, net.components[component].node_attr, attributes), "columns")
    if W is None:
       W = effective_resistance(net, component, lpinv, weight, kind, q, alpha).mul_(-k).exp_()
    finish = lambda G, d_rows, d_cols: G.div_(d_rows.sqrt()[:, None]).div_(d_cols.sqrt()[None, :])
@@ -419,7 +463,7 @@ def _distribution(net, component, a, name):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_variance(net, a, component = 0, R = None, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def network_variance(net, a, component = 0, R = None, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Network variance of a node vector interpreted as a probability distribution (Devriendt,
    Martin-Gutierrez and Lambiotte, 2022, https://arxiv.org/abs/2008.09155):
@@ -450,7 +494,8 @@ def network_variance(net, a, component = 0, R = None, lpinv = None, weight = Non
    :param R: Precomputed effective resistance matrix, or ``None``.
    :param lpinv: Cached dense pseudoinverse of the Laplacian, or ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Variance, or list of variances if ``component`` is ``None``. NaN for missing values.
@@ -477,7 +522,7 @@ def network_variance(net, a, component = 0, R = None, lpinv = None, weight = Non
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Network entropy of a node vector interpreted as a probability distribution:
 
@@ -511,7 +556,8 @@ def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight
    :param k: Scale of the effective resistance in :math:`W = e^{-k \\Omega}`.
    :param lpinv: Cached dense pseudoinverse of the Laplacian, or ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"out"``, ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default), ``"magnetic"`` or
+      ``"out"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Entropy (in nats), or list of entropies if ``component`` is ``None``. NaN for missing
@@ -549,7 +595,7 @@ def _signals(net, component, a):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Graph Fourier basis: the eigenvalues (frequencies) and eigenvectors (Fourier modes) of the
    Laplacian, :math:`L = U \\Lambda U^H`, in increasing order of frequency (Shuman, Narang,
@@ -579,8 +625,8 @@ def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight
    :param k: Number of modes (lowest frequencies), or ``None`` for all.
    :param normalized: Whether to use the normalized Laplacian.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"`` (``"out"`` is not
-      Hermitian).
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default) or ``"magnetic"``
+      (``"out"`` is not Hermitian).
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: ``(frequencies, modes)``: vector of length ``k`` and ``n`` by ``k`` matrix (one mode per
@@ -676,7 +722,7 @@ def _inv_sqrt(d):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def graph_fourier_transform(net, a, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def graph_fourier_transform(net, a, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Graph Fourier transform of a signal on the nodes, :math:`\\hat{a} = U^H a`: its coefficients on
    the Fourier modes of :func:`graph_fourier_basis`, from the lowest frequency to the highest. A
@@ -699,7 +745,7 @@ def graph_fourier_transform(net, a, component = 0, basis = None, k = None, norma
    :param k: Number of modes, if ``basis`` is ``None`` (``None`` for all).
    :param normalized: Whether to use the normalized Laplacian, if ``basis`` is ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default) or ``"magnetic"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Coefficients: vector of length ``k`` (or ``k`` by ``s`` matrix), in double precision
@@ -733,7 +779,7 @@ def graph_fourier_transform(net, a, component = 0, basis = None, k = None, norma
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "out", q = 0.25, alpha = 0.15):
+def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
    """
    Inverse graph Fourier transform, :math:`a = U \\hat{a}`: the signal on the nodes with the given
    coefficients on the Fourier modes of :func:`graph_fourier_basis`. With all ``n`` modes, it
@@ -753,7 +799,7 @@ def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = No
    :param k: Number of modes, if ``basis`` is ``None`` (``None`` for all).
    :param normalized: Whether to use the normalized Laplacian, if ``basis`` is ``None``.
    :param weight: Name of the edge attribute used as edge weight, or ``None`` for unit weights.
-   :param kind: Laplacian of directed networks: ``"magnetic"`` or ``"chung"``.
+   :param kind: Laplacian of directed networks: ``"chung"`` (the default) or ``"magnetic"``.
    :param q: Charge of the magnetic Laplacian.
    :param alpha: Teleportation probability of the Chung Laplacian.
    :return: Node vector of length ``n`` (or ``n`` by ``s`` matrix) in double precision, real

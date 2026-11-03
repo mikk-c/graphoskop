@@ -12,6 +12,7 @@ Transformations
    und = gsk.to_undirected(net)                                    # weights summed: A + A^T
    und = gsk.to_undirected(net, combine = "max", disagree = "positive")
    core = gsk.remove_isolates(net)                                 # nodes without edges dropped
+   giant = gsk.largest_component(net)                              # the largest (weakly) connected component
    clean = gsk.remove_isolates(gsk.remove_self_loops(net))         # no self loops, then no isolates
    simple = gsk.remove_parallel_edges(net)                         # one edge per pair (per direction)
    sub = gsk.subgraph(net, ["alice", "bob", "carol"])              # induced subgraph
@@ -41,6 +42,8 @@ networks, and :func:`~graphoskop.signed_network`.
 .. autofunction:: graphoskop.ego_network
 
 .. autofunction:: graphoskop.flip_edge_direction
+
+.. autofunction:: graphoskop.largest_component
 
 .. autofunction:: graphoskop.remove_isolates
 

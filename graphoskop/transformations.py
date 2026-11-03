@@ -3,7 +3,8 @@ Transformations of a network into another network.
 
 :func:`to_undirected` symmetrizes a directed network: all the edges between two nodes, in either
 direction, become one undirected edge, whose attributes combine theirs. :func:`remove_isolates`
-drops the nodes without edges, :func:`remove_self_loops` the edges from a node to itself,
+drops the nodes without edges, :func:`largest_component` keeps only the largest (weakly)
+connected component, :func:`remove_self_loops` the edges from a node to itself,
 :func:`remove_parallel_edges` merges the edges between the same two nodes. :func:`subgraph` keeps a
 set of nodes and the edges between them, :func:`ego_network` the neighbors of a node and the edges
 between them, :func:`to_strongly_connected` the edges within strongly connected components. :func:`add_nodes`, :func:`add_edges`, :func:`remove_nodes` and
@@ -184,7 +185,44 @@ def remove_isolates(net):
       core = gsk.remove_isolates(net)
       core.number_of_nodes() <= net.number_of_nodes()     # True
    """
-   keep = [c for c, d in enumerate(net.components) if d.num_nodes > 1 or d.edge_index.shape[1] > 0]
+   return _keep_components(net, [c for c, d in enumerate(net.components) if d.num_nodes > 1 or d.edge_index.shape[1] > 0])
+
+
+@_higher_order()
+def largest_component(net):
+   """
+   Network made of its largest component only: the largest connected component, weakly connected
+   in directed networks (the components of a :class:`~graphoskop.Network` are its weakly connected
+   components, largest first; for the largest strongly connected component, use
+   :func:`to_strongly_connected` first). Its nodes, edges, node and edge attributes, node types
+   and device are kept; its tensors are copied, so changing one network does not change the
+   other. If several components are the largest, the first one is kept (component 0).
+
+   In multilayer networks the component is one of the supra-graph: couplings and other interlayer
+   edges connect copies.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :return: The largest component, a new :class:`~graphoskop.Network`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv", "nodes.tsv")
+      giant = gsk.largest_component(net)
+      len(giant.components)                               # 1
+      scc = gsk.largest_component(gsk.to_strongly_connected(net))   # largest strongly connected
+   """
+   return _keep_components(net, [0] if net.components else [])
+
+
+def _keep_components(net, keep):
+   """
+   Network with only the components ``keep`` (indices, in order), copied, with their node and
+   edge attributes, node types and device.
+   """
    pos = np.concatenate([np.arange(net.node_offsets[c], net.node_offsets[c + 1]) for c in keep] + [np.zeros(0, dtype = np.int64)])
    Q = net.qualitative_node_attr
    if net.node_format == "wide":

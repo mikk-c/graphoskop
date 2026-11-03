@@ -5,11 +5,19 @@ extends TabContainer
 ## time, chosen in a menu). Only the visible tab is asked to the worker, one page at a time; each
 ## table is sorted as a whole by the column whose title was clicked (table_view.gd). A right click
 ## on the title of a column of the Nodes or Edges table (not of the attributes of a single node)
-## asks for the menu of its attribute.
+## asks for the menu of its attribute. Double clicking a value of the Nodes or Edges table (the
+## value column of a single node) edits it in place ([signal value_edit_requested]); ids, sources
+## and targets cannot be edited. Networks with many attributes (more than the worker's
+## [code]TABLE_ATTRIBUTES[/code]) show only the first ones as columns, and say so in the title;
+## the table of one selected node lists them all.
 
 ## Emitted when the user right-clicks the title of the column of [param attribute] in the Nodes
 ## ([param kind] [code]"nodes"[/code]) or Edges ([code]"edges"[/code]) table.
 signal attribute_menu_requested(kind: String, attribute: String)
+## Emitted when a value was edited in the Nodes ([param kind] [code]"nodes"[/code]) or Edges table:
+## the [param position] of the node or edge in the drawing order, the [param attribute] and the
+## [param text] typed.
+signal value_edit_requested(kind: String, position: int, attribute: String, text: String)
 
 ## The worker (set by the main scene).
 var worker: Node
@@ -32,6 +40,15 @@ func _ready() -> void:
       view.column_menu_requested.connect(func(column):
          if _tab >= 0 and not (kind == "nodes" and _nodes.size() == 1):
             attribute_menu_requested.emit(kind, column))
+   $Nodes.editable = func(column): return column == "value" if _nodes.size() == 1 else column != "node"
+   $Edges.editable = func(column): return not column in ["source", "target"]
+   $Nodes.value_edited.connect(func(index, column, typed):
+      if _nodes.size() == 1:   # the attributes of one node: the row names the attribute
+         var row: TreeItem = $Nodes.get_node("%Table").get_root().get_child(index)
+         value_edit_requested.emit("nodes", _nodes[0], row.get_text(0), typed)
+      else:
+         value_edit_requested.emit("nodes", index, column, typed))
+   $Edges.value_edited.connect(func(index, column, typed): value_edit_requested.emit("edges", index, column, typed))
    $Tables.choice_changed.connect(func(name): _table = name; _offsets.erase("Tables"); refresh())
 
 
@@ -93,4 +110,25 @@ func refresh() -> void:
       title = "Edges of the %d selected nodes" % _nodes.size()
    worker.request(request, func(reply, _payload):
       if serial == _serial and reply.ok:
-         view.show_rows(reply, offset, title))
+         view.show_rows(reply, offset, title + _left_out(reply, kind)))
+
+
+## Note for the title of a table whose attributes are not all columns (see the worker's
+## [code]table[/code] command), or nothing.
+static func _left_out(reply: Dictionary, kind: String) -> String:
+   var shown: int = reply.get("columns", []).size() - (1 if kind == "nodes" else 2)
+   var total: int = int(reply.get("attributes", 0))
+   if total <= shown:
+      return ""
+   var hint := " (select one node to see them all)" if kind == "nodes" else ""
+   return " · first %d of %s attributes%s" % [shown, _thousands(total), hint]
+
+
+## [param n] with thousands separated by commas.
+static func _thousands(n: int) -> String:
+   var t := str(n)
+   var out := ""
+   while t.length() > 3:
+      out = "," + t.right(3) + out
+      t = t.left(t.length() - 3)
+   return t + out

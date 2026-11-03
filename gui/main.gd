@@ -34,7 +34,7 @@ const LAYOUTS := [
 ## Items of the Edit menu: label, operation of the worker command [code]edit[/code] (see
 ## [code]edit_code[/code] in the worker), and whether ego networks keep the egos. Removals change
 ## the network of the tab; the induced subgraph and ego networks open in a new tab. Undo and Redo
-## go back and forth over the moves and removals (worker command [code]undo[/code]).
+## go back and forth over the moves, removals and additions (worker command [code]undo[/code]).
 const EDITS := [
    ["Undo", "undo", true],
    ["Redo", "redo", true],
@@ -84,6 +84,7 @@ const TRANSFORMS := [
    ["Flip edge direction", "flip_edge_direction", false],
    ["Undirected…", "to_undirected", true],
    ["Strongly connected components", "to_strongly_connected", false],
+   ["Largest connected component", "largest_component", false],
    ["Condensation…", "network_condensation", true],
    ["", "", false],
    ["Remove isolated nodes", "remove_isolates", false],
@@ -94,6 +95,11 @@ const TRANSFORMS := [
    ["", "", false],
    ["Clique expansion…", "clique_expansion", true],
    ["Clique promotion…", "clique_promotion", true],
+]
+## Items of the Help menu: label and web page (opened in the browser).
+const HELP := [
+   ["Online documentation", "https://graphoskop.readthedocs.io/en/latest/"],
+   ["Graphical interface (online documentation)", "https://graphoskop.readthedocs.io/en/latest/gui.html"],
 ]
 ## Ids of the items of the menu of the search box that are not nodes.
 const FOUND_ALL := -2
@@ -127,6 +133,24 @@ const CORE_PERIPHERY := [
    ["Rombach…", "rombach_core_periphery"],
    ["", ""],
    ["Nestedness…", "nestedness"],
+]
+## Items of Analysis › Node vectors: label, function and preset values of the parameters (worker
+## command [code]vectors[/code]). The generalized Euclidean distance uses the Laplacian solver
+## ([code]sparse = True[/code]): a dense pseudoinverse costs minutes on directed networks of
+## 10,000 nodes (a singular value decomposition), the solver a fraction of a second.
+## One or two node attributes give a value, shown in a message; the pairwise analyses compare a set
+## of attributes (check boxes; none for all) and open the heatmap of their matrix in the plot
+## window; the graph Fourier transform opens the plot of its spectrum.
+const VECTORS := [
+   ["Annihilation distance…", "annihilation_distance"],
+   ["Earth mover's distance…", "earth_movers_distance"],
+   ["Generalized Euclidean distance…", "generalized_euclidean", {"sparse": "True"}],
+   ["Generalized Euclidean distances, pairwise…", "pairwise_generalized_euclidean"],
+   ["Graph Fourier transform…", "graph_fourier_transform"],
+   ["Network correlation…", "network_correlation"],
+   ["Network correlations, pairwise…", "pairwise_network_correlation"],
+   ["Network entropy…", "network_entropy"],
+   ["Network variance…", "network_variance"],
 ]
 ## Items of Analysis › Community discovery, as in the documentation of the library: label and
 ## function.
@@ -182,6 +206,14 @@ const GENERATORS := [
 var _tabs := []
 ## The tab of the epidemics dialog.
 var _epidemics_tab := {}
+## The tab of the link prediction dialog, and its runs (from the worker).
+var _links_tab := {}
+var _link_info := {}
+## The tab of the graph neural network dialog.
+var _gnns_tab := {}
+## Ids of Analysis › Link prediction… and Graph neural networks… (apart from the submenus).
+const ANALYSIS_LINKS := 2000
+const ANALYSIS_GNNS := 2001
 ## Text of the visualization panel without networks.
 const HINT := "File › Load network… or Generators to open a network"
 ## The tab of the backbone dialog.
@@ -195,6 +227,10 @@ var _confirm_delete := ConfirmationDialog.new()
 ## tab it is about.
 var _large := AcceptDialog.new()
 var _large_tab := {}
+## Menu of a right click in the visualization panel (add an edge from the node, or a node there),
+## and what it is about: the tab, the node (or -1) and the point (drawing coordinates).
+var _context_menu := PopupMenu.new()
+var _context := {}
 ## Nodes listed by the menu of the search box, and the exact matches among them.
 var _found_nodes := PackedInt32Array()
 var _found_exact := PackedInt32Array()
@@ -235,6 +271,30 @@ func _ready() -> void:
    _menu(communities, COMMUNITIES)
    communities.id_pressed.connect(func(id): _run_analysis("communities", "Community discovery", COMMUNITIES[id]))
    %Analysis.add_submenu_node_item("Community discovery", communities)
+   var vectors := PopupMenu.new()
+   _menu(vectors, VECTORS)
+   vectors.id_pressed.connect(func(id): _run_analysis("vectors", "Node vectors", VECTORS[id]))
+   %Analysis.add_submenu_node_item("Node vectors", vectors)
+   %Analysis.add_separator("", 100000)
+   %Analysis.add_item("Link prediction…", ANALYSIS_LINKS)
+   %Analysis.add_item("Graph neural networks…", ANALYSIS_GNNS)
+   %Analysis.id_pressed.connect(func(id):
+      if id == ANALYSIS_LINKS:
+         _open_links()
+      elif id == ANALYSIS_GNNS:
+         _open_gnns())
+   %Gnns.add_requested.connect(_add_gnn)
+   %Gnns.plot_requested.connect(_plot_gnns)
+   %Gnns.visibility_changed.connect(func():
+      if not %Gnns.visible:
+         _detach.call_deferred(%Gnns))
+   %Links.add_requested.connect(_add_link)
+   %Links.split_requested.connect(_link_split)
+   %Links.plot_requested.connect(_plot_links)
+   %Links.signs_requested.connect(_link_signs)
+   %Links.visibility_changed.connect(func():
+      if not %Links.visible:
+         _detach.call_deferred(%Links))
    var projections := PopupMenu.new()
    _menu(projections, PROJECTIONS)
    projections.id_pressed.connect(func(id): _run_backbone(PROJECTIONS[id], "Bipartite projection"))
@@ -273,7 +333,7 @@ func _ready() -> void:
    %Epidemics.plot_requested.connect(_plot_epidemics)
    %Epidemics.visibility_changed.connect(func():
       if not %Epidemics.visible:
-         _detach.call_deferred())
+         _detach.call_deferred(%Epidemics))
    %Player.step_changed.connect(func(t): if not _current().is_empty(): _go(_current(), t))
    %Player.showing_changed.connect(_show_states)
    %Player.export_requested.connect(_export_animation)
@@ -295,6 +355,8 @@ func _ready() -> void:
    %Generators.add_separator()
    _menu(%Generators, GENERATORS)
    %Generators.id_pressed.connect(_open_generator)
+   _menu(%Help, HELP)
+   %Help.id_pressed.connect(func(id): OS.shell_open(HELP[id][1]))
    %Tabs.tab_changed.connect(_show_tab)
    %FitButton.pressed.connect(_fit_view)
    %Tabs.tab_close_pressed.connect(_close_tab)
@@ -302,8 +364,11 @@ func _ready() -> void:
    %LoadDialog.import_requested.connect(func(spec, done): _new_tab(spec.edges.get_file(), {"cmd": "load", "spec": spec}, done))
    %Data.worker = %Worker
    %Data.attribute_menu_requested.connect(_attribute_menu)
+   %Data.value_edit_requested.connect(_edit_value)
    add_child(_column_menu)
    _column_menu.id_pressed.connect(func(id): _plot_distribution() if id == 0 else _ask_delete())
+   add_child(_context_menu)
+   _context_menu.id_pressed.connect(_on_context)
    add_child(_confirm_delete)
    _confirm_delete.ok_button_text = "Delete"
    _confirm_delete.confirmed.connect(_delete_attribute)
@@ -499,7 +564,7 @@ func _task(text: String, request: Dictionary, callback: Callable) -> void:
 ## The window the task dialog opens in: the dialog that started the task (which stays open, to
 ## show an error), so that the task dialog is drawn above it, or else the main window.
 func _task_host() -> Window:
-   for dialog: Window in [_params, %LoadDialog, %SelectDialog, _plot, %Epidemics, %Backbone]:
+   for dialog: Window in [_params, %LoadDialog, %SelectDialog, _plot, %Epidemics, %Links, %Gnns, %Backbone]:
       if dialog.visible:
          return dialog
    return get_window()
@@ -649,6 +714,8 @@ func _add_tab(tab: Dictionary) -> void:
    %Views.move_child(%FitButton, -1)
    v.selection_changed.connect(func(): if _current() == tab: _show_data(tab))
    v.nodes_moved.connect(func(nodes, positions): _move(tab, nodes, positions))
+   v.context_requested.connect(func(node, at, _screen): _open_context(tab, node, at))
+   v.link_chosen.connect(func(source, target): _link_chosen(tab, source, target))
    %Views.move_child(%Player, -1)
    tab.merge({"spread": {}, "codes": PackedByteArray(), "step": 0, "showing": false, "palette": [], "undo": false, "redo": false})
    _tabs.append(tab)
@@ -737,6 +804,81 @@ func _edit(item: Array) -> void:
          _drawn(tab, reply, payload, true)
          return
       _open_derived(tab, name, request.new_tab, reply, payload))
+
+
+## Right click in the view of [param tab]: on the [param node] (a position in the drawing order),
+## a menu to add an edge from it; elsewhere, to add a node at [param at] (drawing coordinates; only
+## in node-link drawings with the positions of a layout), one item per layer of multilayer networks
+## and per node type of bipartite ones (from the drawing, [code]adding[/code] of the worker).
+## Nothing is asked: the new node gets the first free integer id, attributes are missing.
+func _open_context(tab: Dictionary, node: int, at: Vector2) -> void:
+   var adding = tab.view.adding
+   _context = {"tab": tab, "node": node, "at": at, "choices": []}
+   _context_menu.clear()
+   if node >= 0:
+      _context_menu.add_item("Add an edge from %s" % tab.view.ids[node], 0)
+   else:
+      var choices := [{}]
+      if adding is Dictionary:
+         for key in ["layers", "types"]:
+            if adding.get(key) != null:
+               var more := []
+               for c in choices:
+                  for v in adding[key]:
+                     more.append(c.merged({"layer" if key == "layers" else "type": v}))
+               choices = more
+      _context.choices = choices
+      for k in choices.size():
+         var c: Dictionary = choices[k]
+         var parts := []
+         if c.has("type"):
+            parts.append("of type %s" % c.type)
+         if c.has("layer"):
+            parts.append("in layer %s" % c.layer)
+         _context_menu.add_item(" ".join(["Add a node here"] + parts), 1 + k)
+         if not tab.view.can_add_nodes() or not adding is Dictionary:
+            _context_menu.set_item_disabled(k, true)
+            _context_menu.set_item_tooltip(k, "Nodes are added where the positions come from a layout (not in matrix views, nor with positions from node attributes), and not to hypergraphs or simplicial complexes.")
+   if node >= 0 and not adding is Dictionary:
+      _context_menu.set_item_disabled(0, true)
+      _context_menu.set_item_tooltip(0, "Edges cannot be added to hypergraphs or simplicial complexes.")
+   _context_menu.reset_size()
+   _context_menu.popup(Rect2i(get_window().position + Vector2i(get_window().get_mouse_position()), Vector2i.ZERO))
+
+
+func _on_context(id: int) -> void:
+   var tab: Dictionary = _context.get("tab", {})
+   if not _tabs.has(tab):
+      return
+   if id == 0:
+      tab.view.start_link(_context.node)
+      %Status.text = "Click the node the new edge from %s goes to (Escape or right click cancels)" % tab.view.ids[_context.node]
+   else:
+      var request := {"cmd": "add", "tab": tab.id, "kind": "node", "position": [_context.at.x, _context.at.y]}
+      request.merge(_context.choices[id - 1])
+      _added(tab, request)
+
+
+## The target of a new edge of [param tab] was clicked (-1: canceled): the edge is added, its
+## attributes missing (weight 1).
+func _link_chosen(tab: Dictionary, source: int, target: int) -> void:
+   _idle_status(tab)
+   if target >= 0 and _tabs.has(tab):
+      _added(tab, {"cmd": "add", "tab": tab.id, "kind": "edge", "source": source, "target": target})
+
+
+## Adds the node or edge of [param request] to the network of [param tab] (worker command
+## [code]add[/code]; Edit › Undo takes it back); errors go to a message.
+func _added(tab: Dictionary, request: Dictionary) -> void:
+   _task("%s: adding %s…" % [tab.name, "a node" if request.kind == "node" else "an edge"], request, func(reply, payload):
+      if not _tabs.has(tab):
+         return
+      if not reply.ok:
+         _idle_status(tab)
+         _message("Add", str(reply.error))
+         return
+      tab.summary = "%s: %s" % [tab.name, reply.summary]
+      _drawn(tab, reply, payload, true))
 
 
 ## Opens a new tab [param name] (worker tab [param id]) with a network derived from the one of
@@ -1022,6 +1164,176 @@ func _plot_epidemics(names: Array, states: Array) -> void:
       _plot.show_plot(tab.id, "Epidemics of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "epidemics"))
 
 
+## Analysis › Link prediction: opens the dialog of the link predictions of the current tab
+## (link_dialog.gd; worker command [code]link_predictions[/code]).
+func _open_links() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "link_predictions", "tab": tab.id}, func(reply, _p):
+      if reply.ok and _tabs.has(tab):
+         _links_tab = tab
+         _link_info = reply
+         %Links.open("Link prediction in %s" % tab.name, reply))
+
+
+## The runs of the link prediction dialog changed ([param reply] of the worker, with the code and
+## the drawing).
+func _links_done(tab: Dictionary, reply: Dictionary, payload: PackedByteArray) -> void:
+   _link_info = reply
+   %Links.show_status("")
+   %Links.show_runs(reply)
+   _drawn(tab, reply, payload, true)
+
+
+## Add method or Copy… of the link prediction dialog: the parameter dialog of [param function],
+## whose run is named [param name] (it can be changed), with the [param values] of the run copied
+## (worker command [code]link_predict[/code]); ensembles choose among the runs so far.
+func _add_link(function: String, name: String, values: Dictionary) -> void:
+   var tab := _links_tab
+   if not _tabs.has(tab):
+      return
+   _ask({"cmd": "signature", "function": function, "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         %Links.show_error(str(reply.error))
+         return
+      _above(_params, %Links)
+      var presets := values.duplicate()
+      presets.name = JSON.stringify(name)
+      var choices: Dictionary = tab.attributes.duplicate()
+      choices.runs = _link_info.get("runs", []).map(func(r): return {"name": r.name, "numeric": true})
+      _params.open("%s (gsk.%s)" % [name.rsplit(" ", true, 1)[0], function], reply, presets, "Run", choices, func(arguments, done):
+         var run: String = JSON.parse_string(arguments.get("name", "\"\"")) if arguments.has("name") else ""
+         %Links.show_status("Running %s…" % run)
+         _task("%s: running %s…" % [tab.name, function], {"cmd": "link_predict", "tab": tab.id, "function": function, "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            if not r.ok:
+               %Links.show_status("")
+               _failed("Link prediction", str(r.error), done)
+               return
+            done.call("")
+            _links_done(tab, r, payload))))
+
+
+## Validation set… of the link prediction dialog: the parameter dialog of
+## gsk.link_prediction_split; a new validation set drops the runs (worker command
+## [code]link_split[/code]).
+func _link_split() -> void:
+   var tab := _links_tab
+   if not _tabs.has(tab):
+      return
+   _ask({"cmd": "signature", "function": "link_prediction_split", "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         %Links.show_error(str(reply.error))
+         return
+      _above(_params, %Links)
+      _params.open("Validation set (gsk.link_prediction_split)", reply, _link_info.get("split", {}) if _link_info.get("split") != null else {}, "Make", tab.attributes, func(arguments, done):
+         _task("%s: making the validation set…" % tab.name, {"cmd": "link_split", "tab": tab.id, "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            if not r.ok:
+               _failed("Link prediction", str(r.error), done)
+               return
+            done.call("")
+            _links_done(tab, r, payload))))
+
+
+## Plot of the link prediction dialog: the ROC or precision-recall curves ([param kind]) of the
+## runs [param names] (worker command [code]link_plot[/code]; the plot window can switch curve).
+func _plot_links(names: Array, kind: String) -> void:
+   var tab := _links_tab
+   if not _tabs.has(tab):
+      return
+   %Worker.request({"cmd": "link_plot", "tab": tab.id, "names": names, "kind": kind}, func(reply, payload):
+      if not reply.ok:
+         %Links.show_error(str(reply.error))
+         return
+      %Links.show_error("")
+      _above(_plot, %Links)
+      _plot.show_plot(tab.id, "Link prediction in %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "link_prediction", reply.kinds, reply.kind_label))
+
+
+## Signs of the link prediction dialog (signed networks): how well social balance and status
+## predict the signs of the hidden edges (worker command [code]link_signs[/code]), under the runs.
+func _link_signs() -> void:
+   var tab := _links_tab
+   if not _tabs.has(tab):
+      return
+   %Links.show_status("Predicting the signs of the hidden edges…")
+   _task("%s: predicting signs…" % tab.name, {"cmd": "link_signs", "tab": tab.id}, func(r, payload):
+      if not _tabs.has(tab):
+         return
+      _idle_status(tab)
+      if not r.ok:
+         %Links.show_status("")
+         %Links.show_error(str(r.error))
+         return
+      _links_done(tab, r, payload)
+      %Links.show_status(r.text))
+
+
+## Analysis › Graph neural networks: opens the dialog of the graph neural networks of the current
+## tab (gnn_dialog.gd; worker command [code]gnns[/code]).
+func _open_gnns() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "gnns", "tab": tab.id}, func(reply, _p):
+      if reply.ok and _tabs.has(tab):
+         _gnns_tab = tab
+         %Gnns.open("Graph neural networks of %s" % tab.name, reply))
+
+
+## Add model or Copy… of the graph neural network dialog: the parameter dialog of [param function],
+## whose run is named [param name] (it can be changed), with the [param values] of the run copied
+## (worker command [code]gnn[/code]).
+func _add_gnn(function: String, name: String, values: Dictionary) -> void:
+   var tab := _gnns_tab
+   if not _tabs.has(tab):
+      return
+   _ask({"cmd": "signature", "function": function, "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         %Gnns.show_error(str(reply.error))
+         return
+      _above(_params, %Gnns)
+      var presets := values.duplicate()
+      presets.name = JSON.stringify(name)
+      _params.open("%s (gsk.%s)" % [name.rsplit(" ", true, 1)[0], function], reply, presets, "Train", tab.attributes, func(arguments, done):
+         var run: String = JSON.parse_string(arguments.get("name", "\"\"")) if arguments.has("name") else ""
+         %Gnns.show_status("Training %s…" % run)
+         _task("%s: training %s…" % [tab.name, function], {"cmd": "gnn", "tab": tab.id, "function": function, "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            if not r.ok:
+               %Gnns.show_status("")
+               _failed("Graph neural networks", str(r.error), done)
+               return
+            done.call("")
+            %Gnns.show_runs(r)
+            %Gnns.show_status(r.get("note", ""))
+            _drawn(tab, r, payload, true))))
+
+
+## Plot of the graph neural network dialog: the runs [param names] as ROC or precision-recall
+## curves, predicted against observed values or learning curves ([param kind]; worker command
+## [code]gnn_plot[/code]; the plot window can switch).
+func _plot_gnns(names: Array, kind: String) -> void:
+   var tab := _gnns_tab
+   if not _tabs.has(tab):
+      return
+   %Worker.request({"cmd": "gnn_plot", "tab": tab.id, "names": names, "kind": kind}, func(reply, payload):
+      if not reply.ok:
+         %Gnns.show_error(str(reply.error))
+         return
+      %Gnns.show_error("")
+      _above(_plot, %Gnns)
+      _plot.show_plot(tab.id, "Graph neural networks of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "graph_neural_networks", reply.kinds, reply.kind_label))
+
+
 ## Makes [param dialog] a child window of [param host], so that it is drawn above it (see
 ## task_dialog.gd); it goes back to the main window when the host closes ([method _detach]).
 func _above(dialog: Window, host: Window) -> void:
@@ -1029,11 +1341,11 @@ func _above(dialog: Window, host: Window) -> void:
       dialog.reparent(host, false)
 
 
-## The epidemics dialog closed: the parameter dialog (closed) and the plot window (still open, if
-## it was) go back to the main window.
-func _detach() -> void:
+## The epidemics or link prediction dialog ([param host]) closed: the parameter dialog (closed)
+## and the plot window (still open, if it was) go back to the main window.
+func _detach(host: Window) -> void:
    for dialog: Window in [_params, _plot]:
-      if dialog.get_parent() == %Epidemics:
+      if dialog.get_parent() == host:
          var open := dialog.visible and dialog == _plot
          dialog.hide()
          dialog.reparent(self, false)
@@ -1178,9 +1490,10 @@ func _run_layout(id: int) -> void:
 
 ## Analysis menu: opens the parameter dialog of an analysis ([param item]: label and function) for
 ## the current network, then runs it with the worker command [param cmd] ("communities",
-## "centrality" or "nestedness"): the results become attributes; the look of the drawing does not
-## change. Degree centrality can also plot the degree distribution, and nestedness opens its plot;
-## the core-periphery models show their fit in the status bar.
+## "centrality", "nestedness" or "vectors"): the results become attributes; the look of the
+## drawing does not change. Degree centrality can also plot the degree distribution, and
+## nestedness opens its plot; the core-periphery models show their fit in the status bar; node
+## vector analyses show their value in a message (and in the status bar), or open their plot.
 func _run_analysis(cmd: String, heading: String, item: Array) -> void:
    var tab := _current()
    if tab.is_empty():
@@ -1189,7 +1502,7 @@ func _run_analysis(cmd: String, heading: String, item: Array) -> void:
       if not reply.ok:
          _message(heading, str(reply.error))
          return
-      _params.open("%s (gsk.%s)" % [item[0].trim_suffix("…"), item[1]], reply, {}, "Run", tab.attributes, func(arguments, done):
+      _params.open("%s (gsk.%s)" % [item[0].trim_suffix("…"), item[1]], reply, item[2] if item.size() > 2 else {}, "Run", tab.attributes, func(arguments, done):
          _task("%s: running %s…" % [tab.name, item[1]], {"cmd": cmd, "tab": tab.id, "function": item[1], "arguments": arguments, "name": tab.name}, func(r, payload):
             if not _tabs.has(tab):
                return
@@ -1201,13 +1514,18 @@ func _run_analysis(cmd: String, heading: String, item: Array) -> void:
             _drawn(tab, r, payload, true)
             if r.has("note") and _current() == tab:   # e.g. the correlation of a core-periphery model
                %Status.text = "%s  ·  %s" % [tab.summary, r.note]
+            if r.has("result"):   # the value of a node vector analysis
+               if _current() == tab:
+                  %Status.text = "%s  ·  %s" % [tab.summary, r.result]
+               _message(heading, r.result)
             if r.has("plot"):
                var parts: Array = r.parts
                var png: PackedByteArray = payload.slice(payload.size() - int(parts.back()))
                if _plot.get_parent() != self:   # out of the epidemics dialog
                   _plot.hide()
                   _plot.reparent(self, false)
-               _plot.show_plot(tab.id, r.plot.get("title", "Degree distribution of %s" % tab.name), png, r.plot.elements, r.plot.options, r.plot.styles, r.plot.text, r.plot.warnings, "nestedness" if item[1] == "nestedness" else "degree_distribution"))))
+               var file: String = item[1] if cmd != "centrality" else "degree_distribution"
+               _plot.show_plot(tab.id, r.plot.get("title", "Degree distribution of %s" % tab.name), png, r.plot.elements, r.plot.options, r.plot.styles, r.plot.text, r.plot.warnings, file, [], "Plot", r.plot.get("table", false)))))
 
 
 ## Draws the plot of the plot window again with new [param colors] (element key to color),
@@ -1233,6 +1551,24 @@ func _attribute_menu(kind: String, attribute: String) -> void:
    _column_menu.add_item("Plot the distribution of %s…" % attribute, 0)
    _column_menu.add_item("Delete %s…" % attribute, 1)
    _column_menu.popup(Rect2i(get_window().position + Vector2i(get_window().get_mouse_position()), Vector2i.ZERO))
+
+
+## A value edited in the data panel (worker command [code]set_value[/code]: one line of code,
+## which Edit › Undo takes back); the drawing follows (the style may use the attribute), and the
+## table shows the value again if the worker refuses it.
+func _edit_value(kind: String, position: int, attribute: String, typed: String) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   %Worker.request({"cmd": "set_value", "tab": tab.id, "kind": kind, "position": position, "attribute": attribute, "text": typed}, func(reply, payload):
+      if not _tabs.has(tab):
+         return
+      if not reply.ok:
+         _message("Edit value", str(reply.error))
+         if _current() == tab:
+            _show_data(tab)
+         return
+      _drawn(tab, reply, payload, true))
 
 
 ## Column menu › Plot: the distribution of the attribute in the plot window (worker command
@@ -1411,6 +1747,10 @@ func _show_tab(index: int) -> void:
    _show_data(tab)
    if %Epidemics.visible and _epidemics_tab != tab:
       %Epidemics.hide()
+   if %Links.visible and _links_tab != tab:
+      %Links.hide()
+   if %Gnns.visible and _gnns_tab != tab:
+      %Gnns.hide()
    if %Backbone.visible and _backbone_tab != tab:
       %Backbone.hide()
    _find_choices(tab)

@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://gnn_dialog.gd" id="1_gnn"]
+
+[node name="GnnDialog" type="AcceptDialog"]
+title = "Graph neural networks"
+size = Vector2i(460, 160)
+exclusive = false
+ok_button_text = "Close"
+script = ExtResource("1_gnn")
+
+[node name="Box" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(440, 0)
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 452.0
+offset_bottom = 220.0
+
+[node name="Title" type="Label" parent="Box"]
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+text = "Runs (the checked ones are plotted; Copy… trains a model again with the same values, to change some):"
+autowrap_mode = 3
+
+[node name="None" type="Label" parent="Box"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.6)
+layout_mode = 2
+text = "No runs yet: add a model."
+
+[node name="Runs" type="VBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Separator" type="HSeparator" parent="Box"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="Add" type="MenuButton" parent="Box/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Trains a graph neural network to predict a node attribute (DiffPool: an attribute of the components)"
+text = "Add model"
+flat = false
+
+[node name="Space" type="Control" parent="Box/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Curve" type="OptionButton" parent="Box/Row"]
+selected = 0
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "ROC or precision-recall curves of classification runs, predicted against observed values of regression runs, or the learning curves of any run (all on the validation sets)"
+item_count = 4
+popup/item_0/text = "ROC"
+popup/item_0/id = 0
+popup/item_1/text = "Precision-recall"
+popup/item_1/id = 1
+popup/item_2/text = "Predicted against observed"
+popup/item_2/id = 2
+popup/item_3/text = "Learning curves"
+popup/item_3/id = 3
+
+[node name="Plot" type="Button" parent="Box/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Plots the checked runs together"
+text = "Plot"
+
+[node name="Status" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.75)
+autowrap_mode = 3
+
+[node name="Error" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
+autowrap_mode = 3

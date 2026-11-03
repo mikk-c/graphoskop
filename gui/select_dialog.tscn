@@ -42,6 +42,7 @@ text = "whose"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
+fit_to_longest_item = false
 
 [node name="OpLabel" type="Label" parent="Box/Grid"]
 layout_mode = 2
@@ -74,6 +75,7 @@ custom_arrow_step = 1.0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
 
 [node name="Text" type="LineEdit" parent="Box/Grid/Value"]
 unique_name_in_owner = true

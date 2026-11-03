@@ -3,7 +3,8 @@ extends ConfirmationDialog
 ## menu), set with as little typing as possible: every parameter gets the control its widget asks
 ## for (from the worker): a switch for true / false values and for the GPU, a menu for values
 ## from a list and for one attribute name, a menu of check boxes for several attribute names (in
-## the order they are checked), a slider with a number for values between two bounds, a number
+## the order they are checked; only numeric attributes where the function needs numbers; with
+## patterns of names, see [method _checks]), a slider with a number for values between two bounds, a number
 ## with arrows for other numbers, and fields for texts (names, written without quotes), node ids,
 ## numbers that can be left empty, and lists (numbers separated by commas, rows of matrices by
 ## semicolons, pairs as [code]key: value[/code]). Controls start at the preset or default value
@@ -23,6 +24,13 @@ const FIELD_WIDTH := 260
 const SLIDER_WIDTH := 160
 ## Largest value of numbers without an upper bound.
 const LARGEST := 1e12
+## Most attribute names listed one by one in a menu of check boxes: beyond, the names that belong
+## to a pattern are left out (the pattern checks them all), and the others beyond this many too.
+const MAX_CHECKS := 200
+## Fewest attributes sharing a prefix that get a pattern of their own in a menu of check boxes.
+const PATTERN_MIN := 3
+## Characters that end the prefix of a pattern (the last one in a name).
+const SEPARATORS := "_-.: "
 
 var _params := []
 var _values: Array[Callable] = []
@@ -72,9 +80,10 @@ func open(heading: String, sig: Dictionary, presets: Dictionary, ok_text: String
          "choice":
             control = _menu(w.options, w.options.map(func(o): return p.hint if o == "" else o.trim_prefix("\"").trim_suffix("\"")), start)
          "attribute":
-            var names: Array = attributes.get(w.choices, []).map(func(a): return a.name)
+            var names: Array = attributes.get(w.choices, []).filter(func(a): return a.numeric or not w.get("numeric", false)).map(func(a): return a.name)
             if w.multiple:
-               control = _checks(names, start, p.hint)
+               var args := (", edges = True" if w.choices == "edges" else "") + (", numeric = True" if w.get("numeric", false) else "")
+               control = _checks(names, start, p.hint, args if w.choices in ["nodes", "edges"] else "")
             else:
                var extra: Array = w.get("extra", [])
                var options := [w.get("empty", "")]   # the hint
@@ -128,6 +137,8 @@ func _switch(text: String, on: bool, sources: Array) -> CheckButton:
 func _menu(options: Array, labels: Array, start: String) -> OptionButton:
    var b := OptionButton.new()
    b.custom_minimum_size.x = FIELD_WIDTH
+   b.fit_to_longest_item = false   # its width is not from its items (also: seconds to fill with thousands of them)
+   b.clip_text = true
    for label in labels:
       b.add_item(label)
    b.select(maxi(options.find(start), 0))
@@ -137,34 +148,168 @@ func _menu(options: Array, labels: Array, start: String) -> OptionButton:
 
 ## Menu of check boxes for several attribute [param names], kept in the order they are checked;
 ## the button shows them (or [param hint] for none). Its value is the list of names, or empty.
-func _checks(names: Array, start: String, hint: String) -> MenuButton:
+##
+## With [param matching] (the keyword arguments of the worker's [code]matching[/code] after the
+## patterns, possibly empty; [code]null[/code] for lists that are not attribute names), the menu
+## also offers patterns of names: [code]*[/code] stands for any text and [code]?[/code] for one
+## character. Every prefix shared by at least [constant PATTERN_MIN] names (up to the last of
+## [constant SEPARATORS], or the letters before final digits) is a pattern at the top of the menu,
+## e.g. [code]label_*[/code] with the number of names it checks; [b]Pattern…[/b] (with such
+## patterns, or beyond [constant MAX_CHECKS] names) asks for any other. Beyond
+## [constant MAX_CHECKS] names, those covered by a pattern are not listed one by one (ten
+## thousand check boxes would stall the dialog), nor the others beyond that many. With a
+## pattern checked, the value is a call of the worker's [code]matching[/code], e.g.
+## [code]matching(net, "label_*", "age")[/code], so that the code does not list thousands of names.
+func _checks(names: Array, start: String, hint: String, matching = null) -> MenuButton:
    var menu := MenuButton.new()
    menu.flat = false
    menu.custom_minimum_size.x = FIELD_WIDTH
    menu.alignment = HORIZONTAL_ALIGNMENT_LEFT
    menu.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+   var patterns: Array = _patterns(names) if matching != null else []
+   var offer := matching != null and (not patterns.is_empty() or names.size() > MAX_CHECKS)   # Pattern…
    var chosen: Array = []
-   var parsed = JSON.parse_string(start) if not start.is_empty() else null
-   for n in (parsed if parsed is Array else ([parsed] if parsed is String else [])):
-      if names.has(n):
+   for n in _start_names(start):
+      if names.has(n) or (matching != null and _is_pattern(n)):
          chosen.append(n)
+         if _is_pattern(n) and not patterns.has(n):
+            patterns.append(n)
+            offer = true
    var popup := menu.get_popup()
    popup.hide_on_checkable_item_selection = false
-   for n in names:
-      popup.add_check_item(n)
-      popup.set_item_checked(popup.item_count - 1, chosen.has(n))
    var label := func(): menu.text = ", ".join(chosen) if not chosen.is_empty() else hint
+   var entries: Array = []   # what each item checks: a name, a pattern, or "" (no check box)
+   var fill := func():
+      popup.clear()
+      entries.clear()
+      if offer:
+         popup.add_item("Pattern…")
+         popup.set_item_tooltip(0, "Check all the names matching a pattern: * stands for any text, ? for one character (e.g. label_* or gene_1??)")
+         entries.append("")
+         for pt in patterns:
+            popup.add_check_item("%s (%d)" % [pt, _matches(names, pt)])
+            popup.set_item_checked(popup.item_count - 1, chosen.has(pt))
+            entries.append(pt)
+         popup.add_separator()
+         entries.append("")
+      var listed := names if names.size() <= MAX_CHECKS else names.filter(func(n): return not patterns.any(func(pt): return n.match(pt)))
+      for n in listed.slice(0, MAX_CHECKS):
+         popup.add_check_item(n)
+         popup.set_item_checked(popup.item_count - 1, chosen.has(n))
+         entries.append(n)
+      if listed.size() > MAX_CHECKS:
+         popup.add_item("… %d more names: use Pattern…" % (listed.size() - MAX_CHECKS))
+         popup.set_item_disabled(popup.item_count - 1, true)
+         entries.append("")
+   fill.call()
    label.call()
    popup.index_pressed.connect(func(i):
-      var n: String = names[i]
+      var n: String = entries[i]
+      if n.is_empty():
+         if i == 0 and offer:
+            _ask_pattern(names, func(pt):
+               if not patterns.has(pt):
+                  patterns.append(pt)
+               if not chosen.has(pt):
+                  chosen.append(pt)
+               fill.call()
+               label.call())
+         return
       if chosen.has(n):
          chosen.erase(n)
       else:
          chosen.append(n)
       popup.set_item_checked(i, chosen.has(n))
       label.call())
-   _values.append(func(): return "" if chosen.is_empty() else "[%s]" % ", ".join(chosen.map(func(n): return JSON.stringify(n))))
+   _values.append(func():
+      if chosen.is_empty():
+         return ""
+      var quoted := chosen.map(func(n): return JSON.stringify(n if _is_pattern(n) else _escaped(n)) if chosen.any(_is_pattern) else JSON.stringify(n))
+      return "matching(net, %s%s)" % [", ".join(quoted), matching] if chosen.any(_is_pattern) else "[%s]" % ", ".join(quoted))
    return menu
+
+
+## The patterns of [param names] (see [method _checks]), in the order of their first name.
+static func _patterns(names: Array) -> Array:
+   var counts := {}
+   for n: String in names:
+      var pt := _prefix(n)
+      if not pt.is_empty():
+         counts[pt] = counts.get(pt, 0) + 1
+   return counts.keys().filter(func(pt): return counts[pt] >= PATTERN_MIN)
+
+
+## Pattern of a name: its text up to the last separator (or before its final digits), then
+## [code]*[/code]; empty if it has none.
+static func _prefix(n: String) -> String:
+   for i in range(n.length() - 2, 0, -1):
+      if SEPARATORS.contains(n[i]):
+         return n.left(i + 1) + "*"
+   var k := n.length()
+   while k > 0 and n[k - 1] >= "0" and n[k - 1] <= "9":
+      k -= 1
+   return n.left(k) + "*" if k > 0 and k < n.length() else ""
+
+
+## Whether a checked entry is a pattern.
+static func _is_pattern(n: String) -> bool:
+   return n.contains("*") or n.contains("?")
+
+
+## How many of [param names] match the pattern [param pt].
+static func _matches(names: Array, pt: String) -> int:
+   return names.reduce(func(c, n): return c + int(n.match(pt)), 0)
+
+
+## A name written so that [code]fnmatch[/code] matches it alone ([code]*[/code], [code]?[/code]
+## and [code][[/code] between brackets).
+static func _escaped(n: String) -> String:
+   return n.replace("[", "[[]").replace("*", "[*]").replace("?", "[?]")
+
+
+## Names and patterns of a preset: a list of names, one name, or a call of
+## [code]matching[/code].
+static func _start_names(start: String) -> Array:
+   var t := start.strip_edges()
+   if t.begins_with("matching("):
+      var inner := t.trim_prefix("matching(").trim_suffix(")")
+      var found := []
+      var rx := RegEx.create_from_string("\"((?:[^\"\\\\]|\\\\.)*)\"")
+      for m in rx.search_all(inner):
+         found.append(JSON.parse_string(m.get_string(0)))
+      return found
+   var parsed = JSON.parse_string(t) if not t.is_empty() else null
+   return parsed if parsed is Array else ([parsed] if parsed is String else [])
+
+
+## Asks for a pattern of [param names] in a small dialog: [param done] gets it if it matches some
+## name; otherwise the dialog says so and stays open.
+func _ask_pattern(names: Array, done: Callable) -> void:
+   var ask := ConfirmationDialog.new()
+   ask.title = "Pattern of names"
+   var box := VBoxContainer.new()
+   var note := Label.new()
+   note.text = "* stands for any text, ? for one character."
+   var edit := LineEdit.new()
+   edit.custom_minimum_size.x = FIELD_WIDTH
+   edit.placeholder_text = "e.g. label_*"
+   box.add_child(note)
+   box.add_child(edit)
+   ask.add_child(box)
+   ask.register_text_enter(edit)
+   ask.confirmed.connect(func():
+      var pt := edit.text.strip_edges()
+      var k := _matches(names, pt)
+      if k == 0:
+         note.text = "No name matches “%s”." % pt
+         ask.popup_centered.call_deferred()
+         return
+      done.call(pt)
+      ask.queue_free())
+   ask.canceled.connect(ask.queue_free)
+   add_child(ask)
+   ask.popup_centered()
+   edit.grab_focus()
 
 
 ## A field showing [param start] or the [param hint] when empty; [param source] turns its text

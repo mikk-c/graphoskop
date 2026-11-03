@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://worker.gd" id="2_worker"]
@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://epidemics_dialog.tscn" id="11_epidemics"]
 [ext_resource type="PackedScene" path="res://player.tscn" id="12_player"]
 [ext_resource type="PackedScene" path="res://backbone_dialog.tscn" id="13_backbone"]
+[ext_resource type="PackedScene" path="res://link_dialog.tscn" id="14_links"]
+[ext_resource type="PackedScene" path="res://gnn_dialog.tscn" id="15_gnn"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -72,6 +74,7 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 
 [node name="Help" type="PopupMenu" parent="Layout/Menus"]
+unique_name_in_owner = true
 
 [node name="TabRow" type="HBoxContainer" parent="Layout"]
 layout_mode = 2
@@ -312,6 +315,14 @@ unique_name_in_owner = true
 visible = false
 
 [node name="Epidemics" parent="." instance=ExtResource("11_epidemics")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Links" parent="." instance=ExtResource("14_links")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Gnns" parent="." instance=ExtResource("15_gnn")]
 unique_name_in_owner = true
 visible = false
 

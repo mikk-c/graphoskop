@@ -4,7 +4,9 @@ extends VBoxContainer
 ## it (the worker sorts all the rows, then sends the page), ascending, then descending; a right
 ## click asks for the menu of the column (see data_panel.gd). Column
 ## titles are aligned as their values: numbers to the right, texts to the left, with no
-## indentation of the rows.
+## indentation of the rows. Double clicking a cell of an editable column ([member editable])
+## edits its value in a field over the cell: Enter sends it ([signal value_edited]), Escape or a
+## click elsewhere leaves it as it was.
 
 ## Emitted when the user asks for the page starting at row [param offset].
 signal page_requested(offset: int)
@@ -16,6 +18,15 @@ signal choice_changed(name: String)
 signal sort_requested(column: String, ascending: bool)
 ## Emitted when the user right-clicks the title of a column.
 signal column_menu_requested(column: String)
+## Emitted when a value was edited in place: the position of its row in the whole table (from the
+## worker, [code]index[/code]; the row of the page if there is none), its column and the text typed.
+signal value_edited(index: int, column: String, text: String)
+
+## Whether a column can be edited (by name; the table checks nothing else): set by the data panel.
+var editable := func(_column: String) -> bool: return false
+var _index := []
+## The field editing a cell, or null.
+var _field: LineEdit
 
 ## Column the table is sorted by (empty: not sorted), and its order.
 var sort_column := ""
@@ -42,7 +53,56 @@ func _ready() -> void:
       ascending = not ascending if sort_column == _columns[j] else true
       sort_column = _columns[j]
       sort_requested.emit(sort_column, ascending))
+   %Table.gui_input.connect(_on_table_input)
+   for bar in %Table.get_children(true):   # its own scroll bars: the field closes when the table scrolls
+      if bar is ScrollBar:
+         bar.value_changed.connect(func(_v): _end_edit())
    show_rows({}, 0, "")
+
+
+## Double click on a cell: edits it in place if its column is editable, in a field drawn over the
+## cell (a child of the table, so it stays where the cell is; the editor of Tree opens in a
+## window of its own, misplaced with native windows). Enter sends the value, Escape or a click
+## elsewhere leaves it as it was.
+func _on_table_input(event: InputEvent) -> void:
+   if not (event is InputEventMouseButton and event.double_click and event.button_index == MOUSE_BUTTON_LEFT):
+      return
+   var item: TreeItem = %Table.get_item_at_position(event.position)
+   var j: int = %Table.get_column_at_position(event.position)
+   if item == null or j < 0 or j >= _columns.size() or not editable.call(_columns[j]):
+      return
+   _end_edit()
+   var field := LineEdit.new()
+   field.text = item.get_text(j)
+   field.alignment = item.get_text_alignment(j)
+   var area: Rect2 = %Table.get_item_area_rect(item, j)
+   field.position = area.position
+   field.size = area.size
+   field.custom_minimum_size = Vector2(0, area.size.y)
+   field.select_all_on_focus = true
+   var row := item.get_index()
+   var before := field.text
+   field.text_submitted.connect(func(typed):
+      _end_edit()
+      if typed != before:
+         value_edited.emit(int(_index[row]) if row < _index.size() else row, _columns[j], typed))
+   field.focus_exited.connect(_end_edit.call_deferred)
+   field.gui_input.connect(func(e):
+      if e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE:
+         _end_edit()
+         field.accept_event())
+   %Table.add_child(field)
+   _field = field
+   field.grab_focus()
+   %Table.accept_event()
+
+
+## Closes the field editing a cell, if any (the value is not sent).
+func _end_edit() -> void:
+   if _field != null and is_instance_valid(_field):
+      var f := _field
+      _field = null
+      f.queue_free()
 
 
 ## Shows a menu of tables [param names] above the table (hidden if empty), with [param current]
@@ -60,12 +120,14 @@ func set_choices(names: Array, current: String) -> void:
 ## descending).
 func show_rows(reply: Dictionary, offset: int, title: String) -> void:
    %Title.text = title
+   _end_edit()
    %Table.clear()
    var columns: Array = reply.get("columns", [])
    var numeric: Array = reply.get("numeric", [])
    _offset = offset
    _total = int(reply.get("total", 0))
    _columns = columns
+   _index = reply.get("index", [])
    %Table.columns = maxi(columns.size(), 1)
    for j in columns.size():
       %Table.set_column_title(j, columns[j] + ((" ▲" if ascending else " ▼") if columns[j] == sort_column else ""))

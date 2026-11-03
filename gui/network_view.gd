@@ -16,8 +16,19 @@ extends SubViewportContainer
 ##   follow the mouse, and the new positions go to the worker when the mouse is released
 ##   ([signal nodes_moved]).
 ##
+## Right clicking asks for the menu of the view ([signal context_requested]: on a node, to add an
+## edge from it, elsewhere to add a node there). While an edge is added ([method start_link]), a
+## line follows the mouse from its source; clicking a node ends it there ([signal link_chosen]),
+## clicking elsewhere, right clicking or Escape cancels it.
+##
 ## Self loops are circles above their node (loop.gdshader), drawn from a buffer of the worker
 ## (one instance per loop), which follow the node when it is dragged.
+##
+## In directed networks the edges have arrowheads (arrow.gdshader, in the color of their line, at
+## the border of the node they point to), from a buffer of the worker; the edges between the same
+## two nodes share one line, with an arrowhead per direction, and straight lines stop at the base
+## of their arrowheads (edge.gdshader, from the diameters of their nodes in the edge buffer).
+## Arrowheads follow dragged nodes.
 ##
 ## Selected nodes get rings drawn by the GPU (ring.gdshader: any number of them); selected edges
 ## are drawn over, as lines, curves or cell outlines (the first [constant MAX_HIGHLIGHTS]). Nodes can also be colored by
@@ -33,6 +44,12 @@ signal selection_changed
 ## Emitted when dragged nodes are dropped: their positions in the drawing order, and their new
 ## positions (drawing coordinates, y down).
 signal nodes_moved(nodes: PackedInt32Array, positions: PackedVector2Array)
+## Emitted on a right click: the node under the mouse (its position in the drawing order, or -1),
+## the point in drawing coordinates (y down) and on the screen.
+signal context_requested(node: int, at: Vector2, screen: Vector2)
+## Emitted when the target of a new edge is clicked ([method start_link]), or with -1 when the
+## new edge is canceled.
+signal link_chosen(source: int, target: int)
 
 ## Minimum diameter of a node on screen, in pixels.
 const NODE_PIXELS := 3.0
@@ -40,7 +57,8 @@ const NODE_PIXELS := 3.0
 const EDGE_FRACTION := 1.0 / 6.0
 ## Minimum width of an edge on screen, in pixels.
 const EDGE_PIXELS := 1.0
-## Floats per node, per edge and per Bézier piece of bundled edges in the buffers of the worker.
+## Floats per node, per edge and per Bézier piece of bundled edges in the buffers of the worker
+## (edges of directed networks have 16, with the diameters of their nodes and their arrowheads).
 const NODE_STRIDE := 16
 const EDGE_STRIDE := 12
 const CURVE_STRIDE := 16
@@ -61,6 +79,14 @@ const ZOOM_STEP := 1.15
 const FIT_MARGIN := 8.0
 ## Most selected edges highlighted (beyond, the first ones only).
 const MAX_HIGHLIGHTS := 20000
+## Smallest length of an arrowhead on screen, in pixels, and its length and width in widths of its
+## line (arrow.gdshader; edge.gdshader stops the lines at their base).
+const ARROW_PIXELS := 5.0
+const ARROW_LENGTH := 2.5
+const ARROW_BREADTH := 2.2
+## Supersampling of saved images and animation frames ([method capture]): drawn this many times
+## larger, then reduced, which smooths the edges.
+const SMOOTH := 3
 ## Color of the selection marks.
 const MARK_COLOR := Color(0.1, 0.1, 0.1)
 
@@ -78,6 +104,8 @@ var spread := 1.0
 var node_size := 0.5
 ## Input ids of the nodes, in the drawing order.
 var ids := PackedStringArray()
+## What nodes can be added (from the worker: false, or the layers and node types the menu offers).
+var adding = false
 ## Positions (in the drawing order of the worker) of the selected edges.
 var selected_edges := PackedInt32Array()
 var _chosen := {}
@@ -113,17 +141,25 @@ var _strips := {}
 @onready var _highlight: Node2D = %Highlight
 @onready var _rings: MultiMeshInstance2D = %Rings
 @onready var _loops: MultiMeshInstance2D = %Loops
+@onready var _arrows: MultiMeshInstance2D = %Arrows
 var _loop_data := PackedFloat32Array()
+var _arrow_data := PackedFloat32Array()
+var _drag_arrows := PackedInt32Array()
+## Floats per edge in the edge buffer of straight lines and cells.
+var _edge_stride := EDGE_STRIDE
 var _rings_dirty := true
+## Source of the edge being added, or -1, and the mouse.
+var _link := -1
+var _link_end := Vector2.ZERO
 
 
 func _ready() -> void:
-   for item in [_nodes, _edges, _rings, _loops]:
+   for item in [_nodes, _edges, _rings, _loops, _arrows]:
       var mm := MultiMesh.new()
       mm.transform_format = MultiMesh.TRANSFORM_2D
       mm.use_colors = true
       mm.use_custom_data = item != _edges
-      mm.mesh = QuadMesh.new()
+      mm.mesh = _triangle() if item == _arrows else QuadMesh.new()
       item.multimesh = mm
       item.material = item.material.duplicate()
    _straight = _edges.material
@@ -134,7 +170,7 @@ func _ready() -> void:
 
 ## Shows a network: [param header] is a reply of the worker with a drawing, [param payload] its
 ## parts (node buffer, edge buffer, ids, grid order, grid starts, sources and targets of the
-## edges, self loop buffer). The view is fitted to the network unless [param keep_view] (e.g. after a change of
+## edges, self loop buffer, arrowhead buffer). The view is fitted to the network unless [param keep_view] (e.g. after a change of
 ## colors). The selection is kept while its nodes and edges exist.
 func show_network(header: Dictionary, payload: PackedByteArray, keep_view := false) -> void:
    var parts := []
@@ -147,8 +183,10 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _style_buffer = _buffer.duplicate()
    _pieces = {}
    _kind = "cells" if header.get("cells", false) else ("curves" if header.get("curved", false) else "lines")
+   adding = header.get("adding", false)
    _movable = header.get("movable", _kind != "cells")   # not matrix views, nor positions from attributes
-   _edge_kind(_kind, int(header.get("subdivisions", 16)))
+   _edge_stride = int(header.get("stride", EDGE_STRIDE))
+   _edge_kind(_kind, int(header.get("subdivisions", 16)), _kind == "lines" and _edge_stride > EDGE_STRIDE)
    _edge_data = parts[1].to_float32_array()
    _fill(_edges.multimesh, int(header.edges), _edge_data)
    ids = parts[2].get_string_from_utf8().split(char(31)) if int(header.nodes) > 0 else PackedStringArray()
@@ -158,6 +196,8 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _dst = parts[6].to_int32_array() if parts.size() > 6 else PackedInt32Array()
    _loop_data = parts[7].to_float32_array() if int(header.get("loops", 0)) > 0 else PackedFloat32Array()
    _fill(_loops.multimesh, int(header.get("loops", 0)), _loop_data)
+   _arrow_data = parts[8].to_float32_array() if int(header.get("arrows", 0)) > 0 else PackedFloat32Array()
+   _fill(_arrows.multimesh, int(header.get("arrows", 0)), _arrow_data)
    _grid = header.grid
    var b: Array = header.box
    node_size = header.node_size
@@ -168,6 +208,7 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _nodes.multimesh.custom_aabb = aabb
    _edges.multimesh.custom_aabb = aabb
    _loops.multimesh.custom_aabb = aabb.grow(header.get("biggest", node_size) * 2)
+   _arrows.multimesh.custom_aabb = aabb
    var n := ids.size()
    var kept := {}
    for i in _chosen:
@@ -188,18 +229,30 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
 
 ## Edges as straight quads ([param kind] "lines", the edge shader setting their width), as Bézier
 ## pieces drawn with [param subdivisions] segments each ("curves"), or as the unit squares of the
-## cells of a matrix ("cells", without shader). The format of the multimesh can change only
-## while it is empty.
-func _edge_kind(kind: String, subdivisions: int) -> void:
+## cells of a matrix ("cells", without shader); lines of directed networks have custom data
+## ([param ends]: their arrowheads). The format of the multimesh can change only while it is
+## empty.
+func _edge_kind(kind: String, subdivisions: int, ends := false) -> void:
    var mm := _edges.multimesh
    var curved := kind == "curves"
+   var custom := curved or ends
    var mesh: Mesh = _strip(subdivisions) if curved else QuadMesh.new()
-   if mm.use_custom_data != curved or (curved and mm.mesh != mesh):
+   if mm.use_custom_data != custom or (curved and mm.mesh != mesh) or (not curved and mm.mesh is ArrayMesh):
       mm.instance_count = 0
-      mm.use_custom_data = curved
+      mm.use_custom_data = custom
       mm.mesh = mesh
    _edges.material = {"lines": _straight, "curves": _curved, "cells": null}[kind]
    _uniforms(zoom)
+
+
+## Triangle of the arrowheads: tip at (0, 0), base from (-1, -0.5) to (-1, 0.5).
+func _triangle() -> ArrayMesh:
+   var arrays := []
+   arrays.resize(Mesh.ARRAY_MAX)
+   arrays[Mesh.ARRAY_VERTEX] = PackedVector2Array([Vector2.ZERO, Vector2(-1, -0.5), Vector2(-1, 0.5)])
+   var mesh := ArrayMesh.new()
+   mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+   return mesh
 
 
 ## Strip of [param n] segments, x from 0 to 1 along it and y from -0.5 to 0.5 across (made once
@@ -272,15 +325,25 @@ func _set_zoom(z: float) -> void:
    _redraw()
 
 
-## Sets the shader parameters for the zoom [param z] (pixels per world unit).
-func _uniforms(z: float) -> void:
-   for item in [_nodes, _rings]:
+## Sets the shader parameters for the zoom [param z] (pixels per world unit), with smallest sizes
+## on screen [param pixels] times larger (images drawn larger to be reduced, see [method capture]).
+func _uniforms(z: float, pixels := 1.0) -> void:
+   var width := maxf(node_size * EDGE_FRACTION / spread, EDGE_PIXELS * pixels / z)
+   for m: ShaderMaterial in [_straight, _arrows.material]:
+      m.set_shader_parameter("arrow_min", ARROW_PIXELS * pixels)
+      m.set_shader_parameter("arrow_length", ARROW_LENGTH)
+      m.set_shader_parameter("zoom", z)
+      m.set_shader_parameter("min_pixels", NODE_PIXELS * pixels)
+      m.set_shader_parameter("spread", spread)
+   _arrows.material.set_shader_parameter("arrow_breadth", ARROW_BREADTH)
+   for item in [_nodes, _rings, _arrows]:
       item.material.set_shader_parameter("zoom", z)
-      item.material.set_shader_parameter("min_pixels", NODE_PIXELS)
+      item.material.set_shader_parameter("min_pixels", NODE_PIXELS * pixels)
       item.material.set_shader_parameter("spread", spread)
    if _edges.material is ShaderMaterial:
-      _edges.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION / spread, EDGE_PIXELS / z))
-   _loops.material.set_shader_parameter("width", maxf(node_size * EDGE_FRACTION / spread, EDGE_PIXELS / z))
+      _edges.material.set_shader_parameter("width", width)
+   _loops.material.set_shader_parameter("width", width)
+   _arrows.material.set_shader_parameter("width", width)
    _loops.material.set_shader_parameter("spread", spread)
 
 
@@ -310,9 +373,13 @@ func _redraw() -> void:
 
 ## Image of the view as on screen, [param scale] times larger (without the selection marks):
 ## drawn once by an off-screen viewport sharing the 2D world of the view, over the background
-## color. The view itself is not touched.
-func capture(scale := 2) -> Image:
+## color. The view itself is not touched. The image is antialiased by supersampling: drawn
+## [param smooth] times larger still (smallest sizes included), then reduced (Lanczos filter);
+## 1 draws it as on screen, with jagged edges.
+func capture(scale := 2, smooth := SMOOTH) -> Image:
    var z := zoom
+   var final := Vector2i(size * scale)
+   scale *= smooth
    var vp := SubViewport.new()
    vp.size = Vector2i(size * scale)
    vp.world_2d = _viewport.world_2d
@@ -326,7 +393,7 @@ func capture(scale := 2) -> Image:
    vp.render_target_update_mode = SubViewport.UPDATE_ONCE
    _highlight.visible = false
    _rings.visible = false
-   _uniforms(z * scale)
+   _uniforms(z * scale, smooth)
    get_tree().root.add_child(vp)
    vp.canvas_transform = _view_transform(Vector2(vp.size), z * scale)   # once in the tree, with its canvas
    await RenderingServer.frame_post_draw
@@ -336,7 +403,15 @@ func capture(scale := 2) -> Image:
    _rings.visible = true
    _set_zoom(z)
    drawn.convert(Image.FORMAT_RGBA8)
+   if smooth > 1:
+      drawn.resize(final.x, final.y, Image.INTERPOLATE_LANCZOS)
    return drawn
+
+
+## Whether nodes can be added: node-link drawings with the positions of a layout (not matrix views,
+## nor positions from node attributes).
+func can_add_nodes() -> bool:
+   return _movable and _kind != "cells"
 
 
 ## Whether nodes are large enough on screen to be hovered, selected and dragged.
@@ -437,6 +512,8 @@ func _draw_highlight() -> void:
       if e < _src.size():
          for line in _edge_lines(e):
             _highlight.draw_polyline(line, MARK_COLOR, w)
+   if _link >= 0:
+      _highlight.draw_line(_position(_link), _to_world(_link_end), MARK_COLOR, w)
    if _mode == "rect":
       var a := _to_world(_press)
       var c := _to_world(_rect_end)
@@ -596,8 +673,45 @@ func _get_tooltip(at: Vector2) -> String:
    return ids[i] if i >= 0 else ""
 
 
+## Starts adding an edge from the node [param source] (a position in the drawing order): a line
+## follows the mouse until a node is clicked.
+func start_link(source: int) -> void:
+   _link = source
+   _link_end = get_local_mouse_position()
+   _highlight.queue_redraw()
+   _redraw()
+
+
+func _end_link(target: int) -> void:
+   var source := _link
+   _link = -1
+   _highlight.queue_redraw()
+   _redraw()
+   link_chosen.emit(source, target)
+
+
+func _input(event: InputEvent) -> void:
+   if _link >= 0 and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+      _end_link(-1)
+      get_viewport().set_input_as_handled()
+
+
 func _gui_input(event: InputEvent) -> void:
-   if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+   if _link >= 0:   # adding an edge
+      if event is InputEventMouseMotion:
+         _link_end = event.position
+         _highlight.queue_redraw()
+         _redraw()
+      elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+         _end_link(pick(event.position) if event.button_index == MOUSE_BUTTON_LEFT else -1)
+         accept_event()
+         return
+      if not (event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]):
+         return
+   if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+      context_requested.emit(pick(event.position), _to_world(event.position), get_screen_position() + event.position)
+      accept_event()
+   elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
       if event.pressed:
          _press = event.position
          _pressed = true
@@ -653,14 +767,20 @@ func _drag(event: InputEventMouseMotion) -> void:
       _move_by((event.relative / zoom).rotated(deg_to_rad(turn)))
 
 
-## The edges of the selected nodes, which follow them while they are dragged (straight edges).
+## The edges of the selected nodes, which follow them while they are dragged (straight edges), with
+## their arrowheads.
 func _start_drag() -> void:
    _drag_edges = PackedInt32Array()
+   _drag_arrows = PackedInt32Array()
    if _kind != "lines":
       return
    for e in _src.size():
       if _chosen.has(_src[e]) or _chosen.has(_dst[e]):
          _drag_edges.append(e)
+   for j in _arrow_data.size() / NODE_STRIDE:   # custom data z: the edge
+      var e := int(_arrow_data[j * NODE_STRIDE + 14])
+      if _chosen.has(_src[e]) or _chosen.has(_dst[e]):
+         _drag_arrows.append(j)
 
 
 ## Moves the selected nodes by [param delta] (world units), with their edges.
@@ -675,7 +795,7 @@ func _move_by(delta: Vector2) -> void:
    for e in _drag_edges:
       var a := _position(_src[e])
       var b := _position(_dst[e])
-      var k := e * EDGE_STRIDE
+      var k := e * _edge_stride
       var w := Vector2(_edge_data[k + 1], _edge_data[k + 5]).length()
       var along := b - a
       var normal := Vector2(-along.y, along.x).normalized() * w
@@ -684,6 +804,22 @@ func _move_by(delta: Vector2) -> void:
       _edge_data[k + 1] = normal.x
       _edge_data[k + 5] = normal.y
       em.set_instance_transform_2d(e, Transform2D(along, normal, (a + b) / 2))
+   var am := _arrows.multimesh
+   for j in _drag_arrows:   # custom data w: whether the arrow is at the target of the edge
+      var k := j * NODE_STRIDE
+      var e := int(_arrow_data[k + 14])
+      var at_target := _arrow_data[k + 15] > 0.5
+      var tip := _position(_dst[e] if at_target else _src[e])
+      var along := (tip - _position(_src[e] if at_target else _dst[e])).normalized()
+      if along == Vector2.ZERO:
+         continue
+      _arrow_data[k] = along.x
+      _arrow_data[k + 4] = along.y
+      _arrow_data[k + 1] = -along.y
+      _arrow_data[k + 5] = along.x
+      _arrow_data[k + 3] = tip.x
+      _arrow_data[k + 7] = tip.y
+      am.set_instance_transform_2d(j, Transform2D(along, Vector2(-along.y, along.x), tip))
    var lm := _loops.multimesh
    for j in lm.instance_count:   # the loops of the moved nodes (custom data w: the node)
       var k := j * NODE_STRIDE

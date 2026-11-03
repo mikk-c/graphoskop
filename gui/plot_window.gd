@@ -15,15 +15,18 @@ extends AcceptDialog
 ## how they are drawn (lines, points, lines with points, or bars); for each axis, linear or
 ## logarithmic scale, its label (any text) and its range (from, to: empty for automatic); the
 ## font size (the font is the default font of gnuplot, Helvetica, or one with the same metrics).
+## Heatmaps (matrices of node vector analyses, nestedness) also have a row for their color scale:
+## linear or logarithmic, its label and its range (from, to: empty for automatic).
 ## The worker draws the plot again after every change (after a short pause). Save PNG… and Save
-## PDF… write the plot as shown to a file (PNG at 200 dpi).
+## PDF… write the plot as shown to a file (PNG at 200 dpi); plots of a matrix (pairwise node
+## vector analyses) also have Save table…, which writes its values (tab separated).
 
 ## Emitted with the path chosen to save the plot of the network of tab [param tab].
 signal save_requested(tab: int, path: String)
 ## Emitted (after a short pause) with the colors of the elements of the plot (key to "#rrggbb"),
 ## the styles of its data series (key to "lines", "points", "linespoints" or "bars") and its
-## options (xlog, ylog, font_size, xlabel, ylabel, xmin, xmax, ymin, ymax, and kind for
-## distributions).
+## options (xlog, ylog, font_size, xlabel, ylabel, xmin, xmax, ymin, ymax, kind for
+## distributions, and zlog, zlabel, zmin, zmax for heatmaps).
 signal changed(tab: int, colors: Dictionary, styles: Dictionary, options: Dictionary)
 
 ## Labels of the styles of data series, as in the worker ([code]PLOT_STYLES[/code]).
@@ -41,6 +44,7 @@ var _file := "plot"
 func _ready() -> void:
    %SavePNG.pressed.connect(func(): _ask("png"))
    %SavePDF.pressed.connect(func(): _ask("pdf"))
+   %SaveTable.pressed.connect(func(): _ask("tsv"))
    %SaveDialog.file_selected.connect(func(path):
       AppSettings.store_folder("plots", path)
       if not %Debounce.is_stopped():   # changes made just before go first
@@ -48,9 +52,9 @@ func _ready() -> void:
          _emit()
       save_requested.emit(_tab, path))
    %Debounce.timeout.connect(_emit)
-   for b in [%XLog, %YLog]:
+   for b in [%XLog, %YLog, %ZLog]:
       b.item_selected.connect(func(_i): %Debounce.start())
-   for e in [%XLabel, %YLabel, %XMin, %XMax, %YMin, %YMax]:
+   for e in [%XLabel, %YLabel, %XMin, %XMax, %YMin, %YMax, %ZLabel, %ZMin, %ZMax]:
       e.text_changed.connect(func(_t): %Debounce.start())
    %FontSize.value_changed.connect(func(_v): %Debounce.start())
    %Kind.item_selected.connect(func(i):
@@ -62,7 +66,12 @@ func _ready() -> void:
 
 func _emit() -> void:
    var options := {"xlog": %XLog.selected == 1, "ylog": %YLog.selected == 1, "font_size": %FontSize.value, "xlabel": %XLabel.text, "ylabel": %YLabel.text}
-   for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]:
+   var ranges := [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]
+   if %ZAxis.visible:
+      options.zlabel = %ZLabel.text
+      options.zlog = %ZLog.selected == 1
+      ranges.append_array([["zmin", %ZMin], ["zmax", %ZMax]])
+   for pair in ranges:
       var t: String = pair[1].text.strip_edges()
       if t.is_empty() or t.is_valid_float():   # half-typed numbers wait
          options[pair[0]] = float(t) if not t.is_empty() else null
@@ -77,9 +86,11 @@ func _emit() -> void:
 ## data series, its [param options], and the [param verdict] and [param warnings] of the fit (all
 ## from the worker); [param file] is the name proposed to save it; [param kinds] are the kinds of
 ## a distribution or the tails of a randomization test ([key, label, usual style]; empty for
-## other plots), chosen in a menu labeled [param kind_label].
-func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array, options: Dictionary, styles: Array, verdict: String, warnings: Array, file := "degree_distribution", kinds := [], kind_label := "Plot") -> void:
+## other plots), chosen in a menu labeled [param kind_label]; with [param table], the values of the
+## plot can also be saved as a table.
+func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array, options: Dictionary, styles: Array, verdict: String, warnings: Array, file := "degree_distribution", kinds := [], kind_label := "Plot", table := false) -> void:
    _tab = tab
+   %SaveTable.visible = table
    _file = file
    title = heading
    set_image(png)
@@ -125,7 +136,10 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
    %YLog.select(1 if options.get("ylog", false) else 0)
    %XLabel.text = str(options.get("xlabel", ""))
    %YLabel.text = str(options.get("ylabel", ""))
-   for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]:
+   %ZAxis.visible = options.has("zmin")   # heatmaps: the range of the color scale
+   %ZLabel.text = str(options.get("zlabel", ""))
+   %ZLog.select(1 if options.get("zlog", false) else 0)
+   for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax], ["zmin", %ZMin], ["zmax", %ZMax]]:
       var v = options.get(pair[0])
       pair[1].text = "" if v == null else str(v)
    %FontSize.set_value_no_signal(options.get("font_size", 14))

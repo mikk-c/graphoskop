@@ -144,6 +144,54 @@ layout_mode = 2
 placeholder_text = "automatic"
 tooltip_text = "Largest value shown on the y axis (empty: automatic)"
 
+[node name="ZAxis" type="HBoxContainer" parent="Box"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="ZScaleLabel" type="Label" parent="Box/ZAxis"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "colors"
+
+[node name="ZLog" type="OptionButton" parent="Box/ZAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Linear or logarithmic color scale (symmetric logarithmic when it includes zero or negative values)"
+item_count = 2
+popup/item_0/text = "linear"
+popup/item_0/id = 0
+popup/item_1/text = "logarithmic"
+popup/item_1/id = 1
+
+[node name="ZLabel" type="LineEdit" parent="Box/ZAxis"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "Label of the color scale"
+
+[node name="ZFromLabel" type="Label" parent="Box/ZAxis"]
+layout_mode = 2
+text = "from"
+
+[node name="ZMin" type="LineEdit" parent="Box/ZAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Value at the bottom of the color scale (empty: automatic); smaller values get its color"
+
+[node name="ZToLabel" type="Label" parent="Box/ZAxis"]
+layout_mode = 2
+text = "to"
+
+[node name="ZMax" type="LineEdit" parent="Box/ZAxis"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "automatic"
+tooltip_text = "Value at the top of the color scale (empty: automatic); larger values get its color"
+
 [node name="Buttons" type="HBoxContainer" parent="Box"]
 layout_mode = 2
 
@@ -173,6 +221,13 @@ text = "Save PNG…"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Save PDF…"
+
+[node name="SaveTable" type="Button" parent="Box/Buttons"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+tooltip_text = "The values of the matrix, tab separated"
+text = "Save table…"
 
 [node name="Debounce" type="Timer" parent="."]
 unique_name_in_owner = true

@@ -8,8 +8,31 @@ const NetworkView := preload("res://network_view.tscn")
 ## Ids of the items of the File menu.
 const FILE_LOAD := 0
 const FILE_IMAGE := 1
-## Scale of saved images, relative to the size of the visualization panel on screen.
+## Items File › Open session… and Save session… (one file with all the tabs, see
+## [method _save_session]).
+const FILE_OPEN_SESSION := 2
+const FILE_SAVE_SESSION := 3
+## Item File › Export › Network tables…: the edge and node tables of the current network (worker
+## command [code]export[/code]); File › Export › Image… is [constant FILE_IMAGE].
+const FILE_EXPORT := 4
+## Items File › New network… (an empty network, drawn by hand), File › Close session (closes all
+## the tabs), and the submenus File › Recent sessions and File › Export.
+const FILE_NEW := 5
+const FILE_CLOSE_SESSION := 6
+const FILE_RECENT := 7
+const FILE_EXPORTS := 8
+## Most sessions listed by File › Recent sessions.
+const MAX_RECENT := 10
+## Default width of saved images, relative to the width of the visualization panel on screen.
 const IMAGE_SCALE := 2
+## Largest width or height of a saved image, in pixels.
+const MAX_IMAGE_PIXELS := 16384
+## Formats of File › Export › Image…: label, extension. Vector PDF documents are drawn by the
+## worker from the drawing and the view (command [code]image_vector[/code]: circles, lines, curves,
+## text), PDF images hold the PNG image at [constant PDF_DPI] dots per inch (command
+## [code]image_pdf[/code]); the width is in pixels at that resolution.
+const IMAGE_FORMATS := [["PNG image", "png"], ["PDF document, vector", "pdf"], ["PDF document, image", "pdf"]]
+const PDF_DPI := 300
 ## Items of the Layout menu: label, function of the library, preset values of the parameters
 ## (Python source code), and whether a parameter dialog opens (layouts, edge bundling) or the
 ## function runs at once (other transformations); an empty label is a separator. The view is
@@ -105,7 +128,9 @@ const HELP := [
 const FOUND_ALL := -2
 const FOUND_MORE := -3
 ## Items of the Select menu.
-const SELECTS := [["Select all nodes"], ["Clear selection"], [""], ["Select by attribute…"]]
+const SELECTS := [["Select all nodes"], ["Clear selection"], [""], ["Select by attribute…"], ["Neighbors of the selection"]]
+## Item of Select › Neighbors of the selection (Ctrl+6, Command+6 on macOS).
+const SELECT_NEIGHBORS := 4
 ## Items of Analysis › Centrality: label and function (degree also plots the degree distribution).
 const CENTRALITIES := [
    ["Alpha…", "alpha_centrality"],
@@ -206,6 +231,8 @@ const GENERATORS := [
 var _tabs := []
 ## The tab of the epidemics dialog.
 var _epidemics_tab := {}
+## The tab of the robustness dialog.
+var _robustness_tab := {}
 ## The tab of the link prediction dialog, and its runs (from the worker).
 var _links_tab := {}
 var _link_info := {}
@@ -214,8 +241,59 @@ var _gnns_tab := {}
 ## Ids of Analysis › Link prediction… and Graph neural networks… (apart from the submenus).
 const ANALYSIS_LINKS := 2000
 const ANALYSIS_GNNS := 2001
+## Id of the submenu Analysis › Frequent subgraphs, and its items: label and function (worker
+## command [code]mine[/code]: the patterns open in a new tab).
+const ANALYSIS_MINES := 2002
+## Id of the submenu Analysis › Hierarchy, and its items: label and function (worker command
+## [code]hierarchy[/code]: a score of directed networks, shown in a message).
+const ANALYSIS_HIERARCHY := 2003
+## Id of the submenu Analysis › Network statistics, and its items: label and function (worker
+## command [code]statistics[/code]: the values become network attributes); the last computes all
+## those that apply.
+const ANALYSIS_STATISTICS := 2004
+const STATISTICS := [
+   ["Density…", "density"],
+   ["Average degree…", "average_degree"],
+   ["Reciprocity…", "reciprocity"],
+   ["Global clustering coefficient…", "global_clustering"],
+   ["Average clustering coefficient…", "average_clustering"],
+   ["Global triangle closure…", "global_triangle_closure"],
+   ["Assortativity…", "assortativity"],
+   ["Average shortest path length…", "average_shortest_path_length"],
+   ["Degree centralization…", "degree_centralization"],
+   ["Connected components…", "connected_components_count"],
+   ["", ""],
+   ["All of them", "all"],
+]
+## Id of the submenu Edit › Error correction, and its items: label and function (worker command
+## [code]correct[/code]: the corrected network in a new tab, and the backbone dialog on the
+## probabilities of its edges).
+const EDIT_CORRECTION := 1005
+const CORRECTIONS := [
+   ["From measurements…", "measured_network_correction"],
+   ["From edge probabilities…", "uncertain_network_correction"],
+]
+const HIERARCHIES := [
+   ["Global reaching centrality…", "global_reach_centrality"],
+   ["Flow hierarchy…", "flow_hierarchy"],
+   ["Arborescence hierarchicalness…", "arborescence_hierarchy"],
+   ["Agony…", "agony_hierarchy"],
+]
+const MINES := [
+   ["In the whole network…", "single_graph_mining"],
+   ["Across components…", "transactional_graph_mining"],
+]
+## Id of Edit › New node attribute… (apart from those of [constant EDITS]).
+const EDIT_DERIVE := 1004
+## Items of Simulation › Exploration: label and function (worker command [code]explore[/code]).
+const EXPLORES := [
+   ["Breadth-first search…", "bfs"],
+   ["Depth-first search…", "dfs"],
+   ["Random walk…", "random_walk"],
+   ["Metropolis-Hastings random walk…", "metropolis_hastings_random_walk"],
+]
 ## Text of the visualization panel without networks.
-const HINT := "File › Load network… or Generators to open a network"
+const HINT := "File › Load network…, File › New network… or Generators to open a network"
 ## The tab of the backbone dialog.
 var _backbone_tab := {}
 ## Menu of a column of the Nodes and Edges tables (right click on its title), the column it is for
@@ -223,6 +301,22 @@ var _backbone_tab := {}
 var _column_menu := PopupMenu.new()
 var _column := ["", ""]
 var _confirm_delete := ConfirmationDialog.new()
+## Question asked before a session replaces the open networks, and the file it is about.
+var _confirm_open := ConfirmationDialog.new()
+var _session_path := ""
+## Question of File › Close session.
+var _confirm_close := ConfirmationDialog.new()
+## Dialog of File › New network… (directed or not).
+var _new_dialog := ConfirmationDialog.new()
+var _new_directed := CheckBox.new()
+## Dialog of File › Export › Image… (width in pixels, format), before the file dialog.
+var _image_dialog := ConfirmationDialog.new()
+var _image_width := SpinBox.new()
+var _image_height := Label.new()
+var _image_format := OptionButton.new()
+## Submenus File › Recent sessions and File › Export.
+var _recent_menu := PopupMenu.new()
+var _export_menu := PopupMenu.new()
 ## Question asked when a new network is too large to draw (worker [code]too_large[/code]), and the
 ## tab it is about.
 var _large := AcceptDialog.new()
@@ -255,7 +349,6 @@ func _ready() -> void:
       get_window().size = size
    if AppSettings.value("window", "maximized", false):
       get_window().mode = Window.MODE_MAXIMIZED
-   %File.id_pressed.connect(_on_file)
    %ImageDialog.file_selected.connect(_save_image)
    _menu(%Layout, LAYOUTS)
    %Layout.id_pressed.connect(_run_layout)
@@ -275,6 +368,18 @@ func _ready() -> void:
    _menu(vectors, VECTORS)
    vectors.id_pressed.connect(func(id): _run_analysis("vectors", "Node vectors", VECTORS[id]))
    %Analysis.add_submenu_node_item("Node vectors", vectors)
+   var mines := PopupMenu.new()
+   _menu(mines, MINES)
+   mines.id_pressed.connect(func(id): _mine(MINES[id]))
+   %Analysis.add_submenu_node_item("Frequent subgraphs", mines, ANALYSIS_MINES)
+   var hierarchies := PopupMenu.new()
+   _menu(hierarchies, HIERARCHIES)
+   hierarchies.id_pressed.connect(func(id): _run_analysis("hierarchy", "Hierarchy", HIERARCHIES[id]))
+   %Analysis.add_submenu_node_item("Hierarchy", hierarchies, ANALYSIS_HIERARCHY)
+   var statistics := PopupMenu.new()
+   _menu(statistics, STATISTICS)
+   statistics.id_pressed.connect(func(id): _run_statistics(STATISTICS[id]))
+   %Analysis.add_submenu_node_item("Network statistics", statistics, ANALYSIS_STATISTICS)
    %Analysis.add_separator("", 100000)
    %Analysis.add_item("Link prediction…", ANALYSIS_LINKS)
    %Analysis.add_item("Graph neural networks…", ANALYSIS_GNNS)
@@ -304,16 +409,25 @@ func _ready() -> void:
    var transforms := PopupMenu.new()
    _menu(transforms, TRANSFORMS)
    transforms.id_pressed.connect(func(id): _transform(TRANSFORMS[id]))
+   var corrections := PopupMenu.new()
+   _menu(corrections, CORRECTIONS)
+   corrections.id_pressed.connect(func(id): _correct(CORRECTIONS[id]))
    %Edit.add_submenu_node_item("Bipartite projection", projections, 1001)   # ids apart from those of EDITS
    %Edit.add_submenu_node_item("Backbone", backbones, 1002)
+   %Edit.add_submenu_node_item("Error correction", corrections, EDIT_CORRECTION)
    %Edit.add_submenu_node_item("Transform", transforms, 1003)
+   %Edit.add_item("New node attribute…", EDIT_DERIVE)
    %Edit.add_separator()
    _menu(%Edit, EDITS)
    var command := KEY_MASK_META if OS.get_name() == "macOS" else KEY_MASK_CTRL
    for i in EDITS.size():
       if EDIT_KEYS.has(EDITS[i][1]):
          %Edit.set_item_accelerator(%Edit.get_item_index(i), EDIT_KEYS[EDITS[i][1]] | (command if EDITS[i][1] != "remove" else 0))
-   %Edit.id_pressed.connect(func(id): if id < EDITS.size(): _edit(EDITS[id]))
+   %Edit.id_pressed.connect(func(id):
+      if id < EDITS.size():
+         _edit(EDITS[id])
+      elif id == EDIT_DERIVE:
+         _open_derive())
    %Backbone.plot_changed.connect(_backbone_replot)
    %Backbone.threshold_changed.connect(_backbone_stats)
    %Backbone.extract_requested.connect(_extract_backbone)
@@ -326,9 +440,24 @@ func _ready() -> void:
       elif id >= 0 and id < _found_nodes.size():
          _focus(_current(), PackedInt32Array([_found_nodes[id]])))
    _menu(%Select, SELECTS)
+   %Select.set_item_accelerator(%Select.get_item_index(SELECT_NEIGHBORS), KEY_6 | command)
    %Select.id_pressed.connect(_on_select)
    %Simulation.add_item("Epidemics…", 0)
-   %Simulation.id_pressed.connect(func(_id): _open_epidemics())
+   var explorations := PopupMenu.new()
+   _menu(explorations, EXPLORES)
+   explorations.id_pressed.connect(_explore)
+   %Simulation.add_submenu_node_item("Exploration", explorations, 1)
+   %Simulation.add_item("Robustness…", 2)
+   %Simulation.id_pressed.connect(func(id):
+      if id == 0:
+         _open_epidemics()
+      elif id == 2:
+         _open_robustness())
+   %Robustness.add_requested.connect(_add_robustness)
+   %Robustness.plot_requested.connect(_plot_robustness)
+   %Robustness.visibility_changed.connect(func():
+      if not %Robustness.visible:
+         _detach.call_deferred(%Robustness))
    %Epidemics.add_requested.connect(_add_epidemic)
    %Epidemics.plot_requested.connect(_plot_epidemics)
    %Epidemics.visibility_changed.connect(func():
@@ -363,10 +492,33 @@ func _ready() -> void:
    %LoadDialog.worker = %Worker
    %LoadDialog.import_requested.connect(func(spec, done): _new_tab(spec.edges.get_file(), {"cmd": "load", "spec": spec}, done))
    %Data.worker = %Worker
+   _params.finder = func(attribute, typed, done):
+      if _current().is_empty():
+         return
+      %Worker.request({"cmd": "suggest", "tab": _current().id, "attribute": attribute, "text": typed}, func(r, _p):
+         if r.ok:
+            done.call(r.values, int(r.more)))
+   _file_menu()
+   %ExportDialog.file_selected.connect(_export)
+   %SessionOpenDialog.file_selected.connect(_ask_open_session)
+   %SessionSaveDialog.file_selected.connect(_save_session)
+   add_child(_confirm_open)
+   _confirm_open.ok_button_text = "Open"
+   _confirm_open.confirmed.connect(func(): _open_session(_session_path))
+   add_child(_confirm_close)
+   _confirm_close.ok_button_text = "Close"
+   _confirm_close.confirmed.connect(_close_session)
+   %Data.attributes_of = func(): return _current().get("attributes", {})
    %Data.attribute_menu_requested.connect(_attribute_menu)
    %Data.value_edit_requested.connect(_edit_value)
    add_child(_column_menu)
-   _column_menu.id_pressed.connect(func(id): _plot_distribution() if id == 0 else _ask_delete())
+   _column_menu.id_pressed.connect(func(id):
+      if id == 2:
+         _open_derive(_column[1])
+      elif id == 3:
+         %Data.hide_attribute(_column[0], _column[1])
+      else:
+         _plot_distribution() if id == 0 else _ask_delete())
    add_child(_context_menu)
    _context_menu.id_pressed.connect(_on_context)
    add_child(_confirm_delete)
@@ -383,6 +535,8 @@ func _ready() -> void:
    %Visual.background_changed.connect(_on_background)
    %Visual.turn_changed.connect(func(d): if not _current().is_empty(): _current().view.set_turn(d))
    %Visual.scale_changed.connect(func(f): if not _current().is_empty(): _current().view.set_spread(f))
+   %Visual.tab_names = func(): return _tabs.filter(func(t): return t != _current()).map(func(t): return t.name)
+   %Visual.copy_requested.connect(func(i): _copy_style(_tabs.filter(func(t): return t != _current())[i]))
    %Worker.started.connect(_on_started)
    %Worker.failed.connect(_on_failed)
    %Worker.progress.connect(_on_progress)
@@ -564,7 +718,7 @@ func _task(text: String, request: Dictionary, callback: Callable) -> void:
 ## The window the task dialog opens in: the dialog that started the task (which stays open, to
 ## show an error), so that the task dialog is drawn above it, or else the main window.
 func _task_host() -> Window:
-   for dialog: Window in [_params, %LoadDialog, %SelectDialog, _plot, %Epidemics, %Links, %Gnns, %Backbone]:
+   for dialog: Window in [_params, %LoadDialog, %SelectDialog, %Derive, _plot, %Epidemics, %Robustness, %Links, %Gnns, %Backbone]:
       if dialog.visible:
          return dialog
    return get_window()
@@ -593,24 +747,332 @@ func _message(title: String, text: String, python := false) -> void:
 func _on_file(id: int) -> void:
    if id == FILE_LOAD:
       %LoadDialog.open()
+   elif id == FILE_OPEN_SESSION:
+      %SessionOpenDialog.current_dir = AppSettings.folder("sessions", AppSettings.folder("edges"))
+      %SessionOpenDialog.popup_centered_ratio(0.6)
+   elif id == FILE_SAVE_SESSION and not _tabs.is_empty():
+      %SessionSaveDialog.current_dir = AppSettings.folder("sessions", AppSettings.folder("edges"))
+      %SessionSaveDialog.current_file = _current().name.get_basename() + ".gsk"
+      %SessionSaveDialog.popup_centered_ratio(0.6)
+   elif id == FILE_EXPORT and not _current().is_empty():
+      %ExportDialog.current_dir = AppSettings.folder("exports", AppSettings.folder("edges"))
+      %ExportDialog.current_file = _current().name.get_basename() + ".tsv"
+      %ExportDialog.popup_centered_ratio(0.6)
    elif id == FILE_IMAGE and not _current().is_empty():
-      %ImageDialog.current_dir = AppSettings.folder("images", AppSettings.folder("edges"))
-      %ImageDialog.current_file = _current().name.get_basename() + ".png"
-      %ImageDialog.popup_centered_ratio(0.6)
+      var w: float = _current().view.size.x
+      _image_width.max_value = MAX_IMAGE_PIXELS
+      _image_width.value = roundi(w * IMAGE_SCALE)
+      _image_height_text()
+      _image_dialog.popup_centered()
+   elif id == FILE_NEW:
+      _new_dialog.popup_centered()
+   elif id == FILE_CLOSE_SESSION and not _tabs.is_empty():
+      _confirm_close.dialog_text = "Close the %d open networks? What is not saved in a session is lost." % _tabs.size()
+      _confirm_close.popup_centered()
 
 
-## File › Save image: the visualization panel of the current tab as a PNG, at [constant
-## IMAGE_SCALE] times its size on screen.
+## The state of the interface saved in a session (worker command [code]save_session[/code], which
+## adds the namespaces of the tabs: networks, tables, code, styles, undo histories): the tabs in
+## order, each with its worker id, name, summary, style (with the background), whether it is drawn,
+## its view (center, zoom, rotation, scale), its selected nodes and edges and its hidden
+## attributes; the current tab, and the tab and table of the data panel.
+func _session_state() -> Dictionary:
+   var tabs := []
+   for tab in _tabs:
+      var v = tab.view
+      tabs.append({"tab": tab.id, "name": tab.name, "summary": tab.summary, "style": tab.style, "undrawn": tab.get("undrawn", false), "view": {"center": [v.center.x, v.center.y], "zoom": v.zoom, "turn": v.turn, "spread": v.spread}, "nodes": Array(v.selected_nodes()), "edges": Array(v.selected_edges), "hidden": %Data.hidden_state(tab.id)})
+   return {"tabs": tabs, "current": %Tabs.current_tab, "data": %Data.panel_state()}
+
+
+## File › Save session…: all the tabs in one file ([param path], ending in .gsk), which File ›
+## Open session… puts back as they are.
+func _save_session(path: String) -> void:
+   if _tabs.is_empty():
+      return
+   if path.get_extension().to_lower() != "gsk":
+      path += ".gsk"
+   AppSettings.store_folder("sessions", path)
+   _task("Saving the session…", {"cmd": "save_session", "path": path, "gui": _session_state()}, func(r, _p):
+      _idle_status(_current())
+      if not r.ok:
+         _message("Save session", str(r.error))
+         return
+      _remember_session(path)
+      %Status.text = "Saved the session in %s (%d tabs, %s)" % [path.get_file(), r.tabs, String.humanize_size(int(r.size))])
+
+
+## File › Open session…: asks first if networks are open (the session replaces them).
+func _ask_open_session(path: String) -> void:
+   _session_path = path
+   AppSettings.store_folder("sessions", path)
+   if _tabs.is_empty():
+      _open_session(path)
+      return
+   _confirm_open.dialog_text = "Opening %s closes the %d open networks (save them first with File › Save session… to keep them)." % [path.get_file(), _tabs.size()]
+   _confirm_open.popup_centered()
+
+
+## Opens the session of [param path] (worker command [code]open_session[/code]): the open tabs
+## are closed, then every tab of the session comes back with its namespace, code, drawing, style,
+## view, selection and hidden attributes, and the current tab and data panel as they were.
+func _open_session(path: String) -> void:
+   while not _tabs.is_empty():
+      _close_tab(0)
+   _task("Opening the session %s…" % path.get_file(), {"cmd": "open_session", "path": path, "first": _next_tab + 1}, func(r, _p):
+      if not r.ok:
+         _message("Open session", str(r.error))
+         return
+      _remember_session(path)
+      var states: Array = r.gui.tabs
+      _next_tab += states.size()
+      for t in states:
+         var tab := {"id": int(t.tab), "name": t.name, "view": NetworkView.instantiate(), "code": "", "summary": t.summary, "style": t.style, "attributes": {}, "undrawn": t.get("undrawn", false)}
+         _add_tab(tab)
+         %Data.set_hidden_state(tab.id, t.get("hidden", {}))
+         var view: Dictionary = t.view
+         tab.view.restore_view(Vector2(view.center[0], view.center[1]), view.zoom, view.turn, view.spread)
+         %Worker.request({"cmd": "redraw", "tab": tab.id}, func(reply, payload):
+            if not reply.ok or not _tabs.has(tab):
+               return
+            _drawn(tab, reply, payload, true)
+            tab.view.set_selection(PackedInt32Array(t.nodes), PackedInt32Array(t.edges)))
+      var current := clampi(int(r.gui.get("current", 0)), 0, _tabs.size() - 1)
+      if current >= 0:
+         %Tabs.current_tab = current
+         _show_tab(current)
+      %Data.set_panel_state(r.gui.get("data", {}))
+      %Status.text = "Opened the session %s (%d tabs)%s" % [path.get_file(), states.size(), " · " + r.warning if r.has("warning") else ""])
+
+
+## File › Export › Network tables…: the network of the current tab as tab-separated tables next to
+## [param path] (worker command [code]export[/code]: name_edges.tsv, name_nodes.tsv, and
+## name_interlayer.tsv for multilayer networks), as [code]to_pandas_dataframes[/code] gives them;
+## the code does not change.
+func _export(path: String) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   AppSettings.store_folder("exports", path)
+   _task("%s: exporting…" % tab.name, {"cmd": "export", "tab": tab.id, "path": path}, func(r, _p):
+      _idle_status(tab)
+      if not r.ok:
+         _message("Export network", str(r.error))
+         return
+      %Status.text = "Exported %s: %s" % [tab.name, ", ".join(r.files.map(func(f): return f.get_file()))])
+
+
+## Analysis › Network statistics ([param item] of [constant STATISTICS]): one statistic with its
+## parameter dialog, or all those that apply at once (worker command [code]statistics[/code]); the
+## values become network attributes (Network tab of the data panel) and are shown in a message.
+func _run_statistics(item: Array) -> void:
+   if item[1] != "all":
+      _run_analysis("statistics", "Network statistics", item)
+      return
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _task("%s: network statistics…" % tab.name, {"cmd": "statistics", "tab": tab.id, "function": "all", "name": tab.name}, func(r, payload):
+      if not _tabs.has(tab):
+         return
+      _idle_status(tab)
+      if not r.ok:
+         _message("Network statistics", str(r.error))
+         return
+      _drawn(tab, r, payload, true)
+      _message("Network statistics", r.result))
+
+
+## Edit › Error correction ([param item] of [constant CORRECTIONS]): the parameter dialog, then the
+## corrected network in a new tab (worker command [code]correct[/code]: every pair with its
+## probability of being an edge, summary values as network attributes), and the backbone dialog on
+## that probability, at 0.5 (the most likely network): Extract opens the edges above the
+## threshold in another tab.
+func _correct(item: Array) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "signature", "function": item[1], "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         _message("Error correction", str(reply.error))
+         return
+      _params.open("Error correction, %s (gsk.%s)" % [item[0].trim_suffix("…").to_lower(), item[1]], reply, {}, "Correct", tab.attributes, func(arguments, done):
+         _next_tab += 1
+         var id := _next_tab
+         _task("%s: correcting the network (the first time, the kernels compile: about two minutes)…" % tab.name, {"cmd": "correct", "tab": tab.id, "new_tab": id, "function": item[1], "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            if not r.ok:
+               _failed("Error correction", str(r.error), done)
+               return
+            done.call("")
+            var parts: Array = r.parts
+            var png: PackedByteArray = payload.slice(payload.size() - int(parts.back()))
+            _open_derived(tab, "%s (corrected)" % tab.name, id, r, payload)   # the plot, last, is not read as a part of the drawing
+            var new: Dictionary = _tabs.back()
+            %Status.text = "%s  ·  %s" % [new.summary, r.note]
+            _backbone_tab = new
+            var b: Dictionary = r.backbone
+            %Backbone.open("Edge probabilities of %s (corrected)" % tab.name, png, b.box, b.scale, b.tails, b.range, b.found, clampf(0.5, b.range[0], b.range[1]), true))))
+
+
+## File › Export › Image…: the visualization panel of the current tab as a PNG image, a vector PDF
+## document (drawn by the worker as the view shows it) or a PDF document holding the image at
+## [constant PDF_DPI] dots per inch, as wide as chosen in the dialog (by default
+## [constant IMAGE_SCALE] times its width on screen).
 func _save_image(path: String) -> void:
    var tab := _current()
    if tab.is_empty():
       return
-   if path.get_extension().to_lower() != "png":
-      path += ".png"
+   var ext: String = IMAGE_FORMATS[_image_format.selected][1]
+   if path.get_extension().to_lower() != ext:
+      path += "." + ext
    AppSettings.store_folder("images", path)
-   var image: Image = await tab.view.capture(IMAGE_SCALE)
-   var err := image.save_png(path)
-   %Status.text = "Saved %s (%d × %d)" % [path.get_file(), image.get_width(), image.get_height()] if err == OK else "Could not save %s (error %d)" % [path, err]
+   if _image_format.selected == 1:   # vector graphics, drawn by the worker
+      var v = tab.view
+      var view := {"center": [v.center.x, v.center.y], "zoom": v.zoom, "turn": v.turn, "spread": v.spread, "size": [v.size.x, v.size.y]}
+      _task("Saving %s…" % path.get_file(), {"cmd": "image_vector", "tab": tab.id, "path": path, "width": _image_width.value, "dpi": PDF_DPI, "view": view, "background": tab.style.get("background", "#ffffff")}, func(r, _p):
+         _idle_status(tab)
+         if r.ok:
+            %Status.text = "Saved %s (vector, %s)" % [path.get_file(), String.humanize_size(int(r.size))]
+         else:
+            _message("Export image", "Could not save %s: %s" % [path, r.error]))
+      return
+   var image: Image = await tab.view.capture(_image_width.value / tab.view.size.x)
+   if ext == "png":
+      var err := image.save_png(path)
+      %Status.text = "Saved %s (%d × %d)" % [path.get_file(), image.get_width(), image.get_height()] if err == OK else "Could not save %s (error %d)" % [path, err]
+      return
+   var png := OS.get_user_data_dir().path_join("image_for_pdf.png")   # the worker turns it into the PDF document
+   image.save_png(png)
+   %Worker.request({"cmd": "image_pdf", "png": png, "path": path, "dpi": PDF_DPI}, func(r, _p):
+      DirAccess.remove_absolute(png)
+      %Status.text = "Saved %s (%d × %d)" % [path.get_file(), image.get_width(), image.get_height()] if r.ok else "Could not save %s: %s" % [path, r.error])
+
+
+## Builds the File menu: New network…; Open session…, Recent sessions, Save session…, Close
+## session; Load network…, Export (Network tables…, Image…). Also the dialogs of New network…
+## and Export › Image….
+func _file_menu() -> void:
+   %File.clear()
+   %File.add_item("New network…", FILE_NEW)
+   %File.add_separator("", 100)
+   %File.add_item("Open session…", FILE_OPEN_SESSION)
+   %File.add_submenu_node_item("Recent sessions", _recent_menu, FILE_RECENT)
+   %File.add_item("Save session…", FILE_SAVE_SESSION)
+   %File.add_item("Close session", FILE_CLOSE_SESSION)
+   %File.add_separator("", 101)
+   %File.add_item("Load network…", FILE_LOAD)
+   _export_menu.add_item("Network tables…", FILE_EXPORT)
+   _export_menu.add_item("Image…", FILE_IMAGE)
+   %File.add_submenu_node_item("Export", _export_menu, FILE_EXPORTS)
+   %File.id_pressed.connect(_on_file)
+   _export_menu.id_pressed.connect(_on_file)
+   %File.about_to_popup.connect(_fill_recent)
+   _recent_menu.index_pressed.connect(func(i): _ask_open_session(_recent()[i]))
+   add_child(_new_dialog)
+   _new_dialog.title = "New network"
+   _new_dialog.ok_button_text = "Create"
+   var box := VBoxContainer.new()
+   var hint := Label.new()
+   hint.text = "An empty network: right click in the view to add nodes,\nand on a node to add an edge from it."
+   box.add_child(hint)
+   _new_directed.text = "Directed edges"
+   box.add_child(_new_directed)
+   _new_dialog.add_child(box)
+   _new_dialog.confirmed.connect(_new_network)
+   add_child(_image_dialog)
+   _image_dialog.title = "Export image"
+   _image_dialog.ok_button_text = "Save…"
+   var grid := GridContainer.new()
+   grid.columns = 2
+   for pair in [["Width", _image_width], ["Height", _image_height], ["Format", _image_format]]:
+      var label := Label.new()
+      label.text = pair[0]
+      grid.add_child(label)
+      grid.add_child(pair[1])
+   _image_width.min_value = 16
+   _image_width.suffix = "pixels"
+   _image_width.tooltip_text = "Width of the image; the height follows the shape of the visualization panel"
+   _image_width.value_changed.connect(func(_v): _image_height_text())
+   for f in IMAGE_FORMATS:
+      _image_format.add_item(f[0])
+   _image_format.select(0)
+   _image_format.tooltip_text = "PDF vector documents: nodes, edges and labels as shapes and text (any zoom); PDF images: the picture at %d dots per inch" % PDF_DPI
+   _image_dialog.add_child(grid)
+   _image_dialog.confirmed.connect(func():
+      var ext: String = IMAGE_FORMATS[_image_format.selected][1]
+      %ImageDialog.filters = PackedStringArray(["*.%s ; %s" % [ext, IMAGE_FORMATS[_image_format.selected][0]]])
+      %ImageDialog.current_dir = AppSettings.folder("images", AppSettings.folder("edges"))
+      %ImageDialog.current_file = _current().name.get_basename() + "." + ext
+      %ImageDialog.popup_centered_ratio(0.6))
+
+
+func _image_height_text() -> void:
+   var tab := _current()
+   if tab.is_empty() or tab.view.size.x <= 0:
+      return
+   _image_height.text = "%d pixels" % roundi(_image_width.value * tab.view.size.y / tab.view.size.x)
+
+
+## Sessions saved or opened recently, the latest first (files that still exist).
+func _recent() -> Array:
+   return Array(AppSettings.value("sessions", "recent", [])).filter(func(p): return FileAccess.file_exists(p))
+
+
+## Puts [param path] first among the recent sessions.
+func _remember_session(path: String) -> void:
+   var recent := _recent().filter(func(p): return p != path)
+   recent.push_front(path)
+   AppSettings.store("sessions", "recent", recent.slice(0, MAX_RECENT))
+
+
+## File › Recent sessions: the sessions saved or opened recently (click one to open it).
+func _fill_recent() -> void:
+   _recent_menu.clear()
+   var recent := _recent()
+   for p: String in recent:
+      _recent_menu.add_item(p.get_file())
+      _recent_menu.set_item_tooltip(_recent_menu.item_count - 1, p)
+   %File.set_item_disabled(%File.get_item_index(FILE_RECENT), recent.is_empty())
+
+
+## File › New network…: a new tab with an empty network (worker command [code]empty[/code]),
+## drawn as an empty canvas: nodes are added with a right click in the view, edges with a right
+## click on their first node (see [method _open_context]).
+func _new_network() -> void:
+   var taken := _tabs.map(func(t): return t.name)
+   var name := "New network"
+   var k := 1
+   while taken.has(name):
+      k += 1
+      name = "New network %d" % k
+   _new_tab(name, {"cmd": "empty", "directed": _new_directed.button_pressed})
+
+
+## File › Close session: closes all the tabs.
+func _close_session() -> void:
+   while not _tabs.is_empty():
+      _close_tab(0)
+
+
+## Network › Copy › From tab… of the visual elements panel: the style of [param source] (colors,
+## sizes, opacities, positions, labels of nodes and edges, background) and its rotation and scale
+## for the current tab. Choices mapped to attributes the current network does not have go back to
+## their defaults (the worker prunes them, see [code]prune_style[/code]).
+func _copy_style(source: Dictionary) -> void:
+   var tab := _current()
+   if tab.is_empty() or not _tabs.has(source) or source == tab:
+      return
+   var style: Dictionary = source.style.duplicate(true)
+   var background: String = style.get("background", "#ffffff")
+   _restyle(style, tab)
+   _on_background(Color(background))
+   tab.view.set_turn(source.view.turn)
+   tab.view.set_spread(source.view.spread)
+   %Visual.show_style(tab.style, tab.attributes)
+   %Visual.show_turn(source.view.turn)
+   %Visual.show_scale(source.view.spread)
 
 
 ## Generators menu: asks the worker for the parameters of the generator, then opens its dialog.
@@ -677,7 +1139,9 @@ func _new_tab(name: String, request: Dictionary, done := Callable()) -> void:
          done.call("")
       var tab := {"id": id, "name": name, "view": NetworkView.instantiate(), "code": reply.code, "summary": "%s: %s" % [name, reply.summary], "style": {}, "attributes": {}, "undrawn": reply.get("too_large", false)}
       _add_tab(tab)
-      if tab.undrawn:   # not drawn by the worker: asks whether to draw it anyway
+      if request.cmd == "empty":   # File › New network: an empty canvas
+         _set_drawn(tab, true)
+      elif tab.undrawn:   # not drawn by the worker: asks whether to draw it anyway
          _drawn(tab, {"code": reply.code, "nodes": 0, "undrawn": true}, PackedByteArray())   # its attributes
          _large_tab = tab
          _large.dialog_text = "%s has %s.\nNetworks with more than %s nodes and edges together can probably not be drawn.\nIt can be laid out, analyzed, simulated and edited without drawing it." % [name, reply.summary, String.num_int64(int(reply.get("max_elements", 10000000)))]
@@ -702,7 +1166,7 @@ func _set_drawn(tab: Dictionary, on: bool) -> void:
          _message("Drawing", str(reply.error))
          return
       _drawn(tab, reply, payload)
-      if on and int(reply.nodes) == 0:
+      if on and int(reply.nodes) == 0 and not reply.get("empty", false):
          _layout(tab, "grid_layout", {"fast": "True"}))
 
 
@@ -894,6 +1358,38 @@ func _open_derived(tab: Dictionary, name: String, id: int, reply: Dictionary, pa
       _layout(new, "grid_layout", {"fast": "True"})
 
 
+## Analysis › Frequent subgraphs ([param item] of [constant MINES]): the parameter dialog of the
+## mining function, then the patterns in a new tab (worker command [code]mine[/code]: one
+## component per pattern, node attribute [code]pattern[/code], support and association rules in
+## the Tables tab), laid out by the force-directed layout (small components).
+func _mine(item: Array) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "signature", "function": item[1], "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         _message("Frequent subgraphs", str(reply.error))
+         return
+      _params.open("Frequent subgraphs, %s (gsk.%s)" % [item[0].trim_suffix("…").to_lower(), item[1]], reply, {}, "Mine", tab.attributes, func(arguments, done):
+         _next_tab += 1
+         var id := _next_tab
+         _task("%s: mining frequent subgraphs…" % tab.name, {"cmd": "mine", "tab": tab.id, "new_tab": id, "function": item[1], "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            if not r.ok:
+               _failed("Frequent subgraphs", str(r.error), done)
+               return
+            done.call("")
+            var name := "%s (patterns)" % tab.name
+            var new := {"id": id, "name": name, "view": NetworkView.instantiate(), "code": r.code, "summary": "%s: %s" % [name, r.summary], "style": {"background": tab.style.get("background", "#ffffff")}, "attributes": {}}
+            _add_tab(new)
+            _drawn(new, r, payload)
+            if int(r.nodes) == 0 and not r.get("undrawn", false):
+               _layout(new, "force_directed_layout", {})
+            %Status.text = "%s  ·  %s" % [new.summary, r.note])))
+
+
 ## Edit › Backbone ([param item] of [constant BACKBONES]) and Edit › Bipartite projection (of
 ## [constant PROJECTIONS], with [param what] [code]"Bipartite projection"[/code]): the parameter
 ## dialog of the function; a scoring function scores the edges of the current tab (worker command
@@ -973,11 +1469,13 @@ func _transform(item: Array) -> void:
 
 
 ## Backbone dialog: the plot again, with or without the [param components] and the [param left]
-## and [param right] tails.
-func _backbone_replot(components: bool, left: bool, right: bool) -> void:
+## and [param right] tails, with the [param colors] and [param options] of the dialog (a range of
+## the threshold axis tests the thresholds again in it); what goes wrong is shown in the dialog.
+func _backbone_replot(components: bool, left: bool, right: bool, colors: Dictionary, options: Dictionary) -> void:
    var tab := _backbone_tab
    if _tabs.has(tab):
-      %Worker.request({"cmd": "backbone_plot", "tab": tab.id, "components": components, "left": left, "right": right}, func(reply, payload):
+      %Worker.request({"cmd": "backbone_plot", "tab": tab.id, "components": components, "left": left, "right": right, "colors": colors, "options": options}, func(reply, payload):
+         %Backbone.show_note("" if reply.ok else str(reply.error))
          if reply.ok:
             %Backbone.set_plot(payload, reply.box, reply.scale))
 
@@ -1079,6 +1577,8 @@ func _on_select(id: int) -> void:
       v.set_selection(PackedInt32Array(range(v.ids.size())))
    elif id == 1:
       v.set_selection(PackedInt32Array())
+   elif id == SELECT_NEIGHBORS:
+      _grow_selection(tab)
    else:
       %SelectDialog.open(tab.attributes, func(kind, attribute, op, value, add, done):
          %Worker.request({"cmd": "select", "tab": tab.id, "kind": kind, "attribute": attribute, "op": op, "value": value}, func(reply, _p):
@@ -1162,6 +1662,65 @@ func _plot_epidemics(names: Array, states: Array) -> void:
       %Epidemics.show_error("")
       _above(_plot, %Epidemics)
       _plot.show_plot(tab.id, "Epidemics of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "epidemics"))
+
+
+## Simulation › Robustness: opens the dialog of the robustness runs of the current tab
+## (robustness_dialog.gd; worker command [code]robustness_runs[/code]).
+func _open_robustness() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "robustness_runs", "tab": tab.id}, func(reply, _p):
+      if reply.ok and _tabs.has(tab):
+         _robustness_tab = tab
+         %Robustness.open("Robustness of %s" % tab.name, reply))
+
+
+## Add run or Copy… of the robustness dialog: the parameter dialog of [param function], with the
+## [param values] of the run copied (its name left empty: the function and the strategy, see
+## [code]robustness_code[/code] in the worker); the run is added to the dialog (worker command
+## [code]robustness[/code]), its global value in the status bar.
+func _add_robustness(function: String, values: Dictionary) -> void:
+   var tab := _robustness_tab
+   if not _tabs.has(tab):
+      return
+   _ask({"cmd": "signature", "function": function, "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         %Robustness.show_error(str(reply.error))
+         return
+      _above(_params, %Robustness)
+      _params.open("%s (gsk.%s)" % [function.capitalize(), function], reply, values, "Run", tab.attributes, func(arguments, done):
+         %Robustness.show_status("Running %s…" % function)
+         _task("%s: running %s…" % [tab.name, function], {"cmd": "robustness", "tab": tab.id, "function": function, "arguments": arguments, "name": tab.name}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            %Robustness.show_status("")
+            if not r.ok:
+               _failed("Robustness", str(r.error), done)
+               return
+            done.call("")
+            _drawn(tab, r, payload, true)
+            if _robustness_tab == tab:
+               %Robustness.show_runs(r)
+               %Robustness.show_status(r.result)
+            if _current() == tab:
+               %Status.text = "%s  ·  %s" % [tab.summary, r.result])))
+
+
+## Plot of the robustness dialog: the checked runs [param names] in the plot window (worker command
+## [code]robustness_plot[/code]); runs that cannot share axes are refused in the dialog.
+func _plot_robustness(names: Array) -> void:
+   var tab := _robustness_tab
+   if not _tabs.has(tab):
+      return
+   %Worker.request({"cmd": "robustness_plot", "tab": tab.id, "names": names}, func(reply, payload):
+      if not reply.ok:
+         %Robustness.show_error(str(reply.error))
+         return
+      %Robustness.show_error("")
+      _above(_plot, %Robustness)
+      _plot.show_plot(tab.id, "Robustness of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "robustness"))
 
 
 ## Analysis › Link prediction: opens the dialog of the link predictions of the current tab
@@ -1517,7 +2076,8 @@ func _run_analysis(cmd: String, heading: String, item: Array) -> void:
             if r.has("result"):   # the value of a node vector analysis
                if _current() == tab:
                   %Status.text = "%s  ·  %s" % [tab.summary, r.result]
-               _message(heading, r.result)
+               if not r.has("plot"):   # with a plot, the text is under the plot
+                  _message(heading, r.result)
             if r.has("plot"):
                var parts: Array = r.parts
                var png: PackedByteArray = payload.slice(payload.size() - int(parts.back()))
@@ -1550,7 +2110,74 @@ func _attribute_menu(kind: String, attribute: String) -> void:
    _column_menu.clear()
    _column_menu.add_item("Plot the distribution of %s…" % attribute, 0)
    _column_menu.add_item("Delete %s…" % attribute, 1)
+   if kind == "nodes":
+      _column_menu.add_item("New node attribute from %s…" % attribute, 2)
+   _column_menu.add_item("Hide %s" % attribute, 3)
    _column_menu.popup(Rect2i(get_window().position + Vector2i(get_window().get_mouse_position()), Vector2i.ZERO))
+
+
+## Select › Neighbors of the selection (Ctrl+6): the selected nodes, the endpoints of the selected
+## edges and all their neighbors become the selection (worker command [code]neighbors[/code]);
+## pressed again, it grows one more step. Edges stay selected.
+func _grow_selection(tab: Dictionary) -> void:
+   var v = tab.view
+   if v.selected_nodes().is_empty() and v.selected_edges.is_empty():
+      %Status.text = "%s  ·  select a node or an edge first: Ctrl+6 adds its neighbors" % tab.summary
+      return
+   %Worker.request({"cmd": "neighbors", "tab": tab.id, "nodes": Array(v.selected_nodes()), "edges": Array(v.selected_edges)}, func(reply, _p):
+      if not _tabs.has(tab) or not reply.ok:
+         return
+      v.set_selection(PackedInt32Array(reply.nodes), v.selected_edges)
+      if _current() == tab:
+         %Status.text = "%s  ·  %d neighbors added" % [tab.summary, reply.added] if reply.added > 0 else "%s  ·  no neighbors to add: the whole component is selected" % tab.summary)
+
+
+## Edit › New node attribute… (and the column menu, from [param from]): the dialog of a node
+## attribute computed from a formula (derive_dialog.gd; worker commands [code]formulas[/code] and
+## [code]derive[/code], with [code]preview[/code] while typing). The drawing follows (the style
+## may use the attribute).
+func _open_derive(from := "") -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "formulas", "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         _message("New node attribute", str(reply.error))
+         return
+      var start := ""
+      for a in reply.attributes:
+         if a.name == from:
+            start = a.formula
+      %Derive.open(reply.attributes, reply.functions, "", start, func(name, formula, done):
+         %Worker.request({"cmd": "derive", "tab": tab.id, "name": name, "formula": formula, "preview": true}, func(r, _q):
+            done.call(r.get("text", ""), "" if r.ok else str(r.error))),
+         func(name, formula, done):
+            _task("%s: new node attribute %s…" % [tab.name, name], {"cmd": "derive", "tab": tab.id, "name": name, "formula": formula}, func(r, payload):
+               if not _tabs.has(tab):
+                  return
+               _idle_status(tab)
+               if not r.ok:
+                  _failed("New node attribute", str(r.error), done)
+                  return
+               done.call("")
+               _drawn(tab, r, payload, true)
+               if _current() == tab:
+                  %Status.text = "%s  ·  %s" % [tab.summary, r.note])))
+
+
+## Simulation › Exploration ([param id] in [constant EXPLORES]): the parameter dialog of the
+## search or walk, starting from the selected node if there is one, then the worker command
+## [code]explore[/code] (a node attribute with the order or mean step of the visits; its note in
+## the status bar).
+func _explore(id: int) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   var presets := {}
+   var v = tab.view
+   if v.selected_nodes().size() == 1:
+      presets["source"] = JSON.stringify(v.ids[v.selected_nodes()[0]])
+   _run_analysis("explore", "Exploration", [EXPLORES[id][0], EXPLORES[id][1], presets])
 
 
 ## A value edited in the data panel (worker command [code]set_value[/code]: one line of code,
@@ -1650,7 +2277,7 @@ func _failed(heading: String, error: String, done: Callable) -> void:
 func _drawn(tab: Dictionary, reply: Dictionary, payload: PackedByteArray, keep_view := false) -> void:
    tab.code = reply.code
    tab.undrawn = reply.get("undrawn", false)
-   if int(reply.nodes) > 0:
+   if int(reply.nodes) > 0 or reply.get("empty", false) and reply.parts.size() >= 11:   # an empty network is an empty canvas
       var background: String = tab.style.get("background", "#ffffff")
       tab.style = reply.style
       tab.style.background = background
@@ -1728,7 +2355,10 @@ func _show_tab(index: int) -> void:
    for menu in [%Layout, %Analysis, %Edit, %Select, %Simulation]:
       for i in menu.item_count:
          menu.set_item_disabled(i, tab.is_empty())
-   %File.set_item_disabled(FILE_IMAGE, tab.is_empty())
+   %File.set_item_disabled(%File.get_item_index(FILE_SAVE_SESSION), _tabs.is_empty())
+   %File.set_item_disabled(%File.get_item_index(FILE_CLOSE_SESSION), _tabs.is_empty())
+   %File.set_item_disabled(%File.get_item_index(FILE_EXPORTS), tab.is_empty())
+   _export_menu.set_item_disabled(_export_menu.get_item_index(FILE_IMAGE), tab.is_empty() or tab.get("undrawn", false))
    %Generators.set_item_disabled(0, tab.is_empty())
    %Find.editable = not tab.is_empty()
    %FindBy.disabled = tab.is_empty()
@@ -1747,6 +2377,8 @@ func _show_tab(index: int) -> void:
    _show_data(tab)
    if %Epidemics.visible and _epidemics_tab != tab:
       %Epidemics.hide()
+   if %Robustness.visible and _robustness_tab != tab:
+      %Robustness.hide()
    if %Links.visible and _links_tab != tab:
       %Links.hide()
    if %Gnns.visible and _gnns_tab != tab:
@@ -1770,7 +2402,7 @@ func _show_undrawn(tab: Dictionary) -> void:
    %Visual.visible = not tab.is_empty() and not off
    %Find.editable = not tab.is_empty() and not off
    %FindBy.disabled = tab.is_empty() or off
-   %File.set_item_disabled(FILE_IMAGE, tab.is_empty() or off)
+   _export_menu.set_item_disabled(_export_menu.get_item_index(FILE_IMAGE), tab.is_empty() or off)
    for i in %Select.item_count:
       %Select.set_item_disabled(i, tab.is_empty() or off)
 
@@ -1784,6 +2416,7 @@ func _edit_items(tab: Dictionary) -> void:
 func _close_tab(index: int) -> void:
    var tab: Dictionary = _tabs[index]
    %Worker.request({"cmd": "close", "tab": tab.id}, func(_r, _p): pass)
+   %Data.forget(tab.id)
    tab.view.queue_free()
    _tabs.remove_at(index)
    %Tabs.remove_tab(index)

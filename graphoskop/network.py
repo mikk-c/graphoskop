@@ -199,6 +199,10 @@ class Network:
       ``edge_index``; in undirected networks the reverse copies that follow them share the rows of
       their edges).
    :ivar directed: Whether the edges are directed.
+   :ivar network_attributes: Values of the network as a whole (its network attributes), by name: a
+      dictionary, empty at first, which the user fills (e.g.
+      ``net.network_attributes["flow_hierarchy"] = gsk.flow_hierarchy(net)``). It belongs to this
+      network object: networks made from it by other functions start with an empty one.
    :ivar bipartite_labels: In bipartite networks, the values of :data:`BIPARTITE` of type 0 and
       type 1, in this order (sorted); ``None`` otherwise.
    :ivar bipartite_split: In bipartite networks, the number of nodes of type 0 of each component;
@@ -1455,6 +1459,21 @@ class Network:
             rows = (dict(zip(names, row)) for row in X.cpu().tolist())
             yield from zip(s, t, ({**r, **{a: q[e] for a, q in qual.items()}} for e, r in enumerate(rows)))
 
+   @property
+   def network_attributes(self):
+      """
+      Network attributes: values of the network as a whole, by name (a dictionary, made empty on
+      first use, also for networks pickled before it existed).
+      """
+      found = self.__dict__.get("_network_attributes")
+      if found is None:
+         found = self.__dict__["_network_attributes"] = {}
+      return found
+
+   @network_attributes.setter
+   def network_attributes(self, values):
+      self.__dict__["_network_attributes"] = dict(values)
+
    def number_of_components(self):
       """
       Number of weakly connected components, isolated nodes included (each is a component).
@@ -1572,6 +1591,12 @@ class Network:
       if self.higher_order is not None:
          return self._higher_order_tables()
       ml = self.layer_labels is not None
+      if not self.components and not ml:   # an empty network: empty tables
+         edges = pd.DataFrame({k: pd.Series(dtype = np.int64 if k in ("source", "target") else object if k in self.qualitative_edge_attributes else float) for k in ["source", "target", *self.edge_attributes, *self.qualitative_edge_attributes]})
+         if not self.node_attributes and not self.qualitative_node_attributes:
+            return edges
+         columns = [*self.node_attributes, *self.qualitative_node_attributes] if self.node_format == "wide" else ["attribute", "value"]
+         return edges, pd.DataFrame({k: pd.Series(dtype = np.int64 if k == "node" else float if k in self.node_attributes or k == "value" else object) for k in ["node", *columns]})
       src, tgt, attr, ls, lt = [], [], [], [], []
       for c, data in enumerate(self.components):
          ei, X = self._input_edges(c)

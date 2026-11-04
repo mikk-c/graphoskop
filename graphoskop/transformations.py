@@ -404,7 +404,7 @@ def _reload(net, edges, inter, nodes, directed = None):
    if ml:
       seen = pd.concat([edges[LAYER], inter["source_layer"], inter["target_layer"], nodes[LAYER]], ignore_index = True)
       layers = list(net.layer_labels) + [x for x in pd.unique(seen.dropna()) if x not in net.layer_labels]
-   new = _load(edges, nodes, source = "source", target = "target", directed = net.directed if directed is None else directed, node_format = net.node_format, bipartite = net.bipartite_labels is not None, device = net.components[0].edge_index.device, multilayer = ml, interlayer_edges = inter, layers = layers)
+   new = _load(edges, nodes, source = "source", target = "target", directed = net.directed if directed is None else directed, node_format = net.node_format, bipartite = net.bipartite_labels is not None, device = net.components[0].edge_index.device if net.components else "cpu", multilayer = ml, interlayer_edges = inter, layers = layers)
    _release_memory()
    return new
 
@@ -643,6 +643,9 @@ def add_nodes(net, nodes):
    tuple is always one node. New nodes get NaN (missing) for every attribute they are not given;
    in long (sparse) node tables, a numeric attribute without a value reads as 0. Columns that are
    not attributes of the network become new attributes, NaN for the existing nodes.
+
+   An empty network, e.g. ``gsk.load_network(pd.DataFrame({"source": [], "target": []}))``, can be
+   filled this way and with :func:`add_edges`, node by node.
 
    In multilayer networks every new node is a copy ``(entity, layer)``: tuples, or a table with
    the entity in the first column and the layer in the second. Layers not in

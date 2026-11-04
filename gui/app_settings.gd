@@ -33,3 +33,14 @@ static func folder(dialog: String, fallback := "") -> String:
    if f.is_empty() or not DirAccess.dir_exists_absolute(f):
       f = fallback if not fallback.is_empty() and DirAccess.dir_exists_absolute(fallback) else OS.get_environment("USERPROFILE" if OS.get_name() == "Windows" else "HOME")
    return f
+
+
+## Whether dialogs show all their options ([b]Advanced[/b]; off by default, one choice for all the
+## dialogs that have it).
+static func advanced() -> bool:
+   return bool(value("dialogs", "advanced", false))
+
+
+## Remembers the choice of [b]Advanced[/b] (see [method advanced]).
+static func set_advanced(on: bool) -> void:
+   store("dialogs", "advanced", on)

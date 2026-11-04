@@ -47,6 +47,7 @@ func _ready() -> void:
    %Classes.value_changed.connect(func(_v): if not _building: _recolor(); _place())
    %Method.item_selected.connect(func(i): _spec.method = METHODS[i]; _place())
    %Log.toggled.connect(_on_log)
+   %Reverse.toggled.connect(_on_reverse)
    %Auto.pressed.connect(_automatic)
    %Clear.pressed.connect(func(): _spec.palette_name = ""; _spec.palette = [CLEARED]; _spec.overrides = []; _show(); _emit())
    %Single.color_changed.connect(func(c): _spec.color = "#" + c.to_html(false); _emit())
@@ -92,17 +93,38 @@ func _sizes(palette: String) -> Array:
    return keys
 
 
-## Colors of a palette with [param k] classes (the largest available if [param k] is 0).
+## Colors of a palette with [param k] classes (the largest available if [param k] is 0), in
+## reverse order when the specification has [code]reversed[/code].
 func _colors(palette: String, k := 0) -> Array:
    var sizes := _sizes(palette)
    var n: int = sizes.back() if k == 0 else clampi(k, sizes.front(), sizes.back())
-   return palettes[_kind_of(palette)][palette][str(n)]
+   var colors: Array = palettes[_kind_of(palette)][palette][str(n)].duplicate()
+   if _spec.get("reversed", false):
+      colors.reverse()
+   return colors
+
+
+## Reverses the colors of the scale (the stops keep their values; qualitative values swap
+## colors from the two ends of the palette), and remembers it for later palette changes.
+func _on_reverse(on: bool) -> void:
+   if _building:
+      return
+   _spec.reversed = on
+   if _spec.get("stops") != null:
+      var colors: Array = _spec.stops.map(func(s): return s[1])
+      colors.reverse()
+      for i in colors.size():
+         _spec.stops[i][1] = colors[i]
+   elif not _spec.get("palette_name", "").is_empty():
+      _spec.palette = _colors(_spec.palette_name)
+   _show()
+   _emit()
 
 
 ## Strip of the colors of a palette, for its menu item.
 func _icon(palette: String) -> Texture2D:
    if not _icons.has(palette):
-      var colors := _colors(palette)
+      var colors: Array = palettes[_kind_of(palette)][palette][str(_sizes(palette).back())]
       var image := Image.create(8 * colors.size(), 12, false, Image.FORMAT_RGB8)
       for i in colors.size():
          image.fill_rect(Rect2i(8 * i, 0, 8, 12), Color(colors[i]))
@@ -215,8 +237,9 @@ func _show() -> void:
    for n in [%SingleLabel, %Single]:
       n.visible = a.is_empty()
    var quantitative: bool = not a.is_empty() and _spec.scale == "quantitative"
-   for n in [%ScaleLabel, %Scale, %PaletteLabel, %Palette, %Scroll, %AutoRow]:
+   for n in [%ScaleLabel, %Scale, %PaletteLabel, %Palette, %ReverseLabel, %Reverse, %Scroll, %AutoRow]:
       n.visible = not a.is_empty()
+   %Reverse.button_pressed = _spec.get("reversed", false)
    for n in [%ClassesLabel, %Classes, %MethodLabel, %Method, %LogLabel, %Log]:
       n.visible = quantitative
    %Auto.visible = not a.is_empty() and not quantitative
@@ -323,7 +346,7 @@ func _edited() -> void:
       return
    var values := []
    for row in %Rows.get_children():
-      if row.is_queued_for_deletion():
+      if row.is_queued_for_deletion() or not row is HBoxContainer:   # skips the gradient strip
          continue
       var t: String = (row.get_child(0) as LineEdit).text
       if not t.is_valid_float():

@@ -16,6 +16,7 @@ signal changed(spec: Dictionary)
 const KINDS := {
    "area": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 2.0, "suffix": "×", "single": "Single size"},
    "width": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 3.0, "suffix": "×", "single": "Single size"},
+   "label": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 2.0, "suffix": "×", "single": "Single size"},
    "opacity": {"key": "opacity", "max": 1.0, "step": 0.01, "low": 0.2, "high": 1.0, "suffix": "", "single": "Single opacity"},
 }
 
@@ -39,7 +40,8 @@ func _ready() -> void:
 
 ## Opens the dialog titled [param heading] on a specification, with the [param attributes] that
 ## can give the values (from the worker); [param kind] is "area" (node sizes: areas proportional
-## to the values interpolated), "width" (edge thickness) or "opacity".
+## to the values interpolated), "width" (edge thickness), "label" (label heights, 1 × is half the
+## default node diameter) or "opacity".
 func open(heading: String, spec: Dictionary, attributes: Array, kind: String) -> void:
    title = heading
    _spec = spec.duplicate(true)
@@ -94,7 +96,7 @@ func _show() -> void:
    %Min.value = _spec.get("min", k.low)
    %Max.value = _spec.get("max", k.high)
    %Log.button_pressed = _spec.get("log", false)
-   var what: String = {"area": "Node areas", "width": "Edge widths", "opacity": "Opacities"}[_kind]
+   var what: String = {"area": "Node areas", "width": "Edge widths", "label": "Label heights", "opacity": "Opacities"}[_kind]
    if _kind == "opacity":
       %Note.text = "0 is transparent, 1 opaque." if single else "%s grow linearly from the smallest value to the largest; qualitative values count by their order, missing values get the smallest opacity." % what
    else:

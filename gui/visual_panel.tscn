@@ -78,6 +78,39 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Edit…"
 
+[node name="LabelLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Label"
+
+[node name="NodeLabel" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeLabel" type="MenuButton" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Write the node id, or the value of a node attribute, on every node (none by default)"
+text = "Edit…"
+flat = false
+
+[node name="LabelSizeLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Label size"
+
+[node name="LabelSize" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditLabelSize" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Height of the labels: one size for all, or sizes from a node attribute (relative to half the default node diameter; labels grow and shrink with the zoom)"
+text = "Edit…"
+
 [node name="Edges" type="GridContainer" parent="."]
 theme_override_constants/h_separation = 12
 visible = false
@@ -207,6 +240,18 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Reset"
 tooltip_text = "Puts the nodes back at the distances of the layout"
+
+[node name="CopyLabel" type="Label" parent="Network"]
+layout_mode = 2
+text = "Copy"
+
+[node name="CopyFrom" type="MenuButton" parent="Network"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+tooltip_text = "All the visual elements of another tab (nodes, edges and network) for this one; those mapped to attributes this network does not have stay as they are"
+text = "From tab…"
+flat = false
 
 [node name="ColorDialog" parent="." instance=ExtResource("3_color")]
 unique_name_in_owner = true

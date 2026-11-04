@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://worker.gd" id="2_worker"]
@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" path="res://backbone_dialog.tscn" id="13_backbone"]
 [ext_resource type="PackedScene" path="res://link_dialog.tscn" id="14_links"]
 [ext_resource type="PackedScene" path="res://gnn_dialog.tscn" id="15_gnn"]
+[ext_resource type="PackedScene" path="res://derive_dialog.tscn" id="16_derive"]
+[ext_resource type="PackedScene" path="res://robustness_dialog.tscn" id="17_robustness"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -49,11 +51,6 @@ flat = true
 
 [node name="File" type="PopupMenu" parent="Layout/Menus"]
 unique_name_in_owner = true
-item_count = 2
-item_0/text = "Load network…"
-item_0/id = 0
-item_1/text = "Save image…"
-item_1/id = 1
 
 [node name="Edit" type="PopupMenu" parent="Layout/Menus"]
 unique_name_in_owner = true
@@ -146,7 +143,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 modulate = Color(1, 1, 1, 0.6)
-text = "File › Load network… or Generators to open a network"
+text = "File › Load network…, File › New network… or Generators to open a network"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -289,10 +286,34 @@ unique_name_in_owner = true
 
 [node name="ImageDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
-title = "Save image"
+title = "Export image"
 file_mode = 4
 access = 2
 filters = PackedStringArray("*.png ; PNG images")
+use_native_dialog = true
+
+[node name="ExportDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Export network tables (name_edges.tsv, name_nodes.tsv)"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.tsv ; tab-separated tables")
+use_native_dialog = true
+
+[node name="SessionSaveDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Save session"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.gsk ; graphoskop sessions")
+use_native_dialog = true
+
+[node name="SessionOpenDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open session"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.gsk ; graphoskop sessions")
 use_native_dialog = true
 
 [node name="PythonDialog" type="FileDialog" parent="."]
@@ -318,11 +339,19 @@ visible = false
 unique_name_in_owner = true
 visible = false
 
+[node name="Robustness" parent="." instance=ExtResource("17_robustness")]
+unique_name_in_owner = true
+visible = false
+
 [node name="Links" parent="." instance=ExtResource("14_links")]
 unique_name_in_owner = true
 visible = false
 
 [node name="Gnns" parent="." instance=ExtResource("15_gnn")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Derive" parent="." instance=ExtResource("16_derive")]
 unique_name_in_owner = true
 visible = false
 

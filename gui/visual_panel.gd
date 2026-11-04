@@ -1,7 +1,10 @@
 extends TabContainer
-## Visual elements panel, with three tabs: Nodes (color, size, opacity and position: the layout,
-## or numeric node attributes for x and y, position_dialog.gd), Edges (color, thickness and
-## opacity) and Network (background, rotation of the view, scale of the layout). The scale
+## Visual elements panel, with three tabs: Nodes (color, size, opacity, position: the layout,
+## or numeric node attributes for x and y, position_dialog.gd, label: none, the default, or
+## the node ids or the values of a node attribute, chosen in the menu of its Edit button, and label size: one
+## size, or sizes from a node attribute, size_dialog.gd), Edges (color, thickness and
+## opacity) and Network (background, rotation of the view, scale of the layout, and Copy › From
+## tab…: all the visual elements of another tab). The scale
 ## multiplies the distances between the nodes on screen (a tenth to a hundred times those of the
 ## layout, on a logarithmic slider) without changing their size on screen: it blows up the layout,
 ## so that crowded nodes come apart; Reset puts it back to 1. (The mouse wheel zooms the view,
@@ -9,7 +12,7 @@ extends TabContainer
 ## that changes it (color_dialog.gd, size_dialog.gd). The panel edits the style of the drawing of
 ## the current network: [code]{"nodes": color, "edges": color, "node_size": size, "edge_width":
 ## size, "node_opacity": opacity, "edge_opacity": opacity, "position": {"x": name, "y": name},
-## "background": "#rrggbb"}[/code] (see
+## "labels": {"attribute": name, "ids": bool}, "label_size": size, "background": "#rrggbb"}[/code] (see
 ## [code]default_style[/code] in the worker).
 
 ## Emitted when the colors or sizes of nodes or edges change, with the whole style.
@@ -20,10 +23,16 @@ signal background_changed(color: Color)
 signal turn_changed(degrees: float)
 ## Emitted when the scale of the layout changes (1: the distances of the layout).
 signal scale_changed(factor: float)
+## Emitted when Network › Copy › From tab… is chosen, with the position of the other tab among the
+## names given by [member tab_names].
+signal copy_requested(index: int)
 
 ## Function (attribute, kind, method, k, log, done) asking the worker for stop values (set by the
 ## main scene).
 var breaks := Callable()
+## Function giving the names of the other tabs, whose visual elements can be copied (set by the
+## main scene).
+var tab_names := Callable()
 var _style := {}
 var _attributes := {}
 var _editing := ""
@@ -36,16 +45,42 @@ func _ready() -> void:
    %EditEdgeWidth.pressed.connect(func(): _edit_size("edge_width", "Edge thickness", "edges", "width"))
    %EditNodeOpacity.pressed.connect(func(): _edit_size("node_opacity", "Node opacity", "nodes", "opacity"))
    %EditEdgeOpacity.pressed.connect(func(): _edit_size("edge_opacity", "Edge opacity", "edges", "opacity"))
+   %EditLabelSize.pressed.connect(func(): _edit_size("label_size", "Label size", "nodes", "label"))
    %ColorDialog.changed.connect(_changed)
    %SizeDialog.changed.connect(_changed)
    %EditNodePosition.pressed.connect(func(): _editing = "position"; %PositionDialog.open(_style.get("position", {}), _attributes.get("nodes", [])))
    %PositionDialog.changed.connect(_changed)
+   var labels: PopupMenu = %EditNodeLabel.get_popup()
+   %EditNodeLabel.about_to_popup.connect(func():
+      labels.clear()
+      labels.add_item("none")
+      labels.add_item("node id")
+      labels.set_item_tooltip(1, "The id of every node")
+      labels.add_separator()
+      for a in _attributes.get("nodes", []):
+         labels.add_item(a.name))
+   labels.index_pressed.connect(func(i):
+      _editing = "labels"
+      if i <= 1:
+         _changed({"attribute": null, "ids": i == 1})
+      else:
+         _changed({"attribute": labels.get_item_text(i)}))
    %Background.color_changed.connect(func(c): _style.background = "#" + c.to_html(false); background_changed.emit(c))
    %TurnSlider.share(%Turn)
    %Turn.value_changed.connect(func(v): turn_changed.emit(v))
    %ScaleSlider.value_changed.connect(func(v): _scale(pow(10.0, v)))
    %Scale.value_changed.connect(_scale)
    %ResetScale.pressed.connect(func(): _scale(1.0))
+   var copies: PopupMenu = %CopyFrom.get_popup()
+   %CopyFrom.about_to_popup.connect(func():
+      copies.clear()
+      var names: Array = tab_names.call() if tab_names.is_valid() else []
+      for i in names.size():
+         copies.add_item(names[i], i)
+      if names.is_empty():
+         copies.add_item("No other tab", 100000)
+         copies.set_item_disabled(0, true))
+   copies.id_pressed.connect(func(id): if id < 100000: copy_requested.emit(id))
 
 
 func _scale(factor: float) -> void:
@@ -104,6 +139,9 @@ func _summarize() -> void:
          axes.append("%s: %s" % [axis, p[axis]])
    %NodePosition.text = "the layout" if axes.is_empty() else ", ".join(axes)
    %NodePosition.tooltip_text = %NodePosition.text
+   var label = _style.get("labels", {}).get("attribute")
+   %NodeLabel.text = str(label) if label != null else ("node id" if _style.get("labels", {}).get("ids", false) else "none")
+   %LabelSize.text = _size_summary(_style.get("label_size", {}))
 
 
 ## Swatch or color ramp of a color specification, and what it colors by.

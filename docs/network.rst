@@ -15,7 +15,7 @@ Networks and their attributes
 .. autofunction:: graphoskop.load_pickled_network
 
 .. autoclass:: graphoskop.Network
-   :members: get_node_attribute, set_node_attribute, remove_node_attribute, get_edge_attribute, set_edge_attribute, remove_edge_attribute, edges, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
+   :members: get_node_attribute, set_node_attribute, remove_node_attribute, get_edge_attribute, set_edge_attribute, remove_edge_attribute, network_attributes, edges, number_of_nodes, number_of_edges, number_of_components, is_planar, interlayer_mask, to_pandas_dataframes
 
 .. autodata:: graphoskop.BIPARTITE
    :annotation: = "bipartite_type"
@@ -75,6 +75,23 @@ distinct values otherwise. Qualitative edge attributes can be compared by
    net.get_edge_attribute("kind", edge = ("alice", "bob"))   # e.g. "friend"
    net.set_edge_attribute("tie", ["strong"] * net.components[0].edge_index.shape[1])
    net.remove_edge_attribute("kind")                   # numeric or qualitative
+
+Network attributes
+------------------
+
+Values of the network as a whole (a density, a clustering coefficient, a hierarchy score, a
+model fit) can be kept with it, by name, in the dictionary ``Network.network_attributes``,
+empty at first. The library does not fill it: the code that computes a value stores it. It
+belongs to the network object (it is pickled with it), and networks made from it by other
+functions (subgraphs, transformations, backbones) start with an empty one, since their values
+differ. The graphical interface shows it in the Network tab of the data panel, and its global
+measures store their values there.
+
+.. code-block:: python
+
+   net.network_attributes["global_clustering"] = gsk.global_clustering(net)
+   net.network_attributes["flow_hierarchy"] = gsk.flow_hierarchy(net)
+   net.network_attributes                       # {"global_clustering": 0.25, "flow_hierarchy": 0.83}
 
 .. _overlapping-communities:
 

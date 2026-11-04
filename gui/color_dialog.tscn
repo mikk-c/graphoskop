@@ -66,6 +66,16 @@ unique_name_in_owner = true
 layout_mode = 2
 fit_to_longest_item = false
 
+[node name="ReverseLabel" type="Label" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Reverse" type="CheckBox" parent="Box/Grid"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Colors of the palette in reverse order"
+text = "Reverse colors"
+
 [node name="ClassesLabel" type="Label" parent="Box/Grid"]
 unique_name_in_owner = true
 layout_mode = 2

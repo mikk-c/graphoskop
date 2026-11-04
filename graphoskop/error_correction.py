@@ -2444,8 +2444,9 @@ def _run_chains(N, eu, ev, b0, par, Bs, kind, pmoves, lam, model, meas, h, hfix,
 def _corrected(net, N, uk, prob, s, t, attrs):
    """
    Corrected network: the nodes of ``net`` with their attributes, an edge for every pair with a
-   positive posterior probability or observed in ``net``, with the edge attribute
-   ``"probability"`` and the numeric edge attributes of the observed edges (NaN for new ones).
+   positive posterior probability or observed in ``net``, with the edge attributes
+   ``"probability"`` and ``"observed"`` (1 for the pairs that are edges of ``net``, 0 for the new
+   ones) and the numeric edge attributes of the observed edges (NaN for new ones).
    """
    from .network import _build, _node_table, _qualitative_rows, _node_types
    obs = s * N + t
@@ -2453,11 +2454,13 @@ def _corrected(net, N, uk, prob, s, t, attrs):
    allk = np.union1d(uk, ok)
    p = np.zeros(len(allk))
    p[np.searchsorted(allk, uk)] = prob
-   names = ["probability"] + [a for a in attrs if a != "probability"]
+   names = ["probability", "observed"] + [a for a in attrs if a not in ("probability", "observed")]
    ea = np.full((len(allk), len(names)), np.nan, dtype = np.float32)
    ea[:, 0] = p
    pos = np.searchsorted(allk, ok)
-   for j, a in enumerate(names[1:], 1):
+   ea[:, 1] = 0.
+   ea[pos, 1] = 1.
+   for j, a in enumerate(names[2:], 2):
       ea[pos, j] = attrs[a][first]
    rows = np.arange(N)
    ids = np.concatenate(net.node_ids)
@@ -2613,8 +2616,10 @@ def measured_network_correction(net, measurements = None, positives = None, defa
    :param seed: Seed of the random numbers, or ``None``.
    :return: ``(corrected, summary)``: the corrected network, a new :class:`~graphoskop.Network`
       with the nodes of ``net`` and an edge for every pair observed or ever sampled as an edge,
-      with the edge attribute ``"probability"`` (:math:`\\pi_{ij}`) and the numeric edge attributes
-      of ``net`` (NaN for new pairs); and a dict with the ``model``, the numbers of ``groups`` per
+      with the edge attributes ``"probability"`` (:math:`\\pi_{ij}`) and ``"observed"`` (1 for the
+      pairs listed as edges of ``net``, 0 for the pairs only sampled: thresholding the probability
+      both removes observed pairs and adds new ones) and the numeric edge attributes of ``net``
+      (NaN for new pairs); and a dict with the ``model``, the numbers of ``groups`` per
       level of its fit, the posterior means of the number of groups of the bottom level
       (``mean_groups``), of the number of ``edges``, of the ``description_length``, of
       the ``false_negative_rate`` :math:`p` and the ``false_positive_rate`` :math:`q` (with
@@ -2718,7 +2723,8 @@ def uncertain_network_correction(net, probability = "probability", default_proba
    :param seed: Seed of the random numbers, or ``None``.
    :return: ``(corrected, summary)``, as :func:`measured_network_correction` (the summary has
       ``model``, ``groups``, ``mean_groups``, ``edges``, ``description_length`` and ``samples``). The edge
-      attribute ``"probability"`` of the corrected network replaces the input one.
+      attribute ``"probability"`` of the corrected network replaces the input one; ``"observed"``
+      is 1 for the pairs listed in ``net`` (whatever their input probability), 0 for the others.
    :raises ValueError: If ``net`` is directed or multilayer, if a probability is outside
       :math:`[0, 1]`, if a pair is listed twice, or for ``model`` and ``groups`` as in
       :func:`measured_network_correction`.

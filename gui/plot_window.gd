@@ -20,6 +20,9 @@ extends AcceptDialog
 ## The worker draws the plot again after every change (after a short pause). Save PNG… and Save
 ## PDF… write the plot as shown to a file (PNG at 200 dpi); plots of a matrix (pairwise node
 ## vector analyses) also have Save table…, which writes its values (tab separated).
+##
+## The colors, styles, axes and font size show only with [b]Advanced[/b] on (off by default, see
+## [method AppSettings.advanced]); the plot, its text, its Plot menu and the Save buttons always.
 
 ## Emitted with the path chosen to save the plot of the network of tab [param tab].
 signal save_requested(tab: int, path: String)
@@ -39,9 +42,19 @@ var _menus := {}
 var _style_names := []
 var _kinds := []
 var _file := "plot"
+## Whether the plot is a heatmap (it has a color scale row).
+var _heatmap := false
+var _advanced := CheckButton.new()
 
 
 func _ready() -> void:
+   _advanced.text = "Advanced"
+   _advanced.tooltip_text = "Show the colors, styles, axes and font of the plot"
+   $Box/Buttons.add_child(_advanced)
+   $Box/Buttons.move_child(_advanced, 0)
+   _advanced.toggled.connect(func(on):
+      AppSettings.set_advanced(on)
+      _show_rows())
    %SavePNG.pressed.connect(func(): _ask("png"))
    %SavePDF.pressed.connect(func(): _ask("pdf"))
    %SaveTable.pressed.connect(func(): _ask("tsv"))
@@ -67,7 +80,7 @@ func _ready() -> void:
 func _emit() -> void:
    var options := {"xlog": %XLog.selected == 1, "ylog": %YLog.selected == 1, "font_size": %FontSize.value, "xlabel": %XLabel.text, "ylabel": %YLabel.text}
    var ranges := [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax]]
-   if %ZAxis.visible:
+   if _heatmap:
       options.zlabel = %ZLabel.text
       options.zlog = %ZLog.selected == 1
       ranges.append_array([["zmin", %ZMin], ["zmax", %ZMax]])
@@ -136,7 +149,7 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
    %YLog.select(1 if options.get("ylog", false) else 0)
    %XLabel.text = str(options.get("xlabel", ""))
    %YLabel.text = str(options.get("ylabel", ""))
-   %ZAxis.visible = options.has("zmin")   # heatmaps: the range of the color scale
+   _heatmap = options.has("zmin")   # heatmaps: the range of the color scale
    %ZLabel.text = str(options.get("zlabel", ""))
    %ZLog.select(1 if options.get("zlog", false) else 0)
    for pair in [["xmin", %XMin], ["xmax", %XMax], ["ymin", %YMin], ["ymax", %YMax], ["zmin", %ZMin], ["zmax", %ZMax]]:
@@ -147,9 +160,19 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
    %Verdict.text = verdict
    %Warnings.text = "\n".join(warnings)
    %Warnings.visible = not warnings.is_empty()
+   _advanced.set_pressed_no_signal(AppSettings.advanced())
+   _show_rows()
+   popup_centered()
+
+
+## Shows the rows of the colors, axes and font only with [b]Advanced[/b] on, and sizes the window.
+func _show_rows() -> void:
+   var on := _advanced.button_pressed
+   for row in [%Colors, $Box/XAxis, $Box/YAxis, $Box/Buttons/FontLabel, %FontSize]:
+      row.visible = on
+   %ZAxis.visible = on and _heatmap
    size = Vector2i.ZERO
    reset_size()
-   popup_centered()
 
 
 ## Shows the text under the plot (e.g. the pseudo p-value of a randomization test).

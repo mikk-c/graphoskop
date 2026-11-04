@@ -129,6 +129,8 @@ func show_rows(reply: Dictionary, offset: int, title: String) -> void:
    _columns = columns
    _index = reply.get("index", [])
    %Table.columns = maxi(columns.size(), 1)
+   if columns.is_empty():
+      %Table.set_column_title(0, "")   # no title left from the table before
    for j in columns.size():
       %Table.set_column_title(j, columns[j] + ((" ▲" if ascending else " ▼") if columns[j] == sort_column else ""))
       %Table.set_column_expand(j, true)

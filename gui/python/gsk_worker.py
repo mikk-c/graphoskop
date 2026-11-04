@@ -34,6 +34,7 @@ import _thread
 import ast
 import inspect
 import json
+import keyword
 import os
 import queue
 import re
@@ -52,6 +53,13 @@ NODE_STRIDE = 16
 #: Floats per edge in the buffer of the edges: a 2D transform (8 floats) and a color (4); in
 #: directed networks also custom data (4, :data:`ARROW_EDGE_STRIDE`).
 EDGE_STRIDE = 12
+#: Half the width of the canvas of an empty network (File › New network), in drawing units, and the
+#: diameter of the nodes drawn on it: the nodes added by hand keep it.
+EMPTY_BOX = 1.0
+EMPTY_NODE_SIZE = 0.06
+#: Height of the node labels of size 1 ×, relative to the default node diameter (labels are
+#: centered on their nodes).
+LABEL_FRACTION = 0.5
 #: Floats per edge of directed networks: as :data:`EDGE_STRIDE`, then the diameters of the source
 #: and of the target, and whether an arrowhead is at the source and at the target (1 or 0): the
 #: edge shader of the interface ends the line at the base of its arrowheads.
@@ -470,7 +478,7 @@ def widget(function, name, shown, hint, net = None):
    options = OPTIONS.get((function, name), OPTIONS.get(name) if (function, name) not in CHOICES else None)
    if options is not None:
       return {"kind": "choice", "options": options}
-   choice = CHOICES.get((function, name), CHOICES.get(name) if function in LAYOUTS or (function in COMMUNITIES | set(CENTRALITIES) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(LINK_PREDICTIONS) | set(GNNS) and name == "weight") else None)
+   choice = CHOICES.get((function, name), CHOICES.get(name) if function in LAYOUTS or (function in COMMUNITIES | set(CENTRALITIES) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(HIERARCHIES) | set(STATISTICS) and name == "weight") else None)
    if choice is not None:
       w = {"kind": "attribute", "choices": choice[0], "multiple": choice[1], "extra": EXTRA_CHOICES.get((function, name), [])}
       if name == "weight" and function in set(BACKBONES) | FILTERS | set(PROJECTIONS) and shown not in ("", "None"):
@@ -742,12 +750,40 @@ def _source_value(ns, source):
    return ast.literal_eval(source) if not source.lstrip().startswith("matching(") else eval(source, dict(ns, matching = matching))
 
 
+#: Functions of the interface that the code of a tab can call (defined in this worker): the code
+#: imports them from it the first time it calls one (:func:`interface_import`).
+INTERFACE_FUNCTIONS = ["derived", "groups", "matching", "move_nodes", "node_sizes", "node_with", "set_edge_values"]
+
+
+def interface_import():
+   """
+   Lines of code importing the functions of the interface (:data:`INTERFACE_FUNCTIONS`) from this
+   worker, its folder added to the path of Python, so that the code of a tab runs as it is in
+   any Python with the library, e.g.
+
+   .. code-block:: python
+
+      import sys
+      sys.path.append("/opt/graphoskop/gui/python")   # the folder of gsk_worker.py, the worker of the graphical interface
+      from gsk_worker import derived, groups, matching, move_nodes, node_sizes, node_with, set_edge_values   # functions of the graphical interface
+   """
+   folder = os.path.dirname(os.path.abspath(__file__))
+   return ["import sys", f"sys.path.append({literal(folder)})   # the folder of gsk_worker.py, the worker of the graphical interface",
+           f"from gsk_worker import {', '.join(INTERFACE_FUNCTIONS)}   # functions of the graphical interface"]
+
+
 def _matching_note(ns, code):
    """
-   The comment :data:`MATCHING_NOTE` before ``code`` (lines) if it calls :func:`matching` for the
-   first time in the tab.
+   The comments :data:`MATCHING_NOTE`, :data:`DERIVED_NOTE` and :data:`NODE_WITH_NOTE` before
+   ``code`` (lines) if it calls :func:`matching`, :func:`derived` or :func:`node_with` for the
+   first time in the tab; before them, :func:`interface_import` if it calls a function of the
+   interface and the code of the tab does not import them yet.
    """
-   return [MATCHING_NOTE] + code if any("matching(" in c for c in code) and MATCHING_NOTE not in ns["__code__"] else code
+   notes = [note for call, note in (("matching(", MATCHING_NOTE), ("derived(", DERIVED_NOTE), ("node_with(", NODE_WITH_NOTE)) if any(call in c for c in code) and note not in ns["__code__"]]
+   calls = re.compile(r"(?<![\w.])(" + "|".join(INTERFACE_FUNCTIONS) + r")\(")
+   imported = any(c.startswith("from gsk_worker import") for c in ns["__code__"])
+   needed = not imported and any(calls.search(c.split("#")[0]) for c in code)
+   return (interface_import() if needed else []) + notes + code
 
 
 def edge_values(net, name):
@@ -1015,10 +1051,10 @@ def opacities(values, spec):
 def _helpers():
    """
    Functions of the interface defined in the namespace of every tab, for the code they write:
-   :func:`node_sizes`, :func:`move_nodes`, :func:`groups`, :func:`set_edge_values` and
-   :func:`matching`.
+   :func:`node_sizes`, :func:`move_nodes`, :func:`groups`, :func:`set_edge_values`,
+   :func:`matching`, :func:`derived` and :func:`node_with`.
    """
-   return {"node_sizes": node_sizes, "move_nodes": move_nodes, "groups": groups, "set_edge_values": set_edge_values, "matching": matching}
+   return {"node_sizes": node_sizes, "move_nodes": move_nodes, "groups": groups, "set_edge_values": set_edge_values, "matching": matching, "derived": derived, "node_with": node_with}
 
 
 def move_nodes(net, positions, attribute = "pos"):
@@ -1037,7 +1073,10 @@ def move_nodes(net, positions, attribute = "pos"):
    rows = torch.tensor([index[v] for v in positions], dtype = torch.long)
    offs = net.node_offsets
    for j, axis in enumerate("xy"):
-      values = torch.cat(net.get_node_attribute(f"{attribute}_{axis}", None)).clone()
+      if f"{attribute}_{axis}" not in net.node_attributes:   # no positions yet (a new network): 0 for the others
+         values = torch.zeros(net.number_of_nodes())
+      else:
+         values = torch.cat(net.get_node_attribute(f"{attribute}_{axis}", None)).clone()
       values[rows.to(values.device)] = torch.tensor([float(xy[j]) for xy in positions.values()], dtype = values.dtype, device = values.device)
       net.set_node_attribute(f"{attribute}_{axis}", [values[o:o2] for o, o2 in zip(offs[:-1], offs[1:])], None)
 
@@ -1107,7 +1146,9 @@ def default_style(net):
    Style of a new drawing: ``nodes`` and ``edges`` (colors, see :func:`colors`), ``node_size`` and
    ``edge_width`` (see :func:`sizes`), ``node_opacity`` and ``edge_opacity`` (see
    :func:`opacities`), ``position`` (``{"x": None, "y": None}``: the layout, see
-   :func:`positions`). Nodes are :data:`NODE_COLOR` and edges :data:`EDGE_COLOR`, all of the
+   :func:`positions`), ``labels`` (``{"attribute": None}``: no labels; ``"ids": True`` for the
+   node ids, see :func:`node_labels`), ``label_size`` (``{"attribute": None, "size": 1.}``, see
+   :func:`label_sizes`). Nodes are :data:`NODE_COLOR` and edges :data:`EDGE_COLOR`, all of the
    default size and opaque; in bipartite networks (and incidence networks of hypergraphs and
    complexes), nodes are colored by type, the second type (hyperedges, facets)
    :data:`TYPE1_COLOR`.
@@ -1118,7 +1159,7 @@ def default_style(net):
       if b == "node":
          a, b = b, a
       nodes = {"attribute": gsk.BIPARTITE, "scale": "qualitative", "palette_name": "Set1", "palette": [NODE_COLOR, TYPE1_COLOR], "overrides": [[a, NODE_COLOR], [b, TYPE1_COLOR]], "missing": MISSING_COLOR}
-   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}}
+   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}, "labels": {"attribute": None}, "label_size": {"attribute": None, "size": 1.}}
 
 
 def prune_style(style, net):
@@ -1135,7 +1176,7 @@ def prune_style(style, net):
    nodes = set(net.node_attributes) | set(net.qualitative_node_attributes) | ({gsk.BIPARTITE} if net.bipartite_labels is not None else set())
    edges = set(net.edge_attributes) | set(net.qualitative_edge_attributes)
    default = None
-   for key, names in [("nodes", nodes), ("node_size", nodes), ("node_opacity", nodes), ("edges", edges), ("edge_width", edges), ("edge_opacity", edges)]:
+   for key, names in [("nodes", nodes), ("node_size", nodes), ("node_opacity", nodes), ("edges", edges), ("edge_width", edges), ("edge_opacity", edges), ("labels", nodes), ("label_size", nodes)]:
       a = (style.get(key) or {}).get("attribute")
       if a is not None and a not in names:
          default = default or default_style(net)
@@ -1448,7 +1489,19 @@ def _drawn(ns):
    return gsk.incidence_network(net) if net.higher_order is not None else net
 
 
-def _tables(ns, kind = "nodes"):
+def shown_attributes(names, hide):
+   """
+   The attributes ``names`` shown in a table of the data panel: with ``hide`` (from the
+   interface: ``all``, whether all are hidden, and ``except``, the names that are not as the
+   others), those not hidden; all without.
+   """
+   if not hide:
+      return list(names)
+   flip = set(hide.get("except") or [])
+   return [a for a in names if (a in flip) == bool(hide.get("all"))]
+
+
+def _tables(ns, kind = "nodes", hide = None):
    """
    Tables of the data panel of a tab, each made when first asked for (``kind``) and cached until
    the code of the tab runs again: one row per node of the drawn network (``nodes``: in the
@@ -1457,17 +1510,20 @@ def _tables(ns, kind = "nodes"):
    ``ids``, which name the sources and targets of the rows shown only, see :func:`_table`). Only
    the first :data:`TABLE_ATTRIBUTES` attributes are columns (a table with a column per attribute
    of ten thousand would stall the interface); ``attributes_nodes`` and ``attributes_edges`` count
-   all of them.
+   all of them. Attributes hidden in the data panel (``hide``, see :func:`shown_attributes`) are
+   left out; a table is made again when they change.
    """
    import pandas as pd
    T = ns.get("__tables__")
    if T is None:
       T = ns["__tables__"] = {}
-   if kind not in T:
+   key = (bool((hide or {}).get("all")), tuple(sorted((hide or {}).get("except") or [])))
+   if kind not in T or hide is not None and T.get(kind + "_hide") != key:
+      T[kind + "_hide"] = key
       net = _drawn(ns)
       if kind == "nodes":
          names = list(net.node_attributes) + list(net.qualitative_node_attributes)
-         shown = names[:TABLE_ATTRIBUTES]
+         shown = shown_attributes(names, hide)[:TABLE_ATTRIBUTES]
          numeric = [a for a in shown if a in net.node_attributes]
          columns = _numeric_columns(net, numeric)
          T["nodes"] = pd.DataFrame({"node": _ids(net), **{a: columns[a] if a in columns else _column(net, a) for a in shown}})   # one table at once
@@ -1475,13 +1531,15 @@ def _tables(ns, kind = "nodes"):
       else:
          s, t = _edges(net)
          names = list(net.edge_attributes) + list(net.qualitative_edge_attributes)
-         T.update(edges = pd.DataFrame({"source": s, "target": t, **{a: edge_values(net, a) for a in names[:TABLE_ATTRIBUTES]}}), s = s, t = t, ids = _ids(net), attributes_edges = len(names))
+         T.update(edges = pd.DataFrame({"source": s, "target": t, **{a: edge_values(net, a) for a in shown_attributes(names, hide)[:TABLE_ATTRIBUTES]}}), s = s, t = t, ids = _ids(net), attributes_edges = len(names))
    return T
 
 
 def summary(net):
    """
-   Properties of a network for the "Network" tab of the data panel, as pairs of texts.
+   Properties of a network for the "Network" tab of the data panel, as pairs of texts, followed
+   by its network attributes (``net.network_attributes``: global values of analyses, e.g.
+   ``flow_hierarchy``).
    """
    kind = {"hypergraph": "hypergraph", "simplicial": "simplicial complex"}.get(net.higher_order, "network")
    rows = [["kind", kind], ["directed", str(net.directed)], ["bipartite", str(net.bipartite_labels is not None and net.higher_order is None)]]
@@ -1498,6 +1556,7 @@ def summary(net):
       return ", ".join(names[:SUMMARY_ATTRIBUTES]) + (f", … ({len(names):,} in all)" if len(names) > SUMMARY_ATTRIBUTES else "")
    rows += [["numeric node attributes", listed(net.node_attributes)], ["qualitative node attributes", listed(net.qualitative_node_attributes)]]
    rows += [["numeric edge attributes", listed(net.edge_attributes)], ["qualitative edge attributes", listed(net.qualitative_edge_attributes)]]
+   rows += [[str(k), text(v) if np.ndim(v) == 0 else str(v)] for k, v in net.network_attributes.items()]   # network attributes, after the properties
    return rows
 
 
@@ -1515,7 +1574,9 @@ def _table(request):
    ``total`` number of rows and, for nodes and edges, the ``index`` of the rows shown (positions
    of the nodes or edges in the drawing order, for the values edited in the data panel,
    :func:`_set_value`) and the number of ``attributes`` (more than the columns beyond
-   :data:`TABLE_ATTRIBUTES`; the table of one node has them all, :func:`node_row`).
+   :data:`TABLE_ATTRIBUTES`; the table of one node has them all, :func:`node_row`). Attributes
+   hidden in the data panel (``hide``, see :func:`shown_attributes`) are left out (also of the
+   table of one node), and ``hidden`` counts them.
    """
    import pandas as pd
    ns = _spaces[request["tab"]]
@@ -1524,16 +1585,17 @@ def _table(request):
    if kind == "network":
       df = pd.DataFrame(summary(ns["net"]), columns = ["property", "value"])
    elif kind == "tables":
-      df = ns.get("epidemics", {}).get(request.get("name"))
+      df = tab_tables(ns).get(request.get("name"))
       if df is None:
          return {"columns": [], "numeric": [], "rows": [], "total": 0}, b""
-      df = df.reset_index()
-   elif kind == "nodes" and node is not None:   # all the attributes, also those that are not columns of the table
+      df = df.reset_index() if not isinstance(df.index, pd.RangeIndex) else df
+   elif kind == "nodes" and node is not None:   # all the attributes, also those that are not columns of the table (but the hidden ones)
       net = _drawn(ns)
-      values = {"node": _ids(net)[int(node)], **node_row(net, int(node))}
+      row = node_row(net, int(node))
+      values = {"node": _ids(net)[int(node)], **{a: row[a] for a in shown_attributes(list(row), request.get("hide"))}}
       df = pd.DataFrame({"attribute": [str(c) for c in values], "value": pd.Series([text(v) or "" for v in values.values()], dtype = object)})
    else:
-      df = _rows(_tables(ns, kind), request)
+      df = _rows(_tables(ns, kind, request.get("hide") or {}), request)
    ids = _tables(ns, "edges")["ids"] if kind == "edges" else None
    if ids is not None and request.get("sort") in ("source", "target"):   # sorted by the ids
       df = df.assign(**{request["sort"]: ids[df[request["sort"]].to_numpy()]})
@@ -1543,10 +1605,14 @@ def _table(request):
    if ids is not None:   # the ids of the rows shown
       page = page.assign(**{c: ids[page[c].to_numpy()] for c in ("source", "target") if page[c].dtype.kind in "iu"})
    rows = [[text(v) or "" for v in r] for r in page.itertuples(index = False, name = None)]
-   numeric = [kind == "tables" or (ids.dtype.kind in "fiu" if ids is not None and c in ("source", "target") else df[c].dtype.kind in "fiu") for c in df.columns]
+   numeric = [(ids.dtype.kind in "fiu" if ids is not None and c in ("source", "target") else df[c].dtype.kind in "fiu") for c in df.columns]
    reply = {"columns": [str(c) for c in df.columns], "numeric": numeric, "rows": rows, "total": len(df)}
-   if kind == "edges" or kind == "nodes" and node is None:   # attributes left out of the columns
+   if kind == "edges" or kind == "nodes" and node is None:   # attributes left out of the columns, and hidden
       reply["attributes"] = _tables(ns, kind)["attributes_" + kind]
+   if kind in ("nodes", "edges") and request.get("hide"):
+      net = _drawn(ns)
+      names = list(net.node_attributes) + list(net.qualitative_node_attributes) if kind == "nodes" else list(net.edge_attributes) + list(net.qualitative_edge_attributes)
+      reply["hidden"] = len(names) - len(shown_attributes(names, request["hide"]))
    if kind == "edges" or kind == "nodes" and node is None:   # positions of the rows in the drawing order, for edits
       reply["index"] = [int(i) for i in page.index]
    return reply, b""
@@ -1737,13 +1803,66 @@ def _generate(request):
    return _new(request, generator_code(request["function"], request.get("arguments") or {}))
 
 
+def empty_code(directed = False):
+   """
+   Code of File › New network: an empty network (no nodes, no edges), to draw by hand with the
+   menu of the visualization panel (add a node, add an edge), e.g. ``net =
+   gsk.load_network(pd.DataFrame({"source": [], "target": []}), directed = True)``.
+
+   :param directed: Whether its edges are directed.
+   :return: List of lines of code, defining ``net``.
+   """
+   return ["import pandas as pd", "net = gsk.load_network(pd.DataFrame({\"source\": [], \"target\": []})" + (", directed = True" if directed else "") + ")"]
+
+
+def _empty(request):
+   """
+   Command ``empty``: a new tab with the empty network of :func:`empty_code` (``directed``).
+   """
+   return _new(request, empty_code(bool(request.get("directed"))))
+
+
+def node_labels(net, style):
+   """
+   Labels of the nodes of a drawing (Visual elements › Nodes › Label): the texts (:func:`text`;
+   empty for missing values) of the node attribute ``style["labels"]["attribute"]``, or the node
+   ids with ``style["labels"]["ids"]``, joined by ``"\x1f"`` (UTF-8) in the drawing order, or
+   empty bytes without labels (the default).
+   """
+   labels = style.get("labels") or {}
+   a = labels.get("attribute")
+   if a is None:
+      return "\x1f".join(str(i) for i in _ids(net)).encode("utf-8") if labels.get("ids") and net.number_of_nodes() else b""
+   v = _column(net, a)
+   texts, pos = distinct(v)
+   lookup = np.array(texts + [""], dtype = object)
+   return "\x1f".join(lookup[pos]).encode("utf-8")
+
+
+def label_sizes(net, style, size):
+   """
+   Heights of the node labels of a drawing, in drawing units (as the node diameters, so that they
+   grow and shrink with the zoom): :data:`LABEL_FRACTION` of the default node diameter ``size``,
+   times the relative sizes of ``style["label_size"]`` (Visual elements › Nodes › Label size, see
+   :func:`sizes`: one size for all, or sizes from a node attribute), as float32 bytes in the
+   drawing order; empty bytes without labels.
+   """
+   labels = style.get("labels") or {}
+   if labels.get("attribute") is None and not labels.get("ids"):
+      return b""
+   spec = style.get("label_size") or {}
+   values = node_values(net, spec["attribute"]) if spec.get("attribute") is not None else net.number_of_nodes()
+   return (LABEL_FRACTION * size * sizes(values, spec)).astype(np.float32).tobytes()
+
+
 def _draw(ns, code, keep = False):
    """
    Reply with the code of a tab and, if its network has positions, its drawing (:func:`drawing`):
    the header has the numbers of nodes, edges, self loops and arrowheads, the floats per edge
    (``stride``: :data:`EDGE_STRIDE`, :data:`ARROW_EDGE_STRIDE` or :data:`CURVE_STRIDE`), the byte sizes of the
    parts of the payload (node buffer, edge buffer, ids, grid order, grid starts, sources and
-   targets of the edges as int32 positions of the nodes, loop buffer, arrow buffer, in this order), the grid, the box, the
+   targets of the edges as int32 positions of the nodes, loop buffer, arrow buffer, labels
+   (:func:`node_labels`, empty without), label heights (:func:`label_sizes`), in this order), the grid, the box, the
    default and largest node diameters and the style. The default node diameter of the tab is
    recomputed for the layout, unless ``keep`` (transformations of a layout and changes of style
    keep it). Edges are drawn as the curves of ``bends`` when no layout came after them, and the
@@ -1756,6 +1875,13 @@ def _draw(ns, code, keep = False):
    draw = ns.get("inc", ns["net"])
    last = last_layout(ns["__code__"])
    matrix = _matrix_attribute(ns, last) if last == "matrix_layout" else None
+   if not draw.components and draw.higher_order is None:   # an empty network (File › New network): an empty canvas to add nodes to
+      ns["__style__"] = prune_style(dict(default_style(draw), **ns.get("__style__", {})), draw)
+      ns["__size__"] = ns.get("__size__") or EMPTY_NODE_SIZE
+      b = EMPTY_BOX
+      header = {"labels": False, "code": code, "nodes": 0, "empty": True, "edges": 0, "loops": 0, "arrows": 0, "stride": EDGE_STRIDE, "curved": False, "cells": False, "subdivisions": 1, "box": [-b, -b, b, b], "node_size": ns["__size__"], "biggest": ns["__size__"], "grid": {}, "style": ns["__style__"], "parts": [0] * 11}
+      header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = "", movable = True, adding = adding(ns["net"]))
+      return header, b""
    if "pos_x" not in draw.node_attributes and matrix is None or draw.higher_order is not None:   # no layout yet (a new hypergraph, e.g. from clique promotion: laid out as its incidence network)
       return {"code": code, "nodes": 0}, b""
    ns["__style__"] = prune_style(dict(default_style(draw), **ns.get("__style__", {})), draw)
@@ -1763,8 +1889,10 @@ def _draw(ns, code, keep = False):
    d = drawing(draw, ns.get("__size__") if keep else None, ns["__style__"], bends = bends, matrix = matrix)
    ns["__size__"] = d["size"]
    s, t = _edges(draw)
-   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes()]
-   header = {"code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "loops": len(d["loops"]), "arrows": len(d["arrows"]), "stride": int(d["edges"].shape[1]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
+   labels = node_labels(draw, ns["__style__"]) if matrix is None else b""
+   heights = label_sizes(draw, ns["__style__"], d["size"]) if labels else b""
+   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes(), labels, heights]
+   header = {"labels": bool(labels), "code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "loops": len(d["loops"]), "arrows": len(d["arrows"]), "stride": int(d["edges"].shape[1]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
    header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = _history_key(ns, draw), movable = matrix is None and not _positioned(ns), adding = adding(ns["net"]))
    return header, b"".join(parts)
 
@@ -2267,7 +2395,9 @@ def vector_code(ns, function, arguments):
    """
    Code of a node vector analysis of :data:`VECTORS` on the network of a tab (its largest
    component, the default of the library), keeping its result in a variable, e.g.
-   ``correlation = gsk.network_correlation(net, "age", "income", k = 2)``. The graph Fourier
+   ``correlation = gsk.network_correlation(net, "age", "income", k = 2)``, also kept as a network
+   attribute, e.g. ``net.network_attributes["network_correlation(age, income)"] = correlation``
+   (not the pairwise matrices). The graph Fourier
    transform first computes the Fourier basis with the parameters of the transform
    (``basis = gsk.graph_fourier_basis(net, ...)``, then ``coefficients =
    gsk.graph_fourier_transform(net, "a", basis = basis)``), for the frequencies of the plot.
@@ -2295,7 +2425,11 @@ def vector_code(ns, function, arguments):
    extra = "".join(f", {k} = {v.strip()}" for k, v in arguments.items())
    if function == "graph_fourier_transform":
       return [f"basis = gsk.graph_fourier_basis(net{extra})", f"coefficients = gsk.graph_fourier_transform(net, {given[0]}, basis = basis)"]
-   return [f"{result} = gsk.{function}(net{''.join(', ' + v for v in given)}{extra})"]
+   line = f"{result} = gsk.{function}(net{''.join(', ' + v for v in given)}{extra})"
+   if kind == "pairwise":
+      return [line]
+   key = f"{function}({', '.join(str(ast.literal_eval(v)) for v in given)})"
+   return [line, f"net.network_attributes[{literal(key)}] = {result}   # a network attribute"]
 
 
 #: Largest number of attributes whose names are written along the axes of the matrix of a pairwise
@@ -3082,7 +3216,7 @@ BACKBONE_HIDDEN = {"net", "prefix", "progress"}
 BACKBONE_STEPS = 100
 #: Colors of the backbone plot: the series, and the thresholds of
 #: :func:`~graphoskop.find_bb_thresholds`.
-BACKBONE_COLORS = {"edges_pct": "#377eb8", "nodes_pct": "#e41a1c", "components": "#999999", "first_isolate": "#4daf4a", "first_component_break": "#984ea3", "max_separation": "#ff7f00"}
+BACKBONE_COLORS = {"edges_pct": "#377eb8", "nodes_pct": "#e41a1c", "components": "#999999", "first_isolate": "#4daf4a", "first_component_break": "#984ea3", "max_separation": "#ff7f00", "added": "#a65628"}
 
 
 def backbone_code(ns, function, arguments):
@@ -3143,16 +3277,34 @@ def backbone_range(thresholds, left = False, right = False):
    return float(lo), float(hi), tails
 
 
-def backbone_plot(test, found, components = False, left = False, right = False, dpi = 100):
+#: Options of the backbone plot that the backbone dialog can change (Advanced), with their
+#: defaults: font size, axis labels (``y2label``: the components axis), scale of the threshold axis
+#: (``xscale``: ``"automatic"``, see :func:`backbone_scale`, ``"linear"`` or ``"logarithmic"``, a
+#: symmetric logarithm), ranges (``None``: automatic; a range of the threshold axis tests the
+#: thresholds again in it, see :func:`_backbone_plot`).
+BACKBONE_OPTIONS_PLOT = {"font_size": 12., "xlabel": "threshold", "ylabel": "% of the network", "y2label": "components", "xscale": "automatic", "xmin": None, "xmax": None, "ymin": None, "ymax": None}
+#: Labels of the elements of the backbone plot whose colors can be changed (:data:`BACKBONE_COLORS`).
+BACKBONE_LABELS = {"edges_pct": "% edges kept", "nodes_pct": "% nodes not isolated", "components": "Components", "first_isolate": "First isolate", "first_component_break": "First component break", "max_separation": "Max separation", "added": "pairs added (% of the observed edges)"}
+
+
+def backbone_plot(test, found, components = False, left = False, right = False, dpi = 100, colors = None, options = None, observed = None):
    """
    Plot of the backbone dialog: for each threshold of ``test`` (:func:`~graphoskop.test_bb_thresholds`),
    the percentage of edges kept and of nodes that are not isolated, and with ``components`` the
    number of components with more than one node, on a second y axis; the thresholds of ``found``
    (:func:`~graphoskop.find_bb_thresholds`: first isolate, first component break, max separation)
    as dashed vertical lines. The threshold axis covers the range of :func:`backbone_range` (tails
-   left out unless ``left``, ``right``), with the scale of :func:`backbone_scale` of the thresholds in
-   it. Fonts and ticks as in ``_figure``.
+   left out unless ``left``, ``right``), or the range ``xmin``, ``xmax`` of the ``options``, with
+   the scale of :func:`backbone_scale` of the thresholds in it (or the one of ``xscale``). Fonts
+   and ticks as in ``_figure``.
 
+   :param colors: Colors of the elements (keys of :data:`BACKBONE_COLORS`), ``None`` for the
+      defaults.
+   :param options: Options (:data:`BACKBONE_OPTIONS_PLOT`), ``None`` for the defaults.
+   :param observed: For the probabilities of an error correction, ``(probability, seen)``: the
+      probability of every pair and whether it is an edge of the network (edge attribute
+      ``observed``); the percentage of edges kept is then that of the observed edges, with the
+      pairs added (not observed, above the threshold) as a percentage of the observed edges.
    :return: PNG bytes; the box of the axes in the image ``[left, top, right, bottom]`` (pixels) with
       the limits of the x axis ``[xmin, xmax]``, and the scale of the x axis, for the interface to
       draw the chosen threshold; and the ``tails`` of :func:`backbone_range`.
@@ -3161,34 +3313,47 @@ def backbone_plot(test, found, components = False, left = False, right = False, 
    import matplotlib
    matplotlib.use("Agg")
    from matplotlib.figure import Figure
-   with matplotlib.rc_context({"font.family": _plot_font(), "font.size": 12.}):
+   colors = dict(BACKBONE_COLORS, **(colors or {}))
+   o = dict(BACKBONE_OPTIONS_PLOT, **(options or {}))
+   with matplotlib.rc_context({"font.family": _plot_font(), "font.size": float(o["font_size"])}):
       fig = Figure(figsize = (7.6, 4.2))
       ax = fig.add_subplot()
       x = test["threshold"].to_numpy()
       lo, hi, tails = backbone_range(x, left, right)
-      scale = backbone_scale(x[(x >= lo) & (x <= hi)])
+      lo = lo if o["xmin"] is None else float(o["xmin"])
+      hi = hi if o["xmax"] is None else float(o["xmax"])
+      scale = backbone_scale(x[(x >= lo) & (x <= hi)]) if o["xscale"] == "automatic" else {"kind": "linear"}
+      if o["xscale"] == "logarithmic":
+         a = np.abs(x[x != 0])
+         scale = {"kind": "symlog", "linthresh": float(np.median(a)) if len(a) else 1.}
       if scale["kind"] == "symlog":
          ax.set_xscale("symlog", linthresh = scale["linthresh"])
-      ax.plot(x, test["edges_pct"], color = BACKBONE_COLORS["edges_pct"], lw = 2, label = "% edges kept")
-      ax.plot(x, test["nodes_pct"], color = BACKBONE_COLORS["nodes_pct"], lw = 2, label = "% nodes not isolated")
+      if observed is None:
+         ax.plot(x, test["edges_pct"], color = colors["edges_pct"], lw = 2, label = BACKBONE_LABELS["edges_pct"])
+      else:   # error correction: observed edges kept, pairs added
+         p, seen = observed
+         n = max(int(seen.sum()), 1)
+         ax.plot(x, [100 * np.count_nonzero(p[seen] > np.float32(t)) / n for t in x], color = colors["edges_pct"], lw = 2, label = "% observed edges kept")
+         ax.plot(x, [100 * np.count_nonzero(p[~seen] > np.float32(t)) / n for t in x], color = colors["added"], lw = 2, label = BACKBONE_LABELS["added"])
+      ax.plot(x, test["nodes_pct"], color = colors["nodes_pct"], lw = 2, label = BACKBONE_LABELS["nodes_pct"])
       for name, thr in zip(found["criterion"], found["threshold"]):
-         if name in BACKBONE_COLORS and np.isfinite(thr) and lo <= thr <= hi:
-            ax.axvline(thr, color = BACKBONE_COLORS[name], ls = "--", lw = 1.5, label = name.replace("_", " "))
+         if name in colors and np.isfinite(thr) and lo <= thr <= hi:
+            ax.axvline(thr, color = colors[name], ls = "--", lw = 1.5, label = name.replace("_", " "))
       ax.set_xlim(lo, hi)
-      ax.set_ylim(0, 102)
-      ax.set_xlabel("threshold")
-      ax.set_ylabel("% of the network")
+      ax.set_ylim(0 if o["ymin"] is None else float(o["ymin"]), 102 if o["ymax"] is None else float(o["ymax"]))
+      ax.set_xlabel(o["xlabel"])
+      ax.set_ylabel(o["ylabel"])
       ax.tick_params(which = "both", direction = "in", top = True, right = not components)
       handles, labels = ax.get_legend_handles_labels()
       if components:
          ax2 = ax.twinx()
-         line, = ax2.plot(x, test["components"], color = BACKBONE_COLORS["components"], lw = 2, label = "components")
-         ax2.set_ylabel("components")
+         line, = ax2.plot(x, test["components"], color = colors["components"], lw = 2, label = "components")
+         ax2.set_ylabel(o["y2label"])
          ax2.set_ylim(bottom = 0)
          ax2.tick_params(which = "both", direction = "in")
          handles.append(line)
          labels.append("components")
-      ax.legend(handles, labels, frameon = False, fontsize = 10, loc = "center right")
+      ax.legend(handles, labels, frameon = False, fontsize = 0.85 * float(o["font_size"]), loc = "best")
       fig.tight_layout()
       out = io.BytesIO()
       fig.savefig(out, format = "png", dpi = dpi)
@@ -3232,25 +3397,72 @@ def _backbone(request):
 def _backbone_plot(request):
    """
    Command ``backbone_plot``: the plot of the last backbone of a tab again, with or without the
-   ``components`` and the ``left`` and ``right`` tails (:func:`backbone_plot`); replies with the
-   ``box`` of its axes, the ``scale`` of its x axis, and its PNG.
+   ``components`` and the ``left`` and ``right`` tails, with the ``colors`` and ``options`` of the
+   dialog (:func:`backbone_plot`). A range of the threshold axis (``xmin``, ``xmax``) tests
+   :data:`BACKBONE_STEPS` evenly spaced thresholds in it
+   (:func:`~graphoskop.test_bb_thresholds` with a step, kept for the next changes; the code does
+   not change), so that the backbones in it are shown in detail. Replies with the ``box`` of its
+   axes, the ``scale`` of its x axis, and its PNG.
    """
-   b = _spaces[request["tab"]]["__backbone__"]
-   png, box, scale, _ = backbone_plot(b["test"], b["found"], bool(request.get("components")), bool(request.get("left")), bool(request.get("right")))
+   ns = _spaces[request["tab"]]
+   b = ns["__backbone__"]
+   colors = {k: str(v) for k, v in (request.get("colors") or {}).items() if k in BACKBONE_COLORS}
+   o = request.get("options") or {}
+   options = {k: o[k] for k in BACKBONE_OPTIONS_PLOT if k in o}
+   for k in ("xmin", "xmax", "ymin", "ymax"):
+      if k in options and options[k] is not None:
+         options[k] = float(options[k])
+   if "font_size" in options:
+      options["font_size"] = min(max(float(options["font_size"]), 4.), 72.)
+   if options.get("xscale") not in (None, "automatic", "linear", "logarithmic"):
+      raise ValueError(f"unknown scale of the threshold axis: {options['xscale']}")
+   test = b["test"]
+   if options.get("xmin") is not None or options.get("xmax") is not None:   # a range of its own: its thresholds tested again, evenly spaced
+      x = b["test"]["threshold"].to_numpy()
+      lo = options["xmin"] if options.get("xmin") is not None else float(x[0])
+      hi = options["xmax"] if options.get("xmax") is not None else float(x[-1])
+      if not hi > lo:
+         raise ValueError("the threshold axis must go from a smaller value to a larger one")
+      key = (lo, hi)
+      if b.get("zoom", (None, None))[0] != key:
+         b["zoom"] = (key, gsk.test_bb_thresholds(_drawn(ns), lo, hi, (hi - lo) / BACKBONE_STEPS, score = b["score"]))
+      test = b["zoom"][1]
+   png, box, scale, _ = backbone_plot(test, b["found"], bool(request.get("components")), bool(request.get("left")), bool(request.get("right")), colors = colors, options = options, observed = _observed(ns))
    return {"box": box, "scale": scale}, png
+
+
+def _observed(ns):
+   """
+   For the backbone dialog on the probabilities of an error correction (score ``probability`` and
+   edge attribute ``observed``), the probabilities of the pairs (float32) and whether each is an
+   observed edge; ``None`` otherwise.
+   """
+   net = _drawn(ns)
+   if ns.get("__backbone__", {}).get("score") != "probability" or "observed" not in net.edge_attributes:
+      return None
+   return np.asarray(edge_values(net, "probability"), dtype = np.float32), np.asarray(edge_values(net, "observed")) == 1
 
 
 def _backbone_stats(request):
    """
    Command ``backbone_stats``: the backbone of a tab at ``threshold`` (one row of
    :func:`~graphoskop.test_bb_thresholds`): ``nodes``, ``nodes_pct``, ``edges``, ``edges_pct``,
-   ``components``.
+   ``components``; for the probabilities of an error correction (edge attribute ``observed``),
+   also the number of ``observed`` edges, how many of them are kept (``observed_kept``) and how
+   many new edges are ``added``.
    """
    ns = _spaces[request["tab"]]
    b = ns["__backbone__"]
    thr = float(request["threshold"])
-   row = gsk.test_bb_thresholds(_drawn(ns), thr, thr, 1., score = b["score"]).iloc[0]
-   return {k: float(row[k]) for k in ("nodes", "nodes_pct", "edges", "edges_pct", "components")}, b""
+   net = _drawn(ns)
+   row = gsk.test_bb_thresholds(net, thr, thr, 1., score = b["score"]).iloc[0]
+   reply = {k: float(row[k]) for k in ("nodes", "nodes_pct", "edges", "edges_pct", "components")}
+   observed = _observed(ns)
+   if observed is not None:   # error correction: observed edges kept or removed, new ones added
+      kept = observed[0] > np.float32(thr)   # as the library compares them
+      seen = observed[1]
+      reply.update(observed = int(seen.sum()), observed_kept = int((kept & seen).sum()), added = int((kept & ~seen).sum()))
+   return reply, b""
 
 
 def _extract(request):
@@ -3481,10 +3693,29 @@ def _animation(request):
 
 def _simulations(request):
    """
-   Command ``simulations``: the names of the runs of a tab (``tables``) and the states of each
-   (``states``: the columns without confidence intervals, e.g. ``["S", "I", "R"]``).
+   Command ``simulations``: the names of the tables of the Tables tab of a tab (``tables``: the
+   runs of epidemic models, then the tables of ``tables``, e.g. of frequent subgraphs, see
+   :func:`tab_tables`) and the states of the runs (``states``: the columns without confidence
+   intervals, e.g. ``["S", "I", "R"]``).
    """
-   return _runs(_spaces[request["tab"]]), b""
+   ns = _spaces[request["tab"]]
+   reply = _runs(ns)
+   reply["tables"] = list(tab_tables(ns))
+   return reply, b""
+
+
+def tab_tables(ns):
+   """
+   The tables of the Tables tab of a tab: the runs of epidemic models (``epidemics``), then the
+   :class:`pandas.DataFrame` values of the dictionary ``tables`` of its code (e.g. the support of
+   frequent patterns, :func:`mining_code`).
+   """
+   import pandas as pd
+   found = dict(ns.get("epidemics") or {})
+   other = ns.get("tables")
+   if isinstance(other, dict):
+      found.update({str(k): v for k, v in other.items() if isinstance(v, pd.DataFrame) and str(k) not in found})
+   return found
 
 
 def _runs(ns):
@@ -3874,14 +4105,17 @@ def gnn_signature(function, net):
    """
    Parameters of the dialog of a graph neural network (:data:`GNNS`), as :func:`signature`
    (without :data:`GNN_HIDDEN`), after the ``name`` of its run; the node models ask their
-   ``hidden`` layers instead of all the channels. The ``seed`` is 1 by default, so that runs
-   compare on the same split of the nodes and repeat when the code runs again.
+   ``hidden`` layers instead of all the channels, and a ``transform`` of regression targets
+   (:func:`gnn_code`). The ``seed`` is 1 by default, so that runs compare on the same split of
+   the nodes and repeat when the code runs again.
    """
    params = [p for p in signature(function, net)["params"] if p["name"] not in GNN_HIDDEN]
    for p in params:
       if p["name"] == "seed":
          p["default"] = "1"
    if function != "diffpool":
+      at = next(i for i, p in enumerate(params) if p["name"] == "target") + 1
+      params.insert(at, {"name": "transform", "default": "", "hint": "none", "doc": "Transformation of a numeric target of a regression, trained on and scored as a new node attribute (e.g. log_income): log (nodes with values ≤ 0 are left out) or log1p, log(1 + x) (for values ≥ 0, e.g. counts)", "widget": {"kind": "choice", "options": ["", "\"log\"", "\"log1p\""]}})
       params.insert(1, {"name": "hidden", "default": GNN_LAYERS, "hint": "", "doc": "Output channels of the hidden layers, separated by commas; the output layer is added: one channel per class for classification, 1 for regression", "widget": {"kind": "list"}})
    params.insert(0, {"name": "name", "default": "", "hint": "required", "doc": "Name of the run: its result is gnn_runs[name]", "widget": {"kind": "string"}})
    return {"params": params}
@@ -3896,6 +4130,12 @@ def gnn_code(ns, function, arguments):
    node models get the hidden layers of the dialog and an output layer with one channel
    per class of the target (classification: qualitative targets, or ``task = "classification"``)
    or one channel (regression).
+
+   With ``transform`` (``"log"`` or ``"log1p"``, numeric targets of regressions), the model is
+   trained on a new node attribute, e.g. ``log_income``, made first with :func:`derived`
+   (``net.set_node_attribute("log_income", derived(net, "log(income)"), None)``; nodes whose
+   logarithm is not defined have no target, and are left out); unless the dialog chooses the
+   features, they are all the numeric attributes but the target and its transformation.
 
    :param ns: Namespace of the tab.
    :param function: Name of the model.
@@ -3928,7 +4168,16 @@ def gnn_code(ns, function, arguments):
    hidden = ast.literal_eval("[" + arguments.pop("hidden", GNN_LAYERS).strip("[]()") + "]")
    hidden = [int(hidden)] if isinstance(hidden, (int, float)) else [int(h) for h in hidden]
    task = ast.literal_eval(arguments.get("task", "None"))
+   transform = ast.literal_eval(arguments.pop("transform", "None"))
    values = node_values(net, attribute)
+   if transform:
+      if values.dtype.kind != "f" or task == "classification" or ast.literal_eval(arguments.get("qualitative", "False")):
+         raise ValueError(f"transform: only numeric targets of a regression are transformed ({attribute} is not one here)")
+      new = f"{transform}_{attribute}"
+      lines.append(f"net.set_node_attribute({literal(new)}, derived(net, {literal(f'{transform}({formula_name(attribute)})')}), None)   # the target, transformed")
+      if "features" not in arguments:
+         arguments["features"] = f"[a for a in net.node_attributes if a not in {literal([attribute, new])}]"
+      target = literal(new)
    if task == "classification" or task is None and values.dtype.kind != "f":
       classes = len(_unique(values)) if values.dtype.kind != "f" else len(np.unique(values[~np.isnan(values)]))
       if classes < 2:
@@ -4010,6 +4259,11 @@ def _gnn(request):
    header.update(_gnn_runs(ns))
    if ns["gnn_runs"][name].get("predictions") is None:
       header["note"] = f"{name}: no target, only the embeddings of the graphs (gnn_runs[{literal(name)}][\"embeddings\"])"
+   transformed = re.search(r'set_node_attribute\(("[^"]*")', lines[-2]) if len(lines) > 1 and "# the target, transformed" in lines[-2] else None
+   if transformed:
+      new = ast.literal_eval(transformed.group(1))
+      left = int(np.isnan(node_values(ns["net"], new)).sum())
+      header["note"] = f"{name}: trained on {new}, the transformed target" + (f"; {left:,} nodes without a value are left out" if left else "")
    return header, payload
 
 
@@ -4401,13 +4655,39 @@ def _fit(request):
    return header, payload + png
 
 
+#: Parameters shown in the parameter dialog also without **Advanced** (by name, or by function
+#: and name), besides those without a default (:func:`mark_advanced`).
+BASIC = {"name", ("node_removal", "strategy"), ("edge_removal", "strategy"), ("cascade_failures", "strategy"), ("node_removal", "quality"), ("edge_removal", "quality"), ("cascade_failures", "load"), ("cascade_failures", "capacity"), ("cascade_failures", "failures"), ("cascade_failures", "elements"), "target", "by", "all_components", "levels", "model", "measurements", "positives", "probability", ("assortativity", "attribute"), "node_label", "edge_label", "max_edges", "rules", "transform", "task", "features", "hidden", "epochs", "weight", "directed", "direction", "groups", "order", "levels", "root", "attributes", "a", "b", "seeds", "runs", "node_type", "sets", "plot", "resolution", "source", "length", "walks", "max_depth", "test", "embedding", "fraction",
+         ("matrix_layout", "column_groups"), ("matrix_layout", "column_order"), ("mirror_layout", "axis"), ("spanning_tree", "kind"), ("maximally_filtered_graph", "kind"), ("triangulated_filtered_graph", "kind")}
+
+
+def mark_advanced(function, reply):
+   """
+   Marks the parameters of a signature reply that the parameter dialog shows only with
+   **Advanced** on (``"advanced": True``): all but those without a default (required, or preset
+   by the interface) and those of :data:`BASIC`, so that a first look shows only the parameters
+   that matter most.
+   """
+   for p in reply["params"]:
+      p["advanced"] = not (p["default"] == "" and p["hint"].startswith("required") or p["name"] in BASIC or (function, p["name"]) in BASIC)
+   return reply
+
+
 def _signature(request):
    """
    Command ``signature``: :func:`signature` of a generator, a layout or a community discovery
    function, for the drawn network of the tab ``tab`` (if given); with ``fit``, of a generator
-   fitted to the network of the tab.
+   fitted to the network of the tab. Parameters are marked by :func:`mark_advanced`.
    """
-   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | {"nestedness", "link_prediction_split"}:
+   reply, payload = _signature_of(request)
+   return mark_advanced(request["function"], reply), payload
+
+
+def _signature_of(request):
+   """
+   The reply of :func:`_signature`, before :func:`mark_advanced`.
+   """
+   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(MINERS) | set(HIERARCHIES) | set(STATISTICS) | set(CORRECTIONS) | set(ROBUSTNESS) | {"nestedness", "link_prediction_split"}:
       raise ValueError(f"unknown function: {request['function']}")
    tab = request.get("tab")
    net = _drawn(_spaces[tab]) if tab in _spaces else None
@@ -4422,6 +4702,18 @@ def _signature(request):
       raise ValueError("nestedness is for bipartite networks (Bipartite in the load dialog), and hypergraphs and simplicial complexes")
    if request["function"] in PROJECTIONS and (net is None or net.bipartite_labels is None):
       raise ValueError("bipartite projections need a bipartite network (Bipartite in the load dialog)")
+   if request["function"] in EXPLORATIONS:
+      return exploration_signature(request["function"], net), b""
+   if request["function"] in MINERS:
+      return mining_signature(request["function"], net), b""
+   if request["function"] in HIERARCHIES:
+      return hierarchy_signature(request["function"], net), b""
+   if request["function"] in STATISTICS:
+      return statistic_signature(request["function"], net), b""
+   if request["function"] in CORRECTIONS:
+      return correction_signature(request["function"], net), b""
+   if request["function"] in ROBUSTNESS:
+      return robustness_signature(request["function"], net), b""
    if request["function"] in GNNS:
       return gnn_signature(request["function"], _spaces[tab]["net"] if tab in _spaces else None), b""
    if request["function"] in set(LINK_PREDICTIONS) | {"link_prediction_split"}:
@@ -4460,8 +4752,1197 @@ def _close(request):
    return {}, b""
 
 
+#: Functions of the formulas of derived node attributes (:func:`formula_values`): name to its
+#: description (shown in the menu of the dialog).
+FORMULA_FUNCTIONS = {
+   "log": "log(x): natural logarithm (missing where x ≤ 0)",
+   "log2": "log2(x): base 2 logarithm",
+   "log10": "log10(x): base 10 logarithm",
+   "log1p": "log1p(x): log(1 + x), also defined at 0",
+   "exp": "exp(x): exponential",
+   "sqrt": "sqrt(x): square root (missing where x < 0)",
+   "abs": "abs(x): absolute value",
+   "round": "round(x) or round(x, digits)",
+   "floor": "floor(x): largest integer not above x",
+   "ceil": "ceil(x): smallest integer not below x",
+   "min": "min(x): smallest value over all nodes; min(x, y): the smaller of the two, node by node",
+   "max": "max(x): largest value over all nodes; max(x, y): the larger of the two, node by node",
+   "mean": "mean(x): mean over all nodes (missing values left out)",
+   "sum": "sum(x): sum over all nodes",
+   "where": "where(condition, a, b): a where the condition holds (e.g. age > 30), b elsewhere",
+   "missing": "missing(x): 1 where x is missing, 0 elsewhere",
+   "fill": "fill(x, value): x, with value where it is missing",
+   "number": "number(x): a text as a number (missing if it is not one)",
+   "text": "text(x): a value as text",
+   "substr": "substr(x, start, length): the characters of a text from position start (1 is the first), length of them (all the rest without length)",
+   "upper": "upper(x): text in capitals",
+   "lower": "lower(x): text in small letters",
+   "length": "length(x): number of characters of a text",
+   "contains": "contains(x, \"abc\"): 1 where the text contains abc, 0 elsewhere",
+   "replace": "replace(x, \"old\", \"new\"): the text with every old replaced by new",
+}
+#: Comment of the code before the first :func:`derived`, a function of the interface.
+DERIVED_NOTE = "# derived: values of a node attribute computed from others by a formula, a function of the graphical interface"
+
+
+def formula_values(net, formula):
+   """
+   Values of a formula of node attributes, node by node (in the network wide order), as written
+   in the dialog of Edit › New node attribute: node attribute names (in backquotes if they are
+   not plain words, e.g. ```age in 2020```), numbers, texts in quotes, ``+ - * / ** %`` (``+``
+   also joins texts), comparisons (``< <= > >= == !=``, 1 or 0), ``and``, ``or``, ``not``,
+   parentheses and the functions of :data:`FORMULA_FUNCTIONS`, e.g. ``log(income) - log(mean(income))``
+   or ``substr(city, 1, 3) + "-" + text(age)``. Missing values stay missing (so do the results of
+   ``log`` of numbers ≤ 0, and infinities).
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param formula: The formula.
+   :return: :class:`pandas.Series` of floats (numeric results) or of objects (texts, missing as
+      NaN).
+   :raises ValueError: If the formula is not valid, names no node attribute, or mixes texts and
+      numbers in an operation.
+   """
+   import pandas as pd
+   names = {}
+   def quoted(m):
+      names[f"__a{len(names)}__"] = m.group(1)
+      return f"__a{len(names) - 1}__"
+   source = re.sub(r"`([^`]*)`", quoted, formula.strip())
+   try:
+      tree = ast.parse(source, mode = "eval")
+   except SyntaxError as e:
+      raise ValueError(f"formula: not complete, or not valid: {formula}") from None
+   n = int(sum(net.bipartite_split) if net.higher_order is not None else sum(d.num_nodes for d in net.components))
+   known = set(net.node_attributes) | set(net.qualitative_node_attributes)
+   def series(x):   # a value as a Series over the nodes
+      return x if isinstance(x, pd.Series) else pd.Series([x] * n, dtype = float if isinstance(x, (int, float)) else object)
+   def numeric(x, what):
+      if isinstance(x, pd.Series) and x.dtype.kind not in "fiub":
+         raise ValueError(f"formula: {what} is text: use number(...) to read numbers in it")
+      if isinstance(x, str):
+         raise ValueError(f"formula: {what} is a text, not a number")
+      return x.astype(float) if isinstance(x, pd.Series) else float(x)
+   def texts(x):
+      if isinstance(x, pd.Series):
+         return x.map(lambda v: v if isinstance(v, str) else text(v), na_action = "ignore").astype(object)
+      return x if isinstance(x, str) else text(x)
+   def clean(x):   # infinities are missing
+      return x.replace([np.inf, -np.inf], np.nan) if isinstance(x, pd.Series) and x.dtype.kind == "f" else x
+   def is_text(x):
+      return isinstance(x, str) or isinstance(x, pd.Series) and x.dtype.kind not in "fiub"
+   def flag(x, missing):   # booleans as 1 / 0, missing where an operand is
+      x = series(x).astype(float)
+      return x.mask(missing) if missing is not None else x
+   def isna(*xs):
+      m = None
+      for x in xs:
+         if isinstance(x, pd.Series):
+            m = x.isna() if m is None else m | x.isna()
+      return m
+   def call(f, args):
+      if f not in FORMULA_FUNCTIONS:
+         raise ValueError(f"formula: unknown function {f}: the functions are {', '.join(FORMULA_FUNCTIONS)}")
+      a = args[0] if args else None
+      with np.errstate(all = "ignore"):
+         if f in ("log", "log2", "log10", "log1p", "exp", "sqrt", "abs", "floor", "ceil"):
+            x = numeric(a, f"the value of {f}")
+            if f in ("log", "log2", "log10"):
+               x = x.where(x > 0) if isinstance(x, pd.Series) else (x if x > 0 else np.nan)
+            return clean(getattr(np, {"abs": "abs", "floor": "floor", "ceil": "ceil"}.get(f, f))(x))
+         if f == "round":
+            return np.round(numeric(a, "the value of round"), int(args[1]) if len(args) > 1 else 0)
+         if f in ("min", "max", "mean", "sum") and len(args) == 1:
+            x = numeric(a, f"the value of {f}")
+            return float(getattr(series(x), f)())
+         if f in ("min", "max"):
+            return (np.minimum if f == "min" else np.maximum)(series(numeric(a, f)), series(numeric(args[1], f)))
+         if f == "where":
+            c = series(numeric(a, "the condition"))
+            res = series(args[1]).where(c.astype(bool), series(args[2]))
+            return res.mask(c.isna())
+         if f == "missing":
+            return series(a).isna().astype(float)
+         if f == "fill":
+            return series(a).fillna(args[1])
+         if f == "number":
+            return pd.to_numeric(series(a), errors = "coerce").astype(float)
+         if f == "text":
+            return texts(series(a))
+         t = texts(series(a))
+         if f == "substr":
+            start = int(args[1]) - 1 if len(args) > 1 else 0
+            return t.str.slice(max(start, 0), max(start, 0) + int(args[2]) if len(args) > 2 else None)
+         if f in ("upper", "lower"):
+            return getattr(t.str, f)()
+         if f == "length":
+            return t.str.len().astype(float)
+         if f == "contains":
+            return flag(t.str.contains(texts(args[1]), regex = False).fillna(False), t.isna())
+         if f == "replace":
+            return t.str.replace(texts(args[1]), texts(args[2]), regex = False)
+   def ev(node):
+      if isinstance(node, ast.Constant) and isinstance(node.value, (int, float, str)) and not isinstance(node.value, bool):
+         return node.value
+      if isinstance(node, ast.Name):
+         a = names.get(node.id, node.id)
+         if a not in known:
+            raise ValueError(f"formula: no node attribute named {a}" + (" (names that are not plain words go in backquotes, e.g. `my name`)" if node.id in names else ""))
+         v = node_values(net, a)
+         return pd.Series(v, dtype = float) if v.dtype.kind == "f" else pd.Series(v, dtype = object)
+      if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and not node.keywords:
+         return call(node.func.id, [ev(x) for x in node.args])
+      if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd, ast.Not)):
+         x = ev(node.operand)
+         if isinstance(node.op, ast.Not):
+            return flag(series(numeric(x, "the value of not")) == 0, isna(x))
+         x = numeric(x, "the value")
+         return -x if isinstance(node.op, ast.USub) else x
+      if isinstance(node, ast.BinOp):
+         a, b = ev(node.left), ev(node.right)
+         if isinstance(node.op, ast.Add) and (is_text(a) or is_text(b)):
+            if not (is_text(a) and is_text(b)):
+               raise ValueError("formula: + joins two texts, or adds two numbers: use text(...) or number(...)")
+            return series(texts(a)) + series(texts(b))
+         ops = {ast.Add: np.add, ast.Sub: np.subtract, ast.Mult: np.multiply, ast.Div: np.true_divide, ast.Pow: np.power, ast.Mod: np.mod}
+         if type(node.op) not in ops:
+            raise ValueError("formula: the operations are + - * / ** %")
+         with np.errstate(all = "ignore"):
+            return clean(ops[type(node.op)](numeric(a, "a value"), numeric(b, "a value")))
+      if isinstance(node, ast.Compare) and len(node.ops) == 1:
+         a, b = ev(node.left), ev(node.comparators[0])
+         if is_text(a) != is_text(b):
+            raise ValueError("formula: a comparison of a text with a number: use text(...) or number(...)")
+         ops = {ast.Lt: "lt", ast.LtE: "le", ast.Gt: "gt", ast.GtE: "ge", ast.Eq: "eq", ast.NotEq: "ne"}
+         if type(node.ops[0]) not in ops:
+            raise ValueError("formula: the comparisons are < <= > >= == !=")
+         return flag(getattr(series(a), ops[type(node.ops[0])])(b if not isinstance(b, pd.Series) else b), isna(a, b))
+      if isinstance(node, ast.BoolOp):
+         xs = [series(numeric(ev(v), "a condition")) for v in node.values]
+         res = xs[0] != 0
+         for x in xs[1:]:
+            res = (res & (x != 0)) if isinstance(node.op, ast.And) else (res | (x != 0))
+         return flag(res, isna(*xs))
+      raise ValueError(f"formula: not understood: {ast.unparse(node)}")
+   result = series(ev(tree.body))
+   return result.astype(float) if result.dtype.kind in "fiub" else result
+
+
+def derived(net, formula):
+   """
+   Values of a new node attribute computed from others by a formula (:func:`formula_values`),
+   one vector per component, for :meth:`~graphoskop.Network.set_node_attribute` with component
+   ``None``, e.g. ``net.set_node_attribute("ratio", derived(net, "income / age"), None)``
+   (Edit › New node attribute). A function of the interface, defined in the namespace of every
+   tab (:data:`DERIVED_NOTE`).
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param formula: The formula.
+   :return: List of float arrays (numeric values) or object arrays (texts).
+   """
+   v = formula_values(net, formula)
+   v = v.to_numpy(dtype = float) if v.dtype.kind == "f" else v.to_numpy(dtype = object)
+   sizes = list(net.bipartite_split) if net.higher_order is not None else [d.num_nodes for d in net.components]
+   return np.split(v, np.cumsum(sizes)[:-1])
+
+
+def formula_name(name):
+   """
+   A node attribute name as written in a formula: as it is if it is a plain word (not a function
+   of :data:`FORMULA_FUNCTIONS`), in backquotes otherwise.
+   """
+   return name if name.isidentifier() and not keyword.iskeyword(name) and name not in FORMULA_FUNCTIONS else f"`{name}`"
+
+
+def formula_summary(values):
+   """
+   What the dialog of Edit › New node attribute shows of the values of a formula before they are
+   created: their kind, range or distinct values, missing values, and the first ones.
+   """
+   missing = int(values.isna().sum())
+   known = values.dropna()
+   first = ", ".join(text(v) for v in known.head(5))
+   if values.dtype.kind == "f":
+      what = f"numbers from {text(known.min())} to {text(known.max())}" if len(known) else "numbers, all missing"
+   else:
+      what = f"texts, {known.astype(str).nunique():,} distinct" if len(known) else "texts, all missing"
+   return f"{what}; {missing:,} of {len(values):,} missing" + (f" (e.g. {first})" if first else "")
+
+
+def _derive(request):
+   """
+   Command ``derive``: a new node attribute ``name`` of the network of a tab from a ``formula``
+   (:func:`derived`), written as ``net.set_node_attribute(name, derived(net, formula), None)``; an
+   existing attribute of that name is replaced. With ``preview``, only checks the formula and
+   replies its :func:`formula_summary` as ``text``.
+   """
+   ns = _spaces[request["tab"]]
+   net = ns["net"]
+   name, formula = str(request.get("name", "")).strip(), str(request.get("formula", "")).strip()
+   if not formula:
+      raise ValueError("formula: write the formula of the values, e.g. log(age)")
+   values = formula_values(net, formula)
+   exists = name in set(net.node_attributes) | set(net.qualitative_node_attributes)
+   if exists and (name in net.node_attributes) != (values.dtype.kind == "f"):   # the library keeps the kind of an attribute
+      raise ValueError(f"name: {name} is {'numeric' if name in net.node_attributes else 'qualitative'}, and the formula gives {'numbers' if values.dtype.kind == 'f' else 'texts'}: choose another name, or delete {name} first")
+   if request.get("preview"):
+      return {"text": formula_summary(values) + (f"; replaces the attribute {name}" if exists else "")}, b""
+   if not name:
+      raise ValueError("name: the new attribute needs a name")
+   code = _run(request["tab"], [f"net.set_node_attribute({literal(name)}, derived(net, {literal(formula)}), None)"])
+   header, payload = _draw(ns, code, True)
+   header["note"] = f"node attribute {name}: {formula_summary(values)}"
+   return header, payload
+
+
+def _formulas(request):
+   """
+   Command ``formulas``: what the dialog of Edit › New node attribute offers: the node attribute
+   names as written in formulas (:func:`formula_name`) and the functions
+   (:data:`FORMULA_FUNCTIONS`).
+   """
+   net = _spaces[request["tab"]]["net"]
+   names = list(net.node_attributes) + list(net.qualitative_node_attributes)
+   return {"attributes": [{"name": a, "formula": formula_name(a), "numeric": a in net.node_attributes} for a in names], "functions": [{"name": f, "doc": d} for f, d in FORMULA_FUNCTIONS.items()]}, b""
+
+
+#: Comment of the code before the first :func:`node_with`, a function of the interface.
+NODE_WITH_NOTE = "# node_with: the id of the node with a value of a node attribute, a function of the graphical interface"
+
+
+def node_with(net, attribute, value):
+   """
+   The id of the one node whose node attribute ``attribute`` has the value ``value`` (compared as
+   texts, :func:`text`: ``3`` and ``"3"`` are the same), e.g. the source of an exploration given
+   by name: ``gsk.bfs(net, node_with(net, "name", "alice"))``. A function of the interface,
+   defined in the namespace of every tab (:data:`NODE_WITH_NOTE`).
+
+   :raises ValueError: If no node, or more than one, has that value.
+   """
+   import pandas as pd
+   wanted = text(value)
+   found = np.flatnonzero(pd.Series(node_values(net, attribute)).map(text, na_action = "ignore").to_numpy(dtype = object) == wanted)
+   if len(found) != 1:
+      raise ValueError(f"no node has {attribute} = {wanted}" if len(found) == 0 else f"{len(found)} nodes have {attribute} = {wanted} (e.g. {', '.join(text(i) for i in _ids(net)[found[:3]])}): choose an attribute with one node per value")
+   return _ids(net)[found[0]].item() if hasattr(_ids(net)[found[0]], "item") else _ids(net)[found[0]]
+
+
+#: Explorations of Simulation › Exploration: function to its label and the default name of the
+#: node attribute written.
+EXPLORATIONS = {"bfs": ("Breadth-first search", "bfs_order"), "dfs": ("Depth-first search", "dfs_order"), "random_walk": ("Random walk", "rw_step"), "metropolis_hastings_random_walk": ("Metropolis-Hastings random walk", "mhrw_step")}
+
+
+for _f in ("bfs", "dfs", "random_walk", "metropolis_hastings_random_walk"):
+   OPTIONS[(_f, "direction")] = ["\"out\"", "\"in\"", "\"both\""]
+   HINTS[(_f, "source")] = "required (a node id)"
+   INTEGERS.update({(_f, "length"): 0, (_f, "walks"): 1})
+NODES.add("source")
+HINTS[("bfs", "max_depth")] = "all"
+
+
+def exploration_signature(function, net):
+   """
+   Parameters of the dialog of an exploration (:data:`EXPLORATIONS`), as :func:`signature`, after
+   ``attribute`` (the node attribute written), with ``by`` after ``source`` (a node attribute
+   whose value is the source, :func:`node_with`); ``direction`` only for directed networks; the
+   ``seed`` of the walks is 1 by default, so that the code gives the same result when it runs
+   again.
+   """
+   params = [p for p in signature(function, net)["params"] if p["name"] != "direction" or net is not None and net.directed]
+   for p in params:
+      if p["name"] == "seed":
+         p["default"] = "1"
+   what = "the order of the visit (0 for the source)" if function in ("bfs", "dfs") else "the step of the first visit, averaged over the walks reaching the node"
+   params.insert(0, {"name": "attribute", "default": literal(EXPLORATIONS[function][1]), "hint": "", "doc": f"Name of the node attribute written: {what}; nodes not reached get no value", "widget": {"kind": "string"}})
+   at = next(i for i, p in enumerate(params) if p["name"] == "source") + 1
+   params[at - 1]["widget"]["lookup"] = "by"   # the field suggests the values of the attribute of by (or the ids), see _suggest
+   params.insert(at, {"name": "by", "default": "", "hint": "the node id", "doc": "Node attribute whose value is given as source (e.g. a name), instead of the node id: exactly one node must have that value (node_with)", "widget": {"kind": "attribute", "choices": "nodes", "multiple": False, "extra": []}})
+   return {"params": params}
+
+
+def exploration_code(ns, function, arguments):
+   """
+   Code of an exploration of Simulation › Exploration (:data:`EXPLORATIONS`) from the node
+   ``source``, writing one node attribute (``attribute``, by default that of
+   :data:`EXPLORATIONS`): for the searches (:func:`~graphoskop.bfs`, :func:`~graphoskop.dfs`),
+   the order of the visit (0 for the source); for the walks (:func:`~graphoskop.random_walk`,
+   :func:`~graphoskop.metropolis_hastings_random_walk`, ``walks`` of ``length`` steps, all from
+   the source; seed 1 unless the dialog says otherwise), the step of the first visit of each node,
+   averaged over the walks that reach it (for Metropolis-Hastings walks, steps count the refused
+   moves too: the sum of the ``duration`` of the visits before). Nodes never reached get no value.
+   For example:
+
+   .. code-block:: python
+
+      exploration = gsk.random_walk(net, "alice", 100, walks = 10, seed = 1)
+      first = exploration.groupby(["walk", "node"]).step.min()   # first visit of each node in each walk
+      net.set_node_attribute(first.groupby(level = "node").mean().rename("rw_step").reset_index(), node_column = "node")
+
+   :return: Lines of code, and the name of the attribute.
+   :raises ValueError: If there is no source, or the network is multilayer or higher-order.
+   """
+   if function not in EXPLORATIONS:
+      raise ValueError(f"unknown exploration: {function}")
+   net = ns["net"]
+   if net.layer_labels is not None or net.higher_order is not None:
+      raise ValueError("explorations here are for plain networks (not multilayer networks, hypergraphs or simplicial complexes): see gsk.random_walk for those")
+   arguments = {k: v for k, v in dict(arguments).items() if str(v).strip()}
+   if function not in ("bfs", "dfs"):
+      arguments = dict({"seed": "1"}, **arguments)
+   name = ast.literal_eval(arguments.pop("attribute", literal(EXPLORATIONS[function][1])))
+   source = arguments.pop("source", "")
+   if not source:
+      raise ValueError("source: choose the node the exploration starts from")
+   by = arguments.pop("by", "")
+   if by:   # the source given by the value of a node attribute (checked here: one node has it)
+      node_with(net, ast.literal_eval(by), ast.literal_eval(source))
+      source = f"node_with(net, {by}, {source})"
+   args = [source] + ([arguments.pop("length")] if "length" in arguments else [])
+   if function not in ("bfs", "dfs") and len(args) < 2:
+      raise ValueError("length: give the number of steps of each walk")
+   lines = _pandas(ns) + [f"exploration = gsk.{function}(net, {', '.join(args)}" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")"]
+   if function in ("bfs", "dfs"):
+      lines.append(f"net.set_node_attribute(pd.DataFrame({{\"node\": exploration.node, {literal(name)}: range(len(exploration))}}), node_column = \"node\")   # order of the visit, 0 for the source")
+   else:
+      when = "step"
+      if function == "metropolis_hastings_random_walk":
+         lines.append("exploration[\"time\"] = exploration.groupby(\"walk\").duration.cumsum() - exploration.duration   # steps before each arrival, refused moves included")
+         when = "time"
+      lines += [f"first = exploration.groupby([\"walk\", \"node\"]).{when}.min()   # first visit of each node in each walk",
+                f"net.set_node_attribute(first.groupby(level = \"node\").mean().rename({literal(name)}).reset_index(), node_column = \"node\")   # mean over the walks reaching the node"]
+   return lines, name
+
+
+def _explore(request):
+   """
+   Command ``explore``: runs :func:`exploration_code` in the namespace of a tab and replies with
+   the code, the drawing (unchanged in its look) and a ``note`` on what was reached.
+   """
+   ns = _spaces[request["tab"]]
+   function = request["function"]
+   lines, name = exploration_code(ns, function, request.get("arguments") or {})
+   code = _run(request["tab"], lines)
+   header, payload = _draw(ns, code, True)
+   ex, net = ns["exploration"], ns["net"]
+   reached = ex.node.nunique()
+   what = "order of the visit, 0 for the source" if function in ("bfs", "dfs") else f"mean step of the first visit over {int(ex.walk.max()) + 1} walks"
+   header["note"] = f"{EXPLORATIONS[function][0]}: {reached:,} of {net.number_of_nodes():,} nodes reached; node attribute {name} ({what})"
+   return header, payload
+
+
+def _neighbors(request):
+   """
+   Command ``neighbors`` (Select › Neighbors of the selection, Ctrl+6): the selected ``nodes``
+   (positions in the drawing order), the endpoints of the selected ``edges`` and all their
+   neighbors (along edges in either direction), as ``nodes``; pressed again, the selection grows
+   one more step. ``added`` counts the new ones.
+   """
+   draw = _drawn(_spaces[request["tab"]])
+   s, t = _edges(draw)
+   n = len(_ids(draw))
+   mask = np.zeros(n, dtype = bool)
+   mask[np.asarray(request.get("nodes") or [], dtype = np.int64)] = True
+   e = np.asarray(request.get("edges") or [], dtype = np.int64)
+   e = e[e < len(s)]
+   mask[s[e]] = True
+   mask[t[e]] = True
+   grown = mask.copy()
+   grown[t[mask[s]]] = True
+   grown[s[mask[t]]] = True
+   return {"nodes": np.flatnonzero(grown).tolist(), "added": int(grown.sum() - mask.sum())}, b""
+
+
+#: Functions of Analysis › Frequent subgraphs: function to its label (:func:`mining_code`).
+MINERS = {"single_graph_mining": "In the whole network…", "transactional_graph_mining": "Across components…"}
+for _f in MINERS:
+   CHOICES.update({(_f, "node_label"): ("nodes", False), (_f, "edge_label"): ("edges", False)})
+   HINTS.update({(_f, "node_label"): "none (all alike)", (_f, "edge_label"): "none (all alike)", (_f, "max_edges"): "no limit"})
+INTEGERS[("single_graph_mining", "min_support")] = 1
+
+
+def mining_signature(function, net):
+   """
+   Parameters of the dialog of Analysis › Frequent subgraphs (:data:`MINERS`), as
+   :func:`signature`, with ``rules`` last (also the association rules).
+   """
+   params = signature(function, net)["params"]
+   params.append({"name": "rules", "default": "False", "hint": "", "doc": "Also the association rules between patterns that differ by one edge (gsk.graph_association_rules), as a table", "widget": {"kind": "bool"}})
+   return {"params": params}
+
+
+def mining_code(ns, function, arguments):
+   """
+   Code of Analysis › Frequent subgraphs, run in a new tab (:func:`_mine`): the frequent patterns
+   of the network (:func:`~graphoskop.single_graph_mining` or
+   :func:`~graphoskop.transactional_graph_mining`) become the network of the tab, one component
+   per pattern, its nodes with their label and the node attribute ``pattern`` (the id of their
+   pattern, the component); the support of every pattern, and with ``rules`` the association rules
+   (:func:`~graphoskop.graph_association_rules`), are tables of the Tables tab (``tables``), e.g.
+
+   .. code-block:: python
+
+      patterns, support = gsk.single_graph_mining(net, 20, node_label = "city", max_edges = 3)
+      assert patterns is not None, "no pattern reaches the support: lower min_support"
+      rules = gsk.graph_association_rules(net, patterns, support, transactional = False)
+      net = patterns
+      net.set_node_attribute("pattern", [[k] * c.num_nodes for k, c in enumerate(net.components)], None)
+      tables = {"Pattern support": support, "Association rules": rules}
+
+   :return: Lines of code.
+   :raises ValueError: If ``min_support`` is missing or a value is not a Python expression.
+   """
+   if function not in MINERS:
+      raise ValueError(f"unknown mining function: {function}")
+   arguments = {k: v.strip() for k, v in dict(arguments).items() if str(v).strip()}
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   rules = ast.literal_eval(arguments.pop("rules", "False"))
+   support = arguments.pop("min_support", "")
+   if not support:
+      raise ValueError("min_support: give the least support of a pattern")
+   lines = [f"patterns, support = gsk.{function}(net, {support}" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")",
+            "assert patterns is not None, \"no pattern reaches the support: lower min_support\""]
+   tables = "{\"Pattern support\": support" + (", \"Association rules\": rules}" if rules else "}")
+   if rules:
+      lines.append(f"rules = gsk.graph_association_rules(net, patterns, support, transactional = {function == 'transactional_graph_mining'})")
+   lines += ["net = patterns", "net.set_node_attribute(\"pattern\", [[k] * c.num_nodes for k, c in enumerate(net.components)], None)   # the id of the pattern of each node", f"tables = {tables}"]
+   return lines + (["del inc"] if "inc" in ns else [])
+
+
+def _mine(request):
+   """
+   Command ``mine``: :func:`mining_code` of a tab, in a new tab ``new_tab`` (:func:`_derived`),
+   with a ``note`` (how many patterns).
+   """
+   ns = _spaces[request["tab"]]
+   header, payload = _derived(ns, request["new_tab"], mining_code(ns, request["function"], request.get("arguments") or {}))
+   new = _spaces[request["new_tab"]]
+   header["note"] = f"{len(new['support']):,} frequent patterns, one component each (node attribute pattern); their support" + (" and the association rules" if "rules" in new and "Association rules" in new["tables"] else "") + " in the Tables tab"
+   return header, payload
+
+
+#: Functions of Analysis › Network statistics: global values of the network, each kept as a
+#: network attribute (:func:`statistic_code`): function to its label.
+STATISTICS = {"density": "Density", "average_degree": "Average degree", "reciprocity": "Reciprocity", "global_clustering": "Global clustering coefficient", "average_clustering": "Average clustering coefficient", "global_triangle_closure": "Global triangle closure", "assortativity": "Assortativity", "average_shortest_path_length": "Average shortest path length", "degree_centralization": "Degree centralization", "connected_components_count": "Connected components"}
+#: Parameters of the network statistics not shown in the dialog (memory and processes, not
+#: results; precomputed lengths).
+STATISTIC_HIDDEN = {"net", "batch_size", "n_jobs", "lengths"}
+#: Largest number of nodes for which "All of them" computes the exact average shortest path
+#: length: beyond, it samples this many sources.
+EXACT_PATHS = 10_000
+for _f in STATISTICS:
+   OPTIONS.setdefault((_f, "by"), ["\"layer\"", "\"entity\""])
+OPTIONS[("average_degree", "direction")] = ["\"out\"", "\"in\"", "\"total\""]
+OPTIONS[("degree_centralization", "mode")] = ["\"all\"", "\"in\"", "\"out\""]
+OPTIONS[("connected_components_count", "type")] = ["\"weak\"", "\"strong\""]
+OPTIONS[("assortativity", "kind")] = ["\"uniform\"", "\"weighted\""]
+CHOICES[("assortativity", "attribute")] = ("nodes", False)
+HINTS.update({("assortativity", "attribute"): "degree", ("average_shortest_path_length", "samples"): "all nodes", ("density", "component"): "all", ("average_shortest_path_length", "component"): "largest"})
+
+
+def statistic_signature(function, net):
+   """
+   Parameters of the dialog of a network statistic (:data:`STATISTICS`), as :func:`signature`
+   without :data:`STATISTIC_HIDDEN`, after ``network_attribute``: the name of the network
+   attribute written (the function; for the degree centralization, the prefix ``degree`` of its
+   values).
+   """
+   params = [p for p in signature(function, net)["params"] if p["name"] not in STATISTIC_HIDDEN]
+   name = "degree" if function == "degree_centralization" else function
+   params.insert(0, {"name": "network_attribute", "default": literal(name), "hint": "", "doc": "Name of the network attribute written" + (" (prefix of its values: degree_centralization, degree_entropy, …)" if function == "degree_centralization" else ""), "widget": {"kind": "string"}})
+   return {"params": params}
+
+
+def statistic_code(function, arguments = None):
+   """
+   Code of a network statistic (:data:`STATISTICS`), its value kept as a network attribute (shown
+   in the Network tab of the data panel), e.g.
+   ``net.network_attributes["global_clustering"] = gsk.global_clustering(net)``; the degree
+   centralization keeps each of its values, e.g. ``degree_centralization`` and ``degree_entropy``.
+
+   :return: Lines of code, and the names of the network attributes.
+   """
+   if function not in STATISTICS:
+      raise ValueError(f"unknown network statistic: {function}")
+   arguments = {k: v.strip() for k, v in dict(arguments or {}).items() if str(v).strip()}
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   name = ast.literal_eval(arguments.pop("network_attribute", literal("degree" if function == "degree_centralization" else function)))
+   call = f"gsk.{function}(net" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")"
+   if function == "degree_centralization":
+      return [f"net.network_attributes.update({{f\"{name}_{{k}}\": v for k, v in {call}.items()}})   # network attributes"], None
+   return [f"net.network_attributes[{literal(name)}] = {call}   # a network attribute"], name
+
+
+def all_statistics(net):
+   """
+   The network statistics of Analysis › Network statistics › All of them, with their defaults,
+   that apply to ``net``: reciprocity for directed networks, triangle closure for hypergraphs and
+   simplicial complexes, the average shortest path length sampled from :data:`EXACT_PATHS`
+   sources in larger networks.
+
+   :return: List of ``(function, arguments)``.
+   """
+   chosen = []
+   for f in STATISTICS:
+      if f == "reciprocity" and not net.directed or f == "global_triangle_closure" and net.higher_order is None:
+         continue
+      args = {"samples": str(EXACT_PATHS)} if f == "average_shortest_path_length" and net.number_of_nodes() > EXACT_PATHS else {}
+      chosen.append((f, args))
+   return chosen
+
+
+def _statistics(request):
+   """
+   Command ``statistics``: a network statistic of a tab (``function``, ``arguments``;
+   :func:`statistic_code`), or all of them (``function`` ``"all"``, :func:`all_statistics`: each
+   runs on its own, those the library refuses are skipped and named). Replies with the code, the
+   drawing (unchanged) and ``result``, the values.
+   """
+   ns = _spaces[request["tab"]]
+   net = ns["net"]
+   jobs = all_statistics(net) if request["function"] == "all" else [(request["function"], request.get("arguments") or {})]
+   code, done, skipped = None, [], []
+   for f, args in jobs:
+      lines, _ = statistic_code(f, args)
+      before = dict(ns["net"].network_attributes)
+      try:
+         code = _run(request["tab"], lines)
+      except Exception as e:
+         if request["function"] != "all":
+            raise
+         skipped.append(f"{STATISTICS[f].lower()} ({str(e).splitlines()[0][:80]})")
+         continue
+      net = ns["net"]
+      done += [k for k, v in net.network_attributes.items() if k not in before or before[k] is not v]   # written by this run
+   header, payload = _draw(ns, code if code is not None else "\n".join(ns["__code__"]), True)
+   values = net.network_attributes
+   shown = list(dict.fromkeys(done))
+   lines = [f"{k} = {text(values[k])}" for k in shown if k in values] or ["none"]
+   header["result"] = "Network attributes of %s:\n%s" % (request.get("name", "the network"), "\n".join(lines)) + ("" if not skipped else "\n\nSkipped:\n" + "\n".join(skipped))   # one value per line
+   return header, payload
+
+
+def _image_pdf(request):
+   """
+   Command ``image_pdf`` (File › Export › Image…, as a PDF document): the PNG image ``png`` (saved
+   by the interface) written as the one page of the PDF document ``path``, at ``dpi`` dots per
+   inch (the page is as large as the image at that resolution). Replies with the ``size`` of the
+   file.
+   """
+   from PIL import Image
+   with Image.open(request["png"]) as image:
+      image.convert("RGB").save(request["path"], "PDF", resolution = float(request.get("dpi", 300)))
+   return {"size": os.path.getsize(request["path"])}, b""
+
+
+#: Smallest sizes on screen, in pixels, as in the visualization panel (network_view.gd): node
+#: diameters, default edge width, arrowhead length; the default edge width relative to the
+#: default node diameter, the shape of the arrowheads (length and breadth relative to the edge
+#: width), the smallest label drawn and the most labels.
+VIEW_SIZES = {"node_pixels": 3., "edge_pixels": 1., "arrow_pixels": 5., "edge_fraction": 1. / 6., "arrow_length": 2.5, "arrow_breadth": 2.2, "label_pixels": 4., "max_labels": 2000}
+
+
+def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
+   """
+   The drawing of a tab as the visualization panel shows it, as vector graphics (a PDF document
+   by default, or any format matplotlib writes from the extension of ``path``): nodes as circles,
+   straight edges as lines ending at their arrowheads, bundled edges as Bézier curves, matrix
+   cells as squares, self loops as rings, arrowheads as triangles and labels as text, in the
+   colors, sizes and opacities of the style, with the smallest sizes on screen of
+   :data:`VIEW_SIZES` (as in the panel, so that the document looks as the screen), edges under
+   loops and arrowheads, under nodes, under labels. Only what is in view is visible; the selection
+   marks are left out.
+
+   :param ns: Namespace of the tab.
+   :param view: The view: ``center`` (world point at its center), ``zoom`` (pixels per world unit,
+      the scale of the layout included), ``turn`` (degrees, counterclockwise), ``spread`` (scale
+      of the layout), ``size`` (width and height in pixels).
+   :param path: File to write.
+   :param width: Width of the page in pixels at ``dpi`` dots per inch (the height follows).
+   :param background: Background color.
+   """
+   import matplotlib
+   matplotlib.use("Agg")
+   from matplotlib.figure import Figure
+   from matplotlib.collections import EllipseCollection, LineCollection, PolyCollection, PathCollection
+   from matplotlib.path import Path
+   from matplotlib import patheffects
+   from matplotlib.colors import to_rgb
+   draw = ns.get("inc", ns["net"])
+   last = last_layout(ns["__code__"])
+   matrix = _matrix_attribute(ns, last) if last == "matrix_layout" else None
+   if "pos_x" not in draw.node_attributes and matrix is None or draw.higher_order is not None:
+      raise ValueError("the network has no drawing yet")
+   style = ns["__style__"]
+   bends = ns.get("bends") if last == "bundle_edges" and not _positioned(ns) else None
+   d = drawing(draw, ns.get("__size__"), style, bends = bends, matrix = matrix)
+   V = VIEW_SIZES
+   W, H = (float(v) for v in view["size"])
+   zoom, spread = float(view["zoom"]), float(view.get("spread", 1.))
+   cx, cy = (float(v) for v in view["center"])
+   phi = -np.deg2rad(float(view.get("turn", 0.)))
+   cos, sin = np.cos(phi), np.sin(phi)
+   def screen(x, y):   # world points (y down) to pixels of the view
+      u, v = (np.asarray(x, dtype = float) - cx) * zoom, (np.asarray(y, dtype = float) - cy) * zoom
+      return u * cos - v * sin + W / 2, u * sin + v * cos + H / 2
+   def rotate(x, y):   # world directions to directions on screen
+      return x * cos - y * sin, x * sin + y * cos
+   inch = float(width) / W / float(dpi)   # inches per pixel of the view
+   pt = 72. * inch                         # points per pixel
+   fig = Figure(figsize = (W * inch, H * inch))
+   fig.patch.set_facecolor(background)
+   ax = fig.add_axes([0, 0, 1, 1])
+   ax.set_xlim(0, W)
+   ax.set_ylim(H, 0)
+   ax.set_aspect("equal")
+   ax.set_axis_off()
+   N, E, L, A = d["nodes"], d["edges"], d["loops"], d["arrows"]
+   size = d["size"]
+   line = max(size * V["edge_fraction"] / spread, V["edge_pixels"] / zoom)   # default edge width (world)
+   radius = np.maximum(N[:, 12] / spread, V["node_pixels"] / zoom) / 2 if len(N) else np.zeros(0)
+   if d["cells"]:   # matrix cells: unit squares
+      x0, y0 = E[:, 3] - 0.5, E[:, 7] - 0.5
+      corners = [screen(x0 + a, y0 + b) for a, b in ((0, 0), (1, 0), (1, 1), (0, 1))]
+      polys = np.stack([np.column_stack(c) for c in corners], axis = 1)
+      ax.add_collection(PolyCollection(polys, facecolors = E[:, 8:12], edgecolors = "none", zorder = 1))
+   elif d["curved"]:   # Bézier pieces
+      keep = E[:, 14] > 0
+      pts = [screen(E[keep, i], E[keep, j]) for i, j in ((3, 7), (0, 4), (1, 5), (12, 13))]
+      codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4]
+      paths = [Path(np.array([[p[0][k], p[1][k]] for p in pts]), codes) for k in range(int(keep.sum()))]
+      ax.add_collection(PathCollection(paths, facecolors = "none", edgecolors = E[keep, 8:12], linewidths = line * zoom * E[keep, 14] * pt, transform = ax.transData, capstyle = "butt", zorder = 1))
+   elif len(E):   # straight lines, ending at their arrowheads
+      w = np.hypot(E[:, 1], E[:, 5])
+      dx, dy = E[:, 0], E[:, 4]
+      length = np.maximum(np.hypot(dx, dy), 1e-12)
+      sx, sy, tx, ty = E[:, 3] - dx / 2, E[:, 7] - dy / 2, E[:, 3] + dx / 2, E[:, 7] + dy / 2
+      a = b = np.zeros(len(E))
+      if E.shape[1] > EDGE_STRIDE:   # directed: cut at the arrowheads
+         head = np.maximum(V["arrow_length"] * line * w, V["arrow_pixels"] / zoom)
+         a = E[:, 14] * (np.maximum(E[:, 12] / spread, V["node_pixels"] / zoom) / 2 + head)
+         b = E[:, 15] * (np.maximum(E[:, 13] / spread, V["node_pixels"] / zoom) / 2 + head)
+      keep = (w > 0) & (a + b < length)
+      ux, uy = dx / length, dy / length
+      p, q = screen(sx + a * ux, sy + a * uy), screen(tx - b * ux, ty - b * uy)
+      segments = np.stack([np.column_stack(p), np.column_stack(q)], axis = 1)[keep]
+      ax.add_collection(LineCollection(segments, colors = E[keep, 8:12], linewidths = line * zoom * w[keep] * pt, capstyle = "butt", zorder = 1))
+   if len(L):   # self loops: rings above their nodes
+      r = L[:, 12] / 2 / spread
+      h = L[:, 13] / 2 / spread + r * 0.5
+      ox, oy = rotate(np.zeros(len(L)), -h)
+      x, y = screen(L[:, 3], L[:, 7])
+      ax.add_collection(EllipseCollection(2 * r * zoom, 2 * r * zoom, np.zeros(len(L)), units = "xy", offsets = np.column_stack([x + ox * zoom, y + oy * zoom]), offset_transform = ax.transData, facecolors = "none", edgecolors = L[:, 8:12], linewidths = line * zoom * L[:, 14] * pt, zorder = 2))
+   if len(A):   # arrowheads: tip at the border of the node
+      r = np.maximum(A[:, 12] / spread, V["node_pixels"] / zoom) / 2
+      head = np.maximum(V["arrow_length"] * line * A[:, 13], V["arrow_pixels"] / zoom)
+      ux, uy = A[:, 0], A[:, 4]
+      nx, ny = -uy, ux
+      half = head * V["arrow_breadth"] / V["arrow_length"] / 2
+      tip = (A[:, 3] - r * ux, A[:, 7] - r * uy)
+      base = (A[:, 3] - (r + head) * ux, A[:, 7] - (r + head) * uy)
+      corners = [screen(*tip), screen(base[0] + half * nx, base[1] + half * ny), screen(base[0] - half * nx, base[1] - half * ny)]
+      polys = np.stack([np.column_stack(c) for c in corners], axis = 1)
+      ax.add_collection(PolyCollection(polys, facecolors = A[:, 8:12], edgecolors = "none", zorder = 2))
+   if len(N):   # nodes
+      x, y = screen(N[:, 3], N[:, 7])
+      ax.add_collection(EllipseCollection(2 * radius * zoom, 2 * radius * zoom, np.zeros(len(N)), units = "xy", offsets = np.column_stack([x, y]), offset_transform = ax.transData, facecolors = N[:, 8:12], edgecolors = "none", zorder = 3))
+      texts = node_labels(draw, style).decode("utf-8").split("\x1f") if matrix is None else []
+      if len(texts) == len(N):   # labels, centered, as in the panel
+         heights = np.frombuffer(label_sizes(draw, style, size), dtype = np.float32) * zoom / spread
+         inside = (x > -40) & (x < W + 40) & (y > -40) & (y < H + 40) & (np.array([bool(t) for t in texts]))
+         if inside.sum() <= V["max_labels"]:
+            dark = float(np.dot(to_rgb(background), [0.2126, 0.7152, 0.0722])) > 0.5   # a light background: dark text
+            ink, halo = ("black", (1, 1, 1, 0.8)) if dark else ("white", (0, 0, 0, 0.8))
+            for i in np.flatnonzero(inside & (heights >= V["label_pixels"])):
+               px = float(heights[i])
+               ax.text(x[i], y[i], texts[i], ha = "center", va = "center_baseline", fontsize = px * pt, color = ink, clip_on = True, zorder = 4, path_effects = [patheffects.withStroke(linewidth = max(2., px / 5) * pt * 0.6, foreground = halo)])
+   fig.savefig(path, facecolor = background)
+
+
+def _image_vector(request):
+   """
+   Command ``image_vector`` (File › Export › Image…, as a vector PDF document): the drawing of a
+   tab as the ``view`` of the interface shows it (:func:`vector_image`), ``width`` pixels wide at
+   ``dpi`` dots per inch, on the ``background`` color, written to ``path``. Replies with the
+   ``size`` of the file.
+   """
+   vector_image(_spaces[request["tab"]], request["view"], request["path"], float(request["width"]), float(request.get("dpi", 300)), request.get("background", "#ffffff"))
+   return {"size": os.path.getsize(request["path"])}, b""
+
+
+def _export(request):
+   """
+   Command ``export`` (File › Export network…): the network of a tab as the tables of
+   :meth:`~graphoskop.Network.to_pandas_dataframes`, tab separated, next to ``path``: its name
+   without extension, then ``_edges.tsv``, ``_nodes.tsv`` (if there are node attributes) and, for
+   multilayer networks, ``_interlayer.tsv``; they load back with File › Load network (multilayer
+   networks with their interlayer edges, from code). Replies with the ``files`` written. The code
+   does not change.
+   """
+   import pandas as pd
+   net = _spaces[request["tab"]]["net"]
+   tables = net.to_pandas_dataframes()
+   names = ["edges", "interlayer", "nodes"] if net.layer_labels is not None else ["edges", "nodes"]
+   tables = tables if isinstance(tables, tuple) else (tables,)
+   base = os.path.splitext(request["path"])[0]
+   files = []
+   for name, table in zip(names, tables):
+      if isinstance(table, pd.DataFrame):
+         path = f"{base}_{name}.tsv"
+         table.to_csv(path, sep = "\t", index = False)
+         files.append(path)
+   return {"files": files}, b""
+
+
+#: Functions of Edit › Error correction: function to its label (:func:`correction_code`).
+CORRECTIONS = {"measured_network_correction": "From measurements…", "uncertain_network_correction": "From edge probabilities…"}
+#: Models of the true network offered by the error correction dialog.
+CORRECTION_MODELS = ["nested_block_model", "degree_corrected_block_model", "stochastic_block_model", "planted_partition_graph", "configuration_model", "gnm_random_graph"]
+for _f in CORRECTIONS:
+   OPTIONS[(_f, "model")] = [literal(m) for m in CORRECTION_MODELS]
+   CHOICES[(_f, "groups")] = ("nodes", False)
+   HINTS.update({(_f, "groups"): "fitted", (_f, "seed"): "random"})
+CHOICES.update({("measured_network_correction", "measurements"): ("edges", False), ("measured_network_correction", "positives"): ("edges", False), ("uncertain_network_correction", "probability"): ("edges", False)})
+HINTS.update({("measured_network_correction", "measurements"): "1 per edge", ("measured_network_correction", "positives"): "1 per edge", ("measured_network_correction", "priors"): "uniform", ("measured_network_correction", "false_negative_rate"): "unknown", ("measured_network_correction", "false_positive_rate"): "unknown"})
+
+
+def correction_signature(function, net):
+   """
+   Parameters of the dialog of Edit › Error correction (:data:`CORRECTIONS`), as :func:`signature`
+   (the model as a menu of :data:`CORRECTION_MODELS`), with the ``seed`` 1 by default so that the
+   code gives the same network when it runs again.
+   """
+   params = signature(function, net)["params"]
+   for p in params:
+      if p["name"] == "seed":
+         p["default"] = "1"
+   return {"params": params}
+
+
+def correction_code(ns, function, arguments):
+   """
+   Code of Edit › Error correction, run in a new tab (:func:`_correct`): the network corrected by
+   :func:`~graphoskop.measured_network_correction` or
+   :func:`~graphoskop.uncertain_network_correction` (seed 1 unless the dialog says otherwise)
+   becomes the network of the tab, every node pair with a posterior probability of being an edge
+   (edge attribute ``probability``); the scalar values of the summary (model, groups, error rates,
+   description length, …) become network attributes; then the thresholds on the probability are
+   tested as for a backbone (``bb_test``, ``bb_found``), for the plot of the dialog, e.g.
+
+   .. code-block:: python
+
+      corrected, correction = gsk.measured_network_correction(net, seed = 1)
+      net = corrected
+      net.network_attributes.update({k: v for k, v in correction.items() if isinstance(v, (int, float, str))})   # network attributes
+      bb_test = gsk.test_bb_thresholds(net, quantiles = 100, score = "probability")
+      bb_found = gsk.find_bb_thresholds(net, score = "probability")
+
+   :return: Lines of code.
+   """
+   if function not in CORRECTIONS:
+      raise ValueError(f"unknown error correction: {function}")
+   arguments = dict({"seed": "1"}, **{k: v.strip() for k, v in dict(arguments).items() if str(v).strip()})
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   call = f"gsk.{function}(net" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")"
+   return [f"corrected, correction = {call}", "net = corrected",
+           "net.network_attributes.update({k: v for k, v in correction.items() if isinstance(v, (int, float, str))})   # network attributes",
+           f"bb_test = gsk.test_bb_thresholds(net, quantiles = {BACKBONE_STEPS}, score = \"probability\")",
+           "bb_found = gsk.find_bb_thresholds(net, score = \"probability\")"] + (["del inc"] if "inc" in ns else [])
+
+
+def _correct(request):
+   """
+   Command ``correct``: :func:`correction_code` of a tab in a new tab ``new_tab`` (:func:`_derived`),
+   replying as ``backbone`` does (:func:`_backbone`: the plot of the thresholds of the edge
+   probability is the last part of the payload), so that the backbone dialog extracts the edges
+   whose probability reaches a threshold (0.5 by default: the most likely network).
+   """
+   ns = _spaces[request["tab"]]
+   header, payload = _derived(ns, request["new_tab"], correction_code(ns, request["function"], request.get("arguments") or {}))
+   new = _spaces[request["new_tab"]]
+   new["__backbone__"] = {"score": "probability", "test": new["bb_test"], "found": new["bb_found"]}
+   png, box, scale, tails = backbone_plot(new["bb_test"], new["bb_found"], options = {"xlabel": "probability"}, observed = _observed(new))
+   x = new["bb_test"]["threshold"].to_numpy()
+   found = [[name, float(thr) if np.isfinite(thr) else None] for name, thr in zip(new["bb_found"]["criterion"], new["bb_found"]["threshold"])]
+   header["backbone"] = {"score": "probability", "range": [float(x[0]), float(x[-1])], "found": found, "box": box, "scale": scale, "tails": tails}
+   values = new["net"].network_attributes
+   header["note"] = "corrected network: every pair observed or sampled as an edge, with its probability of being one (edge attribute probability; observed: 1 for the edges of the network, 0 for the pairs it misses); " + ", ".join(f"{k} = {text(v)}" for k, v in values.items())
+   header["parts"] = header.get("parts", []) + [len(png)] if header.get("nodes") else [len(png)]
+   return header, payload + png
+
+
+#: Functions of Analysis › Hierarchy (directed networks): function to its label and what its
+#: score is (:func:`hierarchy_code`).
+HIERARCHIES = {"global_reach_centrality": ("Global reaching centrality", "how much the most reaching node exceeds the others (1: a star out of its center)"),
+               "flow_hierarchy": ("Flow hierarchy", "the fraction of the edges in no directed cycle"),
+               "arborescence_hierarchy": ("Arborescence hierarchicalness", "the fraction of the edges surviving the reduction to an arborescence"),
+               "agony_hierarchy": ("Agony hierarchy", "1 minus the agony of the best levels over the total weight")}
+#: Parameters of the hierarchy functions not shown in the dialog (set by :func:`hierarchy_code`).
+HIERARCHY_HIDDEN = {"net", "component", "lengths", "n_jobs", "ranks", "arborescence"}
+OPTIONS[("global_reach_centrality", "direction")] = ["\"out\"", "\"in\""]
+OPTIONS[("flow_hierarchy", "by")] = ["\"edges\"", "\"nodes\""]
+
+
+def hierarchy_signature(function, net):
+   """
+   Parameters of the dialog of Analysis › Hierarchy (:data:`HIERARCHIES`), as :func:`signature`
+   without :data:`HIDDEN`, with ``all_components`` (the whole network, instead of its largest
+   component) and, for the agony, ``levels`` (the name of a node attribute for the levels of the
+   nodes, none by default).
+   """
+   params = [p for p in signature(function, net)["params"] if p["name"] not in HIERARCHY_HIDDEN]
+   params.append({"name": "all_components", "default": "False", "hint": "", "doc": "Measure the whole network (component = None) instead of its largest component", "widget": {"kind": "bool"}})
+   if function == "agony_hierarchy":
+      params.append({"name": "levels", "default": "", "hint": "none", "doc": "Name of a node attribute written with the level of every node (0 at the top; ranks = True)", "widget": {"kind": "string"}})
+   return {"params": params}
+
+
+def hierarchy_code(ns, function, arguments):
+   """
+   Code of Analysis › Hierarchy: the score of a function of :data:`HIERARCHIES` (directed
+   networks), of the largest component or, with ``all_components``, of the whole network, kept in
+   ``hierarchy`` and as a network attribute named as the function (``_all_components`` added for
+   the whole network), e.g. ``hierarchy = gsk.flow_hierarchy(net, weight = "weight")`` and
+   ``net.network_attributes["flow_hierarchy"] = hierarchy``; the agony with
+   ``levels`` also writes the levels of the nodes as a node attribute:
+
+   .. code-block:: python
+
+      hierarchy, levels = gsk.agony_hierarchy(net, ranks = True)
+      net.set_node_attribute("level", levels)
+
+   :return: Lines of code.
+   """
+   if function not in HIERARCHIES:
+      raise ValueError(f"unknown hierarchy function: {function}")
+   arguments = {k: v.strip() for k, v in dict(arguments).items() if str(v).strip()}
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   whole = ast.literal_eval(arguments.pop("all_components", "False"))
+   levels = ast.literal_eval(arguments.pop("levels", '""'))
+   if whole:
+      arguments["component"] = "None"
+   call = f"gsk.{function}(net" + "".join(f", {k} = {v}" for k, v in arguments.items())
+   key = literal(function + ("_all_components" if whole else ""))
+   keep = f"net.network_attributes[{key}] = hierarchy   # a network attribute"
+   if function == "agony_hierarchy" and levels:
+      return [f"hierarchy, levels = {call}, ranks = True)", keep, f"net.set_node_attribute({literal(levels)}, levels{', None' if whole else ''})"]
+   return [f"hierarchy = {call})", keep]
+
+
+def _hierarchy(request):
+   """
+   Command ``hierarchy``: runs :func:`hierarchy_code` in the namespace of a tab and replies with the
+   code, the drawing (unchanged in its look) and the score as ``result`` (the dialog shows it).
+   """
+   ns = _spaces[request["tab"]]
+   function = request["function"]
+   arguments = request.get("arguments") or {}
+   code = _run(request["tab"], hierarchy_code(ns, function, arguments))
+   header, payload = _draw(ns, code, True)
+   label, what = HIERARCHIES[function]
+   part = "the whole network" if "all_components" in arguments and "True" in arguments["all_components"] else "the largest component"
+   levels = ast.literal_eval(arguments.get("levels", '""') or '""')
+   header["result"] = f"{label} of {request.get('name', 'the network')} ({part}): {ns['hierarchy']:.4g}, {what}" + (f"; levels in the node attribute {levels}" if levels else "")
+   return header, payload
+
+
+#: Functions of Simulation › Robustness: function to its label and what it removes.
+ROBUSTNESS = {"node_removal": ("Node removal", "nodes"), "edge_removal": ("Edge removal", "edges"), "cascade_failures": ("Cascading failures", "nodes")}
+#: Parameters of the robustness functions not shown in the parameter dialog.
+ROBUSTNESS_HIDDEN = {"net", "component", "progress", "recompute"}
+OPTIONS.update({(f, "quality"): ["\"lcc\"", "\"apl\""] for f in ROBUSTNESS})
+OPTIONS.update({("cascade_failures", "elements"): ["\"nodes\"", "\"edges\""], ("cascade_failures", "distribution"): ["\"equal\"", "\"random\"", "\"load\"", "\"capacity\""]})
+HINTS.update({(f, "samples"): "all (exact)" for f in ROBUSTNESS})
+
+
+def robustness_signature(function, net):
+   """
+   Parameters of the dialog of Simulation › Robustness (:data:`ROBUSTNESS`), as :func:`signature`
+   without :data:`ROBUSTNESS_HIDDEN`, after ``name`` (the name of the run, by default the function
+   and its strategy). The strategy is a menu: ``random``, ``friend_of_random`` (nodes), ``overload``
+   (cascades), ``degree`` (largest degrees first, computed if the network has no node attribute
+   of that name) and the numeric attributes of the nodes (edges for the edge removal); the load
+   and capacity of the cascades are ``random`` or a numeric attribute.
+   """
+   params = [p for p in signature(function, net)["params"] if p["name"] not in ROBUSTNESS_HIDDEN]
+   nodes = [literal(a) for a in (net.node_attributes if net is not None else []) if not a.startswith("pos_")]
+   edges = [literal(a) for a in (net.edge_attributes if net is not None else [])]
+   fixed = {"node_removal": ["\"random\"", "\"friend_of_random\"", "\"degree\""], "edge_removal": ["\"random\""], "cascade_failures": ["\"random\"", "\"friend_of_random\"", "\"overload\"", "\"degree\""]}[function]
+   for p in params:
+      if p["name"] == "strategy":
+         p["widget"] = {"kind": "choice", "options": list(dict.fromkeys(fixed + (edges if function == "edge_removal" else nodes)))}
+         p["doc"] = "Order of the removals: random (failures), friend_of_random (a random neighbor of a random node), degree (largest degrees first), or a numeric attribute (largest values first, or drawn by them with selection weighted)" + (", overload (the items already above their capacity)" if function == "cascade_failures" else "")
+      elif p["name"] in ("load", "capacity"):
+         p["widget"] = {"kind": "choice", "options": list(dict.fromkeys(["\"random\""] + nodes + edges))}
+   params.insert(0, {"name": "name", "default": "", "hint": "function(strategy)", "doc": "Name of the run: its table is robustness[name] and its global value the network attribute name", "widget": {"kind": "string"}})
+   return {"params": params}
+
+
+def robustness_code(ns, function, arguments):
+   """
+   Code of Simulation › Robustness: a run of a function of :data:`ROBUSTNESS` kept in the dictionary
+   ``robustness`` by name (by default the function and the strategy, e.g.
+   ``node_removal(degree)``), and its global value as a network attribute of the same name: for
+   removals the mean quality over all the numbers of removals (with ``lcc``, the robustness index
+   R of Schneider et al., the area under the curve), for cascades the final fraction of failed
+   items, e.g. ``robustness["node_removal(degree)"] = gsk.node_removal(net, strategy =
+   gsk.degree(net, distribution = None))`` and ``net.network_attributes["node_removal(degree)"] =
+   float(robustness["node_removal(degree)"]["lcc"].mean())``. The strategy ``degree`` is the
+   degrees of the nodes unless the network has a numeric node attribute of that name.
+
+   :return: Lines of code, the name of the run and its quality.
+   """
+   if function not in ROBUSTNESS:
+      raise ValueError(f"unknown robustness function: {function}")
+   arguments = {k: v.strip() for k, v in dict(arguments or {}).items() if str(v).strip()}
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   name = ast.literal_eval(arguments.pop("name", "\"\""))
+   if not name:   # the function and the strategy, numbered if taken
+      base = name = f"{function}({ast.literal_eval(arguments.get('strategy', literal('random')))})"
+      k = 1
+      while name in (ns.get("robustness") or {}):
+         k += 1
+         name = f"{base} {k}"
+   name = str(name)
+   quality = ast.literal_eval(arguments.get("quality", "\"lcc\""))
+   t = _target(ns)
+   if arguments.get("strategy") == "\"degree\"" and "degree" not in _drawn(ns).node_attributes:
+      arguments["strategy"] = f"gsk.degree({t}, distribution = None)"
+   lines = [] if any(l.startswith("robustness = {}") for l in ns["__code__"]) and isinstance(ns.get("robustness"), dict) else ["robustness = {}   # runs of Simulation › Robustness, by name"]
+   lines.append(f"robustness[{literal(name)}] = gsk.{function}({t}" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")")
+   value = f"robustness[{literal(name)}][{literal(quality)}].mean()" if function != "cascade_failures" else f"robustness[{literal(name)}][\"failed\"].iloc[-1]"
+   what = "mean quality over the removals" if function != "cascade_failures" else "fraction of the items failed in the end"
+   lines.append(f"net.network_attributes[{literal(name)}] = float({value})   # a network attribute: {what}")
+   return lines, name, quality
+
+
+def robustness_plot(tables, x, y, colors = None, options = None, styles = None, format = "png", path = None, dpi = 100):
+   """
+   Plot comparing runs of a robustness function: the column ``y`` of every table (the quality, or
+   the fraction failed of cascades) against ``x`` (the fraction removed, or the step of cascades;
+   ``None``: the index), one line per run with its confidence interval as a band (see
+   ``_figure``).
+
+   :param tables: Dictionary from run name to its table.
+   """
+   def draw(ax):
+      for k, (name, df) in enumerate(tables.items()):
+         c = (colors or {}).get(name, PLOT_COLORS[k % len(PLOT_COLORS)])
+         xs = df[x] if x is not None else df.index
+         _series(ax, xs, df[y], (styles or {}).get(name, "lines"), c, name)
+         if f"{y}_low" in df and f"{y}_high" in df and df[f"{y}_low"].notna().any():
+            ax.fill_between(np.asarray(xs, dtype = float), df[f"{y}_low"], df[f"{y}_high"], color = c, alpha = 0.2, lw = 0)
+   return _figure(draw, dict(PLOT_OPTIONS["robustness"], **(options or {})), format, path, dpi)
+
+
+PLOT_ELEMENTS["robustness"] = (lambda **kw: robustness_plot(**kw), {}, {})
+PLOT_OPTIONS["robustness"] = {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}
+#: Labels of the qualities of the robustness functions, for the axes of their plots.
+ROBUSTNESS_QUALITIES = {"lcc": "fraction of the nodes in the largest component", "apl": "average shortest path length"}
+
+
+def robustness_runs(ns):
+   """
+   The runs of Simulation › Robustness of a tab (the dialog lists them): ``tables``, their names in
+   order; ``models``, run name to its ``function`` and ``arguments`` (as typed, for Copy…; the name
+   left out) and ``quality``; ``kinds``, run name to ``"removal"`` or ``"cascade"``.
+   """
+   meta = ns.setdefault("__robustness__", {})
+   for n, m in list(meta.items()):   # sessions of 0.13.40: (function, quality)
+      if isinstance(m, tuple):
+         meta[n] = {"function": m[0], "arguments": {}, "quality": m[1]}
+   runs = ns.get("robustness") if isinstance(ns.get("robustness"), dict) else {}
+   names = [n for n in runs if n in meta]
+   return {"tables": names, "models": {n: {"function": meta[n]["function"], "arguments": meta[n]["arguments"], "quality": meta[n]["quality"]} for n in names}, "kinds": {n: "cascade" if meta[n]["function"] == "cascade_failures" else "removal" for n in names}}
+
+
+def _robustness(request):
+   """
+   Command ``robustness``: runs :func:`robustness_code` in the namespace of a tab (a run of the
+   robustness dialog), and replies with the code, the drawing (unchanged in its look), the global
+   value as ``result`` and the runs (:func:`robustness_runs`).
+   """
+   ns = _spaces[request["tab"]]
+   function = request["function"]
+   arguments = dict(request.get("arguments") or {})
+   lines, name, quality = robustness_code(ns, function, arguments)
+   code = _run(request["tab"], lines)
+   arguments.pop("name", None)
+   ns.setdefault("__robustness__", {})[name] = {"function": function, "arguments": arguments, "quality": quality}
+   header, payload = _draw(ns, code, True)
+   value = ns["net"].network_attributes.get(name)
+   header["result"] = f"{name} = {text(value)}" + (f" (final {ROBUSTNESS_QUALITIES[quality]}: {text(float(ns['robustness'][name][quality].iloc[-1]))})" if function == "cascade_failures" else "")
+   header.update(robustness_runs(ns))
+   return header, payload
+
+
+def _robustness_runs(request):
+   """
+   Command ``robustness_runs``: the runs of the robustness dialog of a tab (:func:`robustness_runs`).
+   """
+   return robustness_runs(_spaces[request["tab"]]), b""
+
+
+def _robustness_plot(request):
+   """
+   Command ``robustness_plot``: the plot comparing the runs ``names`` of a tab
+   (:func:`robustness_plot`): the quality against the fraction removed for removals of nodes or
+   edges, the fraction of items failed at every step for cascades. Runs of removals and cascades,
+   or of two qualities, do not share axes and are refused. Replies with the PNG image as payload,
+   the ``elements`` of the plot window and ``text`` (the global value of every run).
+   """
+   ns = _spaces[request["tab"]]
+   info = robustness_runs(ns)
+   names = [n for n in request.get("names") or [] if n in info["models"]]
+   if not names:
+      raise ValueError("check the runs to plot")
+   kinds = {info["kinds"][n] for n in names}
+   qualities = {info["models"][n]["quality"] for n in names if info["kinds"][n] == "removal"}
+   if len(kinds) > 1:
+      raise ValueError("removals and cascading failures do not share axes: plot them apart")
+   if len(qualities) > 1:
+      raise ValueError("runs measuring the largest component and the path lengths do not share an axis: plot them apart")
+   runs = {n: ns["robustness"][n] for n in names}
+   if kinds == {"cascade"}:
+      x, y, xlabel, ylabel = None, "failed", "step", "fraction of the items failed"
+   else:
+      quality = qualities.pop()
+      what = {ROBUSTNESS[info["models"][n]["function"]][1] for n in names}
+      x, y, xlabel, ylabel = "fraction", quality, f"fraction of the {what.pop()} removed" if len(what) == 1 else "fraction removed", ROBUSTNESS_QUALITIES[quality]
+   ns["__plot__"] = _plot("robustness", {"tables": runs, "x": x, "y": y}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(runs)}, {n: "lines" for n in runs}, {n: n for n in runs}, xlabel = xlabel, ylabel = ylabel)
+   values = ns["net"].network_attributes
+   text_ = "; ".join(f"{n} = {text(values[n])}" for n in names if n in values)
+   return dict(_plot_header(ns["__plot__"]), text = text_, warnings = []), _render(ns["__plot__"], "png")
+
+
+#: Most suggestions of :func:`_suggest`.
+MAX_SUGGESTIONS = 30
+
+
+def _suggest(request):
+   """
+   Command ``suggest``: the values of the node ``attribute`` of the drawn network of a tab (``None``:
+   the ids) that contain ``text`` (ignoring case), the exact ones first, with the number of nodes
+   having each (``values``: text and count, at most :data:`MAX_SUGGESTIONS`; ``more``: how many
+   were left out), as the search box does (:func:`find_nodes`), e.g. for the source of an
+   exploration given by a node attribute.
+   """
+   import pandas as pd
+   net = _drawn(_spaces[request["tab"]])
+   attribute = request.get("attribute")
+   exact, partial = find_nodes(net, request.get("text", ""), attribute)
+   values = _ids(net) if attribute is None else _column(net, attribute)
+   found = pd.Series([text(values[i]) for i in np.concatenate([exact, partial])], dtype = object)
+   counts = pd.Series(np.asarray(values, dtype = object)).map(text, na_action = "ignore").value_counts() if attribute is not None else None
+   distinct_ = list(dict.fromkeys(found))
+   shown = [{"text": v, "count": int(counts[v]) if counts is not None else 1} for v in distinct_[:MAX_SUGGESTIONS]]
+   return {"values": shown, "more": max(0, len(distinct_) - MAX_SUGGESTIONS)}, b""
+
+
+#: Format of the session files written by :func:`_save_session`.
+SESSION_FORMAT = 1
+#: Variables of the namespaces of the tabs not saved in sessions: caches made again when needed.
+SESSION_SKIPPED = {"__builtins__", "__tables__", "__plot__", "__gnn_eval__"}
+
+
+def session_space(ns):
+   """
+   What a session keeps of the namespace of a tab: every variable that can be pickled (networks,
+   tables, results, the code ``__code__``, the style, the undo and redo histories, the models of
+   the runs, …), but modules, functions and classes (the functions of the interface are defined
+   again when the session opens) and the caches of :data:`SESSION_SKIPPED`.
+   """
+   import pickle, types
+   kept = {}
+   for k, v in ns.items():
+      if k in SESSION_SKIPPED or isinstance(v, (types.ModuleType, types.FunctionType, types.BuiltinFunctionType, type)):
+         continue
+      try:
+         pickle.dumps(v)
+      except Exception:
+         continue
+      kept[k] = v
+   return kept
+
+
+def _save_session(request):
+   """
+   Command ``save_session``: writes the session to ``path``, one file (a zip archive) with
+   ``session.json`` (the format, the version of the library and ``gui``, the state of the
+   interface sent by it: its tabs, in order, with their names, views, selections, …) and
+   ``spaces.pickle``, the namespaces of the tabs listed in ``gui["tabs"]`` (:func:`session_space`),
+   pickled together so that the objects tabs share stay shared. Replies with the ``size`` of the
+   file.
+   """
+   import pickle, zipfile, time
+   gui = request["gui"]
+   spaces = {int(t["tab"]): session_space(_spaces[int(t["tab"])]) for t in gui.get("tabs", []) if int(t["tab"]) in _spaces}
+   meta = {"format": SESSION_FORMAT, "graphoskop": _version(), "saved": time.strftime("%Y-%m-%d %H:%M:%S"), "gui": gui}
+   path = request["path"]
+   with zipfile.ZipFile(path + ".part", "w", zipfile.ZIP_DEFLATED) as z:
+      z.writestr("session.json", json.dumps(meta, indent = 1))
+      z.writestr("spaces.pickle", pickle.dumps(spaces, protocol = pickle.HIGHEST_PROTOCOL))
+   os.replace(path + ".part", path)   # never half a file under the name
+   return {"size": os.path.getsize(path), "tabs": len(spaces)}, b""
+
+
+def _open_session(request):
+   """
+   Command ``open_session``: reads a session file (:func:`_save_session`) and puts the namespaces
+   of its tabs back, the tab of id ``i`` of the file (in the order of the tabs) as tab
+   ``first + i``, with the functions of the interface (:func:`_helpers`); replies with the state of
+   the interface (``gui``, its tabs with their new ids in ``tab``), the ``version`` of the library
+   that saved it and a ``warning`` if it differs from the running one. The file is unpickled: open
+   only sessions from trusted sources.
+   """
+   import pickle, zipfile
+   with zipfile.ZipFile(request["path"]) as z:
+      meta = json.loads(z.read("session.json"))
+      spaces = pickle.loads(z.read("spaces.pickle"))
+   if meta.get("format") != SESSION_FORMAT:
+      raise ValueError(f"not a session file of this version of the interface (format {meta.get('format')})")
+   gui = meta["gui"]
+   first = int(request["first"])
+   for i, t in enumerate(gui.get("tabs", [])):
+      ns = spaces[int(t["tab"])]
+      ns.update(_helpers(), gsk = gsk)
+      t["tab"] = first + i
+      _spaces[first + i] = ns
+   reply = {"gui": gui, "version": meta.get("graphoskop")}
+   if meta.get("graphoskop") != _version():
+      reply["warning"] = f"saved with graphoskop {meta.get('graphoskop')}, running {_version()}"
+   return reply, b""
+
+
+def _redraw(request):
+   """
+   Command ``redraw``: the code and the drawing of a tab as they are (e.g. after a session was
+   opened), keeping its node size.
+   """
+   ns = _spaces[request["tab"]]
+   return _draw(ns, "\n".join(ns["__code__"]), True)
+
+
 #: Commands understood by the worker.
-COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot}
+COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot}
 
 #: Functions of the Layout menu: layouts of node-link diagrams, the matrix layout (drawn as the
 #: adjacency matrix), transformations of layouts, and edge bundling.

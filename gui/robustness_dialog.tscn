@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://robustness_dialog.gd" id="1_rob"]
+
+[node name="RobustnessDialog" type="AcceptDialog"]
+title = "Robustness"
+size = Vector2i(420, 120)
+exclusive = false
+ok_button_text = "Close"
+script = ExtResource("1_rob")
+
+[node name="Box" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(400, 0)
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 412.0
+offset_bottom = 191.0
+
+[node name="Title" type="Label" parent="Box"]
+layout_mode = 2
+text = "Runs (the checked ones are plotted; Copy… runs a function again with the same values, to change some):"
+autowrap_mode = 3
+custom_minimum_size = Vector2(400, 0)
+
+[node name="None" type="Label" parent="Box"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.6)
+layout_mode = 2
+text = "No runs yet: add a run."
+
+[node name="Runs" type="VBoxContainer" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Separator" type="HSeparator" parent="Box"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Box"]
+layout_mode = 2
+
+[node name="Add" type="MenuButton" parent="Box/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Removes nodes or edges, or starts cascading failures, and records how the network holds"
+text = "Add run"
+flat = false
+
+[node name="Space" type="Control" parent="Box/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Plot" type="Button" parent="Box/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Plots the checked runs together"
+text = "Plot"
+
+[node name="Status" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.75)
+autowrap_mode = 3
+
+[node name="Error" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
+autowrap_mode = 3

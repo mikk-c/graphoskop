@@ -48,7 +48,7 @@ def _flat_tables(net):
    tables = net._dataframes(True)
    if isinstance(tables, tuple):
       return tables
-   ids = np.concatenate(net.node_ids)
+   ids = np.concatenate(net.node_ids) if net.components else np.array([], dtype = np.int64)   # an empty network: integer ids stay integers, texts make the column texts
    if net.node_format == "wide":
       return tables, pd.DataFrame({"node": ids})
    return tables, pd.DataFrame({"node": ids, "attribute": np.nan, "value": np.nan})

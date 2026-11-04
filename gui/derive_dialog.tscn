@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://derive_dialog.gd" id="1_derive"]
+
+[node name="DeriveDialog" type="ConfirmationDialog"]
+title = "New node attribute"
+size = Vector2i(520, 260)
+ok_button_text = "Create"
+dialog_hide_on_ok = false
+script = ExtResource("1_derive")
+
+[node name="Box" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 512.0
+offset_bottom = 211.0
+
+[node name="Grid" type="GridContainer" parent="Box"]
+layout_mode = 2
+columns = 2
+
+[node name="NameLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "Name"
+
+[node name="Name" type="LineEdit" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+placeholder_text = "name of the new attribute"
+clear_button_enabled = true
+
+[node name="FormulaLabel" type="Label" parent="Box/Grid"]
+layout_mode = 2
+text = "Formula"
+
+[node name="Formula" type="LineEdit" parent="Box/Grid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+tooltip_text = "Values of the new attribute, node by node: attributes, numbers, \"texts\", + - * / ** %, comparisons, and functions (e.g. log(income) / age, or substr(city, 1, 3))"
+placeholder_text = "e.g. log(income) / age"
+clear_button_enabled = true
+
+[node name="Tools" type="HFlowContainer" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+
+[node name="Attributes" type="MenuButton" parent="Box/Tools"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Insert the name of a node attribute"
+text = "Attribute ▾"
+flat = false
+
+[node name="Functions" type="MenuButton" parent="Box/Tools"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Insert a function"
+text = "Function ▾"
+flat = false
+
+[node name="Preview" type="Label" parent="Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Error" type="Label" parent="Box"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
+autowrap_mode = 3
+
+[node name="Debounce" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.4
+one_shot = true

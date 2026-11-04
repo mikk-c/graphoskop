@@ -13,10 +13,22 @@ visible = false
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="Title" type="Label" parent="."]
+[node name="Head" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Head"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text_overrun_behavior = 3
+
+[node name="Columns" type="MenuButton" parent="Head"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+tooltip_text = "Show or hide the attributes in the table"
+text = "Columns ▾"
+flat = false
 
 [node name="Table" type="Tree" parent="."]
 unique_name_in_owner = true

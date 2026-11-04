@@ -34,6 +34,13 @@ extends SubViewportContainer
 ## are drawn over, as lines, curves or cell outlines (the first [constant MAX_HIGHLIGHTS]). Nodes can also be colored by
 ## the states of an epidemic ([method show_states]), over the colors of the style.
 ##
+## Node labels (Visual elements › Nodes › Label, off by default): the texts sent by the worker,
+## centered on their nodes, upright, in black or white with an outline (by the background), at
+## the heights sent by the worker (Label size: drawing units, like node diameters, so that labels
+## grow and shrink with the zoom). Labels smaller than [constant LABEL_MIN_PIXELS] pixels on
+## screen are left out, and none are drawn when more than [constant MAX_LABELS] nodes are in view:
+## zoom in to see the labels of a large network. Saved images have them too.
+##
 ## The viewport is drawn only after a change (new drawing, pan, zoom, resize, selection, drag), so
 ## an idle view costs nothing and does not compete with the worker for the processor or the GPU.
 ## (A Camera2D would make Godot redraw at every frame: the view is moved with the canvas transform
@@ -87,8 +94,14 @@ const ARROW_BREADTH := 2.2
 ## Supersampling of saved images and animation frames ([method capture]): drawn this many times
 ## larger, then reduced, which smooths the edges.
 const SMOOTH := 3
+## Largest side of the off-screen drawing of a saved image, in pixels (a limit of the GPU).
+const MAX_CAPTURE := 16384
 ## Color of the selection marks.
 const MARK_COLOR := Color(0.1, 0.1, 0.1)
+## Smallest font size of the node labels drawn, in pixels, and the most labels drawn (beyond,
+## none: zoom in).
+const LABEL_MIN_PIXELS := 4
+const MAX_LABELS := 2000
 
 ## World point at the center of the view.
 var center := Vector2.ZERO
@@ -104,6 +117,11 @@ var spread := 1.0
 var node_size := 0.5
 ## Input ids of the nodes, in the drawing order.
 var ids := PackedStringArray()
+## Labels of the nodes, in the drawing order (empty: no labels).
+var labels := PackedStringArray()
+## Heights of the labels, in world units (as node diameters: divided by the scale of the layout).
+var _label_heights := PackedFloat32Array()
+var _labels := Node2D.new()
 ## What nodes can be added (from the worker: false, or the layers and node types the menu offers).
 var adding = false
 ## Positions (in the drawing order of the worker) of the selected edges.
@@ -165,6 +183,8 @@ func _ready() -> void:
    _straight = _edges.material
    _curved.shader = CurveShader
    _highlight.draw.connect(_draw_highlight)
+   _viewport.add_child(_labels)   # over the nodes and the selection
+   _labels.draw.connect(_draw_labels)
    resized.connect(func(): fit() if not _fitted else _redraw())
 
 
@@ -197,6 +217,9 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _loop_data = parts[7].to_float32_array() if int(header.get("loops", 0)) > 0 else PackedFloat32Array()
    _fill(_loops.multimesh, int(header.get("loops", 0)), _loop_data)
    _arrow_data = parts[8].to_float32_array() if int(header.get("arrows", 0)) > 0 else PackedFloat32Array()
+   labels = parts[9].get_string_from_utf8().split(char(31)) if header.get("labels", false) and parts.size() > 10 else PackedStringArray()
+   _label_heights = parts[10].to_float32_array() if not labels.is_empty() else PackedFloat32Array()
+   _labels.queue_redraw()
    _fill(_arrows.multimesh, int(header.get("arrows", 0)), _arrow_data)
    _grid = header.grid
    var b: Array = header.box
@@ -304,6 +327,17 @@ func fit() -> void:
    _set_zoom(minf(room.x / maxf(span.x, 1e-6), room.y / maxf(span.y, 1e-6)))
 
 
+## Puts back a view as it was ([param c] center, [param z] zoom, [param t] rotation, [param s]
+## scale of the layout; e.g. from a session): the next drawing keeps it (shown with keep_view)
+## instead of fitting the network.
+func restore_view(c: Vector2, z: float, t: float, s: float) -> void:
+   center = c
+   zoom = z
+   turn = t
+   spread = s
+   _fitted = true
+
+
 ## Sets the scale of the layout to [param factor] (1: the distances of the layout), keeping the
 ## center of the view and the size of the nodes on screen.
 func set_spread(factor: float) -> void:
@@ -368,17 +402,21 @@ func _to_screen(p: Vector2) -> Vector2:
 ## next frame.
 func _redraw() -> void:
    _viewport.canvas_transform = _view_transform(Vector2(_viewport.size), zoom)
+   if not labels.is_empty():
+      _labels.queue_redraw()
    _viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 ## Image of the view as on screen, [param scale] times larger (without the selection marks):
 ## drawn once by an off-screen viewport sharing the 2D world of the view, over the background
 ## color. The view itself is not touched. The image is antialiased by supersampling: drawn
-## [param smooth] times larger still (smallest sizes included), then reduced (Lanczos filter);
-## 1 draws it as on screen, with jagged edges.
-func capture(scale := 2, smooth := SMOOTH) -> Image:
+## [param smooth] times larger still (smallest sizes included; less if the drawing would be
+## larger than [constant MAX_CAPTURE] pixels), then reduced (Lanczos filter); 1 draws it as on
+## screen, with jagged edges.
+func capture(scale: float = 2.0, smooth := SMOOTH) -> Image:
    var z := zoom
    var final := Vector2i(size * scale)
+   smooth = clampi(MAX_CAPTURE / maxi(maxi(final.x, final.y), 1), 1, smooth)
    scale *= smooth
    var vp := SubViewport.new()
    vp.size = Vector2i(size * scale)
@@ -520,6 +558,35 @@ func _draw_highlight() -> void:
       var b := _to_world(Vector2(_rect_end.x, _press.y))
       var d := _to_world(Vector2(_press.x, _rect_end.y))
       _highlight.draw_polyline(PackedVector2Array([a, b, c, d, a]), MARK_COLOR, w / 2)
+
+
+## Draws the labels of the nodes in view (none if more than [constant MAX_LABELS]), each upright,
+## centered on its node, at its height (none below [constant LABEL_MIN_PIXELS] pixels).
+func _draw_labels() -> void:
+   if labels.is_empty() or labels.size() != ids.size() or _label_heights.size() != ids.size():
+      return
+   var xf := _view_transform(size, zoom)
+   var room := Rect2(Vector2.ZERO, size).grow(40)
+   var shown := PackedInt32Array()
+   for i in labels.size():
+      if not labels[i].is_empty() and room.has_point(xf * _position(i)):
+         shown.append(i)
+         if shown.size() > MAX_LABELS:
+            return
+   var font := ThemeDB.fallback_font
+   var dark: bool = %Background.color.get_luminance() > 0.5
+   var ink := Color.BLACK if dark else Color.WHITE
+   var halo := Color(1, 1, 1, 0.8) if dark else Color(0, 0, 0, 0.8)
+   for i in shown:
+      var px := roundi(_label_heights[i] * zoom / spread)
+      if px < LABEL_MIN_PIXELS:
+         continue
+      _labels.draw_set_transform(_position(i), deg_to_rad(turn), Vector2.ONE / zoom)
+      var width := font.get_string_size(labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px).x
+      var at := Vector2(-width / 2, (font.get_ascent(px) - font.get_descent(px)) / 2)   # centered on the node
+      _labels.draw_string_outline(font, at, labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, maxi(2, px / 5), halo)
+      _labels.draw_string(font, at, labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, px, ink)
+   _labels.draw_set_transform(Vector2.ZERO)
 
 
 ## Position in the drawing of the edge under [param at] (local coordinates), or -1: the nearest

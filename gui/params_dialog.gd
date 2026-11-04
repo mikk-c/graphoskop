@@ -11,6 +11,18 @@ extends ConfirmationDialog
 ## (fields without one are empty, with a hint); the description of a parameter is its tooltip.
 ## Only the values that differ from the defaults are passed, as Python source code.
 ##
+## A node field with [code]lookup[/code] (the source of an exploration) finds nodes as the search
+## box does: [b]Find[/b] (or Enter) lists the values containing the text typed, of the node
+## attribute chosen in the parameter named by [code]lookup[/code] (or of the ids), with how many
+## nodes have each; choosing one writes it in the field (values of several nodes cannot be chosen:
+## the source must be one node). The values come from [member finder].
+##
+## Parameters marked [code]advanced[/code] by the worker (all but those without a default and a
+## few that matter most, see the worker's [code]mark_advanced[/code]) are shown only with the
+## [b]Advanced[/b] switch on, at the bottom left (off by default; the choice is remembered, for all
+## the dialogs that have it, see [method AppSettings.advanced]); hidden parameters keep their
+## values (defaults or presets).
+##
 ## The dialog stays open while the function runs: if a value is not valid, or the function fails,
 ## the error is shown under the controls, which keep what was entered; it closes when the
 ## function has run. It is as large as its controls, scrolling only beyond [constant MAX_HEIGHT]
@@ -36,9 +48,31 @@ var _params := []
 var _values: Array[Callable] = []
 var _on_accept := Callable()
 var _run := 0
+## Rows of the controls: the name, the control and the filler of each parameter, and whether it
+## is advanced.
+var _rows := []
+var _advanced := CheckButton.new()
+var _note := Label.new()
+## Function (attribute or null for the ids, text, done) asking the worker for the values that
+## contain the text; done gets them (text and count of nodes). Set by the main scene.
+var finder := Callable()
+var _found := PopupMenu.new()
 
 
 func _ready() -> void:
+   _advanced.text = "Advanced"
+   _advanced.tooltip_text = "Show all the parameters (off: only those that matter most; the others keep their values)"
+   var bar := get_ok_button().get_parent()
+   bar.add_child(_advanced)
+   bar.move_child(_advanced, 0)
+   _advanced.toggled.connect(func(on):
+      AppSettings.set_advanced(on)
+      _show_rows())
+   _note.text = "Every parameter keeps its default value: Advanced shows them."
+   _note.modulate = Color(1, 1, 1, 0.7)
+   $Box.add_child(_note)
+   $Box.move_child(_note, 1)
+   add_child(_found)
    confirmed.connect(_on_confirmed)
    canceled.connect(func(): _run += 1; get_ok_button().disabled = false)
 
@@ -61,6 +95,7 @@ func open(heading: String, sig: Dictionary, presets: Dictionary, ok_text: String
    for child in %Grid.get_children():
       %Grid.remove_child(child)
       child.queue_free()
+   _rows = []
    for p in _params:
       var name := Label.new()
       name.text = p.name
@@ -100,7 +135,8 @@ func open(heading: String, sig: Dictionary, presets: Dictionary, ok_text: String
          "string":
             control = _field(_unquoted(start), p.hint, func(t): return JSON.stringify(t) if not t.is_empty() else "")
          "node":
-            control = _field(_unquoted(start), p.hint, func(t): return t if w.get("numeric", false) and t.is_valid_int() else (JSON.stringify(t) if not t.is_empty() else ""))
+            var edit := _field(_unquoted(start), p.hint, func(t): return t if w.get("numeric", false) and t.is_valid_int() else (JSON.stringify(t) if not t.is_empty() else ""))
+            control = edit if not w.has("lookup") else _lookup(edit, w.lookup)
          "optional":
             control = _field(start, p.hint, func(t): return t if t.is_empty() or t.is_valid_float() else "!" + t)
          "list":
@@ -109,13 +145,31 @@ func open(heading: String, sig: Dictionary, presets: Dictionary, ok_text: String
             control = _field(start, p.hint, func(t): return t)
       control.tooltip_text = p.doc
       %Grid.add_child(control)
-      %Grid.add_child(Control.new())
+      var filler := Control.new()
+      %Grid.add_child(filler)
+      _rows.append([name, control, filler, p.get("advanced", false)])
+   _advanced.set_pressed_no_signal(AppSettings.advanced())
+   _advanced.visible = _rows.any(func(r): return r[3])
+   _show_rows()
+   popup_centered()
+
+
+## Shows the rows of the parameters (the advanced ones only with [b]Advanced[/b] on), and sizes
+## the dialog to them.
+func _show_rows() -> void:
+   var hidden := 0
+   for r in _rows:
+      var shown: bool = _advanced.button_pressed or not r[3]
+      hidden += int(not shown)
+      for c: Control in r.slice(0, 3):
+         c.visible = shown
+   _note.visible = hidden > 0 and hidden == _rows.size()
    var content: Vector2 = %Grid.get_combined_minimum_size()
    var screen := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size
    %Scroll.custom_minimum_size = Vector2(content.x, minf(content.y, MAX_HEIGHT * screen.y))
-   %Error.custom_minimum_size.x = content.x
+   %Scroll.visible = hidden < _rows.size()
+   %Error.custom_minimum_size.x = maxf(content.x, 300)
    _fit()
-   popup_centered()
 
 
 func _fit() -> void:
@@ -323,6 +377,42 @@ func _field(start: String, hint: String, source: Callable) -> LineEdit:
    edit.clear_button_enabled = true
    _values.append(func(): return source.call(edit.text.strip_edges()))
    return edit
+
+
+## A node field [param edit] with a Find button: the values containing its text, of the node
+## attribute of the parameter [param by] (or of the ids), in a menu under it (see [member finder]).
+func _lookup(edit: LineEdit, by: String) -> HBoxContainer:
+   var box := HBoxContainer.new()
+   edit.custom_minimum_size.x = FIELD_WIDTH - 50
+   edit.placeholder_text += " · Enter finds"
+   var find := Button.new()
+   find.text = "Find"
+   find.tooltip_text = "List the values containing the text (of the attribute chosen in %s, or the ids)" % by
+   box.add_child(edit)
+   box.add_child(find)
+   var ask := func():
+      var at := _params.map(func(q): return q.name).find(by)
+      var chosen = JSON.parse_string(_values[at].call()) if at >= 0 and not _values[at].call().is_empty() else null
+      if finder.is_valid():
+         finder.call(chosen, edit.text.strip_edges(), func(values: Array, more: int):
+            _found.clear()
+            for v in values:
+               _found.add_item(v.text if v.count == 1 else "%s (%d nodes: not one node)" % [v.text, v.count])
+               _found.set_item_disabled(_found.item_count - 1, v.count != 1)
+               _found.set_item_metadata(_found.item_count - 1, v.text)
+            if values.is_empty():
+               _found.add_item("no node has a value containing “%s”" % edit.text.strip_edges())
+               _found.set_item_disabled(0, true)
+            if more > 0:
+               _found.add_item("… %d more: type more of the value" % more)
+               _found.set_item_disabled(_found.item_count - 1, true)
+            for c in _found.index_pressed.get_connections():
+               _found.index_pressed.disconnect(c.callable)
+            _found.index_pressed.connect(func(i): edit.text = str(_found.get_item_metadata(i)))
+            _found.popup(Rect2i(Vector2i(edit.get_screen_position() + Vector2(0, edit.size.y)), Vector2i(int(edit.size.x), 0))))
+   find.pressed.connect(ask)
+   edit.text_submitted.connect(func(_t): ask.call())
+   return box
 
 
 ## A number with arrows for widgets "int" (min) and "number" (min, step), without an upper bound.

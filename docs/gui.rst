@@ -46,7 +46,8 @@ Under them, each axis can be linear or logarithmic (log-log by default for the d
 distribution, linear for epidemics), has its label, which can be any text, and its range (from,
 to: empty for automatic); heatmaps also have a row for their color scale (linear or logarithmic, its label and its range,
 :data:`gsk_worker.PLOT_OPTIONS`); the font size can be set (14 points by default). Tick marks are inside
-the axes, on all four sides. The font is the
+the axes, on all four sides. Colors, styles, axes and font size show only with **Advanced**, at
+the bottom left (see `Generators`_); the plot, its text, its menu and the save buttons always. The font is the
 default font of gnuplot, Helvetica, or the first font with the same metrics that is installed
 (Arial, Nimbus Sans, Liberation Sans…; :data:`gsk_worker.PLOT_FONTS`). **Save PNG…** and **Save PDF…** write
 the plot, with its colors, to a file (:func:`gsk_worker.degree_plot`, PNG at 200 dpi). The same
@@ -130,6 +131,7 @@ largest component (the default of the library) and keeps its result in the code
 .. code-block:: python
 
    correlation = gsk.network_correlation(net, "age", "income", k = 2)
+   net.network_attributes["network_correlation(age, income)"] = correlation   # a network attribute
 
 The dialog of the generalized Euclidean distance starts with ``sparse`` on (the Laplacian solver
 of :func:`~graphoskop.laplacian_solver`): on a directed network of 11,000 nodes, a dense
@@ -167,6 +169,67 @@ gsk.graph_fourier_transform(net, "age", basis = basis)``), and plots the squared
 against the frequencies (:func:`gsk_worker.spectrum_plot`), with the energy, the total variation
 and how many of the lowest frequencies hold half and 90% of the energy under the plot
 (:func:`gsk_worker.spectrum_text`).
+
+**Analysis › Hierarchy** measures how hierarchical a directed network is (see :doc:`hierarchy`),
+as one score shown in a message and in the status bar, of the largest component or, with
+**all_components**, of the whole network (:func:`gsk_worker.hierarchy_code`): **Global reaching
+centrality…** (:func:`~graphoskop.global_reach_centrality`), **Flow hierarchy…**
+(:func:`~graphoskop.flow_hierarchy`, by edges or nodes, weighted or not), **Arborescence
+hierarchicalness…** (:func:`~graphoskop.arborescence_hierarchy`) and **Agony…**
+(:func:`~graphoskop.agony_hierarchy`; with **levels**, the level of every node, 0 at the top,
+becomes a node attribute). The score is kept in ``hierarchy`` and as a network attribute
+(Network tab of the data panel) named as the function (``_all_components`` added for the whole
+network), e.g.
+
+.. code-block:: python
+
+   hierarchy, levels = gsk.agony_hierarchy(net, ranks = True)
+   net.network_attributes["agony_hierarchy"] = hierarchy   # a network attribute
+   net.set_node_attribute("level", levels)
+
+Undirected networks are refused by the library, with its message.
+
+**Analysis › Network statistics** computes global values of the network (see
+:doc:`network_statistics`), each kept as a network attribute and shown in a message
+(:func:`gsk_worker.statistic_code`): **Density…**, **Average degree…**, **Reciprocity…**
+(directed networks), **Global clustering coefficient…**, **Average clustering coefficient…**,
+**Global triangle closure…** (hypergraphs and simplicial complexes), **Assortativity…** (by
+degree, or by a node attribute), **Average shortest path length…**, **Degree centralization…**
+(its centralization, relative centralization and entropies, ``degree_…``) and **Connected
+components…**. Each opens its parameter dialog, whose first parameter is the name of the network
+attribute (the function, by default). **All of them** computes, with their defaults, all those
+that apply to the network (:func:`gsk_worker.all_statistics`; the average shortest path length
+from :data:`gsk_worker.EXACT_PATHS` sampled sources in larger networks), and names those the
+library refuses; the message lists one value per line. E.g.
+
+.. code-block:: python
+
+   net.network_attributes["global_clustering"] = gsk.global_clustering(net)   # a network attribute
+   net.network_attributes.update({f"degree_{k}": v for k, v in gsk.degree_centralization(net).items()})   # network attributes
+
+**Analysis › Frequent subgraphs** finds the frequent labeled patterns of the network (see
+:doc:`frequent_subgraphs`): **In the whole network…** (:func:`~graphoskop.single_graph_mining`,
+support: the minimum image based support) or **Across components…**
+(:func:`~graphoskop.transactional_graph_mining`, support: the number of components containing the
+pattern). The parameter dialog asks the least support, the node labels (a node attribute; none:
+all nodes alike), the edge labels (an edge attribute), the largest number of edges of a pattern,
+whether to keep the maximal patterns only, and **rules**: also the association rules between
+patterns that differ by one edge (:func:`~graphoskop.graph_association_rules`). The patterns open
+in a new tab, as a network with one component per pattern (laid out by the force-directed
+layout): each node keeps its label and gets the node attribute ``pattern``, the id of its pattern
+(color the nodes by it, or show the labels, see `Visual elements`_). The support of every pattern
+(table **Pattern support**: pattern, support) and the rules (**Association rules**: antecedent and
+consequent patterns, support, confidence, lift) are in the Tables tab of the new tab
+(:func:`gsk_worker.mining_code`), e.g.
+
+.. code-block:: python
+
+   patterns, support = gsk.single_graph_mining(net, 30, node_label = "city", max_edges = 3)
+   assert patterns is not None, "no pattern reaches the support: lower min_support"
+   rules = gsk.graph_association_rules(net, patterns, support, transactional = False)
+   net = patterns
+   net.set_node_attribute("pattern", [[k] * c.num_nodes for k, c in enumerate(net.components)], None)   # the id of the pattern of each node
+   tables = {"Pattern support": support, "Association rules": rules}
 
 **Analysis › Link prediction…** opens the dialog of the link predictions of the network
 (``link_dialog.gd``; see :doc:`link_prediction`). All its runs score the same validation set: a
@@ -208,7 +271,11 @@ the parameter dialog and the plot above it.
 (``gnn_dialog.gd``; see :doc:`gnn`). **Add model** opens the parameter dialog of **GCN**,
 **GraphSAGE**, **GAT**, **GATv2** (predicting a node attribute) or **DiffPool** (an attribute of
 the components, each a graph; without a target it only embeds them): the target (a menu of the
-node attributes), the hidden layers (``32, 16`` by default: the output layer is added, one
+node attributes), its transformation for regressions (**log** or **log1p**, ``log(1 + x)``: the
+model is trained on a new node attribute, e.g. ``log_income``, made first with
+:func:`gsk_worker.derived` as in Edit › New node attribute; nodes whose logarithm is not defined
+have no target and are left out, and the features are all the numeric attributes but the target
+and its transformation, unless chosen), the hidden layers (``32, 16`` by default: the output layer is added, one
 channel per class of the target for classification, qualitative targets or ``task`` classification,
 one for regression), the features (check boxes; none: all but the target), the split of the nodes
 into training and validation sets, the training (epochs, optimizer, learning rate, weight decay,
@@ -255,7 +322,17 @@ finds the node under the cursor by looking at a few nodes only.
 
 Every tab has its own namespace in the worker, where the code shown in its code panel runs: the
 code panel always shows exactly the code that produced what is drawn, and can be copied to a
-script to reproduce it.
+script to reproduce it. A few lines call functions of the interface, defined in the worker
+(:data:`gsk_worker.INTERFACE_FUNCTIONS`: e.g. :func:`gsk_worker.derived` for new node attributes,
+:func:`gsk_worker.move_nodes` for dragged nodes); before the first of them the code imports them
+from the worker, its folder added to the path (:func:`gsk_worker.interface_import`), so that the
+code runs as it is in any Python with the library, e.g.
+
+.. code-block:: python
+
+   import sys
+   sys.path.append("/opt/graphoskop/gui/python")   # the folder of gsk_worker.py, the worker of the graphical interface
+   from gsk_worker import derived, groups, matching, move_nodes, node_sizes, node_with, set_edge_values   # functions of the graphical interface
 
 The scripts of the interface:
 
@@ -274,8 +351,10 @@ The scripts of the interface:
 * ``ring.gdshader``: the rings of the selected nodes.
 * ``select_dialog.gd`` (``select_dialog.tscn``): Select › Select by attribute.
 * ``epidemics_dialog.gd`` (``epidemics_dialog.tscn``): Simulation › Epidemics.
+* ``robustness_dialog.gd`` (``robustness_dialog.tscn``): Simulation › Robustness.
 * ``link_dialog.gd`` (``link_dialog.tscn``): Analysis › Link prediction.
 * ``gnn_dialog.gd`` (``gnn_dialog.tscn``): Analysis › Graph neural networks.
+* ``derive_dialog.gd`` (``derive_dialog.tscn``): Edit › New node attribute.
 * ``network_view.gd`` (``network_view.tscn``): the visualization panel of one network, with the
   shaders ``node.gdshader`` (discs of at least 3 pixels), ``edge.gdshader`` (lines of a sixth
   of the node diameter, at least 1 pixel), ``curve.gdshader`` (bundled edges: cubic Bézier
@@ -306,10 +385,22 @@ The data panel, at the bottom left, has four tabs:
 * **Edges**: all edges (source, target and attributes); the selected edges, if any; otherwise
   the edges of the selected nodes;
 * **Network**: the properties of the network (kind, direction, numbers of nodes, edges and
-  components, device, attributes);
-* **Tables**: the tables of the runs of epidemic models of the network (see `Simulation`_), one
-  at a time, chosen in the menu above the table: for each step, the mean fraction of the nodes in
-  each state, with its confidence interval.
+  components, device, attributes), then its network attributes (``net.network_attributes``, see
+  :doc:`network`): the global values of the analyses (network statistics, hierarchy, node vector
+  values, the fit of an error correction), one row each;
+* **Tables**: the tables of the network, one at a time, chosen in the menu above the table: the
+  runs of epidemic models (see `Simulation`_: for each step, the mean fraction of the nodes in
+  each state, with its confidence interval), and the tables of the dictionary ``tables`` of the
+  code, such as the support of frequent patterns and their association rules (see `Analysis`_;
+  :func:`gsk_worker.tab_tables`).
+
+The Nodes and Edges tables have a **Columns** menu, at the top right: **Show all**, **Hide all**,
+and a check box per attribute (checked: shown), with patterns of names as in the parameter dialogs
+(e.g. **label_* (9819)** shows or hides all the attributes starting with ``label_``; see
+`Generators`_; beyond 200 names, those of a pattern are not listed one by one). Hidden attributes
+are not columns (nor rows of the table of one node), and the title says how many are hidden
+(:func:`gsk_worker.shown_attributes`). The choice is kept for each network until it is closed;
+it changes only the tables, not the network or the code.
 
 Tables show 200 rows at a time, with buttons for the previous and next pages; only the visible
 page is asked to the worker. Only the first 100 attributes are columns of the Nodes and Edges
@@ -363,13 +454,17 @@ attributes of a single selected node) opens its menu:
   undone. The positions of the layout (``pos_x``, ``pos_y``) and the attributes the drawing uses
   (for colors, sizes, opacities or positions) are not removed: a message says why (the style never
   changes by itself, so it has to be changed first).
+* **New node attribute from …** (Nodes table) opens Edit › New node attribute with the attribute
+  as formula (see `Editing`_);
+* **Hide …** hides the column (see the Columns menu above).
 
 Editing
 -------
 
 The **Edit** menu starts with the operations that make a new network from the network of the
 current tab, each opening in a new tab: **Bipartite projection**, **Backbone** and **Transform**
-(see below). Then it changes the network of the current tab using the selected nodes and edges
+(see below), then **New node attribute…**, a node attribute computed from others, and **Error
+correction**, the true network behind a noisy one (in a new tab). Then it changes the network of the current tab using the selected nodes and edges
 (see `Visualization panel`_ and `Selecting`_):
 
 * **Undo** (Ctrl+Z, ⌘Z on macOS) and **Redo** (Ctrl+Shift+Z): back and forth over the moves of
@@ -439,6 +534,74 @@ library (e.g. a transformation of directed networks on an undirected one) are sh
 or in a message. New networks keep the positions of their nodes when they have them (the quotient
 places its nodes at the mean position of theirs), or get the quick grid layout.
 
+**Edit › New node attribute…** (also **New node attribute from …** in the menu of a column of the
+Nodes table, see `Data panel`_) opens a dialog (``derive_dialog.gd``) that computes a node
+attribute, node by node, from a formula of other node attributes
+(:func:`gsk_worker.formula_values`):
+
+* node attribute names (in backquotes if they are not plain words, e.g. ```age in 2020```),
+  numbers and texts in quotes;
+* ``+``, ``-``, ``*``, ``/``, ``**`` (power) and ``%`` (remainder); ``+`` also joins two texts;
+* comparisons ``<``, ``<=``, ``>``, ``>=``, ``==``, ``!=`` and ``and``, ``or``, ``not``, giving 1
+  or 0;
+* the functions of :data:`gsk_worker.FORMULA_FUNCTIONS`: ``log``, ``log2``, ``log10``,
+  ``log1p``, ``exp``, ``sqrt``, ``abs``, ``round``, ``floor``, ``ceil``; ``min``, ``max``,
+  ``mean`` and ``sum`` of one attribute (over all nodes, e.g. ``x / max(x)``), and ``min`` and
+  ``max`` of two (node by node); ``where(condition, a, b)``; ``missing(x)`` and
+  ``fill(x, value)``; ``number`` and ``text`` (from texts to numbers and back); and, for texts,
+  ``substr(x, start, length)`` (positions from 1), ``upper``, ``lower``, ``length``,
+  ``contains`` and ``replace``.
+
+**Attribute** and **Function** insert a name or a function (each with its description) where the
+cursor is, and the buttons insert the operators. While the formula is typed, the dialog describes
+the values it gives (numbers and their range, or texts and how many distinct, the missing values
+and the first values; :func:`gsk_worker.formula_summary`), or says what is wrong (an unknown name
+or function, a text where a number is needed, …). Missing values stay missing, and so do the
+logarithms of numbers that are not positive. **Create** runs one line of code, with
+:func:`gsk_worker.derived`, a function of the interface (:data:`gsk_worker.DERIVED_NOTE`), e.g.
+
+.. code-block:: python
+
+   # derived: values of a node attribute computed from others by a formula, a function of the graphical interface
+   net.set_node_attribute("income_per_year", derived(net, "income / (age - 18)"), None)
+   net.set_node_attribute("region", derived(net, "upper(substr(city, 1, 3))"), None)
+
+Numeric results make a numeric attribute, texts a qualitative one; an attribute of the same name
+and kind is replaced (one of the other kind is refused). In long node tables, missing numbers
+read as 0 (as in the library).
+
+**Edit › Error correction** (right below Backbone) infers the true network behind a noisy one (see
+:doc:`error_correction`): **From measurements…** (:func:`~graphoskop.measured_network_correction`:
+the edges as observed, with their numbers of measurements and positive outcomes if known, and
+error rates known or unknown) or **From edge probabilities…**
+(:func:`~graphoskop.uncertain_network_correction`: an edge attribute with the probability of each
+pair). The parameter dialog asks the model of the true network (a menu: nested blockmodel, the
+default, flat blockmodels, configuration model, Erdős-Rényi), the edge attributes of the
+measurements or probabilities, and, with Advanced, the sampling (samples, burn-in, interval,
+chains) and the seed (1 by default). The first correction compiles the kernels of the library
+(about two minutes, once). The corrected network opens in a new tab: every node pair sampled as an
+edge, with its posterior probability of being one (edge attribute ``probability``), and the
+values of the fit (model, groups, edges, description length, error rates, …) as network
+attributes (:func:`gsk_worker.correction_code`). The edge attribute ``observed`` tells the pairs
+that are edges of the network (1) from those only sampled (0). The correction works both ways: an
+observed edge can get a low probability (likely spurious) and a pair that was not observed a high
+one (likely missing). The backbone dialog then opens on that probability, at 0.5 (the pairs more
+likely than not: the most likely network): its plot shows, at every threshold, the percentage of
+the observed edges kept and the pairs added (not observed, above the threshold, as a percentage of
+the observed edges), with the nodes not isolated; the text under the slider counts the observed
+edges kept and removed and the pairs added. **Extract network** opens the pairs above the
+threshold in another tab, as for backbones (see below), e.g.
+
+.. code-block:: python
+
+   corrected, correction = gsk.measured_network_correction(net, seed = 1)
+   net = corrected
+   net.network_attributes.update({k: v for k, v in correction.items() if isinstance(v, (int, float, str))})   # network attributes
+   bb_test = gsk.test_bb_thresholds(net, quantiles = 100, score = "probability")
+   bb_found = gsk.find_bb_thresholds(net, score = "probability")
+
+Error correction is for undirected networks (the library says so otherwise).
+
 **Edit › Bipartite projection** has every projection of bipartite networks of the library (see
 :doc:`bipartite_projections`): **Simple count**, **Histogram intersection**, **Hyperbolic**,
 **Resource allocation**, **Random walk**, **Cosine similarity**, **Pearson correlation** and
@@ -495,8 +658,15 @@ opening its parameter dialog first (the weights: an edge attribute, or *unweight
   component connected are added back; this reconnects the isolated nodes too, so that box is
   checked and locked) and **Isolated nodes reconnected** (``reconnect_isolates``: every node left
   without edges gets back its most significant dropped edge). The sizes under the slider are those
-  of the backbone without these options. **Extract backbone** opens the backbone at the chosen
-  threshold in a new tab:
+  of the backbone without these options. With **Advanced** on, rows under the plot change it as
+  in the plot window: the color of every line, the scale of the threshold axis (automatic,
+  linear or logarithmic), the labels of the axes, the ranges of the threshold axis and of the y
+  axis, and the font size (:data:`gsk_worker.BACKBONE_OPTIONS_PLOT`). A range of the threshold
+  axis (from, to) tests the thresholds again in it, 100 of them evenly spaced
+  (:func:`~graphoskop.test_bb_thresholds` with a step; worker command ``backbone_plot``; the code
+  does not change), so that the backbones of a narrow range can be told apart, and the slider
+  spans that range; a range that cannot be drawn is explained under the rows. **Extract
+  backbone** opens the backbone at the chosen threshold in a new tab:
 
   .. code-block:: python
 
@@ -537,6 +707,16 @@ or to the defaults. Every parameter gets the control that needs the least typing
 * a field for lists: numbers separated by commas (``250, 250, 250, 250``), rows of a matrix
   separated by semicolons (``0.05, 0.002; 0.002, 0.05``), pairs ``key: value`` for dictionaries
   (``1: 75, 2: 50``); Python expressions such as ``[3] * 1000`` work too.
+
+**Advanced.** Parameter dialogs first show only the parameters that matter most: those without a
+default (required, or preset by the interface, such as the sizes of a generator) and a few
+others (:data:`gsk_worker.BASIC`: weights, direction, groups and orders of layouts, the
+attributes of analyses, the resolution of community discovery, the seeds and runs of epidemics,
+the target, features, layers and epochs of graph neural networks, …;
+:func:`gsk_worker.mark_advanced`). The **Advanced** switch, at the bottom left, shows all of them;
+hidden parameters keep their values (defaults or presets), and when all are hidden the dialog
+says so. The switch is off at first, and the choice is remembered, also for the other dialogs
+that have it: the load dialog (see `Loading a network`_) and the plot window (see `Analysis`_).
 
 **Patterns of attribute names.** Networks can have thousands of attributes, e.g. a long node
 table with one attribute per label (``label_0``, ``label_1``, …). Menus of check boxes of node or
@@ -704,14 +884,24 @@ Loading a network
   them; wide tables scroll sideways, and long column names are cut in the tables and in the
   menus of columns, so the dialog never grows wider than the screen (e.g. a comma-separated file
   read with the tab separator, whose header is one very long column);
-* the columns of the source and target nodes; in multilayer networks, the layer column; in
-  signed networks, the column of the signs; in directed hypergraphs, the column with ``"tail"``
-  or ``"head"``;
+* the role of the columns, chosen on the row of column names over each preview, which stays in
+  place when the rows scroll (and follows the columns when they scroll sideways): clicking a name
+  (left or right button) opens the menu of the roles that apply. A column with a
+  role has its symbol next to its name, its name in bold and its values in the color of the role
+  (ColorBrewer Set1): a filled circle with an arrow out of it, red, for the source; an arrow into
+  a filled circle, blue, for the target; a filled circle, black, for the node id; a tag, purple,
+  for the attribute name and an equals sign, green, for the attribute value; stacked bars,
+  orange, for layers; plus and minus, brown, for signs; two arrows, pink, for the direction in
+  hypergraphs; a box, blue, for hyperedges and simplices. For the edge table: the source and target nodes (the first two
+  columns by default); in multilayer networks, the layer; in signed networks, the signs; in
+  directed hypergraphs, the column with ``"tail"`` or ``"head"``. For the node table: the node id
+  (entity and layer in multilayer networks; the first columns by default), then, in long format,
+  the attribute name and value. A role given to a column that had another one swaps them;
 * the format of the node table, wide or long (guessed: long if it has three or more columns and
-  a node id repeats in the first one), and its key columns: node id (entity and layer in
-  multilayer networks), then attribute name and value in long format;
+  a node id repeats in the first one);
 * whether the network is directed, bipartite, signed, multilayer, a hypergraph or a simplicial
-  complex. In hypergraphs and simplicial complexes each row of the edge table is a node in a
+  complex (Signed, Multilayer, Hypergraph, Simplicial, Adjacency matrix and the device show only
+  with **Advanced**, at the bottom left, or when chosen; see `Generators`_). In hypergraphs and simplicial complexes each row of the edge table is a node in a
   hyperedge or simplex (columns node and hyperedge or simplex), and the node table has the node
   id in its first column. Signed networks are loaded and then signed with
   :func:`~graphoskop.signed_network` (``weight`` = the sign column: 0 or more is positive);
@@ -752,7 +942,7 @@ Networks with more than 10 million nodes and edges together (:data:`gsk_worker.M
 generated ones too) can probably not be drawn: they are not laid out nor drawn, and a dialog says
 so. **Analyze without drawing** (also closing the dialog) has nothing left to do: the network
 stays without a layout and without a drawing. The visualization panel shows its size and **Draw
-anyway**, and the visual elements panel, the search box, the Select menu and Save image are off,
+anyway**, and the visual elements panel, the search box, the Select menu and Export › Image… are off,
 since nothing can be seen or selected. Everything else works as usual, with its code: layouts
 (which store the positions without drawing them), analyses, simulations, backbones,
 projections, the data panel. New tabs made from such a network (backbones, projections,
@@ -783,10 +973,26 @@ or an analysis of a network of millions of nodes), the same dialog opens after 0
 says what the interface is waiting for, instead of nothing happening.
 
 
-* The menu bar: File (**Load network…**, **Save image…**: the visualization panel of the current
-  network as a PNG image, twice as large as on screen, without the selection marks, and with
-  smooth edges: drawn three times larger still, then reduced, see below), Edit (see
-  `Editing`_), Select (see `Selecting`_), Layout (see `Layouts`_), Analysis (see `Analysis`_),
+* The menu bar: File, in three groups: **New network…** (see below); **Open session…**,
+  **Recent sessions** (the last ten sessions saved or opened, by file name, the folder in the
+  tooltip: choosing one opens it), **Save session…** and **Close session** (closes every tab,
+  after asking; see below); **Load network…** (see `Loading a network`_) and **Export**, with
+  **Network tables…** (the network of the current tab as tab-separated tables, as
+  :meth:`~graphoskop.Network.to_pandas_dataframes` gives them: ``name_edges.tsv``,
+  ``name_nodes.tsv`` if there are node attributes, and ``name_interlayer.tsv`` for multilayer
+  networks; File › Load network reads them back; the code does not change; worker command
+  ``export``) and **Image…** (the visualization panel of the current network as on screen,
+  without the selection marks: a dialog asks its width in pixels, twice the width on screen by
+  default, the height following the shape of the panel, and its format: a **PNG image**, with
+  smooth edges, drawn three times larger still then reduced; a **PDF document, vector**, drawn by
+  the worker from the drawing and the view (:func:`gsk_worker.vector_image`, command
+  ``image_vector``): nodes as circles, edges as lines or Bézier curves ending at their
+  arrowheads, matrix cells as squares, loops as rings, arrowheads as triangles and labels as
+  text, with the colors, sizes, opacities and smallest sizes on screen of the panel, sharp at any
+  zoom and editable in a vector editor, the page as large as the width at 300 dots per inch (tens
+  of seconds for 100,000 nodes); or a **PDF document, image**, holding the PNG image at 300 dots
+  per inch, command ``image_pdf``). Edit (see `Editing`_), Select (see
+  `Selecting`_), Layout (see `Layouts`_), Analysis (see `Analysis`_),
   Simulation (see `Simulation`_), Generators (see `Generators`_), Help (**Online
   documentation**, and this chapter of it, opened in the web browser). On macOS it is the global
   menu bar of the system.
@@ -825,6 +1031,48 @@ there, and the networks of the open tabs are rebuilt by running their code again
 code fails in the new environment, e.g. on a GPU it does not have, is closed with a message).
 Layouts with random starts (force-directed, UMAP) can then come out different.
 
+Sessions
+~~~~~~~~
+
+**File › Save session…** writes everything open into one file (``.gsk``), and **File › Open
+session…** puts it back exactly as it was, also in another run of the interface: the tabs, in
+order, with their names, their networks (all the variables of their code: networks, tables,
+results of analyses and models, …, as they are, not computed again, so random results are the
+same), their code (the code panel), their undo and redo histories, their styles (colors, sizes,
+opacities, positions, labels, background), their views (center, zoom, rotation, scale), their
+selected nodes and edges and their hidden attributes; the current tab, and the tab and table
+shown in the data panel. Opening a session replaces the open networks (the interface asks first).
+The file is a zip archive with ``session.json`` (the state of the interface, readable) and
+``spaces.pickle`` (the variables of the tabs, pickled together, :func:`gsk_worker.session_space`;
+caches are left out and made again, :data:`gsk_worker.SESSION_SKIPPED`); worker commands
+``save_session`` and ``open_session``. A session saved with another version of the library opens
+with a warning in the status bar. Opening a session unpickles it, which can run code: open only
+sessions you trust. Networks on the GPU need a GPU to be opened. **File › Recent sessions** lists
+the sessions saved or opened lately (those still on disk), and **File › Close session** closes all
+the tabs.
+
+New network
+~~~~~~~~~~~
+
+**File › New network…** opens a new tab with an empty network, directed or not (a check box), to
+draw by hand: the visualization panel is an empty canvas, a right click on it adds a node there
+(the first free integer id), and a right click on a node adds an edge from it to the node clicked
+next (see `Visualization panel`_). The code is the empty network (worker command ``empty``,
+:func:`gsk_worker.empty_code`), then the nodes and edges added, e.g.
+
+.. code-block:: python
+
+   import pandas as pd
+   net = gsk.load_network(pd.DataFrame({"source": [], "target": []}), directed = True)
+   # add_nodes / add_edges: nodes and edges added in the graphical interface
+   net = gsk.add_nodes(net, 0)
+   # move_nodes: positions of nodes dragged in the graphical interface
+   move_nodes(net, {0: (-0.5, -0.2)})
+
+Nodes on the empty canvas have the diameter :data:`gsk_worker.EMPTY_NODE_SIZE`, kept as nodes are
+added (layouts then size them as usual); attributes are added as for any network (e.g. Edit ›
+New node attribute…, or by editing values in the data panel).
+
 Python worker
 -------------
 
@@ -840,7 +1088,13 @@ Python worker
 .. autodata:: gsk_worker.BACKBONE_HIDDEN
    :no-value:
 
+.. autodata:: gsk_worker.BACKBONE_LABELS
+   :no-value:
+
 .. autodata:: gsk_worker.BACKBONE_OPTIONS
+   :no-value:
+
+.. autodata:: gsk_worker.BACKBONE_OPTIONS_PLOT
    :no-value:
 
 .. autodata:: gsk_worker.BACKBONE_STEPS
@@ -848,6 +1102,9 @@ Python worker
 .. autodata:: gsk_worker.BACKBONE_TAIL
 
 .. autodata:: gsk_worker.BACKBONES
+   :no-value:
+
+.. autodata:: gsk_worker.BASIC
    :no-value:
 
 .. autodata:: gsk_worker.BENDS
@@ -867,7 +1124,15 @@ Python worker
 .. autodata:: gsk_worker.COMMUNITIES
    :no-value:
 
+.. autodata:: gsk_worker.CORRECTIONS
+   :no-value:
+
+.. autodata:: gsk_worker.CORRECTION_MODELS
+   :no-value:
+
 .. autodata:: gsk_worker.CURVE_STRIDE
+
+.. autodata:: gsk_worker.DERIVED_NOTE
 
 .. autodata:: gsk_worker.DIRECTED_ONLY
    :no-value:
@@ -890,10 +1155,19 @@ Python worker
 
 .. autodata:: gsk_worker.EDGE_VALUES_NOTE
 
+.. autodata:: gsk_worker.EMPTY_BOX
+
+.. autodata:: gsk_worker.EMPTY_NODE_SIZE
+
 .. autodata:: gsk_worker.EPIDEMIC_HIDDEN
    :no-value:
 
 .. autodata:: gsk_worker.EPIDEMICS
+   :no-value:
+
+.. autodata:: gsk_worker.EXACT_PATHS
+
+.. autodata:: gsk_worker.EXPLORATIONS
    :no-value:
 
 .. autodata:: gsk_worker.EXTRA_CHOICES
@@ -905,8 +1179,16 @@ Python worker
 .. autodata:: gsk_worker.FIT_REQUIRED
    :no-value:
 
+.. autodata:: gsk_worker.FORMULA_FUNCTIONS
+   :no-value:
+
 .. autodata:: gsk_worker.GENERATORS
    :no-value:
+
+.. autodata:: gsk_worker.INTERFACE_FUNCTIONS
+   :no-value:
+
+.. autodata:: gsk_worker.LABEL_FRACTION
 
 .. autodata:: gsk_worker.LAYOUTS
    :no-value:
@@ -948,6 +1230,12 @@ Python worker
 .. autodata:: gsk_worker.HIDDEN
    :no-value:
 
+.. autodata:: gsk_worker.HIERARCHIES
+   :no-value:
+
+.. autodata:: gsk_worker.HIERARCHY_HIDDEN
+   :no-value:
+
 .. autodata:: gsk_worker.HINTS
    :no-value:
 
@@ -975,9 +1263,14 @@ Python worker
 
 .. autodata:: gsk_worker.MATRIX_VALUES
 
+.. autodata:: gsk_worker.MAX_SUGGESTIONS
+
 .. autodata:: gsk_worker.MAX_UNDO
 
 .. autodata:: gsk_worker.MAX_VALUES
+
+.. autodata:: gsk_worker.MINERS
+   :no-value:
 
 .. autodata:: gsk_worker.MISSING_COLOR
 
@@ -990,6 +1283,8 @@ Python worker
 .. autodata:: gsk_worker.NODE_SIZES_NOTE
 
 .. autodata:: gsk_worker.NODE_STRIDE
+
+.. autodata:: gsk_worker.NODE_WITH_NOTE
 
 .. autodata:: gsk_worker.NODES
    :no-value:
@@ -1024,10 +1319,30 @@ Python worker
 .. autodata:: gsk_worker.RANGES
    :no-value:
 
+.. autodata:: gsk_worker.ROBUSTNESS
+   :no-value:
+
+.. autodata:: gsk_worker.ROBUSTNESS_HIDDEN
+   :no-value:
+
+.. autodata:: gsk_worker.ROBUSTNESS_QUALITIES
+   :no-value:
+
+.. autodata:: gsk_worker.SESSION_FORMAT
+
+.. autodata:: gsk_worker.SESSION_SKIPPED
+   :no-value:
+
 .. autodata:: gsk_worker.SHOWN_DEFAULTS
    :no-value:
 
 .. autodata:: gsk_worker.STATE_COLORS
+
+.. autodata:: gsk_worker.STATISTICS
+   :no-value:
+
+.. autodata:: gsk_worker.STATISTIC_HIDDEN
+   :no-value:
 
 .. autodata:: gsk_worker.STRINGS
    :no-value:
@@ -1059,9 +1374,14 @@ Python worker
 .. autodata:: gsk_worker.VECTORS
    :no-value:
 
+.. autodata:: gsk_worker.VIEW_SIZES
+   :no-value:
+
 .. autofunction:: gsk_worker.add_code
 
 .. autofunction:: gsk_worker.adding
+
+.. autofunction:: gsk_worker.all_statistics
 
 .. autofunction:: gsk_worker.animation
 
@@ -1084,9 +1404,15 @@ Python worker
 
 .. autofunction:: gsk_worker.colors
 
+.. autofunction:: gsk_worker.correction_code
+
+.. autofunction:: gsk_worker.correction_signature
+
 .. autofunction:: gsk_worker.default_style
 
 .. autofunction:: gsk_worker.degree_plot
+
+.. autofunction:: gsk_worker.derived
 
 .. autofunction:: gsk_worker.distinct
 
@@ -1100,13 +1426,25 @@ Python worker
 
 .. autofunction:: gsk_worker.edit_code
 
+.. autofunction:: gsk_worker.empty_code
+
 .. autofunction:: gsk_worker.environment
 
 .. autofunction:: gsk_worker.epidemic_plot
 
+.. autofunction:: gsk_worker.exploration_code
+
+.. autofunction:: gsk_worker.exploration_signature
+
 .. autofunction:: gsk_worker.find_nodes
 
 .. autofunction:: gsk_worker.fit_code
+
+.. autofunction:: gsk_worker.formula_name
+
+.. autofunction:: gsk_worker.formula_summary
+
+.. autofunction:: gsk_worker.formula_values
 
 .. autofunction:: gsk_worker.free_id
 
@@ -1122,9 +1460,17 @@ Python worker
 
 .. autofunction:: gsk_worker.gnn_text
 
+.. autofunction:: gsk_worker.interface_import
+
+.. autofunction:: gsk_worker.label_sizes
+
 .. autofunction:: gsk_worker.last_layout
 
 .. autofunction:: gsk_worker.groups
+
+.. autofunction:: gsk_worker.hierarchy_code
+
+.. autofunction:: gsk_worker.hierarchy_signature
 
 .. autofunction:: gsk_worker.histories
 
@@ -1144,6 +1490,8 @@ Python worker
 
 .. autofunction:: gsk_worker.matching
 
+.. autofunction:: gsk_worker.mark_advanced
+
 .. autofunction:: gsk_worker.matrix_plot
 
 .. autofunction:: gsk_worker.load_code
@@ -1151,6 +1499,10 @@ Python worker
 .. autofunction:: gsk_worker.main
 
 .. autofunction:: gsk_worker.measures
+
+.. autofunction:: gsk_worker.mining_code
+
+.. autofunction:: gsk_worker.mining_signature
 
 .. autofunction:: gsk_worker.move_nodes
 
@@ -1164,6 +1516,8 @@ Python worker
 
 .. autofunction:: gsk_worker.nestedness_text
 
+.. autofunction:: gsk_worker.node_labels
+
 .. autofunction:: gsk_worker.node_matrix
 
 .. autofunction:: gsk_worker.node_row
@@ -1173,6 +1527,8 @@ Python worker
 .. autofunction:: gsk_worker.node_sizes
 
 .. autofunction:: gsk_worker.node_values
+
+.. autofunction:: gsk_worker.node_with
 
 .. autofunction:: gsk_worker.numbers
 
@@ -1192,7 +1548,19 @@ Python worker
 
 .. autoclass:: gsk_worker.ProgressBar
 
+.. autofunction:: gsk_worker.robustness_code
+
+.. autofunction:: gsk_worker.robustness_plot
+
+.. autofunction:: gsk_worker.robustness_runs
+
+.. autofunction:: gsk_worker.robustness_signature
+
+.. autofunction:: gsk_worker.session_space
+
 .. autofunction:: gsk_worker.set_edge_values
+
+.. autofunction:: gsk_worker.shown_attributes
 
 .. autofunction:: gsk_worker.shown_edges
 
@@ -1212,9 +1580,15 @@ Python worker
 
 .. autofunction:: gsk_worker.spectrum_text
 
+.. autofunction:: gsk_worker.statistic_code
+
+.. autofunction:: gsk_worker.statistic_signature
+
 .. autofunction:: gsk_worker.subdivisions
 
 .. autofunction:: gsk_worker.summary
+
+.. autofunction:: gsk_worker.tab_tables
 
 .. autofunction:: gsk_worker.text
 
@@ -1227,6 +1601,8 @@ Python worker
 .. autofunction:: gsk_worker.vector_code
 
 .. autofunction:: gsk_worker.vector_hidden
+
+.. autofunction:: gsk_worker.vector_image
 
 .. autofunction:: gsk_worker.verdict_text
 
@@ -1263,6 +1639,11 @@ Nodes and edges are selected in the visualization panel (click, Shift-click, Shi
 rectangle; see `Visualization panel`_), and with the **Select** menu:
 
 * **Select all nodes**, **Clear selection**;
+* **Neighbors of the selection** (Ctrl+6, Command+6 on macOS): the selected nodes, the endpoints
+  of the selected edges and all their neighbors (along edges in either direction) become the
+  selection; pressed again, it grows one more step, until the whole components are selected (the
+  status bar says how many nodes were added; worker command ``neighbors``). Selected edges stay
+  selected;
 * **Select by attribute…**: a dialog selecting the nodes, or the edges, whose attribute is equal
   to (=), different from (≠), smaller than (<, ≤) or larger than (>, ≥) a value, or contains a
   text (a part of the text, or one of the values of a node with several). Numeric attributes take
@@ -1398,13 +1779,77 @@ not change. The worker sends the states at step 0 and the changes of every step
 fast on large networks. Nodes without a state (other components, hyperedges and facets of
 incidence networks) keep the colors of the style.
 
+**Simulation › Exploration** explores the network from one node (see :doc:`exploration`):
+**Breadth-first search…** (:func:`~graphoskop.bfs`), **Depth-first search…**
+(:func:`~graphoskop.dfs`), **Random walk…** (:func:`~graphoskop.random_walk`) and
+**Metropolis-Hastings random walk…** (:func:`~graphoskop.metropolis_hastings_random_walk`). Each
+opens its parameter dialog: the source node (the selected node, if one is selected; with **by**,
+the value of a node attribute instead of the id, e.g. a name: exactly one node must have it,
+:func:`gsk_worker.node_with`, a function of the interface, :data:`gsk_worker.NODE_WITH_NOTE`,
+written as ``gsk.bfs(net, node_with(net, "name", "alice"))``; **Find**, or Enter in the field,
+lists the values of that attribute, or the ids, that contain the text typed, exact ones first, as
+the search box does: choosing one writes it in the field, and values that several nodes have are
+listed but cannot be chosen; worker command ``suggest``, at most
+:data:`gsk_worker.MAX_SUGGESTIONS` values), and for
+searches the largest depth, for walks their length (steps), their number (all from the source)
+and the weights; the direction in directed networks; the seed of the walks is 1 by default. The
+result is one node attribute (:func:`gsk_worker.exploration_code`): for the searches, the order
+of the visit (``bfs_order``, ``dfs_order``: 0 for the source, 1 for the next node visited, …);
+for the walks, the step of the first visit of each node, averaged over the walks that reach it
+(``rw_step``, ``mhrw_step``; in Metropolis-Hastings walks the steps count the refused moves too).
+Nodes never reached get no value, and the status bar says how many were reached, e.g.
+
+.. code-block:: python
+
+   exploration = gsk.random_walk(net, "alice", 100, walks = 10, seed = 1)
+   first = exploration.groupby(["walk", "node"]).step.min()   # first visit of each node in each walk
+   net.set_node_attribute(first.groupby(level = "node").mean().rename("rw_step").reset_index(), node_column = "node")
+
+As every analysis, the exploration does not change the look of the drawing: color or size the
+nodes by the attribute to see it. Explorations are for plain networks (not multilayer networks,
+hypergraphs or simplicial complexes).
+
+**Simulation › Robustness…** measures how the network falls apart (see :doc:`robustness`), in a
+dialog of runs like the epidemics dialog (``robustness_dialog.gd``): **Add run** offers **Node
+removal…** (:func:`~graphoskop.node_removal`), **Edge removal…**
+(:func:`~graphoskop.edge_removal`) and **Cascading failures…**
+(:func:`~graphoskop.cascade_failures`). The parameter dialog asks the name of the run (by default
+the function and its strategy, e.g. ``node_removal(degree)``, numbered if taken), the strategy (a menu: random
+failures, the friend of a random node, ``degree`` for the largest degrees first, or a numeric
+attribute, largest values first; for cascades also ``overload``), the quality (the fraction of
+the nodes in the largest component, or the average shortest path length) and the number of runs;
+cascades also the loads and capacities (random, or a numeric attribute), the number of initial
+failures and whether nodes or edges fail; with Advanced, the rest (selection, points, samples,
+seed, …). The table of the run is stored in the dictionary ``robustness`` by name, and its global
+value becomes a network attribute of the same name (:func:`gsk_worker.robustness_code`): for
+removals the mean quality over all the numbers of removals (with the largest component, the
+robustness index R, the area under the curve), for cascades the final fraction of failed items,
+e.g.
+
+.. code-block:: python
+
+   robustness = {}   # runs of Simulation › Robustness, by name
+   robustness["node_removal(degree)"] = gsk.node_removal(net, strategy = gsk.degree(net, distribution = None))
+   net.network_attributes["node_removal(degree)"] = float(robustness["node_removal(degree)"]["lcc"].mean())   # a network attribute: mean quality over the removals
+
+The dialog lists the runs of the tab (:func:`gsk_worker.robustness_runs`, worker command
+``robustness_runs``), each with a check box and **Copy…** (the parameter dialog of the same
+function with the values of that run, to change some); the line under them shows the global value
+of the last run. **Plot** opens the plot window with the checked runs (worker command
+``robustness_plot``): for removals, of nodes or edges, the quality against the fraction removed;
+for cascades, the fraction of items failed at every step; one line per run with its confidence
+interval as a band (:func:`gsk_worker.robustness_plot`), and their global values under the plot.
+Removals and cascades, or runs of two qualities, do not share axes: the dialog asks to plot them
+apart. Like every plot, its colors, axes and font can be changed and it can be saved. The dialog
+is not exclusive: it stays open, with the parameter dialog and the plot above it.
+
 Visual elements
 ---------------
 
 The visual elements panel, left of the visualization panel, sets the look of the drawing of the
 current network, in three tabs:
 
-* **Nodes**: their color, size, opacity and position. By default all nodes are ``#e41a1c``; in bipartite networks
+* **Nodes**: their color, size, opacity, position and label. By default all nodes are ``#e41a1c``; in bipartite networks
   (and incidence networks of hypergraphs and complexes) the second type of nodes is ``#377eb8``,
   the next color of ColorBrewer's Set1 palette. **Position** places the nodes by the layout (the
   default), or takes their x and y coordinates from numeric node attributes (e.g. longitude and
@@ -1413,7 +1858,16 @@ current network, in three tabs:
   to the new positions. Nodes without a value of the attribute are put at its smallest value.
   Like the other visual elements, this changes the drawing only, not the network or the code; while
   positions come from attributes, nodes cannot be dragged, and bundled edges are drawn straight
-  (their curves follow the layout).
+  (their curves follow the layout). **Label** (none by default) writes the id of every node
+  (**node id**), or the value of a node attribute, chosen in the menu of its Edit button,
+  centered on every node, upright, in black or
+  white (by the background) with an outline (:func:`gsk_worker.node_labels`). **Label size** sets
+  their height, like node sizes (see `Sizes`_): one size for all, or sizes given by a node
+  attribute, from the smallest to the largest; 1 × is half the default node diameter
+  (:func:`gsk_worker.label_sizes`). Labels are sized in the drawing, as nodes are, so they grow
+  and shrink with the zoom; labels smaller than 4 pixels on screen are left out, and only the
+  nodes in view are labeled, when there are at most 2,000 of them: zoom in to see the labels of a
+  large network. Saved images have them too.
 * **Edges**: their color (by default ``#999999``), thickness and opacity.
 * **Network**: the background color; **Rotation**, a slider turning the view (-180° to 180°,
   counterclockwise) without changing the positions or the code; **Scale**, a logarithmic slider
@@ -1422,7 +1876,10 @@ current network, in three tabs:
   so that crowded nodes come apart (the positions and the code do not change). **Reset** puts the
   distances of the layout back (1 ×). The mouse wheel zooms the view, nodes included, and does
   not change the scale. Each tab has its own; new tabs derived from a network take its rotation
-  and scale.
+  and scale. **Copy › From tab…** lists the other tabs: choosing one gives the current tab all
+  its visual elements (colors, sizes, opacities, positions and labels of nodes and edges, the
+  background, the rotation and the scale); those mapped to attributes the current network does not
+  have go back to their defaults (:func:`gsk_worker.prune_style`).
 
 Each row sums up the current choice (a swatch or the colors of the scale); its **Edit…** button
 opens a dialog. Changes in the dialogs apply to the drawing as they are made; **Cancel** restores
@@ -1455,6 +1912,9 @@ quantitative scales, qualitative ones for qualitative scales; the menu shows the
   evenly spaced stops are placed again on the logarithmic scale. Values beyond the first or last
   stop get its color. Qualitative attributes count as the positions of their values in order
   (numbers numerically, then texts alphabetically; see :func:`gsk_worker.distinct`).
+* **Reverse colors** (both scales) takes the colors of the palette in reverse order: the stops
+  keep their values and swap their colors end to end, and later changes of palette or number of
+  stops keep the reverse order.
 * **Qualitative scale**: every distinct value gets the next color of the palette, in the order of
   the values; colors repeat only when there are more values than colors in the palette. Any value
   can get another color; **Automatic colors** gives back the colors of the palette, and **Clear**

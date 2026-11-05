@@ -1354,6 +1354,151 @@ def bundle_edges(net, groups = None, beta = 0.8, attribute = "pos"):
    return table
 
 
+class _Grid:
+   """Nodes binned in square cells of side ``cell``, to find the nodes near many points at once."""
+
+   def __init__(self, X, cell):
+      self.X, self.cell, self.lo = X, cell, X.min(0)
+      c = np.floor((X - self.lo) / cell).astype(np.int64)
+      self.gx = int(c[:, 0].max()) + 3
+      cid = (c[:, 1] + 1) * self.gx + c[:, 0] + 1        # cells with a border of one
+      self.order = np.argsort(cid, kind = "stable")
+      self.key = cid[self.order]
+
+   def pairs(self, P):
+      """Every (point, node) pair of a point of ``P`` and a node in the nine cells around it."""
+      c = np.floor((P - self.lo) / self.cell).astype(np.int64)
+      c = np.clip(c, -1, self.gx - 2)                    # points outside fall in empty border cells
+      near = np.concatenate([(c[:, 1] + 1 + dy) * self.gx + c[:, 0] + 1 + dx for dy in (-1, 0, 1) for dx in (-1, 0, 1)])
+      row = np.tile(np.arange(len(P)), 9)
+      first = np.searchsorted(self.key, near, "left")
+      cnt = np.searchsorted(self.key, near, "right") - first
+      at = np.repeat(first, cnt) + np.arange(cnt.sum()) - np.repeat(np.cumsum(cnt) - cnt, cnt)
+      return np.repeat(row, cnt), self.order[at]
+
+
+def route_edges(net, size = 1., margin = None, attribute = "pos", iterations = 30, max_points = 64, smooth = True):
+   """
+   Route the edges of a drawing around the nodes they do not connect (an edge router, as the
+   organic edge router of Cytoscape): a straight edge that passes over a node suggests a link to
+   it that does not exist (a "fake edge"); here such an edge bends around that node instead.
+
+   Nodes are disks of diameter ``size`` (layout units), each kept free in a ring ``margin`` wider.
+   The edges whose straight segment crosses the ring of a node other than its two ends are cut
+   into points about half a ring apart (at most ``max_points``); for ``iterations`` rounds, the
+   points are smoothed towards the average of their two neighbors along the edge (which keeps
+   the edge short and its curve gentle) and then pushed out of every ring they fall in, radially
+   (a point on the center of a node goes to the side of the edge's normal). The two ends stay
+   where they are. Nodes that touch one of the ends of an edge (no bend can avoid them) are not
+   avoided by that edge. The search is a grid of cells of the largest ring, so the work grows
+   with the number of points, not with the number of pairs of edges and nodes. With ``smooth``,
+   the points become Catmull-Rom splines (curves through them); otherwise polylines. Edges that
+   cross no node stay straight. Positions are not changed.
+
+   The curves are returned as :func:`bundle_edges` returns them, cubic Bézier curves edge by edge
+   (points 0, 3, 6, ... on the curve, the two points between each pair the control points of that
+   piece), edges as given in input over all components, so that they are drawn the same way.
+   Two-dimensional layouts only.
+
+   :param net: A :class:`~graphoskop.Network` with positions.
+   :param size: Diameter of the nodes, in layout units: a number for all nodes, the name of a
+      numeric node attribute, or one value per node in the network wide order.
+   :param margin: Empty space kept around every node, in layout units, or ``None`` for a quarter
+      of the median diameter.
+   :param attribute: Prefix of the position attributes.
+   :param iterations: Rounds of smoothing and pushing.
+   :param max_points: Most points an edge is cut into (long edges with many points are slower,
+      with few they may clip the rings between two points).
+   :param smooth: Curves through the points (``True``) or straight segments between them.
+   :return: :class:`pandas.DataFrame` with one row per Bézier point: ``edge``, ``point``, ``x``,
+      ``y`` (see :func:`bundle_edges`).
+   :raises KeyError: If the network has no positions with that prefix, or no such size attribute.
+   :raises ValueError: If the layout is not two-dimensional, or sizes are negative or missing.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv")
+      gsk.force_directed_layout(net)
+      bends = gsk.route_edges(net, size = 0.2)                  # nodes drawn 0.2 wide
+      bends = gsk.route_edges(net, size = "diameter", margin = 0.05, smooth = False)
+   """
+   X, _ = _positions(net, attribute)
+   n, D = X.shape
+   if D != 2:
+      raise ValueError("route_edges: two-dimensional layouts only")
+   if isinstance(size, str):
+      d = torch.cat(net.get_node_attribute(size, None)).double().cpu().numpy()
+   else:
+      d = np.broadcast_to(np.asarray(size, dtype = float), (n,)).copy()
+   if np.isnan(d).any() or (d < 0).any():
+      raise ValueError("route_edges: sizes must be non negative numbers")
+   gap = float(np.median(d)) / 4 if margin is None and n else float(margin or 0.)
+   R = d / 2 + gap                                        # the ring kept free around every node
+   E = [net._input_edges(c)[0].cpu().numpy() + o for c, o in zip(range(len(net.components)), net.node_offsets)]
+   s, t = (np.concatenate([e[i] for e in E]).astype(np.int64) for i in (0, 1)) if E else (np.zeros(0, dtype = np.int64),) * 2
+   m = len(s)
+   count = np.full(m, 2)
+   if n and m and R.max() > 0:
+      grid = _Grid(X, float(2 * R.max()))
+
+      def inside(P, e):   # (point, node, offset, distance) of points in rings they must avoid
+         r, j = grid.pairs(P)
+         a, b = s[e[r]], t[e[r]]
+         off = P[r] - X[j]
+         dist = np.hypot(off[:, 0], off[:, 1])
+         ok = (dist < R[j]) & (j != a) & (j != b)
+         ok &= np.hypot(*(X[j] - X[a]).T) >= R[j] + R[a] - gap
+         ok &= np.hypot(*(X[j] - X[b]).T) >= R[j] + R[b] - gap
+         return r[ok], j[ok], off[ok], dist[ok]
+
+      v = X[t] - X[s]
+      length = np.hypot(v[:, 0], v[:, 1])
+      k = np.ceil(length / grid.cell * 2).astype(np.int64) + 1   # samples of the straight edges
+      e = np.repeat(np.arange(m), k)
+      f = (np.arange(len(e)) - np.repeat(np.cumsum(k) - k, k)) / np.repeat(np.maximum(k - 1, 1), k)
+      bent = np.zeros(m, dtype = bool)
+      bent[e[inside(X[s][e] + f[:, None] * v[e], e)[0]]] = True
+      count[bent] = np.clip(np.ceil(length[bent] / (np.median(R) / 2)).astype(np.int64) + 1, 4, max(max_points, 4))
+   start = np.concatenate([[0], np.cumsum(count)])
+   pe = np.repeat(np.arange(m), count)
+   f = (np.arange(len(pe)) - start[pe]) / (count[pe] - 1)
+   px = X[s][pe] + f[:, None] * (X[t] - X[s])[pe] if m else np.zeros((0, 2))
+   i = np.arange(len(pe))
+   inner = np.flatnonzero((i != start[pe]) & (i != start[pe + 1] - 1))
+   if len(inner):
+      w = (X[t] - X[s])[pe[inner]]
+      normal = np.column_stack([-w[:, 1], w[:, 0]]) / np.maximum(np.hypot(w[:, 0], w[:, 1]), 1e-300)[:, None]
+      for _ in range(iterations):
+         px[inner] += 0.5 * ((px[inner - 1] + px[inner + 1]) / 2 - px[inner])
+         r, j, off, dist = inside(px[inner], pe[inner])
+         out = np.where((dist > 1e-9 * R[j])[:, None], off / np.maximum(dist, 1e-300)[:, None], normal[r])
+         push = np.zeros((len(inner), 2))
+         np.add.at(push, r, (R[j] * 1.01 - dist)[:, None] * out)
+         px[inner] += push
+   first = i == start[pe]
+   lastp = i == start[pe + 1] - 1
+   prev, nxt = np.where(first, i, i - 1), np.where(lastp, i, i + 1)
+   pieces = np.flatnonzero(~lastp)                        # piece from point i to i + 1
+   p0, p3 = px[pieces], px[pieces + 1]
+   if smooth:   # Catmull-Rom: the tangent at a point is half the chord between its neighbors
+      p1 = p0 + (px[nxt[pieces]] - px[prev[pieces]]) / 6
+      p2 = p3 - (px[nxt[pieces + 1]] - px[prev[pieces + 1]]) / 6
+   else:
+      p1, p2 = p0 + (p3 - p0) / 3, p0 + 2 * (p3 - p0) / 3
+   size_b = 3 * (count - 1) + 1
+   bstart = np.concatenate([[0], np.cumsum(size_b)])
+   xy = np.empty((bstart[-1], 2))
+   at = bstart[pe[pieces]] + 3 * (pieces - start[pe[pieces]])
+   xy[(at[:, None] + np.arange(3)).ravel()] = np.stack([p0, p1, p2], 1).reshape(-1, 2)
+   xy[bstart[1:] - 1] = px[start[1:] - 1]                # the last point of every curve
+   edge = np.repeat(np.arange(m), size_b)
+   return pd.DataFrame({"edge": edge, "point": np.arange(bstart[-1]) - bstart[edge], "x": xy[:, 0], "y": xy[:, 1]})
+
+
 @njit(cache = True)
 def _spread(t, starts, ends, gap):
    """

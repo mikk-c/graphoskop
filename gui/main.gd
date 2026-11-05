@@ -53,6 +53,8 @@ const LAYOUTS := [
    ["Remove overlaps", "remove_overlaps", {}, false],
    ["", "", {}, false],
    ["Bundle edges…", "bundle_edges", {}, true],
+   ["Route edges around nodes", "route_edges", {}, false],
+   ["Route edges around nodes…", "route_edges", {}, true],
 ]
 ## Items of the Edit menu: label, operation of the worker command [code]edit[/code] (see
 ## [code]edit_code[/code] in the worker), and whether ego networks keep the egos. Removals change
@@ -102,7 +104,8 @@ const PROJECTIONS := [
 ]
 ## Items of Edit › Transform: label, transformation of the library, and whether it has parameters
 ## (a parameter dialog opens first; the others run at once); the result opens in a new tab (see
-## [method _transform]).
+## [method _transform]). Union, intersection and difference ask for the other network: another
+## tab (worker [code]SET_OPERATIONS[/code]).
 const TRANSFORMS := [
    ["Flip edge direction", "flip_edge_direction", false],
    ["Undirected…", "to_undirected", true],
@@ -115,14 +118,25 @@ const TRANSFORMS := [
    ["Remove self loops", "remove_self_loops", false],
    ["", "", false],
    ["Quotient by a node attribute…", "quotient_network", true],
+   ["Line graph", "line_graph", false],
+   ["Complement…", "complement", true],
+   ["", "", false],
+   ["Union with another tab…", "network_union", false],
+   ["Intersection with another tab…", "network_intersection", false],
+   ["Difference with another tab…", "network_difference", false],
    ["", "", false],
    ["Clique expansion…", "clique_expansion", true],
    ["Clique promotion…", "clique_promotion", true],
+   ["Hypergraph walk network…", "hypergraph_walk_network", true],
+   ["", "", false],
+   ["One layer…", "layer_network", true],
+   ["Aggregate of the layers…", "aggregate_network", true],
 ]
 ## Items of the Help menu: label and web page (opened in the browser).
 const HELP := [
    ["Online documentation", "https://graphoskop.readthedocs.io/en/latest/"],
    ["Graphical interface (online documentation)", "https://graphoskop.readthedocs.io/en/latest/gui.html"],
+   ["Report a bug or request a feature", "https://github.com/mikk-c/graphoskop/issues"],
 ]
 ## Ids of the items of the menu of the search box that are not nodes.
 const FOUND_ALL := -2
@@ -132,6 +146,8 @@ const SELECTS := [["Select all nodes"], ["Clear selection"], [""], ["Select by a
 ## Item of Select › Neighbors of the selection (Ctrl+6, Command+6 on macOS).
 const SELECT_NEIGHBORS := 4
 ## Items of Analysis › Centrality: label and function (degree also plots the degree distribution).
+## The last ones are for hypergraphs and simplicial complexes: computed on the network, their
+## values are drawn on the incidence network (nodes, hyperedges or both).
 const CENTRALITIES := [
    ["Alpha…", "alpha_centrality"],
    ["Betweenness…", "betweenness_centrality"],
@@ -147,6 +163,12 @@ const CENTRALITIES := [
    ["PageRank…", "pagerank"],
    ["Reach…", "reach_centrality"],
    ["SpringRank…", "springrank"],
+   ["", ""],
+   ["Hyperedge size…", "hyperedge_size"],
+   ["Local triangle closure…", "local_triangle_closure"],
+   ["Two-node clustering…", "two_node_clustering"],
+   ["Generalized degree (complexes)…", "generalized_degree"],
+   ["Node and hyperedge centrality…", "node_edge_centrality"],
 ]
 ## Items of Analysis › Core-periphery: label and function. The three models write the core value
 ## of every node as a node attribute (worker command [code]centrality[/code]); nestedness, for
@@ -178,7 +200,9 @@ const VECTORS := [
    ["Network variance…", "network_variance"],
 ]
 ## Items of Analysis › Community discovery, as in the documentation of the library: label and
-## function.
+## function. The last two open the tree of the levels of a hierarchy of communities in a new tab,
+## laid out radially (worker command [code]community_tree[/code]; the hierarchical methods offer
+## it in their dialog), and its dendrogram in the plot window (command [code]dendrogram[/code]).
 const COMMUNITIES := [
    ["BigCLAM…", "bigclam_communities"],
    ["DEMON…", "demon_communities"],
@@ -190,6 +214,9 @@ const COMMUNITIES := [
    ["Link communities, line graph…", "line_graph_communities"],
    ["OSLOM…", "oslom_communities"],
    ["Stochastic blockmodels…", "block_model_communities"],
+   ["", ""],
+   ["Tree of a hierarchy…", "community_tree"],
+   ["Dendrogram of a hierarchy…", "dendrogram"],
 ]
 ## Items of the Generators menu, by family as in the documentation of the library: label, function,
 ## preset values of the parameters (Python source code) that make a network of a useful size; an
@@ -233,6 +260,8 @@ var _tabs := []
 var _epidemics_tab := {}
 ## The tab of the robustness dialog.
 var _robustness_tab := {}
+## The tab of the synchronization dialog.
+var _synchronization_tab := {}
 ## The tab of the link prediction dialog, and its runs (from the worker).
 var _links_tab := {}
 var _link_info := {}
@@ -251,6 +280,13 @@ const ANALYSIS_HIERARCHY := 2003
 ## command [code]statistics[/code]: the values become network attributes); the last computes all
 ## those that apply.
 const ANALYSIS_STATISTICS := 2004
+## Id of the submenu Analysis › Shortest paths, and its items: label and function (worker command
+## [code]paths[/code]: the lengths kept for later analyses and as a table, the average distance of
+## every node, and the heatmap of the lengths in the plot window).
+const ANALYSIS_PATHS := 2005
+const PATHS := [
+   ["All pairs lengths…", "all_pairs_shortest_path_lengths"],
+]
 const STATISTICS := [
    ["Density…", "density"],
    ["Average degree…", "average_degree"],
@@ -260,8 +296,16 @@ const STATISTICS := [
    ["Global triangle closure…", "global_triangle_closure"],
    ["Assortativity…", "assortativity"],
    ["Average shortest path length…", "average_shortest_path_length"],
+   ["Diameter…", "diameter"],
    ["Degree centralization…", "degree_centralization"],
    ["Connected components…", "connected_components_count"],
+   ["Modularity of a node attribute…", "modularity"],
+   ["", ""],
+   ["Uniform hypergraph…", "is_uniform"],
+   ["Pure complex…", "is_pure"],
+   ["Pseudomanifold…", "is_pseudomanifold"],
+   ["Betti numbers…", "betti_numbers"],
+   ["Euler characteristic…", "euler_characteristic"],
    ["", ""],
    ["All of them", "all"],
 ]
@@ -291,6 +335,14 @@ const EXPLORES := [
    ["Depth-first search…", "dfs"],
    ["Random walk…", "random_walk"],
    ["Metropolis-Hastings random walk…", "metropolis_hastings_random_walk"],
+]
+## Items of Simulation › Synchronization (the dialog of its runs, robustness_dialog.gd): label and
+## function (worker commands [code]synchronize[/code], [code]synchronization_runs[/code] and
+## [code]synchronization_plot[/code]).
+const SYNCHRONIZATION := [
+   ["Kuramoto", "kuramoto_model"],
+   ["Simplicial Kuramoto", "simplicial_kuramoto_model"],
+   ["Node-link Kuramoto", "node_link_kuramoto_model"],
 ]
 ## Text of the visualization panel without networks.
 const HINT := "File › Load network…, File › New network… or Generators to open a network"
@@ -362,7 +414,11 @@ func _ready() -> void:
    %Analysis.add_submenu_node_item("Core-periphery", cores)
    var communities := PopupMenu.new()
    _menu(communities, COMMUNITIES)
-   communities.id_pressed.connect(func(id): _run_analysis("communities", "Community discovery", COMMUNITIES[id]))
+   communities.id_pressed.connect(func(id):
+      if COMMUNITIES[id][1] == "community_tree":
+         _ask_tree()
+      else:
+         _run_analysis("dendrogram" if COMMUNITIES[id][1] == "dendrogram" else "communities", "Community discovery", COMMUNITIES[id]))
    %Analysis.add_submenu_node_item("Community discovery", communities)
    var vectors := PopupMenu.new()
    _menu(vectors, VECTORS)
@@ -380,6 +436,10 @@ func _ready() -> void:
    _menu(statistics, STATISTICS)
    statistics.id_pressed.connect(func(id): _run_statistics(STATISTICS[id]))
    %Analysis.add_submenu_node_item("Network statistics", statistics, ANALYSIS_STATISTICS)
+   var paths := PopupMenu.new()
+   _menu(paths, PATHS)
+   paths.id_pressed.connect(func(id): _run_analysis("paths", "Shortest paths", PATHS[id]))
+   %Analysis.add_submenu_node_item("Shortest paths", paths, ANALYSIS_PATHS)
    %Analysis.add_separator("", 100000)
    %Analysis.add_item("Link prediction…", ANALYSIS_LINKS)
    %Analysis.add_item("Graph neural networks…", ANALYSIS_GNNS)
@@ -448,11 +508,20 @@ func _ready() -> void:
    explorations.id_pressed.connect(_explore)
    %Simulation.add_submenu_node_item("Exploration", explorations, 1)
    %Simulation.add_item("Robustness…", 2)
+   %Simulation.add_item("Synchronization…", 3)
+   %Synchronization.set_functions(SYNCHRONIZATION, "Runs a Kuramoto model of coupled oscillators on the network, over a range of coupling strengths")
+   %Synchronization.add_requested.connect(_add_synchronization)
+   %Synchronization.plot_requested.connect(_plot_synchronization)
+   %Synchronization.visibility_changed.connect(func():
+      if not %Synchronization.visible:
+         _detach.call_deferred(%Synchronization))
    %Simulation.id_pressed.connect(func(id):
       if id == 0:
          _open_epidemics()
       elif id == 2:
-         _open_robustness())
+         _open_robustness()
+      elif id == 3:
+         _open_synchronization())
    %Robustness.add_requested.connect(_add_robustness)
    %Robustness.plot_requested.connect(_plot_robustness)
    %Robustness.visibility_changed.connect(func():
@@ -564,7 +633,19 @@ func _menu(menu: PopupMenu, items: Array) -> void:
          menu.add_item(items[i][0], i)
 
 
+## Pause of the main loop between frames when nothing changes on screen (low processor mode), in
+## microseconds, while the application is in the background: 10 checks a second for replies of the
+## worker, instead of [code]application/run/low_processor_mode_sleep_usec[/code] (60 a second).
+const BACKGROUND_SLEEP_USEC := 100000
+
+
+## Saves the window on closing; in the background (no window of the application focused), the
+## main loop runs less often ([constant BACKGROUND_SLEEP_USEC]), to save the CPU.
 func _notification(what: int) -> void:
+   if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+      OS.low_processor_usage_mode_sleep_usec = BACKGROUND_SLEEP_USEC
+   elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+      OS.low_processor_usage_mode_sleep_usec = ProjectSettings.get_setting("application/run/low_processor_mode_sleep_usec", 16667)
    if what == NOTIFICATION_WM_CLOSE_REQUEST:
       var maximized := get_window().mode == Window.MODE_MAXIMIZED
       AppSettings.store("window", "maximized", maximized)
@@ -718,7 +799,7 @@ func _task(text: String, request: Dictionary, callback: Callable) -> void:
 ## The window the task dialog opens in: the dialog that started the task (which stays open, to
 ## show an error), so that the task dialog is drawn above it, or else the main window.
 func _task_host() -> Window:
-   for dialog: Window in [_params, %LoadDialog, %SelectDialog, %Derive, _plot, %Epidemics, %Robustness, %Links, %Gnns, %Backbone]:
+   for dialog: Window in [_params, %LoadDialog, %SelectDialog, %Derive, _plot, %Epidemics, %Robustness, %Synchronization, %Links, %Gnns, %Backbone]:
       if dialog.visible:
          return dialog
    return get_window()
@@ -1441,14 +1522,20 @@ func _run_backbone(item: Array, what := "Backbone") -> void:
 ## [code]extract[/code], e.g. [code]net = gsk.to_undirected(net)[/code]); errors of the library
 ## (e.g. a transformation of directed networks on an undirected one) show in the dialog, or in a
 ## message.
-func _transform(item: Array) -> void:
+func _transform(item: Array, other := {}) -> void:
    var tab := _current()
    if tab.is_empty():
+      return
+   if item[1] in ["network_union", "network_intersection", "network_difference"] and other.is_empty():
+      _choose_other(tab, item)
       return
    var run := func(arguments: Dictionary, done: Callable) -> void:
       _next_tab += 1
       var id := _next_tab
-      _task("%s: running %s…" % [tab.name, item[1]], {"cmd": "extract", "tab": tab.id, "new_tab": id, "function": item[1], "arguments": arguments}, func(r, payload):
+      var request := {"cmd": "extract", "tab": tab.id, "new_tab": id, "function": item[1], "arguments": arguments}
+      if not other.is_empty():
+         request.merge({"other": other.id, "other_name": other.name})
+      _task("%s: running %s…" % [tab.name, item[1]], request, func(r, payload):
          if not _tabs.has(tab):
             return
          _idle_status(tab)
@@ -1457,7 +1544,7 @@ func _transform(item: Array) -> void:
             return
          if done.is_valid():
             done.call("")
-         _open_derived(tab, "%s (%s)" % [tab.name, item[0].trim_suffix("…").to_lower()], id, r, payload))
+         _open_derived(tab, "%s (%s)" % [tab.name, item[0].trim_suffix("…").replace(" with another tab", " with " + str(other.get("name", ""))).to_lower()], id, r, payload))
    if not item[2]:
       run.call({}, Callable())
       return
@@ -1466,6 +1553,61 @@ func _transform(item: Array) -> void:
          _message("Transform", str(reply.error))
          return
       _params.open("%s (gsk.%s)" % [item[0].trim_suffix("…"), item[1]], reply, {}, "Run", tab.attributes, run))
+
+
+## Community discovery › Tree of a hierarchy…: its parameter dialog (the levels, by default those
+## of the last hierarchical run), then [method _community_tree].
+func _ask_tree() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "signature", "function": "community_tree", "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         _message("Community discovery", str(reply.error))
+         return
+      _params.open("Tree of a hierarchy (gsk.community_tree)", reply, {}, "Open", tab.attributes, func(arguments, done): _community_tree(tab, arguments, done)))
+
+
+## The tree of the levels of communities of [param tab] in a new tab, laid out radially (worker
+## command [code]community_tree[/code], with the [param arguments] of its dialog).
+func _community_tree(tab: Dictionary, arguments: Dictionary, done := Callable()) -> void:
+   _next_tab += 1
+   var id := _next_tab
+   _task("%s: tree of the hierarchy…" % tab.name, {"cmd": "community_tree", "tab": tab.id, "new_tab": id, "arguments": arguments}, func(r, payload):
+      if not _tabs.has(tab):
+         return
+      _idle_status(tab)
+      if not r.ok:
+         _failed("Community discovery", str(r.error), done)
+         return
+      if done.is_valid():
+         done.call("")
+      _open_derived(tab, "%s (tree of the hierarchy)" % tab.name, id, r, payload))
+
+
+## The other network of a union, intersection or difference ([param item] of [constant TRANSFORMS]
+## on [param tab]): a dialog with a menu of the other tabs.
+func _choose_other(tab: Dictionary, item: Array) -> void:
+   var others := _tabs.filter(func(t): return t != tab)
+   if others.is_empty():
+      _message("Transform", "Open the other network in a tab first: %s combines the network with the network of another tab." % item[0].trim_suffix("…").to_lower())
+      return
+   var dialog := ConfirmationDialog.new()
+   dialog.title = item[0].trim_suffix("…")
+   dialog.ok_button_text = "Run"
+   var box := VBoxContainer.new()
+   var label := Label.new()
+   label.text = "%s of %s and the network of the tab:" % [item[0].split(" ")[0], tab.name]
+   var menu := OptionButton.new()
+   for t in others:
+      menu.add_item(t.name)
+   box.add_child(label)
+   box.add_child(menu)
+   dialog.add_child(box)
+   dialog.confirmed.connect(func(): _transform(item, others[menu.selected]))
+   dialog.visibility_changed.connect(func(): if not dialog.visible: dialog.queue_free())
+   add_child(dialog)
+   dialog.popup_centered()
 
 
 ## Backbone dialog: the plot again, with or without the [param components] and the [param left]
@@ -1580,8 +1722,8 @@ func _on_select(id: int) -> void:
    elif id == SELECT_NEIGHBORS:
       _grow_selection(tab)
    else:
-      %SelectDialog.open(tab.attributes, func(kind, attribute, op, value, add, done):
-         %Worker.request({"cmd": "select", "tab": tab.id, "kind": kind, "attribute": attribute, "op": op, "value": value}, func(reply, _p):
+      %SelectDialog.open(tab.attributes, func(kind, conditions, add, done):
+         %Worker.request({"cmd": "select", "tab": tab.id, "kind": kind, "conditions": conditions}, func(reply, _p):
             if not _tabs.has(tab):
                return
             if not reply.ok:
@@ -1721,6 +1863,66 @@ func _plot_robustness(names: Array) -> void:
       %Robustness.show_error("")
       _above(_plot, %Robustness)
       _plot.show_plot(tab.id, "Robustness of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "robustness"))
+
+
+## Simulation › Synchronization: opens the dialog of the synchronization runs of the current tab
+## (robustness_dialog.gd with the functions of [constant SYNCHRONIZATION]; worker command
+## [code]synchronization_runs[/code]).
+func _open_synchronization() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   _ask({"cmd": "synchronization_runs", "tab": tab.id}, func(reply, _p):
+      if reply.ok and _tabs.has(tab):
+         _synchronization_tab = tab
+         %Synchronization.open("Synchronization of %s" % tab.name, reply))
+
+
+## Add run or Copy… of the synchronization dialog: the parameter dialog of the model
+## [param function], with the [param values] of the run copied and a free name ("Kuramoto 2");
+## the run is added to the dialog (worker command [code]synchronize[/code]).
+func _add_synchronization(function: String, values: Dictionary) -> void:
+   var tab := _synchronization_tab
+   if not _tabs.has(tab):
+      return
+   var label: String = SYNCHRONIZATION.filter(func(x): return x[1] == function)[0][0]
+   _ask({"cmd": "signature", "function": function, "tab": tab.id}, func(reply, _p):
+      if not reply.ok:
+         %Synchronization.show_error(str(reply.error))
+         return
+      _above(_params, %Synchronization)
+      var presets := values.duplicate()
+      presets.name = JSON.stringify(%Synchronization.free_name(label))
+      _params.open("%s (gsk.%s)" % [label, function], reply, presets, "Run", tab.attributes, func(arguments, done):
+         %Synchronization.show_status("Running %s…" % function)
+         _task("%s: running %s…" % [tab.name, function], {"cmd": "synchronize", "tab": tab.id, "function": function, "arguments": arguments}, func(r, payload):
+            if not _tabs.has(tab):
+               return
+            _idle_status(tab)
+            %Synchronization.show_status("")
+            if not r.ok:
+               _failed("Synchronization", str(r.error), done)
+               return
+            done.call("")
+            _drawn(tab, r, payload, true)
+            if _synchronization_tab == tab:
+               %Synchronization.show_runs(r)
+               %Synchronization.show_status(r.result))))
+
+
+## Plot of the synchronization dialog: the transition curves of the checked runs [param names] in
+## the plot window (worker command [code]synchronization_plot[/code]).
+func _plot_synchronization(names: Array) -> void:
+   var tab := _synchronization_tab
+   if not _tabs.has(tab):
+      return
+   %Worker.request({"cmd": "synchronization_plot", "tab": tab.id, "names": names}, func(reply, payload):
+      if not reply.ok:
+         %Synchronization.show_error(str(reply.error))
+         return
+      %Synchronization.show_error("")
+      _above(_plot, %Synchronization)
+      _plot.show_plot(tab.id, "Synchronization of %s" % tab.name, payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "synchronization"))
 
 
 ## Analysis › Link prediction: opens the dialog of the link predictions of the current tab
@@ -2071,6 +2273,8 @@ func _run_analysis(cmd: String, heading: String, item: Array) -> void:
                return
             done.call("")
             _drawn(tab, r, payload, true)
+            if r.has("tree"):   # the tree of the levels found, in a new tab
+               _community_tree(tab, {"levels": JSON.stringify(r.tree)})
             if r.has("note") and _current() == tab:   # e.g. the correlation of a core-periphery model
                %Status.text = "%s  ·  %s" % [tab.summary, r.note]
             if r.has("result"):   # the value of a node vector analysis
@@ -2085,7 +2289,7 @@ func _run_analysis(cmd: String, heading: String, item: Array) -> void:
                   _plot.hide()
                   _plot.reparent(self, false)
                var file: String = item[1] if cmd != "centrality" else "degree_distribution"
-               _plot.show_plot(tab.id, r.plot.get("title", "Degree distribution of %s" % tab.name), png, r.plot.elements, r.plot.options, r.plot.styles, r.plot.text, r.plot.warnings, file, [], "Plot", r.plot.get("table", false)))))
+               _plot.show_plot(tab.id, r.plot.get("title", "Degree distribution of %s" % tab.name), png, r.plot.elements, r.plot.options, r.plot.styles, r.plot.text, r.plot.warnings, file, r.plot.get("kinds", []), r.plot.get("kind_label", "Plot"), r.plot.get("table", false)))))
 
 
 ## Draws the plot of the plot window again with new [param colors] (element key to color),
@@ -2238,11 +2442,17 @@ func _delete_attribute() -> void:
       _drawn(tab, reply, payload, true))
 
 
-## Saves the plot of the plot window (PNG or PDF, by the extension of [param path]).
+## Saves the plot of the plot window (PNG or PDF, by the extension of [param path]; a table for
+## .tsv); the code that writes it is added to the code of its tab.
 func _save_plot(tab_id: int, path: String) -> void:
    %Worker.request({"cmd": "save_plot", "tab": tab_id, "path": path}, func(reply, _p):
       if reply.ok:
          %Status.text = "Saved %s" % path.get_file()
+         for tab in _tabs:   # the code that writes the plot
+            if tab.id == tab_id and reply.has("code"):
+               tab.code = reply.code
+               if _current() == tab:
+                  %Code.text = tab.code
       else:
          _message("Plot", str(reply.error)))
 
@@ -2379,6 +2589,8 @@ func _show_tab(index: int) -> void:
       %Epidemics.hide()
    if %Robustness.visible and _robustness_tab != tab:
       %Robustness.hide()
+   if %Synchronization.visible and _synchronization_tab != tab:
+      %Synchronization.hide()
    if %Links.visible and _links_tab != tab:
       %Links.hide()
    if %Gnns.visible and _gnns_tab != tab:

@@ -12,8 +12,13 @@ extends TabContainer
 ## that changes it (color_dialog.gd, size_dialog.gd). The panel edits the style of the drawing of
 ## the current network: [code]{"nodes": color, "edges": color, "node_size": size, "edge_width":
 ## size, "node_opacity": opacity, "edge_opacity": opacity, "position": {"x": name, "y": name},
-## "labels": {"attribute": name, "ids": bool}, "label_size": size, "background": "#rrggbb"}[/code] (see
-## [code]default_style[/code] in the worker).
+## "labels": {"attribute": name, "ids": bool}, "label_size": size, "node_chart": chart,
+## "background": "#rrggbb"}[/code] (see [code]default_style[/code] in the worker). Nodes › Chart
+## turns the nodes into pie charts (its dialog, made here): none, the shares of numeric node
+## attributes (check boxes, a slice each), or the values of a qualitative attribute (equal slices
+## of the values of each node, e.g. overlapping communities), in the colors of a qualitative
+## ColorBrewer palette: [code]{"attributes": [names], "palette": [colors], "palette_name": name}[/code]
+## or [code]{"attribute": name, ...}[/code] ([code]chart_slices[/code] in the worker).
 
 ## Emitted when the colors or sizes of nodes or edges change, with the whole style.
 signal style_changed(style: Dictionary)
@@ -36,6 +41,11 @@ var tab_names := Callable()
 var _style := {}
 var _attributes := {}
 var _editing := ""
+var _chart := ConfirmationDialog.new()
+var _chart_kind := OptionButton.new()
+var _chart_numeric := VBoxContainer.new()
+var _chart_qualitative := OptionButton.new()
+var _chart_palette := OptionButton.new()
 
 
 func _ready() -> void:
@@ -46,6 +56,8 @@ func _ready() -> void:
    %EditNodeOpacity.pressed.connect(func(): _edit_size("node_opacity", "Node opacity", "nodes", "opacity"))
    %EditEdgeOpacity.pressed.connect(func(): _edit_size("edge_opacity", "Edge opacity", "edges", "opacity"))
    %EditLabelSize.pressed.connect(func(): _edit_size("label_size", "Label size", "nodes", "label"))
+   _build_chart_dialog()
+   %EditNodeChart.pressed.connect(_edit_chart)
    %ColorDialog.changed.connect(_changed)
    %SizeDialog.changed.connect(_changed)
    %EditNodePosition.pressed.connect(func(): _editing = "position"; %PositionDialog.open(_style.get("position", {}), _attributes.get("nodes", [])))
@@ -81,6 +93,85 @@ func _ready() -> void:
          copies.add_item("No other tab", 100000)
          copies.set_item_disabled(0, true))
    copies.id_pressed.connect(func(id): if id < 100000: copy_requested.emit(id))
+
+
+## The dialog of Nodes › Chart: the kind of chart, the numeric attributes (check boxes) or the
+## qualitative one (menu), and the palette.
+func _build_chart_dialog() -> void:
+   _chart.title = "Node charts"
+   _chart.ok_button_text = "Apply"
+   var box := VBoxContainer.new()
+   for k in ["None", "Pie of numeric attributes", "Pie of the values of a qualitative attribute"]:
+      _chart_kind.add_item(k)
+   _chart_kind.item_selected.connect(func(_i): _chart_show())
+   var palettes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json")).qualitative
+   for name in palettes:
+      _chart_palette.add_item(name)
+   _chart_palette.select(maxi(Array(palettes.keys()).find("Set1"), 0))
+   var scroll := ScrollContainer.new()
+   scroll.custom_minimum_size = Vector2(320, 200)
+   scroll.add_child(_chart_numeric)
+   _chart_numeric.set_meta("scroll", scroll)
+   for c in [_chart_kind, scroll, _chart_qualitative]:
+      box.add_child(c)
+   var row := HBoxContainer.new()
+   var label := Label.new()
+   label.text = "Palette"
+   row.add_child(label)
+   row.add_child(_chart_palette)
+   box.add_child(row)
+   _chart.add_child(box)
+   _chart.confirmed.connect(_apply_chart)
+   add_child(_chart)
+
+
+func _edit_chart() -> void:
+   var spec: Dictionary = _style.get("node_chart", {})
+   for c in _chart_numeric.get_children():
+      c.queue_free()
+   _chart_qualitative.clear()
+   var chosen: Array = spec.get("attributes", [])
+   for a in _attributes.get("nodes", []):
+      if a.get("numeric", false):
+         var check := CheckBox.new()
+         check.text = a.name
+         check.button_pressed = a.name in chosen
+         _chart_numeric.add_child(check)
+      else:
+         _chart_qualitative.add_item(a.name)
+         if a.name == spec.get("attribute"):
+            _chart_qualitative.select(_chart_qualitative.item_count - 1)
+   _chart_kind.select(1 if not chosen.is_empty() else (2 if spec.get("attribute") != null else 0))
+   if spec.has("palette_name"):
+      for i in _chart_palette.item_count:
+         if _chart_palette.get_item_text(i) == spec.palette_name:
+            _chart_palette.select(i)
+   _chart_show()
+   _chart.popup_centered()
+
+
+func _chart_show() -> void:
+   _chart_numeric.get_meta("scroll").visible = _chart_kind.selected == 1
+   _chart_qualitative.visible = _chart_kind.selected == 2
+   _chart.reset_size()
+
+
+func _apply_chart() -> void:
+   var name := _chart_palette.get_item_text(_chart_palette.selected)
+   var palette: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json")).qualitative[name]
+   var colors: Array = palette[str(Array(palette.keys()).map(func(k): return int(k)).max())]   # the largest set of the palette
+   var spec := {}
+   if _chart_kind.selected == 1:
+      var chosen := []
+      for c in _chart_numeric.get_children():
+         if c.button_pressed:
+            chosen.append(c.text)
+      if not chosen.is_empty():
+         spec = {"attributes": chosen, "palette": colors, "palette_name": name}
+   elif _chart_kind.selected == 2 and _chart_qualitative.selected >= 0:
+      spec = {"attribute": _chart_qualitative.get_item_text(_chart_qualitative.selected), "palette": colors, "palette_name": name}
+   _editing = "node_chart"
+   _changed(spec)
 
 
 func _scale(factor: float) -> void:
@@ -142,6 +233,9 @@ func _summarize() -> void:
    var label = _style.get("labels", {}).get("attribute")
    %NodeLabel.text = str(label) if label != null else ("node id" if _style.get("labels", {}).get("ids", false) else "none")
    %LabelSize.text = _size_summary(_style.get("label_size", {}))
+   var chart: Dictionary = _style.get("node_chart", {})
+   %NodeChart.text = ("pie: " + ", ".join(chart.attributes)) if chart.has("attributes") else ("pie: " + str(chart.attribute) if chart.has("attribute") else "none")
+   %NodeChart.tooltip_text = %NodeChart.text
 
 
 ## Swatch or color ramp of a color specification, and what it colors by.

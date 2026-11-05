@@ -96,7 +96,8 @@ Models
 All models take the same parameters and return the same results; the attention models also take
 the number of heads. The weights of ``weight`` average the neighbors in :func:`~graphoskop.gcn`
 and :func:`~graphoskop.graphsage`, and enter the attention as an edge feature in
-:func:`~graphoskop.gat` and :func:`~graphoskop.gatv2`.
+:func:`~graphoskop.gat` and :func:`~graphoskop.gatv2`. :func:`~graphoskop.mlp` is the same model without the network (plain linear layers),
+the baseline that shows what the structure adds to the prediction.
 
 .. autofunction:: graphoskop.gat
 
@@ -105,6 +106,8 @@ and :func:`~graphoskop.graphsage`, and enter the attention as an edge feature in
 .. autofunction:: graphoskop.gcn
 
 .. autofunction:: graphoskop.graphsage
+
+.. autofunction:: graphoskop.mlp
 
 Shallow embeddings
 ------------------

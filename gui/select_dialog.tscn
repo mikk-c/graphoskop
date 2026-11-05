@@ -4,7 +4,7 @@
 
 [node name="SelectDialog" type="ConfirmationDialog"]
 title = "Select by attribute"
-size = Vector2i(420, 200)
+size = Vector2i(620, 220)
 ok_button_text = "Select"
 dialog_hide_on_ok = false
 script = ExtResource("1_select")
@@ -12,7 +12,7 @@ script = ExtResource("1_select")
 [node name="Box" type="VBoxContainer" parent="."]
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 412.0
+offset_right = 612.0
 offset_bottom = 151.0
 
 [node name="Grid" type="GridContainer" parent="Box"]
@@ -34,54 +34,16 @@ popup/item_0/id = 0
 popup/item_1/text = "Edges"
 popup/item_1/id = 1
 
-[node name="AttributeLabel" type="Label" parent="Box/Grid"]
-layout_mode = 2
-text = "whose"
-
-[node name="Attribute" type="OptionButton" parent="Box/Grid"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 0)
-layout_mode = 2
-fit_to_longest_item = false
-
-[node name="OpLabel" type="Label" parent="Box/Grid"]
-layout_mode = 2
-text = "is"
-
-[node name="Op" type="OptionButton" parent="Box/Grid"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 0)
-layout_mode = 2
-tooltip_text = "Condition: numbers are compared as numbers; contains matches a part of the text, or one of several values"
-
-[node name="ValueLabel" type="Label" parent="Box/Grid"]
-layout_mode = 2
-text = "Value"
-
-[node name="Value" type="HBoxContainer" parent="Box/Grid"]
-custom_minimum_size = Vector2(260, 0)
-layout_mode = 2
-
-[node name="Number" type="SpinBox" parent="Box/Grid/Value"]
+[node name="Conditions" type="VBoxContainer" parent="Box"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-step = 0.0
-allow_greater = true
-allow_lesser = true
-custom_arrow_step = 1.0
 
-[node name="Values" type="OptionButton" parent="Box/Grid/Value"]
+[node name="AddCondition" type="Button" parent="Box"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-fit_to_longest_item = false
-
-[node name="Text" type="LineEdit" parent="Box/Grid/Value"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "value"
+size_flags_horizontal = 0
+tooltip_text = "Add a condition, chained to the ones above with AND, OR or XOR"
+text = "Add condition"
 
 [node name="Add" type="CheckBox" parent="Box"]
 unique_name_in_owner = true
@@ -91,7 +53,7 @@ text = "Add to the current selection"
 [node name="Error" type="Label" parent="Box"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(400, 0)
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.25, 0.2, 1)
 autowrap_mode = 3

@@ -95,14 +95,14 @@ from importlib.metadata import version, PackageNotFoundError
 from .network import BIPARTITE, LAYER, Network, Hyperedge, Simplex, load_network, save_network, load_pickled_network, load_matrix, save_matrix
 from .higher_order import load_hypergraph, load_simplicial_complex, incidence_network, clique_expansion, generalized_degree, incidence_number, is_uniform, is_pure, is_pseudomanifold, hypergraph_walk_network, boundary_matrix, hodge_laplacian, simplicial_random_walk, betti_numbers, euler_characteristic, hodge_decomposition, simplicial_fourier_basis, simplicial_fourier_transform, inverse_simplicial_fourier_transform, set_hypergraph_route
 from .multilayer import layer_network, aggregate_network
-from .transformations import to_undirected, remove_isolates, largest_component, remove_self_loops, remove_parallel_edges, subgraph, ego_network, to_strongly_connected, add_nodes, add_edges, remove_nodes, remove_edges, flip_edge_direction, network_union, network_difference, network_intersection, quotient_network, network_condensation, clique_promotion
+from .transformations import to_undirected, remove_isolates, largest_component, remove_self_loops, remove_parallel_edges, subgraph, ego_network, to_strongly_connected, add_nodes, add_edges, remove_nodes, remove_edges, flip_edge_direction, network_union, network_difference, network_intersection, quotient_network, network_condensation, clique_promotion, line_graph, complement
 from .signed import SIGN, signed_network, signed_adjacency, structural_balance, signed_triangle_counts
 from .utils import laplacian, laplacian_pinv, laplacian_solver, stationary_distribution, effective_resistance, hitting_time, fundamental_matrix
 from .shortest_paths import shortest_path, shortest_path_length, single_source_shortest_paths, single_source_shortest_path_lengths, all_pairs_shortest_paths, all_pairs_shortest_path_lengths, shortest_path_length_distribution, diameter
 from .communities import modularity, codelength, conductance, internal_density, out_degree_fraction
 from .communities import normalized_mutual_information, adjusted_mutual_information, adjusted_rand_index
 from .communities import maximal_cliques, bigclam_communities, block_model_communities, hierarchical_random_graph_communities, infomap_communities
-from .communities import demon_communities, hierarchical_link_communities, line_graph_communities, oslom_communities
+from .communities import community_tree, demon_communities, hierarchical_link_communities, line_graph_communities, oslom_communities
 from .communities import label_propagation_communities, leiden_communities
 from .core_periphery import discrete_core_periphery, continuous_core_periphery, rombach_core_periphery, nestedness, nestedness_isocline
 from .coloring import graph_coloring, maximum_independent_set
@@ -110,7 +110,7 @@ from .exploration import bfs, dfs, random_walk, metropolis_hastings_random_walk
 from .centrality import closeness_centrality, harmonic_centrality, betweenness_centrality, edge_betweenness_centrality, flow_centrality, reach_centrality, eigenvector_centrality, pagerank, katz_centrality, alpha_centrality, hits, k_core_centrality, springrank, centralization, node_edge_centrality
 from .hierarchy import global_reach_centrality, flow_hierarchy, arborescence_hierarchy, agony_hierarchy
 from .isomorphism import is_isomorphic, isomorphisms
-from .gnn import gcn, graphsage, gat, gatv2, hgnn, scnn, gae, vgae, node2vec, laplacian_eigenmaps, locally_linear_embedding, diffpool, struc2vec, metapath2vec
+from .gnn import gcn, mlp, graphsage, gat, gatv2, hgnn, scnn, gae, vgae, node2vec, laplacian_eigenmaps, locally_linear_embedding, diffpool, struc2vec, metapath2vec
 from .neural_generators import graphrnn, GraphRNNFit
 from .progress import set_progress
 from .frequent_subgraphs import transactional_graph_mining, single_graph_mining, graph_association_rules
@@ -126,7 +126,7 @@ from .higher_order_dependencies import higher_order_dependency_network, memory_n
 from .synchronization import kuramoto_model, simplicial_kuramoto_model, node_link_kuramoto_model
 from .error_correction import fit_nested_block_model, measured_network_correction, uncertain_network_correction
 from .link_prediction import association_rules_lp, embedding_lp, link_prediction_split, preferential_attachment_lp, common_neighbors_lp, common_neighbors_jaccard_lp, adamic_adar_lp, resource_allocation_lp, car_index_lp, mutual_information_index_lp, local_random_walk_lp, simrank_lp, vertex_similarity_lp, hierarchical_random_graph_lp, block_model_reliability_lp, ensemble_link_prediction, link_prediction_evaluation, link_prediction_sign_evaluation
-from .layouts import circular_layout, force_directed_layout, grid_layout, hierarchical_layout, matrix_layout, umap_layout, mirror_layout, rotate_layout, scale_layout, remove_overlaps, bundle_edges
+from .layouts import circular_layout, force_directed_layout, grid_layout, hierarchical_layout, matrix_layout, umap_layout, mirror_layout, rotate_layout, scale_layout, remove_overlaps, bundle_edges, route_edges
 from .node_vector_analysis import generalized_euclidean, pairwise_generalized_euclidean, network_correlation, pairwise_network_correlation, network_variance, network_entropy, graph_fourier_basis, graph_fourier_transform, inverse_graph_fourier_transform, earth_movers_distance, annihilation_distance
 
 try:
@@ -146,7 +146,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "remove_parallel_edges", "subgraph", "ego_network", "to_strongly_connected", "add_nodes",
            "add_edges", "remove_nodes", "remove_edges", "flip_edge_direction", "network_union",
            "network_difference", "network_intersection", "quotient_network", "network_condensation",
-           "clique_promotion", "SIGN", "signed_network", "signed_adjacency", "structural_balance",
+           "clique_promotion", "line_graph", "complement", "SIGN", "signed_network", "signed_adjacency", "structural_balance",
            "signed_triangle_counts", "laplacian", "laplacian_pinv", "laplacian_solver",
            "stationary_distribution", "effective_resistance", "hitting_time", "fundamental_matrix",
            "shortest_path", "shortest_path_length", "single_source_shortest_paths",
@@ -157,7 +157,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "maximal_cliques", "bigclam_communities", "block_model_communities", "demon_communities",
            "hierarchical_link_communities", "hierarchical_random_graph_communities",
            "infomap_communities", "label_propagation_communities", "leiden_communities",
-           "line_graph_communities", "oslom_communities", "discrete_core_periphery",
+           "line_graph_communities", "oslom_communities", "community_tree", "discrete_core_periphery",
            "continuous_core_periphery", "rombach_core_periphery", "nestedness",
            "nestedness_isocline", "graph_coloring", "maximum_independent_set", "bfs", "dfs",
            "random_walk", "metropolis_hastings_random_walk", "closeness_centrality",
@@ -170,7 +170,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "regular_equivalence", "pairwise_regular_equivalence", "path_regular_equivalence",
            "pairwise_path_regular_equivalence", "is_isomorphic", "isomorphisms",
            "transactional_graph_mining", "single_graph_mining", "graph_association_rules", "gcn",
-           "graphsage", "gat", "gatv2", "gae", "vgae", "node2vec", "laplacian_eigenmaps",
+           "graphsage", "gat", "gatv2", "mlp", "gae", "vgae", "node2vec", "laplacian_eigenmaps",
            "locally_linear_embedding", "diffpool", "struc2vec", "metapath2vec", "set_progress",
            "connected_components_count", "connected_components_nodes", "degree", "average_degree",
            "degree_power_law", "degree_centralization", "hyperedge_size", "density", "reciprocity",
@@ -209,4 +209,4 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "higher_order_dependency_network", "memory_network", "first_order_values",
            "force_directed_layout", "umap_layout", "circular_layout", "hierarchical_layout",
            "grid_layout", "mirror_layout", "rotate_layout", "scale_layout", "remove_overlaps",
-           "matrix_layout", "bundle_edges"]
+           "matrix_layout", "bundle_edges", "route_edges"]

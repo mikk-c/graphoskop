@@ -2290,6 +2290,100 @@ def line_graph_communities(net, attribute = "link_community", weight = None, lin
 
 
 @_higher_order()
+def community_tree(net, levels, leaves = True):
+   """
+   The tree of a hierarchy of communities, as a network to draw and analyze: a root, the groups
+   of every level (communities written as node attributes, e.g. ``community``, ``community_1``,
+   ... by :func:`hierarchical_random_graph_communities`, :func:`infomap_communities` or
+   :func:`block_model_communities`) and, with ``leaves``, the nodes; edges go from every group to
+   the groups (or nodes) it holds. The levels may be given in any order: they are sorted from the
+   coarsest (fewest groups) to the finest. A group hangs from the group of the next coarser level
+   that holds most of its nodes (the only one when the levels are nested), the groups of the
+   coarsest level from the root. Missing values make a group of their own. Lay it out with
+   :func:`~graphoskop.hierarchical_layout` (``direction = "radial"``: the root at the center).
+
+   Nodes have ids ``"(root)"``, ``"<level>=<value>"`` for the groups (e.g. ``"community_1=3"``)
+   and the texts of the ids of the nodes for the leaves; node attributes ``level`` (``"(root)"``,
+   the name of the level, or ``"node"``), ``depth`` (0 for the root, 1 for the coarsest level,
+   ...), ``size`` (the number of nodes below, 1 for the leaves), ``group`` (the value of the group
+   at its level) and, on the leaves, the node attributes of the network (wide node tables; not the
+   positions).
+
+   :param net: A :class:`~graphoskop.Network`, not multilayer.
+   :param levels: Names of the node attributes of the levels (a name for one level).
+   :param leaves: Whether the nodes are the leaves of the tree (else the groups of the finest
+      level are).
+   :return: The tree, a new directed :class:`~graphoskop.Network`.
+   :raises ValueError: If ``net`` is multilayer, or there are no levels.
+   :raises KeyError: If a level is not a node attribute.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.load_network("edges.tsv")
+      gsk.infomap_communities(net)                              # community, community_1, ...
+      tree = gsk.community_tree(net, ["community", "community_1"])
+      gsk.hierarchical_layout(tree, direction = "radial")
+   """
+   from .isomorphism import _node_values
+   from .network import load_network
+   levels = [levels] if isinstance(levels, str) else list(levels)
+   if net.layer_labels is not None:
+      raise ValueError("community_tree does not take multilayer networks")
+   if not levels:
+      raise ValueError("levels: give the node attributes of the levels of the hierarchy")
+   for a in levels:
+      if a not in net.node_attributes and a not in net.qualitative_node_attributes:
+         raise KeyError(f"no node attribute {a!r}")
+   ids = np.concatenate(net.node_ids) if net.components else np.zeros(0, dtype = object)
+   n = len(ids)
+   def label(v):
+      if v is None or isinstance(v, float) and np.isnan(v):
+         return "(none)"
+      if isinstance(v, (tuple, list, frozenset, set)):
+         return ", ".join(sorted(label(x) for x in v))
+      return str(int(v)) if isinstance(v, (float, np.floating)) and float(v).is_integer() else str(v)
+   names = {a: np.array([label(v) for v in _node_values(net, a)], dtype = object) for a in levels}
+   levels = sorted(levels, key = lambda a: len(set(names[a])))   # coarsest first
+   group = [np.array([f"{a}={x}" for x in names[a]], dtype = object) for a in levels]
+   rows = []   # parent, child
+   parent = np.full(n, "(root)", dtype = object)
+   for d, g in enumerate(group):   # every group under the coarser group holding most of its nodes
+      pairs = pd.DataFrame({"parent": parent, "child": g}).value_counts().reset_index()
+      pairs = pairs.sort_values("count", ascending = False, kind = "stable").drop_duplicates("child")
+      rows.append(pairs[["parent", "child"]])
+      parent = g
+   leaf = np.array([str(i) for i in ids], dtype = object)
+   if leaves:
+      rows.append(pd.DataFrame({"parent": parent, "child": leaf}))
+   edges = pd.concat(rows, ignore_index = True).rename(columns = {"parent": "source", "child": "target"})
+   size = {"(root)": n}
+   info = [pd.DataFrame({"node": ["(root)"], "level": ["(root)"], "depth": [0], "size": [n], "group": [None]})]
+   for d, (a, g) in enumerate(zip(levels, group)):
+      counts = pd.Series(g).value_counts()
+      first = pd.Series(names[a]).groupby(g).first()
+      info.append(pd.DataFrame({"node": counts.index, "level": a, "depth": d + 1, "size": counts.to_numpy(), "group": first.reindex(counts.index).to_numpy()}))
+   if leaves:
+      own = pd.DataFrame({"node": leaf, "level": "node", "depth": len(levels) + 1, "size": 1, "group": None})
+      tables = net.to_pandas_dataframes()
+      if isinstance(tables, tuple) and net.node_format == "wide" and net.higher_order is None:
+         extra = tables[-1].drop(columns = [c for c in tables[-1].columns if c.startswith("pos_") or c in ("level", "depth", "size", "group")], errors = "ignore")
+         extra = extra.assign(node = extra["node"].map(str))
+         own = own.merge(extra, on = "node", how = "left")
+      info.append(own)
+   nodes = pd.concat(info, ignore_index = True)
+   nodes["depth"] = nodes["depth"].astype(float)
+   nodes["size"] = nodes["size"].astype(float)
+   from .network import BIPARTITE
+   nodes = nodes.drop(columns = [BIPARTITE], errors = "ignore")
+   device = net.components[0].edge_index.device if net.components else "cpu"
+   return load_network(edges, nodes, directed = True, device = device)
+
+
+@_higher_order()
 def demon_communities(net, attribute = "community", epsilon = 0.25, min_size = 3, weight = None, max_iter = 100, seed = None):
    """
    DEMON (Coscia, Rossetti, Giannotti and Pedreschi, 2012): overlapping communities from the local

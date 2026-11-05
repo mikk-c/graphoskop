@@ -34,6 +34,9 @@ extends SubViewportContainer
 ## are drawn over, as lines, curves or cell outlines (the first [constant MAX_HIGHLIGHTS]). Nodes can also be colored by
 ## the states of an epidemic ([method show_states]), over the colors of the style.
 ##
+## Node charts (Visual elements › Nodes › Chart): pie charts drawn by the node shader, from the
+## slices sent by the worker (a texture, [method _show_charts]); epidemic states hide them.
+##
 ## Node labels (Visual elements › Nodes › Label, off by default): the texts sent by the worker,
 ## centered on their nodes, upright, in black or white with an outline (by the background), at
 ## the heights sent by the worker (Label size: drawing units, like node diameters, so that labels
@@ -67,6 +70,8 @@ const EDGE_PIXELS := 1.0
 ## Floats per node, per edge and per Bézier piece of bundled edges in the buffers of the worker
 ## (edges of directed networks have 16, with the diameters of their nodes and their arrowheads).
 const NODE_STRIDE := 16
+## Texels per row of the texture of the slices of the node charts (CHART_WIDTH of the worker).
+const CHART_WIDTH := 4096
 const EDGE_STRIDE := 12
 const CURVE_STRIDE := 16
 ## Shader of bundled edges (cubic Bézier pieces computed by the GPU).
@@ -219,6 +224,7 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _arrow_data = parts[8].to_float32_array() if int(header.get("arrows", 0)) > 0 else PackedFloat32Array()
    labels = parts[9].get_string_from_utf8().split(char(31)) if header.get("labels", false) and parts.size() > 10 else PackedStringArray()
    _label_heights = parts[10].to_float32_array() if not labels.is_empty() else PackedFloat32Array()
+   _show_charts(parts[11] if parts.size() > 11 else PackedByteArray())
    _labels.queue_redraw()
    _fill(_arrows.multimesh, int(header.get("arrows", 0)), _arrow_data)
    _grid = header.grid
@@ -248,6 +254,18 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
       _set_zoom(zoom)
    else:
       fit()
+
+
+## The slices of the node charts ([param table]: float32 texels, end, red, green, blue, in rows of
+## [constant CHART_WIDTH]) as the texture of the node shader; the nodes say where their slices are.
+func _show_charts(table: PackedByteArray) -> void:
+   var texels := table.size() / 16
+   if texels == 0:
+      _nodes.material.set_shader_parameter("slices", null)
+      return
+   var image := Image.create_from_data(CHART_WIDTH, texels / CHART_WIDTH, false, Image.FORMAT_RGBAF, table)
+   _nodes.material.set_shader_parameter("slices", ImageTexture.create_from_image(image))
+   _nodes.material.set_shader_parameter("chart_width", CHART_WIDTH)
 
 
 ## Edges as straight quads ([param kind] "lines", the edge shader setting their width), as Bézier
@@ -349,6 +367,7 @@ func set_spread(factor: float) -> void:
 ## Turns the view by [param degrees] (counterclockwise), around its center.
 func set_turn(degrees: float) -> void:
    turn = degrees
+   _nodes.material.set_shader_parameter("turn", deg_to_rad(turn))   # node charts start at the top of the screen
    _redraw()
 
 
@@ -711,10 +730,12 @@ func show_states(codes: PackedByteArray, palette: Array, nodes := PackedInt32Arr
          _buffer[k + 8] = color.r
          _buffer[k + 9] = color.g
          _buffer[k + 10] = color.b
+         _buffer[k + 14] = 0.0   # the state, not the chart
       else:
          _buffer[k + 8] = _style_buffer[k + 8]
          _buffer[k + 9] = _style_buffer[k + 9]
          _buffer[k + 10] = _style_buffer[k + 10]
+         _buffer[k + 14] = _style_buffer[k + 14]
    _nodes.multimesh.buffer = _buffer
    _redraw()
 
@@ -726,6 +747,7 @@ func hide_states() -> void:
       _buffer[k + 8] = _style_buffer[k + 8]
       _buffer[k + 9] = _style_buffer[k + 9]
       _buffer[k + 10] = _style_buffer[k + 10]
+      _buffer[k + 14] = _style_buffer[k + 14]
    _nodes.multimesh.buffer = _buffer
    _redraw()
 

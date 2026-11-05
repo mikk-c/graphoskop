@@ -102,7 +102,7 @@ PROGRESS_INTERVAL = 1.
 SHOWN_DEFAULTS = {"directed": "False", "self_loops": "False", "device": "\"cpu\"", ("girvan_newman_graph", "l"): "4", ("girvan_newman_graph", "k"): "32", ("girvan_newman_graph", "degree"): "16", ("growing_manifold", "d"): "2", ("lfr_benchmark_graph", "beta"): "1.5", ("infomap_communities", "directed"): ""}
 #: Hints shown in empty fields of the parameter dialog, for parameters whose default ``None``
 #: has no value of its own.
-HINTS = {"seed": "random", ("geometric_graph", "m"): "unused (r)", ("geometric_graph", "positions"): "random", ("kronecker_graph", "n"): "from k", ("lfr_benchmark_graph", "muw"): "unweighted", ("lfr_benchmark_graph", "minc"): "smallest degree", ("lfr_benchmark_graph", "maxc"): "maxk", ("mixed_membership_block_model", "threshold"): "1 / (k + 1)", ("mixed_membership_block_model", "memberships"): "from n and alpha", ("nested_block_model", "degrees"): "uniform", "groups": "none", "order": "by the edges", "weight": "unweighted", "levels": "from the edges", "root": "most neighbors", "attributes": "adjacency matrix", "embedding": "none", "epochs": "automatic", "initial": "none", ("bundle_edges", "groups"): "from the layout", ("bigclam_communities", "groups"): "automatic", ("block_model_communities", "groups"): "automatic", ("block_model_communities", "threshold"): "1 / (groups + 1)", ("hierarchical_link_communities", "threshold"): "best partition density", ("hierarchical_random_graph_communities", "chains"): "one per thread", ("infomap_communities", "directed"): "as the network", ("infomap_communities", "physical"): "none", ("leiden_communities", "initial"): "singletons", "column_groups": "none", "column_order": "by the edges"}
+HINTS = {"seed": "random", ("geometric_graph", "m"): "unused (r)", ("geometric_graph", "positions"): "random", ("kronecker_graph", "n"): "from k", ("lfr_benchmark_graph", "muw"): "unweighted", ("lfr_benchmark_graph", "minc"): "smallest degree", ("lfr_benchmark_graph", "maxc"): "maxk", ("mixed_membership_block_model", "threshold"): "1 / (k + 1)", ("mixed_membership_block_model", "memberships"): "from n and alpha", ("nested_block_model", "degrees"): "uniform", "groups": "none", "order": "by the edges", "weight": "unweighted", "levels": "from the edges", "root": "most neighbors", "attributes": "adjacency matrix", "embedding": "none", "epochs": "automatic", "initial": "none", ("bundle_edges", "groups"): "from the layout", ("route_edges", "size"): "drawn nodes", ("route_edges", "margin"): "a quarter of the median size", ("bigclam_communities", "groups"): "automatic", ("block_model_communities", "groups"): "automatic", ("block_model_communities", "threshold"): "1 / (groups + 1)", ("hierarchical_link_communities", "threshold"): "best partition density", ("hierarchical_random_graph_communities", "chains"): "one per thread", ("infomap_communities", "directed"): "as the network", ("infomap_communities", "physical"): "none", ("leiden_communities", "initial"): "singletons", "column_groups": "none", "column_order": "by the edges"}
 #: Parameters of layouts and community discovery that take attribute names (by name, or by
 #: function and name): the kind of attribute (``"nodes"`` or ``"edges"``) and whether several
 #: names can be given (a list); the dialog offers the attributes of the network. (``groups`` of
@@ -160,6 +160,10 @@ OPTIONS.update({(f, "node_combine"): ["\"mean\"", "\"sum\"", "\"max\""] for f in
 OPTIONS.update({(f, "disagree"): ["\"zero\"", "\"positive\"", "\"negative\""] for f in ["remove_parallel_edges", "to_undirected"]})
 OPTIONS.update({("discrete_core_periphery", "core_periphery_ties"): ["\"present\"", "\"absent\"", "\"missing\""]})
 INTEGERS.update({"restarts": 0})
+INTEGERS.update({("route_edges", "max_points"): 4})
+#: Parameters shown empty in the dialog, whatever their default: ``size`` of ``route_edges`` is
+#: then the diameter of the drawn nodes (:func:`size_code`).
+EMPTY = {("route_edges", "size")}
 LISTS.update({("rombach_core_periphery", "alpha"), ("rombach_core_periphery", "beta")})
 HINTS.update({("rombach_core_periphery", "alpha"): "0.05, 0.1, …, 1", ("rombach_core_periphery", "beta"): "0.05, 0.1, …, 1", ("rombach_core_periphery", "p"): "product of core values"})
 OPTIONS.update({("nestedness", "null_model"): ["", "\"equiprobable\"", "\"proportional\"", "\"fixed\""]})
@@ -399,6 +403,8 @@ def signature(function, net = None, fit = False):
          shown = SHOWN_DEFAULTS.get((function, p.name), SHOWN_DEFAULTS.get(p.name, ""))
       else:
          shown = literal(p.default)
+      if (function, p.name) in EMPTY:
+         shown = ""
       hint = HINTS.get((function, p.name), HINTS.get(p.name, "required"))
       yes_no = fit and p.default is None and shown in ("True", "False")
       if fit and p.default is None:   # from the network (the device: that of the network)
@@ -407,10 +413,14 @@ def signature(function, net = None, fit = False):
             shown = literal(net.components[0].edge_index.device.type)
       param = {"name": p.name, "default": shown, "hint": hint, "doc": DOCS.get((function, p.name), descriptions.get(p.name, ""))}
       param["widget"] = {"kind": "choice", "options": ["", "True", "False"]} if yes_no else widget(function, p.name, shown, hint, net)
+      if function == "layer_network" and p.name == "layer" and net is not None and net.layer_labels is not None:   # a menu of the layers
+         param.update(default = literal(net.layer_labels[0]), widget = {"kind": "choice", "options": [literal(l) for l in net.layer_labels]})
       params.append(param)
    if fit:
       params[:0] = [{"name": "test", "default": "", "hint": "none (one null network)", "doc": "Measure compared with its values on null networks of the model (gsk.randomization_test), or none for one null network only", "widget": {"kind": "choice", "options": [""] + [literal(m) for m in measures(net)]}},
                     {"name": "runs", "default": "100", "hint": "", "doc": "Number of null networks of the randomization test", "widget": {"kind": "int", "min": 1}}]
+   if function in HIERARCHICAL_COMMUNITIES:   # the plot of the dendrogram of the levels
+      params.append({"name": "tree", "default": "False", "hint": "", "doc": "Open the tree of the levels found in a new tab, laid out radially (also later: Community discovery › Tree of a hierarchy…)", "widget": {"kind": "bool"}})
    if function == "nestedness":   # the method of the isocline
       params.append({"name": "isocline", "default": "\"fill\"", "hint": "", "doc": "How the isocline is drawn (gsk.nestedness_isocline): with the area below it equal to the fill of the matrix (fill), or closest to the boundary of the ones if the matrix were perfectly nested (fit)", "widget": {"kind": "choice", "options": ["\"fill\"", "\"fit\""]}})
    if function in EPIDEMICS:   # the name of the run
@@ -509,8 +519,8 @@ def layout_code(ns, function = "grid_layout", arguments = None):
    Code of a layout (or a transformation of a layout, edge bundling, or community discovery) of
    the network of a tab.
    Hypergraphs and simplicial complexes are laid out (and drawn) as their incidence networks,
-   defined as ``inc`` the first time. The curves of :func:`~graphoskop.bundle_edges` are stored
-   in ``bends`` (:data:`BENDS`).
+   defined as ``inc`` the first time. The curves of :func:`~graphoskop.bundle_edges` and
+   :func:`~graphoskop.route_edges` (:data:`CURVES`) are stored in ``bends`` (:data:`BENDS`).
 
    :param ns: Namespace of the tab, with the network ``net``.
    :param function: One of :data:`LAYOUTS` or :data:`COMMUNITIES`; by default
@@ -533,7 +543,7 @@ def layout_code(ns, function = "grid_layout", arguments = None):
    lines = ["inc = gsk.incidence_network(net)"] if higher and "inc" not in ns else []
    kw = [f"{k} = {v.strip()}" for k, v in (arguments or {}).items()]
    call = f"gsk.{function}({', '.join(['inc' if higher else 'net'] + kw)})"
-   return lines + [BENDS + call[len("gsk.bundle_edges"):] if function == "bundle_edges" else call]
+   return lines + ["bends = " + call if function in CURVES else call]
 
 
 def node_size(x, y):
@@ -752,7 +762,7 @@ def _source_value(ns, source):
 
 #: Functions of the interface that the code of a tab can call (defined in this worker): the code
 #: imports them from it the first time it calls one (:func:`interface_import`).
-INTERFACE_FUNCTIONS = ["derived", "groups", "matching", "move_nodes", "node_sizes", "node_with", "set_edge_values"]
+INTERFACE_FUNCTIONS = ["attribute_values", "block_order", "derived", "edge_values", "gnn_evaluation", "dendrogram_tree", "groups", "incidence_values", "matching", "move_nodes", "nestedness_matrix", "node_sizes", "node_values", "node_with", "plot_figure", "set_edge_values", "synchronization_curves"]
 
 
 def interface_import():
@@ -1052,9 +1062,41 @@ def _helpers():
    """
    Functions of the interface defined in the namespace of every tab, for the code they write:
    :func:`node_sizes`, :func:`move_nodes`, :func:`groups`, :func:`set_edge_values`,
-   :func:`matching`, :func:`derived` and :func:`node_with`.
+   :func:`matching`, :func:`derived`, :func:`node_with`, and for the code of saved plots
+   :func:`plot_figure` with what their data need (:func:`attribute_values`, :func:`node_values`,
+   :func:`edge_values`, :func:`nestedness_matrix`, :func:`gnn_evaluation`, :func:`block_order`,
+   :func:`synchronization_curves`, :func:`dendrogram_tree`), and :func:`incidence_values` for the values of hypergraphs
+   and simplicial complexes drawn on their incidence networks.
    """
-   return {"node_sizes": node_sizes, "move_nodes": move_nodes, "groups": groups, "set_edge_values": set_edge_values, "matching": matching, "derived": derived, "node_with": node_with}
+   return {"node_sizes": node_sizes, "move_nodes": move_nodes, "groups": groups, "set_edge_values": set_edge_values, "matching": matching, "derived": derived, "node_with": node_with, "plot_figure": plot_figure, "attribute_values": attribute_values, "node_values": node_values, "edge_values": edge_values, "nestedness_matrix": nestedness_matrix, "gnn_evaluation": gnn_evaluation, "block_order": block_order, "synchronization_curves": synchronization_curves, "incidence_values": incidence_values, "dendrogram_tree": dendrogram_tree}
+
+
+def incidence_values(inc, nodes = None, hyperedges = None):
+   """
+   Values of the nodes and of the hyperedges (or facets) of a hypergraph or a simplicial complex as
+   a node attribute of its incidence network (:func:`~graphoskop.incidence_network`, the network
+   the interface draws): in every component, the nodes come first, then the hyperedges, so the
+   values of a component are those of its nodes followed by those of its hyperedges; missing ones
+   are NaN. A function of the interface, not of the library.
+
+   :param inc: The incidence network.
+   :param nodes: Values of the nodes, one vector per component (as the library gives them with
+      ``component = None``), or ``None``.
+   :param hyperedges: Values of the hyperedges, one vector per component, or ``None``.
+   :return: List of float64 vectors, one per component, for
+      :meth:`~graphoskop.Network.set_node_attribute`.
+   """
+   import torch
+   out = []
+   for c in range(len(inc.components)):
+      k, n = int(inc.bipartite_split[c]), len(inc.node_ids[c])
+      v = torch.full((n,), float("nan"), dtype = torch.float64, device = inc.components[c].edge_index.device)
+      if nodes is not None:
+         v[:k] = torch.as_tensor(nodes[c], dtype = torch.float64).to(v.device)
+      if hyperedges is not None:
+         v[k:] = torch.as_tensor(hyperedges[c], dtype = torch.float64).to(v.device)
+      out.append(v)
+   return out
 
 
 def move_nodes(net, positions, attribute = "pos"):
@@ -1148,7 +1190,8 @@ def default_style(net):
    :func:`opacities`), ``position`` (``{"x": None, "y": None}``: the layout, see
    :func:`positions`), ``labels`` (``{"attribute": None}``: no labels; ``"ids": True`` for the
    node ids, see :func:`node_labels`), ``label_size`` (``{"attribute": None, "size": 1.}``, see
-   :func:`label_sizes`). Nodes are :data:`NODE_COLOR` and edges :data:`EDGE_COLOR`, all of the
+   :func:`label_sizes`), ``node_chart`` (``{}``: none; see :func:`chart_slices`). Nodes are
+   :data:`NODE_COLOR` and edges :data:`EDGE_COLOR`, all of the
    default size and opaque; in bipartite networks (and incidence networks of hypergraphs and
    complexes), nodes are colored by type, the second type (hyperedges, facets)
    :data:`TYPE1_COLOR`.
@@ -1159,7 +1202,7 @@ def default_style(net):
       if b == "node":
          a, b = b, a
       nodes = {"attribute": gsk.BIPARTITE, "scale": "qualitative", "palette_name": "Set1", "palette": [NODE_COLOR, TYPE1_COLOR], "overrides": [[a, NODE_COLOR], [b, TYPE1_COLOR]], "missing": MISSING_COLOR}
-   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}, "labels": {"attribute": None}, "label_size": {"attribute": None, "size": 1.}}
+   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}, "labels": {"attribute": None}, "label_size": {"attribute": None, "size": 1.}, "node_chart": {}}
 
 
 def prune_style(style, net):
@@ -1183,6 +1226,10 @@ def prune_style(style, net):
          style[key] = default[key]
    position = style.get("position") or {}
    style["position"] = {k: v if v in nodes else None for k, v in position.items()}
+   chart = style.get("node_chart") or {}
+   if chart.get("attributes"):
+      chart = dict(chart, attributes = [a for a in chart["attributes"] if a in net.node_attributes])
+   style["node_chart"] = chart if chart.get("attributes") or chart.get("attribute") in nodes else {}
    return style
 
 
@@ -1567,7 +1614,7 @@ def _table(request):
    the rows of the nodes ``nodes``, a list of positions), ``"edges"`` (all edges, those of node
    ``node`` or of the nodes ``nodes``, or the edges ``edges``, positions in the order of the
    drawing), ``"network"`` (:func:`summary`) or ``"tables"`` (the table ``name`` of the
-   simulations, :func:`_simulate`);
+   simulations, :func:`_simulate`, or of ``tables``; its first :data:`TABLE_ATTRIBUTES` columns);
    rows ``offset`` to ``offset + count`` (texts, ``""`` for missing values) of the table sorted
    as a whole by the column ``sort`` (if given; ``ascending`` or not, see :func:`sort_rows`), with
    the ``columns``, whether each is ``numeric`` (the interface aligns them to the right), the
@@ -1588,6 +1635,7 @@ def _table(request):
       df = tab_tables(ns).get(request.get("name"))
       if df is None:
          return {"columns": [], "numeric": [], "rows": [], "total": 0}, b""
+      df = df.iloc[:, :TABLE_ATTRIBUTES]   # wide tables (e.g. the shortest path lengths): their first columns
       df = df.reset_index() if not isinstance(df.index, pd.RangeIndex) else df
    elif kind == "nodes" and node is not None:   # all the attributes, also those that are not columns of the table (but the hidden ones)
       net = _drawn(ns)
@@ -1822,6 +1870,76 @@ def _empty(request):
    return _new(request, empty_code(bool(request.get("directed"))))
 
 
+#: Most slices of a node chart (the node shader looks through them): the smallest ones beyond are
+#: left out.
+MAX_SLICES = 64
+#: Width, in texels, of the texture of the slices of the node charts (one texel per slice: the end
+#: of the slice as a fraction of the turn, and its color).
+CHART_WIDTH = 4096
+#: Colors of the slices of node charts without a palette (ColorBrewer Set1), cycled.
+CHART_PALETTE = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf", "#999999"]
+
+
+def chart_slices(net, spec):
+   """
+   Slices of the node charts (Visual elements › Nodes › Chart): every node a pie chart over its
+   disc, from the top, clockwise.
+
+   * ``{"attributes": [names]}``: the values of numeric node attributes, a slice each, as large
+     as its share of their sum (missing and negative values count 0; nodes whose sum is 0 have
+     no chart); slice ``k`` has the ``k``-th color of the palette;
+   * ``{"attribute": name}``: the values of a qualitative attribute, equal slices of the values of
+     each node (several for nodes with many, e.g. overlapping communities; one, the whole disc,
+     for the others; none for missing values); every distinct value (in the order of
+     :func:`distinct`) has the next color of the palette.
+
+   The ``palette`` (list of ``#rrggbb``, cycled) is :data:`CHART_PALETTE` unless given. A node has
+   at most :data:`MAX_SLICES` slices, its largest.
+
+   :param net: The drawn network.
+   :param spec: The chart specification, or ``None`` / ``{}`` for no charts.
+   :return: ``(offsets, counts, table)``: for every node in the drawing order, the position of its
+      first slice in the table and its number of slices (0: no chart), and the float32 table of
+      the slices, a row each: end of the slice (fraction of the turn), red, green, blue; padded
+      to rows of :data:`CHART_WIDTH`.
+   """
+   n = int(net.number_of_nodes())
+   spec = spec or {}
+   palette = np.array([_rgba(c)[:3] for c in (spec.get("palette") or CHART_PALETTE)], dtype = np.float32)
+   rows, cols, share = [], [], []   # node, color, size of every slice
+   if spec.get("attributes"):
+      for k, a in enumerate(spec["attributes"]):
+         v = np.nan_to_num(numbers(node_values(net, a)), nan = 0.).astype(float)
+         keep = np.flatnonzero(v > 0)
+         rows.append(keep), cols.append(np.full(len(keep), k)), share.append(v[keep])
+   elif spec.get("attribute") is not None:
+      values = node_values(net, spec["attribute"])
+      items = [[x for x in (v if isinstance(v, (tuple, list)) else [v]) if text(x) is not None] for v in values]
+      order = {t: k for k, t in enumerate(distinct(np.array([text(x) for it in items for x in it], dtype = object))[0])}
+      sizes = np.array([len(it) for it in items], dtype = int)
+      rows.append(np.repeat(np.arange(n), sizes)), cols.append(np.array([order[text(x)] for it in items for x in it], dtype = int)), share.append(np.ones(int(sizes.sum())))
+   offsets, counts = np.zeros(n, dtype = np.float32), np.zeros(n, dtype = np.float32)
+   if not rows:
+      return offsets, counts, np.zeros((0, 4), dtype = np.float32)
+   r, c, w = np.concatenate(rows).astype(int), np.concatenate(cols).astype(int), np.concatenate(share).astype(float)
+   o = np.lexsort((-w, r))   # by node, largest first
+   r, c, w = r[o], c[o], w[o]
+   rank = np.arange(len(r)) - np.searchsorted(r, r)
+   keep = rank < MAX_SLICES
+   r, c, w = r[keep], c[keep], w[keep]
+   total = np.bincount(r, w, minlength = n)
+   o = np.lexsort((c, r))   # by node, in the order of the colors
+   r, c, w = r[o], c[o], w[o]
+   start = np.searchsorted(r, np.arange(n))
+   ends = (np.cumsum(w) - np.repeat(np.cumsum(total) - total, np.bincount(r, minlength = n))) / total[r]
+   counts[:] = np.bincount(r, minlength = n)
+   offsets[:] = np.where(counts > 0, start, 0)
+   table = np.zeros((-(-len(r) // CHART_WIDTH) * CHART_WIDTH, 4), dtype = np.float32)
+   table[:len(r), 0] = ends
+   table[:len(r), 1:] = palette[c % len(palette)]
+   return offsets, counts, table
+
+
 def node_labels(net, style):
    """
    Labels of the nodes of a drawing (Visual elements › Nodes › Label): the texts (:func:`text`;
@@ -1862,7 +1980,10 @@ def _draw(ns, code, keep = False):
    (``stride``: :data:`EDGE_STRIDE`, :data:`ARROW_EDGE_STRIDE` or :data:`CURVE_STRIDE`), the byte sizes of the
    parts of the payload (node buffer, edge buffer, ids, grid order, grid starts, sources and
    targets of the edges as int32 positions of the nodes, loop buffer, arrow buffer, labels
-   (:func:`node_labels`, empty without), label heights (:func:`label_sizes`), in this order), the grid, the box, the
+   (:func:`node_labels`, empty without), label heights (:func:`label_sizes`), the slices of the
+   node charts (:func:`chart_slices`: rows of :data:`CHART_WIDTH` texels, empty without; the
+   nodes have the position of their first slice and their number in the custom data ``y`` and
+   ``z`` of their buffer), in this order), the grid, the box, the
    default and largest node diameters and the style. The default node diameter of the tab is
    recomputed for the layout, unless ``keep`` (transformations of a layout and changes of style
    keep it). Edges are drawn as the curves of ``bends`` when no layout came after them, and the
@@ -1879,19 +2000,22 @@ def _draw(ns, code, keep = False):
       ns["__style__"] = prune_style(dict(default_style(draw), **ns.get("__style__", {})), draw)
       ns["__size__"] = ns.get("__size__") or EMPTY_NODE_SIZE
       b = EMPTY_BOX
-      header = {"labels": False, "code": code, "nodes": 0, "empty": True, "edges": 0, "loops": 0, "arrows": 0, "stride": EDGE_STRIDE, "curved": False, "cells": False, "subdivisions": 1, "box": [-b, -b, b, b], "node_size": ns["__size__"], "biggest": ns["__size__"], "grid": {}, "style": ns["__style__"], "parts": [0] * 11}
+      header = {"labels": False, "code": code, "nodes": 0, "empty": True, "edges": 0, "loops": 0, "arrows": 0, "stride": EDGE_STRIDE, "curved": False, "cells": False, "subdivisions": 1, "box": [-b, -b, b, b], "node_size": ns["__size__"], "biggest": ns["__size__"], "grid": {}, "style": ns["__style__"], "parts": [0] * 12}
       header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = "", movable = True, adding = adding(ns["net"]))
       return header, b""
    if "pos_x" not in draw.node_attributes and matrix is None or draw.higher_order is not None:   # no layout yet (a new hypergraph, e.g. from clique promotion: laid out as its incidence network)
       return {"code": code, "nodes": 0}, b""
    ns["__style__"] = prune_style(dict(default_style(draw), **ns.get("__style__", {})), draw)
-   bends = ns.get("bends") if last == "bundle_edges" and not _positioned(ns) else None   # the curves follow the layout
+   bends = ns.get("bends") if last in CURVES and not _positioned(ns) else None   # the curves follow the layout
    d = drawing(draw, ns.get("__size__") if keep else None, ns["__style__"], bends = bends, matrix = matrix)
    ns["__size__"] = d["size"]
    s, t = _edges(draw)
    labels = node_labels(draw, ns["__style__"]) if matrix is None else b""
    heights = label_sizes(draw, ns["__style__"], d["size"]) if labels else b""
-   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes(), labels, heights]
+   offsets, counts, table = chart_slices(draw, ns["__style__"].get("node_chart")) if matrix is None else (None, None, np.zeros((0, 4), dtype = np.float32))
+   if len(table):   # node charts: their slices, a texel each
+      d["nodes"][:, 13], d["nodes"][:, 14] = offsets, counts
+   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes(), labels, heights, table.tobytes()]
    header = {"labels": bool(labels), "code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "loops": len(d["loops"]), "arrows": len(d["arrows"]), "stride": int(d["edges"].shape[1]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
    header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = _history_key(ns, draw), movable = matrix is None and not _positioned(ns), adding = adding(ns["net"]))
    return header, b"".join(parts)
@@ -1928,11 +2052,21 @@ def centrality_code(ns, function, arguments):
       except SyntaxError:
          raise ValueError(f"{k}: not a Python value: {v}") from None
    higher = ns["net"].higher_order is not None
+   kind = CENTRALITIES[function][1]
+   if kind in HIGHER_KINDS and not higher:
+      raise ValueError(f"{function} is for hypergraphs and simplicial complexes")
    lines = ["inc = gsk.incidence_network(net)"] if higher and "inc" not in ns else []
    target = "inc" if higher else "net"
-   extra = "".join(f", {k} = {v.strip()}" for k, v in arguments.items())
+   if kind in HIGHER_KINDS:   # computed on the network, written on the drawn incidence network
+      call = f"gsk.{function}(net, component = None" + "".join(f", {k} = {v.strip()}" for k, v in arguments.items()) + (", distribution = None" if function in ("hyperedge_size", "generalized_degree") else "") + (", hyperedges = True" if kind == "node_edge" else "") + ")"
+      if kind == "node_edge":
+         lines += [f"scores = {call}   # per component: node scores, hyperedge scores", f"inc.set_node_attribute({literal(name)}, incidence_values(inc, [x for x, _ in scores], [y for _, y in scores]), None)"]
+      else:
+         part = "hyperedges" if kind == "hyperedges" else "nodes"
+         lines.append(f"inc.set_node_attribute({literal(name)}, incidence_values(inc, {part} = {call}), None)   # values of the {'hyperedges' if part == 'hyperedges' else 'nodes'}, NaN for the {'nodes' if part == 'hyperedges' else 'hyperedges'}")
+      return lines, name, False
+   extra = "".join(f", {k} = {v.strip()}" for k, v in arguments.items()) + ("" if higher else paths_argument(ns, function, dict(arguments, component = "None")))
    call = f"gsk.degree({target}, distribution = None, component = None{extra})" if function == "degree" else f"gsk.{function}({target}, component = None{extra})"
-   kind = CENTRALITIES[function][1]
    if kind == "hits":
       lines += [f"hubs, authorities = {call}", f"{target}.set_node_attribute({literal(name + '_hub')}, hubs, None)", f"{target}.set_node_attribute({literal(name + '_authority')}, authorities, None)"]
       name += "_hub"
@@ -1945,6 +2079,119 @@ def centrality_code(ns, function, arguments):
       direction = f", direction = {arguments['direction'].strip()}" if "direction" in arguments else ""
       lines.append(f"fit = gsk.degree_power_law({target}{direction}, ccdf = True)")
    return lines, name, plot
+
+
+def paths_argument(ns, function, arguments):
+   """
+   The precomputed shortest path lengths of a tab (Analysis › Shortest paths, ``paths``, see
+   :func:`paths_code`) as an argument of a function that takes them (``lengths``): ``", lengths =
+   paths"`` for all the components (``component = None``), ``", lengths = paths[c]"`` for component
+   ``c``, when the network has not changed since and ``weight`` and ``inverse`` are the same;
+   otherwise ``""`` (the function computes them). Sampled average path lengths do not use them.
+   """
+   meta = ns.get("__paths__")
+   if not meta or meta.get("net") is not ns.get("net") or not isinstance(ns.get("paths"), list) or "lengths" not in inspect.signature(getattr(gsk, function)).parameters:
+      return ""
+   if arguments.get("samples", "None").strip() != "None" or arguments.get("weight", "None").strip() != meta["weight"] or arguments.get("inverse", "False").strip() != meta["inverse"]:
+      return ""
+   component = arguments.get("component", str(inspect.signature(getattr(gsk, function)).parameters["component"].default)).strip()
+   if component == "None":
+      return ", lengths = paths"
+   try:
+      c = int(component)
+   except ValueError:
+      return ""
+   return f", lengths = paths[{c}]" if 0 <= c < len(ns["paths"]) else ""
+
+
+#: Name of the table of the shortest path lengths of the largest component (Tables tab).
+PATHS_TABLE = "Shortest path lengths"
+#: Most rows (and columns) of a heatmap drawn: larger matrices are drawn with every k-th row and
+#: column of their order (:func:`matrix_plot`), the data kept whole.
+MATRIX_SHOWN = 2000
+#: Largest matrix ordered in blocks by hierarchical clustering (:func:`block_order`, quadratic in
+#: memory); larger ones have the matrix layout order.
+BLOCK_ORDER_MAX = 5000
+
+
+def paths_signature(net):
+   """
+   Parameters of Analysis › Shortest paths › All pairs lengths…: the edge lengths (``weight``,
+   ``inverse``), the node attribute of the average distance of every node (empty for none) and
+   whether to draw the heatmap.
+   """
+   params = [p for p in signature("all_pairs_shortest_path_lengths", net)["params"] if p["name"] in ("weight", "inverse")]
+   params.append({"name": "average_distance", "default": literal("average_distance"), "hint": "none", "doc": "Node attribute written with the average length of the shortest paths from every node to the others of its component (the inverse of the closeness centrality); empty for none", "widget": {"kind": "string"}})
+   params.append({"name": "heatmap", "default": "True", "hint": "", "doc": "Draw the lengths of the largest component as a heatmap (rows and columns can then be ordered, e.g. in blocks)", "widget": {"kind": "bool"}})
+   return {"params": params}
+
+
+def paths_code(ns, arguments):
+   """
+   Code of Analysis › Shortest paths › All pairs lengths…: the lengths of the shortest paths
+   between all pairs of nodes of every component, kept in ``paths`` (a list of matrices, one per
+   component) for the analyses that can use them (:func:`paths_argument`: betweenness, closeness,
+   harmonic centrality, diameter, average shortest path length), those of the largest component as
+   the table :data:`PATHS_TABLE` of the Tables tab (sharing the memory of the matrix), and,
+   with ``average_distance``, the average length from every node to the others of its component
+   as a node attribute (the inverse of :func:`~graphoskop.closeness_centrality`), e.g.
+
+   .. code-block:: python
+
+      paths = gsk.all_pairs_shortest_path_lengths(net, component = None)   # one matrix per component
+      tables = {}
+      tables["Shortest path lengths"] = pd.DataFrame(paths[0].cpu().numpy(), index = net.node_ids[0], columns = net.node_ids[0], copy = False)   # the largest component
+      net.set_node_attribute("average_distance", [1 / c for c in gsk.closeness_centrality(net, component = None, lengths = paths)], None)
+
+   :return: Lines of code.
+   """
+   arguments = {k: v.strip() for k, v in dict(arguments or {}).items() if str(v).strip()}
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   attribute = ast.literal_eval(arguments.pop("average_distance", literal("average_distance")) or "\"\"")
+   arguments.pop("heatmap", None)
+   extra = "".join(f", {k} = {v}" for k, v in arguments.items())
+   net = _drawn(ns)
+   if net.higher_order is not None:
+      raise ValueError("shortest paths of hypergraphs and simplicial complexes are not offered here (see the library)")
+   lines = [f"paths = gsk.all_pairs_shortest_path_lengths(net, component = None{extra})   # one matrix per component, largest first"]
+   if net.components:
+      lines += _pandas(ns) + ([] if any(l.startswith("tables = ") for l in ns["__code__"]) and isinstance(ns.get("tables"), dict) else ["tables = {}"])
+      lines.append(f"tables[{literal(PATHS_TABLE)}] = pd.DataFrame(paths[0].cpu().numpy(), index = net.node_ids[0], columns = net.node_ids[0], copy = False)   # the largest component")
+   if attribute:
+      lines.append(f"net.set_node_attribute({literal(attribute)}, [1 / c for c in gsk.closeness_centrality(net, component = None{extra}, lengths = paths)], None)   # average steps to the others of the component")
+   return lines
+
+
+def _paths(request):
+   """
+   Command ``paths``: runs :func:`paths_code` in a tab, remembers what the lengths are for
+   (``__paths__``: the network, ``weight``, ``inverse``) and replies with the code, the drawing
+   and a ``note`` (for the status bar);
+   with ``heatmap``, also ``plot``, the heatmap of the lengths of the largest component
+   (:func:`matrix_plot`, its PNG the last part of the payload), whose rows and columns can be
+   ordered in the plot window (:func:`matrix_order`).
+   """
+   ns = _spaces[request["tab"]]
+   arguments = request.get("arguments") or {}
+   code = _run(request["tab"], paths_code(ns, arguments))
+   ns["__paths__"] = {"net": ns["net"], "weight": arguments.get("weight", "None").strip() or "None", "inverse": arguments.get("inverse", "False").strip() or "False"}
+   header, payload = _draw(ns, code, True)
+   P = ns["paths"]
+   n = P[0].shape[0] if P else 0
+   header["note"] = f"shortest path lengths of {len(P)} components (largest: {n:,} nodes) in paths"
+   if arguments.get("heatmap", "True").strip() == "True" and n:
+      M = P[0].cpu().numpy()   # no copy
+      ns["__plot__"] = _plot("matrix", {"matrix": M, "names": [str(text(i)) for i in _drawn(ns).node_ids[0]], "what": "shortest path length", "diverging": False, "orders": {}, "rows": "paths"}, dict(PLOT_ELEMENTS["matrix"][1]), {}, source = {"matrix": "paths[0].cpu().numpy()", "names": "[str(i) for i in net.node_ids[0]]", "what": literal("shortest path length"), "diverging": "False", "rows": literal("paths")})
+      png = _render(ns["__plot__"], "png")
+      shown = f" (one node in {-(-n // MATRIX_SHOWN)} drawn)" if n > MATRIX_SHOWN else ""
+      header["plot"] = dict(_plot_header(ns["__plot__"], ns), text = f"Shortest path lengths of the largest component, {n:,} nodes{shown}.", warnings = [], title = f"Shortest path lengths of {request.get('name', 'the network')}")
+      header["parts"] = header.get("parts", []) + [len(png)] if header.get("nodes") else [len(png)]
+      return header, payload + png
+   return header, payload
 
 
 def _centrality(request):
@@ -1975,7 +2222,7 @@ def _centrality(request):
    if plot:
       fit = ns["fit"]
       degrees = node_values(draw, name)
-      ns["__plot__"] = _plot("degree", {"degrees": degrees, "fit": fit}, dict(PLOT_ELEMENTS["degree"][1]), {"data": "points", "fit": "lines"})
+      ns["__plot__"] = _plot("degree", {"degrees": degrees, "fit": fit}, dict(PLOT_ELEMENTS["degree"][1]), {"data": "points", "fit": "lines"}, source = {"degrees": f"node_values({_target(ns)}, {literal(name)})", "fit": "fit"})
       png = _render(ns["__plot__"], "png")
       notes = [str(w.message) for w in caught if any(t in str(w.message).lower() for t in ("power", "lognormal", "exponential")) and not str(w.message).startswith("the degree distribution is not a power law")]   # the verdict says it
       header["plot"] = dict(_plot_header(ns["__plot__"]), verdict = fit["verdict"], text = verdict_text(fit), warnings = notes)
@@ -2004,17 +2251,72 @@ PLOT_FONTS = ["Helvetica", "Arial", "Nimbus Sans", "Nimbus Sans L", "Liberation 
 #: distributions) and ranges (``None``: automatic); distributions also have their ``kind`` (see
 #: :data:`DISTRIBUTIONS`), heatmaps the label, range and scale of their color scale (``zlabel``,
 #: ``zmin``, ``zmax``, ``zlog``).
-PLOT_OPTIONS = {"gnn": {"kind": "roc", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "links": {"kind": "roc", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "matrix": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None, "zlabel": "", "zlog": False, "zmin": None, "zmax": None}, "spectrum": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "frequency (eigenvalue of the Laplacian)", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "nestedness": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None, "zlabel": "", "zlog": False, "zmin": None, "zmax": None}, "randomization": {"kind": "right", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "distribution": {"kind": "count", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "degree": {"xlog": True, "ylog": True, "font_size": 14, "xlabel": "degree k", "ylabel": "fraction of nodes with degree ≥ k", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "epidemics": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "step", "ylabel": None, "xmin": None, "xmax": None, "ymin": None, "ymax": None}}
+PLOT_OPTIONS = {"gnn": {"kind": "roc", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "links": {"kind": "roc", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "matrix": {"kind": "computed", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None, "zlabel": "", "zlog": False, "zmin": None, "zmax": None}, "spectrum": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "frequency (eigenvalue of the Laplacian)", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "nestedness": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None, "zlabel": "", "zlog": False, "zmin": None, "zmax": None}, "randomization": {"kind": "right", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "distribution": {"kind": "count", "xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "degree": {"xlog": True, "ylog": True, "font_size": 14, "xlabel": "degree k", "ylabel": "fraction of nodes with degree ≥ k", "xmin": None, "xmax": None, "ymin": None, "ymax": None}, "epidemics": {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "step", "ylabel": None, "xmin": None, "xmax": None, "ymin": None, "ymax": None}}
 #: How a data series can be drawn: lines, points, lines with points, or bars.
 PLOT_STYLES = ["lines", "points", "linespoints", "bars"]
+
+
+#: Gradient of the data series of the plot being drawn (the option ``gradient`` of the plot, set by
+#: ``_figure`` while it draws; ``None`` for one color per series).
+_GRADIENT = None
+#: Diverging palettes of ColorBrewer (centered on 0 when the values have both signs); the
+#: sequential ones start at a quarter of their range, so that the smallest values stay visible on
+#: white.
+DIVERGING_PALETTES = {"BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"}
+
+
+def gradient_colors(values, gradient, log = False):
+   """
+   Colors of values along a ColorBrewer gradient (the option ``gradient`` of the plots: ``axis``,
+   ``"x"`` or ``"y"``, ``palette``, a sequential or diverging ColorBrewer palette, as named by
+   matplotlib, and ``reversed``), from the smallest to the largest finite value (on a logarithmic
+   scale with ``log``, for values above 0); diverging palettes are centered on 0 when the values
+   have both signs.
+
+   :return: RGBA rows, one per value (grey for missing values).
+   """
+   import matplotlib
+   from matplotlib.colors import Normalize, LogNorm, TwoSlopeNorm
+   name = str(gradient.get("palette", "YlOrRd"))
+   if name not in matplotlib.colormaps:
+      raise ValueError(f"unknown palette: {name}")
+   cmap = matplotlib.colormaps[name]
+   if gradient.get("reversed"):
+      cmap = cmap.reversed()
+   v = np.asarray(values, dtype = float)
+   ok = np.isfinite(v) & ((v > 0) if log else True)
+   if not ok.any():
+      return np.tile([0.6, 0.6, 0.6, 1.], (len(v), 1))
+   lo, hi = float(v[ok].min()), float(v[ok].max())
+   if hi <= lo:
+      t = np.full(len(v), 0.5)
+   elif log:
+      t = LogNorm(lo, hi)(np.where(ok, v, lo))
+   elif name in DIVERGING_PALETTES and lo < 0 < hi:
+      t = TwoSlopeNorm(0., lo, hi)(v)
+   else:
+      t = Normalize(lo, hi)(v)
+   t = np.clip(np.asarray(t, dtype = float), 0., 1.)
+   if name not in DIVERGING_PALETTES:
+      t = 0.25 + 0.75 * t
+   out = cmap(t)
+   out[~ok] = [0.6, 0.6, 0.6, 1.]
+   return out
 
 
 def _series(ax, x, y, style, color, label):
    """
    Draws a data series in one of the :data:`PLOT_STYLES`. Bars are 0.8 times the smallest gap
-   between the x values wide (on a logarithmic x axis, as wide relatively).
+   between the x values wide (on a logarithmic x axis, as wide relatively). With a gradient
+   (``_GRADIENT``), every bar, point and segment of line gets the color of its x or y value
+   (:func:`gradient_colors`; a segment, the value at its middle).
    """
    x, y = np.asarray(x, dtype = float), np.asarray(y, dtype = float)
+   g = _GRADIENT
+   if g:
+      along = x if g.get("axis") == "x" else y
+      log = (ax.get_xscale() if g.get("axis") == "x" else ax.get_yscale()) == "log"
+      color = gradient_colors(along, g, log)
    if style == "bars":
       gaps = np.diff(np.unique(x))
       if ax.get_xscale() == "log" and len(gaps) and (x > 0).all():
@@ -2022,8 +2324,19 @@ def _series(ax, x, y, style, color, label):
          ax.bar(x * np.exp(-0.4 * r), y, width = x * (np.exp(0.4 * r) - np.exp(-0.4 * r)), align = "edge", color = color, alpha = 0.8, label = label)
       else:
          ax.bar(x, y, width = 0.8 * (gaps.min() if len(gaps) else 1.), color = color, alpha = 0.8, label = label)
-   else:
+   elif not g:
       ax.plot(x, y, {"lines": "-", "points": "o", "linespoints": "-o"}[style], color = color, lw = 2 if style == "lines" else 1.5, ms = 4, label = label)
+   else:
+      from matplotlib.collections import LineCollection
+      if style in ("lines", "linespoints") and len(x) > 1:
+         middle = (along[:-1] + along[1:]) / 2
+         segments = np.stack([np.column_stack([x[:-1], y[:-1]]), np.column_stack([x[1:], y[1:]])], axis = 1)
+         ax.add_collection(LineCollection(segments, colors = gradient_colors(middle, g, log), linewidths = 2 if style == "lines" else 1.5, label = label))
+         ax.update_datalim(np.column_stack([x, y])[np.isfinite(x) & np.isfinite(y)])
+         ax.autoscale_view()
+         label = None
+      if style in ("points", "linespoints"):
+         ax.scatter(x, y, c = color, s = 16, label = label, zorder = 3)
 
 
 def _plot_font():
@@ -2041,7 +2354,8 @@ def _figure(draw, options, format, path, dpi):
    the ``options`` (see :data:`PLOT_OPTIONS`) set the scales of the axes, ``draw(ax)`` draws the
    data, then the options set the labels and ranges of the axes and the size of the font
    (:func:`_plot_font`); tick marks are inside the axes, on all four sides, and a legend is added
-   (if a series has a label).
+   (if a series has a label). The option ``gradient`` colors the data series by their x or y
+   values (:func:`gradient_colors`, see ``_series``).
 
    :param format: ``"png"`` or ``"pdf"``.
    :param path: File to write, or ``None`` to return the bytes.
@@ -2052,12 +2366,17 @@ def _figure(draw, options, format, path, dpi):
    import matplotlib
    matplotlib.use("Agg")
    from matplotlib.figure import Figure
+   global _GRADIENT
    with matplotlib.rc_context({"font.family": _plot_font(), "font.size": float(options["font_size"]), "pdf.fonttype": 42}):
       fig = Figure(figsize = (8, 5.5))
       ax = fig.add_subplot()
       ax.set_xscale("log" if options["xlog"] else "linear")
       ax.set_yscale("log" if options["ylog"] else "linear")
-      draw(ax)
+      _GRADIENT = options.get("gradient") or None
+      try:
+         draw(ax)
+      finally:
+         _GRADIENT = None
       ax.set_xlabel(options["xlabel"])
       ax.set_ylabel(options["ylabel"])
       ax.set_xlim(options.get("xmin"), options.get("xmax"))
@@ -2118,17 +2437,98 @@ def _render(plot, format, path = None, dpi = 100):
    return PLOT_ELEMENTS[plot["kind"]][0](**plot["data"], colors = plot["colors"], options = plot["options"], styles = plot["styles"], format = format, path = path, dpi = dpi)
 
 
-def _plot(kind, data, colors, styles, labels = None, **options):
+def _plot(kind, data, colors, styles, labels = None, source = None, **options):
    """
    A plot to keep in a namespace (``ns["__plot__"]``): its ``kind`` (of :data:`PLOT_ELEMENTS`),
    the arguments of its function, the colors of its elements, how its data series are drawn
    (:data:`PLOT_STYLES`, by key), the labels of the elements (``None``: those of
-   :data:`PLOT_ELEMENTS`), and its options (:data:`PLOT_OPTIONS`, updated with ``options``).
+   :data:`PLOT_ELEMENTS`), its options (:data:`PLOT_OPTIONS`, updated with ``options``) and the
+   ``source`` of its data: for every argument, the Python expression giving it in the namespace of
+   the tab (the code written when the plot is saved, :func:`plot_code`).
    """
-   return {"kind": kind, "data": data, "colors": colors, "styles": styles, "labels": labels, "options": dict(PLOT_OPTIONS[kind], **options)}
+   return {"kind": kind, "data": data, "colors": colors, "styles": styles, "labels": labels, "source": source or {}, "options": dict(PLOT_OPTIONS[kind], **options)}
 
 
-def _plot_header(plot):
+def plot_figure(kind, data, colors = None, styles = None, options = None, labels = None, path = None, dpi = 200):
+   """
+   Draws a plot of the plot window of the interface and writes it to ``path`` (PNG at ``dpi``
+   dots per inch, or PDF, by the extension): the code written when a plot is saved
+   (:func:`plot_code`). A function of the interface, not of the library: it is defined in the
+   namespace of every tab, and imported from the worker by the code (:data:`PLOT_NOTE`).
+
+   :param kind: Kind of plot (:data:`PLOT_ELEMENTS`).
+   :param data: Arguments of its plotting function (e.g. ``degrees`` and ``fit`` of
+      :func:`degree_plot`).
+   :param colors: Colors of its elements (key to ``#rrggbb``), ``None`` for the defaults.
+   :param styles: How its data series are drawn (:data:`PLOT_STYLES`), ``None`` for the defaults.
+   :param options: Options of the plot (:data:`PLOT_OPTIONS`), ``None`` for the defaults.
+   :param labels: Labels of the elements, ``None`` for those of :data:`PLOT_ELEMENTS`.
+   :param path: File to write.
+   """
+   plot = _plot(kind, data, dict(PLOT_ELEMENTS[kind][1], **(colors or {})), dict(styles or {}), labels)
+   plot["options"].update(options or {})
+   _render(plot, "pdf" if str(path).lower().endswith(".pdf") else "png", path, dpi)
+
+
+def attribute_values(net, kind, name):
+   """
+   Values of a node (``kind`` ``"nodes"``) or edge attribute as the distribution plots take them
+   (qualitative node values as categories). A function of the interface (see :func:`plot_figure`).
+   """
+   return _column(net, name) if kind == "nodes" else edge_values(net, name)
+
+
+#: Comment written before the first code saving a plot (:func:`plot_code`).
+PLOT_NOTE = "# plot_figure: plots of the graphical interface, as saved from the plot window"
+
+
+def plot_code(ns, path):
+   """
+   Code saving the last plot of a tab, written in the code panel when the plot is saved from the
+   plot window: the data of the plot from the variables of the tab (the ``source`` of the plot,
+   :func:`_plot`), with its colors, styles and options, e.g.
+   ``plot_figure("degree", {"degrees": node_values(net, "degree"), "fit": fit}, colors =
+   {"data": "#377eb8", …}, styles = {…}, options = {…}, path = "/data/degree.png")``
+   (:func:`plot_figure`); a table of a heatmap (``.tsv``) as a :class:`pandas.DataFrame`
+   written with ``to_csv``.
+
+   :return: Lines of code, or ``[]`` for plots whose data have no source.
+   """
+   plot = ns["__plot__"]
+   source = dict(plot.get("source") or {})
+   if not source:
+      return []
+   if plot["kind"] == "matrix":   # the order shown, computed again
+      key = plot["options"].get("kind", "computed")
+      source["orders"] = "{}" if key == "computed" else "{" + literal(key) + ": " + order_source(key, source["matrix"], bool(plot["data"].get("diverging")), len(plot["data"]["matrix"])) + "}"
+   lines = [] if PLOT_NOTE in ns["__code__"] else [PLOT_NOTE]
+   if any("np." in v for v in source.values()) and not any(l.startswith("import numpy as np") for l in ns["__code__"]):
+      lines.append("import numpy as np")
+   if str(path).lower().endswith(".tsv"):
+      return lines + _pandas(ns) + [f"pd.DataFrame({source['matrix']}, index = {source['names']}, columns = {source['names']}).to_csv({literal(path)}, sep = \"\\t\")"]
+   data = "{" + ", ".join(f"{literal(k)}: {v}" for k, v in source.items()) + "}"
+   extra = "" if plot.get("labels") is None else f", labels = {plot['labels']!r}"
+   options = {k: v for k, v in plot["options"].items() if v != PLOT_OPTIONS[plot["kind"]].get(k, None) or k == "kind"}
+   return lines + [f"plot_figure({literal(plot['kind'])}, {data}, colors = {plot['colors']!r}, styles = {plot['styles']!r}, options = {options!r}{extra}, path = {literal(path)})"]
+
+
+def order_source(key, matrix, diverging, k):
+   """
+   Expression of the order ``key`` of a heatmap (:func:`matrix_order`) in the code of a saved plot.
+   """
+   if key == "random":
+      return f"np.random.default_rng(0).permutation({k}).tolist()"
+   if key == "blocks":
+      return f"block_order({matrix}, {diverging})"
+   if key == "matrix":
+      call = "gsk.matrix_layout(net, attribute = None)"
+   else:
+      a = key.split(":", 1)[1]
+      call = f"gsk.matrix_layout(net, groups = {literal(a)}, attribute = None)"
+   return f"np.argsort({call}.iloc[:{k}, 0].to_numpy(), kind = \"stable\").tolist()"
+
+
+def _plot_header(plot, ns = None):
    """
    What the plot window needs to let the user change the plot: ``elements``, a list of [key,
    label, color, style] (style: one of :data:`PLOT_STYLES` for data series, ``""`` for other
@@ -2143,6 +2543,8 @@ def _plot_header(plot):
    elif plot["kind"] == "gnn":   # the plots of the tasks of the runs, and their scores
       tasks = {plot["data"]["evaluations"][n]["task"] for n in plot["data"]["names"]}
       header.update(kinds = [[k, v[0], "points" if k == "scatter" else "lines"] for k, v in GNN_CURVES.items() if v[1] is None or v[1] in tasks], kind_label = "Plot", text = gnn_text(plot["data"]["evaluations"], plot["data"]["names"], plot["options"]["kind"]))
+   elif plot["kind"] == "matrix":   # orders of the rows and columns
+      header.update(kinds = [[k, label, "lines"] for k, label in matrix_orders(plot, ns)], kind_label = "Order")
    elif plot["kind"] == "links":   # ROC or precision-recall curves, and the areas under them
       header.update(kinds = [[k, v[0], "lines"] for k, v in LINK_CURVES.items()], kind_label = "Curve", text = link_text(plot["data"]["results"], plot["data"]["names"], plot["options"]["kind"]))
    return header
@@ -2155,7 +2557,8 @@ def _replot(request):
    (logarithmic axes ``xlog`` and ``ylog``, ``font_size`` from 4 to 72 points, axis labels
    ``xlabel`` and ``ylabel``, ranges ``xmin``, ``xmax``, ``ymin``, ``ymax``: numbers or ``None``;
    for heatmaps the label ``zlabel``, range ``zmin``, ``zmax`` and logarithmic scale ``zlog`` of
-   the color scale),
+   the color scale; ``gradient``, the colors of the data series along x or y, see
+   :func:`gradient_colors`, or ``None``),
    and replies with the PNG image as payload.
    """
    plot = _spaces[request["tab"]]["__plot__"]
@@ -2169,9 +2572,16 @@ def _replot(request):
    plot["options"].update({k: str(o[k]) for k in ("xlabel", "ylabel") if k in o})
    if "font_size" in o:
       plot["options"]["font_size"] = min(max(float(o["font_size"]), 4.), 72.)
+   if "gradient" in o:   # colors along x or y, or none
+      g = o["gradient"]
+      plot["options"]["gradient"] = None if not g else {"axis": "x" if g.get("axis") == "x" else "y", "palette": str(g.get("palette", "YlOrRd")), "reversed": bool(g.get("reversed", False))}
+   ns = _spaces[request["tab"]]
+   if plot["kind"] == "matrix" and o.get("kind") in dict(matrix_orders(plot, ns)):
+      matrix_order(ns, plot, o["kind"])
+      plot["options"]["kind"] = o["kind"]
    if plot["kind"] == "distribution" and o.get("kind") in DISTRIBUTIONS or plot["kind"] == "randomization" and o.get("kind") in TAILS or plot["kind"] == "links" and o.get("kind") in LINK_CURVES or plot["kind"] == "gnn" and o.get("kind") in GNN_CURVES:
       plot["options"]["kind"] = o["kind"]
-   return _plot_header(plot), _render(plot, "png")
+   return _plot_header(plot, ns), _render(plot, "png")
 
 
 #: Tails of the pseudo p-value of randomization tests (:func:`randomization_text`), with their
@@ -2350,7 +2760,7 @@ def _nestedness(request):
    iso, nested = ns["isocline"], ns["nested"]
    a, b = (str(text(v)) for v in draw.bipartite_labels)
    matrix = nestedness_matrix(draw, iso["rows"], iso["columns"])
-   ns["__plot__"] = _plot("nestedness", {"matrix": matrix, "line": iso["line"], "rows": a, "columns": b, "p": iso["p"]}, dict(PLOT_ELEMENTS["nestedness"][1]), {})
+   ns["__plot__"] = _plot("nestedness", {"matrix": matrix, "line": iso["line"], "rows": a, "columns": b, "p": iso["p"]}, dict(PLOT_ELEMENTS["nestedness"][1]), {}, source = {"matrix": f"nestedness_matrix({_target(ns)}, isocline[\"rows\"], isocline[\"columns\"])", "line": "isocline[\"line\"]", "rows": literal(a), "columns": literal(b), "p": "isocline[\"p\"]"})
    png = _render(ns["__plot__"], "png")
    header, payload = _draw(ns, code, True)
    header["plot"] = dict(_plot_header(ns["__plot__"]), text = nestedness_text(nested, iso, method), warnings = [], title = f"Nestedness of {request.get('name', 'the network')}")
@@ -2438,7 +2848,7 @@ MATRIX_NAMES = 40
 MATRIX_VALUES = 12
 
 
-def matrix_plot(matrix, names, what, diverging = False, colors = None, options = None, styles = None, format = "png", path = None, dpi = 100):
+def matrix_plot(matrix, names, what, diverging = False, orders = None, rows = None, colors = None, options = None, styles = None, format = "png", path = None, dpi = 100):
    """
    Plot of the result of a pairwise node vector analysis (:data:`VECTORS`): the matrix of the
    attributes as a heatmap with a color bar, from white to the color of the ``matrix`` (distances),
@@ -2453,10 +2863,22 @@ def matrix_plot(matrix, names, what, diverging = False, colors = None, options =
    :param names: Names of the attributes, in the order of the rows.
    :param what: Label of the color bar.
    :param diverging: Whether the values are correlations.
+   :param orders: Orders of the rows and columns, by key of the option ``kind`` (permutations,
+      :func:`matrix_order`); the matrix as computed for other keys. Matrices with more than
+      :data:`MATRIX_SHOWN` rows are drawn with every k-th row and column of the order.
+   :param rows: What the rows are: ``"paths"`` for the nodes of the shortest path lengths, ``None``
+      for attributes (it decides the orders offered, :func:`matrix_orders`).
    :return: The bytes of the image, or ``None`` with ``path``.
    """
    from matplotlib.colors import LinearSegmentedColormap
    options = dict(PLOT_OPTIONS["matrix"], **(options or {}))
+   order = (orders or {}).get(options.get("kind"))
+   order = np.arange(len(matrix)) if order is None else np.asarray(order)
+   if len(order) > MATRIX_SHOWN:   # every k-th row and column of the order
+      order = order[::-(-len(order) // MATRIX_SHOWN)]
+   if order is not None:   # rows and columns in that order
+      matrix = np.asarray(matrix[np.ix_(order, order)], dtype = float)
+      names = [names[i] for i in order]
    options.update(xlog = False, ylog = False)
    colors = dict({"negative": "#377eb8", "positive": "#e41a1c"} if diverging else PLOT_ELEMENTS["matrix"][1], **(colors or {}))
    k = len(names)
@@ -2484,6 +2906,85 @@ def matrix_plot(matrix, names, what, diverging = False, colors = None, options =
       ax.set_xlim(-0.5, k - 0.5)
       ax.set_ylim(k - 0.5, -0.5)
    return _figure(draw, options, format, path, dpi)
+
+
+#: Most node attributes offered as orders of the heatmap of the shortest path lengths.
+MAX_ORDER_ATTRIBUTES = 100
+
+
+def matrix_orders(plot, ns = None):
+   """
+   Orders of the rows and columns of a heatmap (the Order menu of the plot window): as computed,
+   random, block diagonal (clusters of similar rows next to each other, :func:`block_order`; up to
+   :data:`BLOCK_ORDER_MAX` rows);
+   for the shortest path lengths also the order of the matrix layout of the network (blocks of
+   densely connected nodes) and by every node attribute (up to :data:`MAX_ORDER_ATTRIBUTES`).
+
+   :return: List of ``(key, label)``.
+   """
+   found = [("computed", "as computed"), ("random", "random")] + ([("blocks", "block diagonal (clusters)")] if len(plot["data"]["matrix"]) <= BLOCK_ORDER_MAX else [])
+   if plot["data"].get("rows") == "paths" and ns is not None:
+      net = _drawn(ns)
+      found.append(("matrix", "block diagonal (matrix layout)"))
+      names = [a for a in list(net.node_attributes) + list(net.qualitative_node_attributes) if a not in ("pos_x", "pos_y")]
+      found += [(f"attribute:{a}", f"by {a}") for a in names[:MAX_ORDER_ATTRIBUTES]]
+   return found
+
+
+def block_order(matrix, diverging = False):
+   """
+   Order of the rows (and columns) of a square matrix that puts similar rows next to each other,
+   so that groups become blocks on the diagonal: the leaves of an average-linkage hierarchical
+   clustering of the rows, with the optimal leaf ordering (Bar-Joseph et al., 2001) up to 2,000
+   rows. Distances are the values themselves (made symmetric; missing and infinite ones count as
+   twice the largest), or, for correlations (``diverging``), one minus the correlation.
+
+   :return: List of row positions.
+   """
+   from scipy.cluster.hierarchy import linkage, leaves_list, optimal_leaf_ordering
+   from scipy.spatial.distance import squareform
+   M = np.asarray(matrix, dtype = float)
+   k = len(M)
+   if k < 3:
+      return list(range(k))
+   D = 1. - M if diverging else M.copy()
+   finite = np.isfinite(D)
+   D[~finite] = 2. * (np.abs(D[finite]).max() if finite.any() else 1.)
+   D = np.maximum((D + D.T) / 2, 0.)
+   np.fill_diagonal(D, 0.)
+   y = squareform(D, checks = False)
+   Z = linkage(y, "average")
+   if k <= 2000:
+      Z = optimal_leaf_ordering(Z, y)
+   return [int(i) for i in leaves_list(Z)]
+
+
+def matrix_order(ns, plot, key):
+   """
+   Computes (once) the order ``key`` of :func:`matrix_orders` of the heatmap ``plot`` of a tab,
+   into ``plot["data"]["orders"]``: a random permutation (seed 0), :func:`block_order`, or, for
+   the shortest path lengths of the largest component, the positions of its nodes in
+   :func:`~graphoskop.matrix_layout` of the network (without attribute, or grouped by a
+   qualitative attribute, or sorted by a numeric one; nothing is written to the network).
+   """
+   data = plot["data"]
+   orders = data.setdefault("orders", {})
+   if key == "computed" or key in orders:
+      return
+   M = data["matrix"]
+   k = len(M)
+   if key == "random":
+      orders[key] = [int(i) for i in np.random.default_rng(0).permutation(k)]
+   elif key == "blocks":
+      orders[key] = block_order(M, data.get("diverging", False))
+   else:
+      net = _drawn(ns)
+      if key == "matrix":
+         table = gsk.matrix_layout(net, attribute = None)
+      else:
+         a = key.split(":", 1)[1]
+         table = gsk.matrix_layout(net, groups = a, attribute = None) if a not in net.node_attributes else gsk.matrix_layout(net, order = a, attribute = None)
+      orders[key] = [int(i) for i in np.argsort(table.iloc[:k, 0].to_numpy(), kind = "stable")]
 
 
 def _color_norm(lo, hi, options, values):
@@ -2582,7 +3083,7 @@ def _vectors(request):
       M = ns[result].double().cpu().numpy()
       diverging = function == "pairwise_network_correlation"
       what = "network correlation" if diverging else "generalized Euclidean distance"
-      ns["__plot__"] = _plot("matrix", {"matrix": M, "names": [str(a) for a in chosen], "what": what, "diverging": diverging}, {"negative": "#377eb8", "positive": "#e41a1c"} if diverging else dict(PLOT_ELEMENTS["matrix"][1]), {}, {"negative": "Negative values", "positive": "Positive values"} if diverging else None)
+      ns["__plot__"] = _plot("matrix", {"matrix": M, "names": [str(a) for a in chosen], "what": what, "diverging": diverging, "orders": {}}, {"negative": "#377eb8", "positive": "#e41a1c"} if diverging else dict(PLOT_ELEMENTS["matrix"][1]), {}, {"negative": "Negative values", "positive": "Positive values"} if diverging else None, source = {"matrix": f"{result}.double().cpu().numpy()", "names": repr([str(a) for a in chosen]), "what": literal(what), "diverging": repr(diverging)})
       ns["__plot__"]["table"] = _matrix_table(M, chosen)
       text_ = f"{label} between {len(chosen)} node attributes{where}."
    elif function == "graph_fourier_transform":
@@ -2592,7 +3093,7 @@ def _vectors(request):
       energy = (c.abs() ** 2).double().cpu().numpy() if torch.is_complex(c) else (c.double() ** 2).cpu().numpy()
       if np.isnan(energy).any():
          raise ValueError(f"{names[0]} has missing values: its Fourier transform is not defined")
-      ns["__plot__"] = _plot("spectrum", {"frequencies": freq, "energy": energy, "name": names[0]}, dict(PLOT_ELEMENTS["spectrum"][1]), {"data": "points"})
+      ns["__plot__"] = _plot("spectrum", {"frequencies": freq, "energy": energy, "name": names[0]}, dict(PLOT_ELEMENTS["spectrum"][1]), {"data": "points"}, source = {"frequencies": "basis[0].double().cpu().numpy()", "energy": f"({result}.abs() ** 2).double().cpu().numpy()", "name": literal(names[0])})
       text_ = spectrum_text(freq, energy) + (f" {where.strip(' ()').capitalize()}." if where else "")
    else:
       value = _number(ns[result])
@@ -2601,7 +3102,7 @@ def _vectors(request):
       header["result"] = f"{label} of {of}{where}: {shown}"
       return header, payload
    png = _render(ns["__plot__"], "png")
-   header["plot"] = dict(_plot_header(ns["__plot__"]), text = text_, warnings = [], title = f"{label} of {name}", table = kind == "pairwise")
+   header["plot"] = dict(_plot_header(ns["__plot__"], ns), text = text_, warnings = [], title = f"{label} of {name}", table = kind == "pairwise")
    header["parts"] = header.get("parts", []) + [len(png)] if header["nodes"] else [len(png)]
    return header, payload + png
 
@@ -2727,7 +3228,7 @@ def _distribution(request):
       raise ValueError(f"{name} is not {'a node' if kind == 'nodes' else 'an edge'} attribute: only attributes have a distribution")
    values = _column(draw, name) if kind == "nodes" else edge_values(draw, name)
    qualitative = isinstance(values, pd.Categorical) or np.asarray(values).dtype.kind not in "fiu"
-   ns["__plot__"] = _plot("distribution", {"values": values, "name": name, "what": kind, "qualitative": qualitative}, dict(PLOT_ELEMENTS["distribution"][1]), {"data": DISTRIBUTIONS["count"][1]})
+   ns["__plot__"] = _plot("distribution", {"values": values, "name": name, "what": kind, "qualitative": qualitative}, dict(PLOT_ELEMENTS["distribution"][1]), {"data": DISTRIBUTIONS["count"][1]}, source = {"values": f"attribute_values({_target(ns)}, {literal(kind)}, {literal(name)})", "name": literal(name), "what": literal(kind), "qualitative": repr(bool(qualitative))})
    total = len(values)
    if qualitative:
       counts = pd.Series(values).value_counts(dropna = True)
@@ -2778,19 +3279,23 @@ def _save_plot(request):
    """
    Command ``save_plot``: writes the last plot of a tab (with its current colors) to ``path``, as
    PNG (200 dpi) or PDF, by the extension of the path; or, for a path ending in ``.tsv``, the
-   table of the plot (the matrix of a pairwise node vector analysis, :func:`_vectors`), tab
-   separated.
+   table of the plot (the matrix of a heatmap), tab separated. The code that writes it is added
+   to the code of the tab (:func:`plot_code`), and replied as ``code``.
    """
    ns = _spaces[request["tab"]]
    if "__plot__" not in ns:
       raise ValueError("no plot to save")
    path = request["path"]
+   if path.lower().endswith(".tsv") and "table" not in ns["__plot__"]:
+      raise ValueError("this plot has no table")
+   lines = plot_code(ns, path)
+   if lines:   # the code writes the file
+      code = _run(request["tab"], lines)
+      return {"path": path, "code": code}, b""
    if path.lower().endswith(".tsv"):
-      if "table" not in ns["__plot__"]:
-         raise ValueError("this plot has no table")
       ns["__plot__"]["table"].to_csv(path, sep = "\t")
-      return {"path": path}, b""
-   _render(ns["__plot__"], "pdf" if path.lower().endswith(".pdf") else "png", path, 200)
+   else:
+      _render(ns["__plot__"], "pdf" if path.lower().endswith(".pdf") else "png", path, 200)
    return {"path": path}, b""
 
 
@@ -3101,23 +3606,31 @@ def _edit(request):
    return header, payload
 
 
-def _derived(ns, tab, lines):
+def _derived(ns, tab, lines, preset = None, unrun = ()):
    """
    A new tab ``tab`` whose network is derived from the network of the namespace ``ns`` (induced
    subgraph, ego network, backbone): its namespace copies the variables, the code, the style and
    the node size of ``ns``, then runs ``lines``. Replies with the code, a ``summary`` and the
    drawing; the new namespace is dropped if the lines fail. If ``ns`` is not drawn, the new
-   network is not drawn either while it is :func:`too_large`.
+   network is not drawn either while it is :func:`too_large`. ``preset`` variables are set in the
+   new namespace first, and the ``unrun`` lines are written in the code but not run (they make
+   those variables when the code runs on its own: the network of another tab, see
+   :func:`other_code`).
    """
    import copy
    _spaces[tab] = {k: v for k, v in ns.items() if not k.startswith("__")}
    _spaces[tab].update(__code__ = list(ns["__code__"]), __style__ = copy.deepcopy(ns.get("__style__", {})), __size__ = ns.get("__size__"))
+   _spaces[tab].update(preset or {})
+   run = [l for l in lines if l not in unrun]
    try:
-      code = _run(tab, lines)
+      code = _run(tab, run)
    except BaseException:
       _spaces.pop(tab, None)
       raise
    new = _spaces[tab]
+   if len(run) < len(lines):   # the code as written
+      new["__code__"] = new["__code__"][:len(new["__code__"]) - len(run)] + list(lines)
+      code = "\n".join(new["__code__"])
    if ns.get("__undrawn__") and too_large(_drawn(new)):
       new["__undrawn__"] = True
    header, payload = _draw(new, code, True)
@@ -3172,35 +3685,56 @@ def _find(request):
    return {"exact": exact[:MAX_FOUND].tolist(), "exact_count": len(exact), "partial": partial[:max(0, MAX_FOUND - len(exact))].tolist(), "partial_count": len(partial), "labels": [label(int(i)) for i in shown]}, b""
 
 
-def _select(request):
+def matches(values, op, value):
    """
-   Command ``select``: positions (in the drawing order) of the nodes (``kind = "nodes"``) or edges
-   (``"edges"``) of the drawn network of a tab whose ``attribute`` satisfies ``op`` (``"="``,
-   ``"≠"``, ``"<"``, ``"≤"``, ``">"``, ``"≥"`` or ``"contains"``) with ``value`` (a text: a number
-   for numeric comparisons; texts of qualitative values are compared, see :func:`text`; with
-   ``contains``, a part of the text, or one of the values of a node with several). Missing values
-   never match.
+   Whether every value of an attribute satisfies a condition: ``op`` (``"="``, ``"≠"``, ``"<"``,
+   ``"≤"``, ``">"``, ``"≥"`` or ``"contains"``) with ``value`` (a text: a number for numeric
+   comparisons; texts of qualitative values are compared, see :func:`text`; with ``contains``, a
+   part of the text, or one of the values of a node with several). Missing values never match.
+
+   :param values: Values of the attribute (:func:`node_values` or :func:`edge_values`).
+   :return: Boolean array.
+   :raises ValueError: If a numeric comparison gets a value that is not a number.
    """
-   net = _drawn(_spaces[request["tab"]])
-   kind, op, value = request["kind"], request["op"], str(request["value"]).strip()
-   values = node_values(net, request["attribute"]) if kind == "nodes" else edge_values(net, request["attribute"])
+   value = str(value).strip()
    if values.dtype.kind == "f" and op != "contains":
       x = float(value)
       with np.errstate(invalid = "ignore"):
-         hit = {"=": values == x, "≠": (values != x) & ~np.isnan(values), "<": values < x, "≤": values <= x, ">": values > x, "≥": values >= x}[op]
-   else:
-      texts = [text(v) for v in values]
-      def match(t, v):
-         if t is None:
-            return False
-         if op == "contains":
-            return value in t or value in [p.strip() for p in t.split(",")]
-         try:
-            a, b = float(t), float(value)
-         except ValueError:
-            a, b = t, value
-         return {"=": a == b, "≠": a != b, "<": a < b, "≤": a <= b, ">": a > b, "≥": a >= b}[op] if type(a) is type(b) else op == "≠"
-      hit = np.array([match(t, v) for t, v in zip(texts, values)], dtype = bool)
+         return {"=": values == x, "≠": (values != x) & ~np.isnan(values), "<": values < x, "≤": values <= x, ">": values > x, "≥": values >= x}[op]
+   def match(t):
+      if t is None:
+         return False
+      if op == "contains":
+         return value in t or value in [p.strip() for p in t.split(",")]
+      try:
+         a, b = float(t), float(value)
+      except ValueError:
+         a, b = t, value
+      return {"=": a == b, "≠": a != b, "<": a < b, "≤": a <= b, ">": a > b, "≥": a >= b}[op] if type(a) is type(b) else op == "≠"
+   return np.array([match(text(v)) for v in values], dtype = bool)
+
+
+#: How Select › Select by attribute chains a condition to the ones before it.
+LOGIC = {"and": np.logical_and, "or": np.logical_or, "xor": np.logical_xor}
+
+
+def _select(request):
+   """
+   Command ``select``: positions (in the drawing order) of the nodes (``kind = "nodes"``) or edges
+   (``"edges"``) of the drawn network of a tab that satisfy the ``conditions``: a list of
+   dictionaries with ``attribute``, ``op``, ``value`` (see :func:`matches`) and, from the second
+   on, ``logic`` (``"and"``, ``"or"`` or ``"xor"``, :data:`LOGIC`), which chains the condition to
+   the result of the ones before it, from left to right (``a or b and c`` is ``(a or b) and c``).
+   A request with ``attribute``, ``op`` and ``value`` instead is a single condition.
+   """
+   net = _drawn(_spaces[request["tab"]])
+   kind = request["kind"]
+   conditions = request.get("conditions") or [{"attribute": request["attribute"], "op": request["op"], "value": request["value"]}]
+   hit = None
+   for c in conditions:
+      values = node_values(net, c["attribute"]) if kind == "nodes" else edge_values(net, c["attribute"])
+      h = matches(values, c["op"], c["value"])
+      hit = h if hit is None else LOGIC[c.get("logic", "and")](hit, h)
    return {"indices": np.flatnonzero(hit).tolist()}, b""
 
 
@@ -3510,6 +4044,14 @@ def _extract(request):
          keep = [a for a in chosen if a in net.qualitative_node_attributes]
          sets = arguments["sets"] if arguments["sets"].lstrip().startswith("matching(") else literal(chosen[0]) if len(chosen) == 1 else literal(chosen)
          arguments = dict(arguments, sets = f"groups(net, {sets})", counts = literal(counts), qualitative = literal(keep))
+      if function in SET_OPERATIONS:   # with the network of another tab, made again by its code
+         if request.get("other") not in _spaces:
+            raise ValueError("choose the other network: an open tab")
+         define, make = other_code(_spaces[request["other"]], request.get("other_name", "the other tab"))
+         lines = define + [make, f"net = gsk.{function}(net, other)"]
+         return _derived(ns, request["new_tab"], lines, preset = {"other": _spaces[request["other"]]["net"]}, unrun = (make,))
+      if function == "layer_network" and not arguments.get("layer", "").strip() and ns["net"].layer_labels:   # the default of the dialog: the first layer
+         arguments = dict(arguments, layer = literal(ns["net"].layer_labels[0]))
       extra = "".join(f", {k} = {v.strip()}" for k, v in arguments.items())
       if function in TRANSFORMATIONS:   # of the network itself (not of the incidence network drawn)
          note = [GROUPS_NOTE] if function == "quotient_network" and GROUPS_NOTE not in ns["__code__"] else []
@@ -3521,6 +4063,32 @@ def _extract(request):
    return _derived(ns, request["new_tab"], lines)
 
 
+#: Functions of Edit › Transform combining the network with the network of another tab
+#: (:func:`other_code`).
+SET_OPERATIONS = {"network_union", "network_intersection", "network_difference"}
+
+
+def other_code(other, name):
+   """
+   Code making the network of another tab, so that the code of a tab combining the two runs on
+   its own: the code of the other tab as a function, and the line calling it, e.g.
+
+   .. code-block:: python
+
+      def other_network():   # the network of the tab "friends", made again by its code
+         import graphoskop as gsk
+         net = gsk.load_network("friends.tsv")
+         return net
+      other = other_network()
+
+   :param other: Namespace of the other tab.
+   :param name: Name of the other tab.
+   :return: The lines of the function, and the line calling it.
+   """
+   body = [("   " + l) if l.strip() else "" for l in other["__code__"]]
+   return [f"def other_network():   # the network of the tab {literal(name)}, made again by its code"] + body + ["   return net"], "other = other_network()"
+
+
 #: Switches of :func:`~graphoskop.extract_backbone` offered by the backbone dialog: keep the nodes
 #: left without edges, reconnect the components split by the threshold (which reconnects the
 #: isolated nodes too), reconnect the isolated nodes.
@@ -3529,11 +4097,15 @@ BACKBONE_OPTIONS = ["keep_isolates", "reconnect_components", "reconnect_isolates
 
 #: Functions of Edit › Transform: transformations of the network of the library, whose result opens
 #: in a new tab (:func:`_extract`), e.g. ``net = gsk.to_undirected(net)``.
-TRANSFORMATIONS = ["flip_edge_direction", "largest_component", "remove_isolates", "remove_parallel_edges", "remove_self_loops", "to_strongly_connected", "to_undirected", "network_condensation", "quotient_network", "clique_expansion", "clique_promotion"]
+TRANSFORMATIONS = ["flip_edge_direction", "largest_component", "remove_isolates", "remove_parallel_edges", "remove_self_loops", "to_strongly_connected", "to_undirected", "network_condensation", "quotient_network", "line_graph", "complement", "network_union", "network_intersection", "network_difference", "clique_expansion", "clique_promotion", "hypergraph_walk_network", "layer_network", "aggregate_network"]
+OPTIONS.update({("hypergraph_walk_network", "model"): ["\"zhou\"", "\"carletti\"", "\"edvw\""], ("node_edge_centrality", "model"): ["\"linear\"", "\"log-exp\"", "\"max\""], ("two_node_clustering", "kind"): ["\"union\"", "\"min\"", "\"max\""], ("hyperedge_size", "part"): ["\"all\"", "\"tail\"", "\"head\""]})
+CHOICES.update({("node_edge_centrality", "weight"): ("nodes", False), ("node_edge_centrality", "node_weight"): ("nodes", False), ("hypergraph_walk_network", "weight"): ("nodes", False), ("hypergraph_walk_network", "vertex_weight"): ("edges", False), ("hyperedge_size", "weight"): ("edges", False)})
+HINTS.update({("node_edge_centrality", "weight"): "unweighted", ("node_edge_centrality", "node_weight"): "unweighted", ("hypergraph_walk_network", "vertex_weight"): "none", ("hyperedge_size", "weight"): "unweighted"})
 #: Parameters of the transformations not shown in the parameter dialog: the network, the edges to
 #: flip (all), the sign attribute (``"sign"``), the size of the batches (memory, not results), and
-#: the counts and qualitative attributes of the quotient (set by :func:`_extract`).
-TRANSFORMATION_HIDDEN = {"net", "edges", "sign", "batch_size", "counts", "qualitative"}
+#: the counts and qualitative attributes of the quotient (set by :func:`_extract`), and the other
+#: network of the set operations (another tab, :data:`SET_OPERATIONS`).
+TRANSFORMATION_HIDDEN = {"net", "edges", "sign", "batch_size", "counts", "qualitative", "other"}
 #: Descriptions of parameters that the interface sets differently from the library (by function
 #: and name), shown as tooltips instead of those of the documentation.
 DOCS = {("quotient_network", "sets"): "Node attributes: the nodes with the same combination of their values collapse into one node (nodes without a value stay as they are); only these qualitative attributes are kept, and nodes and edges get the count of what they merge"}
@@ -3788,7 +4360,7 @@ def _epidemic_plot(request):
    if not keys:
       raise ValueError("choose a state of the runs")
    ylabel = f"fraction of nodes in state {states[0]}" if len(states) == 1 else "fraction of nodes"
-   ns["__plot__"] = _plot("epidemics", {"tables": tables, "states": list(states)}, {k: PLOT_COLORS[i % len(PLOT_COLORS)] for i, k in enumerate(keys)}, {k: "lines" for k in keys}, {k: k for k in keys}, ylabel = ylabel)
+   ns["__plot__"] = _plot("epidemics", {"tables": tables, "states": list(states)}, {k: PLOT_COLORS[i % len(PLOT_COLORS)] for i, k in enumerate(keys)}, {k: "lines" for k in keys}, {k: k for k in keys}, source = {"tables": "{" + ", ".join(f"{literal(n)}: epidemics[{literal(n)}]" for n in names) + "}", "states": repr(list(states))}, ylabel = ylabel)
    peaks = [f"{n}, {x}: peak {df[x].max():.3g} at step {df[x].idxmax()}" for n, df in tables.items() for x in states if x in df]
    header = dict(_plot_header(ns["__plot__"]), text = f"Fraction of nodes in state {', '.join(states)}. " + "; ".join(peaks) + ".", warnings = [])
    return header, _render(ns["__plot__"], "png")
@@ -4063,7 +4635,7 @@ def _link_plot(request):
       raise ValueError("choose the runs to plot")
    kind = request.get("kind", "roc") if request.get("kind") in LINK_CURVES else "roc"
    v = ns["validation"]
-   ns["__plot__"] = _plot("links", {"results": results, "names": names, "base_rate": float((v["label"] == 1).mean())}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(names)}, {n: "lines" for n in names}, {n: n for n in names})
+   ns["__plot__"] = _plot("links", {"results": results, "names": names, "base_rate": float((v["label"] == 1).mean())}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(names)}, {n: "lines" for n in names}, {n: n for n in names}, source = {"results": "link_predictions", "names": repr(names), "base_rate": "float((validation[\"label\"] == 1).mean())"})
    ns["__plot__"]["options"]["kind"] = kind
    header = dict(_plot_header(ns["__plot__"]), warnings = [])
    return header, _render(ns["__plot__"], "png")
@@ -4071,8 +4643,9 @@ def _link_plot(request):
 
 #: Graph neural networks of the dialog of Analysis › Graph neural networks…: function and the
 #: label of its runs. Node models predict a node attribute; DiffPool a graph attribute (one value
-#: per component).
-GNNS = {"gcn": "GCN", "graphsage": "GraphSAGE", "gat": "GAT", "gatv2": "GATv2", "diffpool": "DiffPool"}
+#: per component); MLP, the same model without the network, is the baseline (its ``weight`` is not
+#: asked).
+GNNS = {"gcn": "GCN", "graphsage": "GraphSAGE", "gat": "GAT", "gatv2": "GATv2", "diffpool": "DiffPool", "mlp": "MLP", "hgnn": "HGNN (hypergraphs and complexes)"}
 
 #: Parameters of the graph neural networks not in their dialog: the network, the layers (the
 #: hidden layers are asked, ``hidden``, and the output layer follows from the target), their
@@ -4109,7 +4682,7 @@ def gnn_signature(function, net):
    (:func:`gnn_code`). The ``seed`` is 1 by default, so that runs compare on the same split of
    the nodes and repeat when the code runs again.
    """
-   params = [p for p in signature(function, net)["params"] if p["name"] not in GNN_HIDDEN]
+   params = [p for p in signature(function, net)["params"] if p["name"] not in GNN_HIDDEN and not (function == "mlp" and p["name"] == "weight")]
    for p in params:
       if p["name"] == "seed":
          p["default"] = "1"
@@ -4357,24 +4930,25 @@ def _gnn_plot(request):
       raise ValueError("choose the runs to plot")
    kind = request.get("kind") if request.get("kind") in GNN_CURVES else "roc"
    evaluations = {n: ns["__gnn_eval__"][n][1] for n in names}
-   ns["__plot__"] = _plot("gnn", {"evaluations": evaluations, "names": names}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(names)}, {n: "points" if kind == "scatter" else "lines" for n in names}, {n: n for n in names})
+   ns["__plot__"] = _plot("gnn", {"evaluations": evaluations, "names": names}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(names)}, {n: "points" if kind == "scatter" else "lines" for n in names}, {n: n for n in names}, source = {"evaluations": "{" + ", ".join(f"{literal(n)}: gnn_evaluation(gnn_runs[{literal(n)}])" for n in names) + "}", "names": repr(names)})
    ns["__plot__"]["options"]["kind"] = kind
    return dict(_plot_header(ns["__plot__"]), warnings = []), _render(ns["__plot__"], "png")
 
 
 def last_layout(code):
    """
-   The function of the last line of code that changes the drawing: ``"bundle_edges"`` for the
-   line bundling the edges (:data:`BENDS`), else the function of :data:`LAYOUTS` of the last line
-   calling one, or of a line moving nodes (:func:`move_nodes`) or changing the network (``net =
-   gsk.…``); ``None`` if none. Edges are drawn bundled after ``bundle_edges``, the network as a
-   matrix after ``matrix_layout``; anything else draws nodes and straight edges again.
+   The function of the last line of code that changes the drawing: the function of :data:`CURVES`
+   of a line computing curves of the edges (:data:`BENDS`), else the function of :data:`LAYOUTS`
+   of the last line calling one, or of a line moving nodes (:func:`move_nodes`) or changing the
+   network (``net = gsk.…``); ``None`` if none. Edges are drawn as curves after a function of
+   :data:`CURVES`, the network as a matrix after ``matrix_layout``; anything else draws nodes and
+   straight edges again.
 
    :param code: Lines of code of a tab.
    """
    for line in reversed(code):
       if line.startswith(BENDS):
-         return "bundle_edges"
+         return line[len(BENDS):].split("(")[0]
       if line.startswith(("move_nodes(", "net = gsk.", "inc = gsk.")):   # moved nodes, a changed network
          return line.split("(")[0].split(".")[-1]
       for f in LAYOUTS:
@@ -4398,25 +4972,227 @@ def _communities(request):
    Command ``communities``: runs a function of :data:`COMMUNITIES` (``function``, ``arguments``) on
    the drawn network of a tab (:func:`layout_code`), and replies with the code and the drawing. The
    communities become an attribute; the look of the drawing does not change (colors and sizes are
-   always the user's choice, in the visual elements panel).
+   always the user's choice, in the visual elements panel). The hierarchical ones
+   (:data:`HIERARCHICAL_COMMUNITIES`) remember their levels (``__levels__``, :func:`level_attributes`)
+   and, with ``tree`` (``"True"``), reply them as ``tree``: the interface then opens the tree of
+   the hierarchy in a new tab (command ``community_tree``, :func:`_community_tree`).
    """
    ns = _spaces[request["tab"]]
    function, arguments = request["function"], dict(request.get("arguments") or {})
+   tree = arguments.pop("tree", "False").strip() == "True"
    code = _run(request["tab"], layout_code(ns, function, arguments))
-   return _draw(ns, code, True)
+   if function in HIERARCHICAL_COMMUNITIES:
+      attribute = ast.literal_eval(arguments.get("attribute", literal(inspect.signature(getattr(gsk, function)).parameters["attribute"].default)))
+      ns["__levels__"] = level_attributes(_drawn(ns), attribute)
+   header, payload = _draw(ns, code, True)
+   if tree:
+      header["tree"] = ns["__levels__"]
+   return header, payload
+
+
+def _community_tree(request):
+   """
+   Command ``community_tree`` (Community discovery › Tree of a hierarchy…, and the ``tree`` option
+   of the hierarchical methods): the tree of the levels of communities of a tab
+   (:func:`~graphoskop.community_tree`, ``arguments``: ``levels``, by default those of the last
+   hierarchical run, and ``leaves``) in a new tab ``new_tab``, laid out radially, the root at the
+   center (:func:`~graphoskop.hierarchical_layout`), its nodes colored by ``level``, e.g.
+
+   .. code-block:: python
+
+      net = gsk.community_tree(net, ["community", "community_1"])
+      gsk.hierarchical_layout(net, direction = "radial")
+   """
+   ns = _spaces[request["tab"]]
+   arguments = {k: v.strip() for k, v in dict(request.get("arguments") or {}).items() if str(v).strip()}
+   levels = _source_value(ns, arguments.pop("levels")) if arguments.get("levels") else ns.get("__levels__")   # the dialog sends only what differs from its defaults
+   if not levels:
+      raise ValueError("levels: choose the node attributes of the levels of the hierarchy")
+   t = _target(ns)
+   extra = "".join(f", {k} = {v}" for k, v in arguments.items())
+   lines = [f"net = gsk.community_tree({t}, {literal(levels)}{extra})", "gsk.hierarchical_layout(net, direction = \"radial\")   # the root at the center"] + (["del inc"] if t == "inc" else [])
+   style = dict(ns.get("__style__") or {}, nodes = {"attribute": "level", "scale": "qualitative", "palette": list(CHART_PALETTE), "overrides": [], "missing": MISSING_COLOR}, node_chart = {})   # nodes colored by level
+   return _derived(ns, request["new_tab"], lines, preset = {"__style__": style})
+
+
+def tree_signature(ns):
+   """
+   Parameters of Community discovery › Tree of a hierarchy…: the ``levels`` (node attributes; by
+   default those of the last hierarchical community discovery of the tab) and ``leaves``.
+   """
+   params = dendrogram_signature(ns)["params"][:1]
+   params.append({"name": "leaves", "default": "True", "hint": "", "doc": "The nodes are the leaves of the tree (else the groups of the finest level are)", "widget": {"kind": "bool"}})
+   return {"params": params}
+
+
+#: Community discovery functions that find a hierarchy: levels of communities written as
+#: ``attribute``, ``attribute_1``, ``attribute_2``, ... (:func:`level_attributes`); their dialog
+#: offers the tree of the hierarchy in a new tab.
+HIERARCHICAL_COMMUNITIES = {"block_model_communities", "hierarchical_random_graph_communities", "infomap_communities"}
+#: Largest number of nodes drawn as the leaves of a dendrogram (:func:`dendrogram_tree`): above,
+#: the leaves are the groups of the finest level.
+DENDROGRAM_NODES = 150
+#: Largest number of leaves of a dendrogram whose labels are written (:func:`dendrogram_plot`).
+DENDROGRAM_LABELS = 80
+
+
+def level_attributes(net, attribute):
+   """
+   Node attributes of the levels of a hierarchy of communities: ``attribute`` and those named
+   ``attribute_1``, ``attribute_2``, ... that the network has (stopping at the first missing).
+   """
+   names = set(net.node_attributes) | set(net.qualitative_node_attributes)
+   levels = [attribute] if attribute in names else []
+   k = 1
+   while f"{attribute}_{k}" in names:
+      levels.append(f"{attribute}_{k}")
+      k += 1
+   return levels
+
+
+def dendrogram_tree(net, levels, leaves = None, label = None):
+   """
+   The tree of a hierarchy of communities, for its dendrogram (:func:`dendrogram_plot`): the levels
+   (node attributes, in any order) are sorted from the finest (most groups) to the coarsest, every
+   group of a level hangs from the group of the next level that holds most of its nodes (exactly
+   one if the levels are nested), the groups of the coarsest level from a root. The leaves are the
+   nodes (``leaves = "nodes"``, by default up to :data:`DENDROGRAM_NODES` nodes) or the groups of
+   the finest level (``"groups"``); they are ordered so that no branches cross. Missing values make
+   a group of their own. A function of the interface, not of the library.
+
+   :param net: The network (the drawn one).
+   :param levels: Names of the node attributes of the levels.
+   :param leaves: ``"nodes"``, ``"groups"`` or ``None`` (by the number of nodes).
+   :param label: Node attribute naming the leaf nodes, or ``None`` for their ids.
+   :return: Dictionary with ``x``, ``y`` and ``parent`` (-1 for the root) of every vertex of the
+      tree, the ``labels`` of the leaves (the vertices with ``y`` 0, in the order of ``x``), what
+      the ``leaves`` are (``"nodes"`` or the finest level) and the names of the ``levels`` of the
+      heights 1, 2, ... (finest first; the root above them).
+   :raises ValueError: If there are no levels.
+   """
+   import pandas as pd
+   if not levels:
+      raise ValueError("levels: choose the node attributes of the levels of the hierarchy")
+   n = int(net.number_of_nodes())
+   codes = [pd.factorize(pd.Series([text(v) for v in node_values(net, a)], dtype = object).fillna("(none)"))[0] for a in levels]
+   order = sorted(range(len(levels)), key = lambda i: -len(np.unique(codes[i])))
+   codes, names = [codes[i] for i in order], [levels[i] for i in order]
+   if leaves is None:
+      leaves = "nodes" if n <= DENDROGRAM_NODES else "groups"
+   ids = [text(v) for v in (_ids(net) if label is None else node_values(net, label))]
+   if leaves == "nodes":
+      codes, names = [np.arange(n)] + codes, ["nodes"] + names
+   codes.append(np.zeros(n, dtype = np.int64))   # the root
+   sort = np.lexsort(codes[::-1])                  # coarse to fine: no crossings
+   vx, vy, vp, labels, prev = [], [], [], [], None
+   for depth, c in enumerate(codes):
+      groups, first = np.unique(c[sort], return_index = True)
+      groups = groups[np.argsort(first)]           # in the order of the leaves
+      if depth == 0:
+         xs = np.arange(len(groups), dtype = float)
+         sizes = np.bincount(c, minlength = c.max() + 1)
+         members = {g: np.flatnonzero(c == g)[0] for g in groups}
+         labels = [ids[members[g]] if leaves == "nodes" else f"{text(node_values(net, names[0])[members[g]])} ({sizes[g]})" for g in groups]
+         at_leaf = dict(zip(groups.tolist(), xs))
+         leaf_x = np.array([at_leaf[g] for g in c])   # x of the leaf of every node
+      else:   # over the children, or over the nodes of a group no finer group chose
+         xs = np.array([np.mean([vx[at] for at in children[g]]) if g in children else leaf_x[c == g].mean() for g in groups])
+      base = len(vx)
+      index = {g: base + k for k, g in enumerate(groups)}
+      if prev is not None:   # the parents of the previous level: the group holding most of their nodes
+         for g, at in prev.items():
+            vp[at] = index[np.bincount(c[codes[depth - 1] == g]).argmax()]
+      vx += list(xs)
+      vy += [float(depth)] * len(groups)
+      vp += [-1] * len(groups)
+      if depth + 1 < len(codes):
+         nxt = codes[depth + 1]
+         children = {}
+         for g, at in index.items():
+            children.setdefault(np.bincount(nxt[c == g]).argmax(), []).append(at)
+      prev = index
+   return {"x": vx, "y": vy, "parent": vp, "labels": labels, "leaves": names[0], "levels": names[1:]}
+
+
+def dendrogram_plot(tree, colors = None, options = None, styles = None, format = "png", path = None, dpi = 100):
+   """
+   Plot of the dendrogram of a hierarchy of communities (:func:`dendrogram_tree`): every group a
+   horizontal bar over its children at the height of its level, the leaves at the bottom (their
+   labels written up to :data:`DENDROGRAM_LABELS` leaves), the names of the levels on the y axis
+   (see ``_figure``).
+
+   :param tree: Result of :func:`dendrogram_tree`.
+   :return: The bytes of the image, or ``None`` with ``path``.
+   """
+   from matplotlib.collections import LineCollection
+   colors = dict(PLOT_ELEMENTS["dendrogram"][1], **(colors or {}))
+   options = dict(PLOT_OPTIONS["dendrogram"], **(options or {}))
+   x, y, parent = np.asarray(tree["x"]), np.asarray(tree["y"]), np.asarray(tree["parent"])
+   def draw(ax):
+      child = np.flatnonzero(parent >= 0)
+      up = [[(x[i], y[i]), (x[i], y[parent[i]])] for i in child]
+      across = [[(x[child[parent[child] == p]].min(), y[p]), (x[child[parent[child] == p]].max(), y[p])] for p in np.unique(parent[child])]
+      ax.add_collection(LineCollection(up + across, colors = colors["tree"], linewidths = 1.2))
+      leaves = np.flatnonzero(y == 0)
+      ax.scatter(x[leaves], y[leaves], s = 12, color = colors["leaves"], zorder = 3)
+      ax.set_xlim(-0.5, max(len(leaves) - 0.5, 0.5))
+      ax.set_ylim(-0.3, y.max() + 0.3)
+      ticks = np.arange(int(y.max()) + 1)
+      ax.set_yticks(ticks, [(tree["leaves"] if t == 0 else (tree["levels"][t - 1] if t - 1 < len(tree["levels"]) else "root")) for t in ticks])
+      if len(leaves) <= DENDROGRAM_LABELS:
+         ax.set_xticks(x[leaves], tree["labels"], rotation = 90, fontsize = max(6., float(options["font_size"]) * 0.6))
+      else:
+         ax.set_xticks([])
+   return _figure(draw, dict(options, xmin = options.get("xmin"), xmax = options.get("xmax")), format, path, dpi)
+
+
+def dendrogram_signature(ns):
+   """
+   Parameters of Analysis › Community discovery › Dendrogram of a hierarchy…: the node attributes
+   of the ``levels`` (by default those of the last hierarchical community discovery of the tab,
+   ``__levels__``), the ``leaves`` (nodes or the groups of the finest level) and the attribute
+   naming the leaf nodes (``label``).
+   """
+   levels = ns.get("__levels__") if ns is not None else None
+   return {"params": [{"name": "levels", "default": literal(levels) if levels else "", "hint": "required", "doc": "Node attributes of the levels of the hierarchy, in any order (sorted from the one with most groups), e.g. community, community_1, community_2 of a hierarchical community discovery", "widget": {"kind": "attribute", "choices": "nodes", "multiple": True, "extra": []}},
+                      {"name": "leaves", "default": "", "hint": f"nodes up to {DENDROGRAM_NODES}", "doc": "The leaves of the tree: the nodes, or the groups of the finest level (with their sizes)", "widget": {"kind": "choice", "options": ["", "\"nodes\"", "\"groups\""]}},
+                      {"name": "label", "default": "", "hint": "node id", "doc": "Node attribute naming the leaf nodes", "widget": {"kind": "attribute", "choices": "nodes", "multiple": False, "extra": []}}]}
+
+
+def _dendrogram(request, code = None):
+   """
+   Command ``dendrogram``: the plot of the dendrogram of a hierarchy of communities of a tab
+   (``arguments``: ``levels``, ``leaves``, ``label``, see :func:`dendrogram_signature`), in the
+   plot window (``plot`` in the header, its PNG the last part of the payload), with the drawing
+   (unchanged). The data of the plot are :func:`dendrogram_tree` of the drawn network.
+   """
+   ns = _spaces[request["tab"]]
+   arguments = {k: v.strip() for k, v in dict(request.get("arguments") or {}).items() if str(v).strip()}
+   levels = _source_value(ns, arguments["levels"]) if arguments.get("levels") else ns.get("__levels__") or []   # the dialog sends only what differs from its defaults
+   levels = [levels] if isinstance(levels, str) else list(levels)
+   extra = "".join(f", {k} = {arguments[k]}" for k in ("leaves", "label") if k in arguments)
+   tree = dendrogram_tree(_drawn(ns), levels, **{k: ast.literal_eval(arguments[k]) for k in ("leaves", "label") if k in arguments})
+   header, payload = _draw(ns, code if code is not None else "\n".join(ns["__code__"]), True)
+   ns["__plot__"] = _plot("dendrogram", {"tree": tree}, dict(PLOT_ELEMENTS["dendrogram"][1]), {}, source = {"tree": f"dendrogram_tree({_target(ns)}, {literal(levels)}{extra})"})
+   png = _render(ns["__plot__"], "png")
+   leaves = sum(1 for v in tree["y"] if v == 0)
+   shown = ([] if tree["leaves"] == "nodes" else [tree["leaves"]]) + tree["levels"]
+   header["plot"] = dict(_plot_header(ns["__plot__"], ns), text = f"Dendrogram of {len(shown)} levels ({', '.join(shown)}), {leaves:,} leaves ({'nodes' if tree['leaves'] == 'nodes' else 'groups of ' + tree['leaves']}).", warnings = [], title = f"Dendrogram of {request.get('name') or 'the network'}")
+   header["parts"] = header.get("parts", []) + [len(png)] if header.get("nodes") else [len(png)]
+   return header, payload + png
 
 
 def _layout(request):
    """
    Command ``layout``: runs the code of :func:`layout_code` (``function`` and ``arguments`` of the
    request) in the namespace of the tab, and replies with the code and the drawing.
-   ``remove_overlaps`` gets as ``size`` the diameters of the drawn nodes (:func:`size_code`).
-   The drawing keeps the default node diameter after transformations of the layout and edge
-   bundling (:data:`TRANSFORMS`).
+   ``remove_overlaps`` and ``route_edges`` get as ``size`` the diameters of the drawn nodes
+   (:func:`size_code`). The drawing keeps the default node diameter after transformations of the
+   layout and curves of the edges (:data:`TRANSFORMS`).
    """
    ns = _spaces[request["tab"]]
    function, arguments = request.get("function", "grid_layout"), dict(request.get("arguments") or {})
-   if function == "remove_overlaps" and "size" not in arguments:
+   if function in ("remove_overlaps", "route_edges") and "size" not in arguments:
       arguments["size"] = size_code(ns)
    lines = layout_code(ns, function, arguments)
    if "node_sizes(" in arguments.get("size", ""):
@@ -4427,7 +5203,8 @@ def _layout(request):
 
 def size_code(ns):
    """
-   Source code of the diameters of the drawn nodes of a tab, for ``remove_overlaps``: the default
+   Source code of the diameters of the drawn nodes of a tab, for ``remove_overlaps`` and
+   ``route_edges``: the default
    diameter (3 significant digits) times the relative size of the nodes, a number, or
    :func:`node_sizes` of the attribute of the node sizes (defined in the namespace of the tab, not
    in the library: the code panel says so in a comment, :data:`NODE_SIZES_NOTE`).
@@ -4648,7 +5425,7 @@ def _fit(request):
    code = _run(request["tab"], test)
    r = ns["null_test"]
    label = ast.literal_eval(arguments["test"])
-   ns["__plot__"] = _plot("randomization", {"distribution": r["distribution"], "observed": r["observed"], "measure": label, "mean": r["mean"], "std": r["std"], "above": r["above"], "below": r["below"], "equal": r["equal"]}, dict(PLOT_ELEMENTS["randomization"][1]), {"null": "bars"})
+   ns["__plot__"] = _plot("randomization", {"distribution": r["distribution"], "observed": r["observed"], "measure": label, "mean": r["mean"], "std": r["std"], "above": r["above"], "below": r["below"], "equal": r["equal"]}, dict(PLOT_ELEMENTS["randomization"][1]), {"null": "bars"}, source = dict({k: f"null_test[{literal(k)}]" for k in ("distribution", "observed", "mean", "std", "above", "below", "equal")}, measure = literal(label)))
    png = _render(ns["__plot__"], "png")
    header["test"] = dict(_plot_header(ns["__plot__"]), code = code, measure = label, warnings = [])
    header["parts"] = header.get("parts", []) + [len(png)] if header["nodes"] else [len(png)]
@@ -4657,7 +5434,7 @@ def _fit(request):
 
 #: Parameters shown in the parameter dialog also without **Advanced** (by name, or by function
 #: and name), besides those without a default (:func:`mark_advanced`).
-BASIC = {"name", ("node_removal", "strategy"), ("edge_removal", "strategy"), ("cascade_failures", "strategy"), ("node_removal", "quality"), ("edge_removal", "quality"), ("cascade_failures", "load"), ("cascade_failures", "capacity"), ("cascade_failures", "failures"), ("cascade_failures", "elements"), "target", "by", "all_components", "levels", "model", "measurements", "positives", "probability", ("assortativity", "attribute"), "node_label", "edge_label", "max_edges", "rules", "transform", "task", "features", "hidden", "epochs", "weight", "directed", "direction", "groups", "order", "levels", "root", "attributes", "a", "b", "seeds", "runs", "node_type", "sets", "plot", "resolution", "source", "length", "walks", "max_depth", "test", "embedding", "fraction",
+BASIC = {"name", "tree", ("community_tree", "leaves"), ("complement", "self_loops"), ("dendrogram", "leaves"), ("dendrogram", "label"), ("layer_network", "layer"), ("route_edges", "size"), ("route_edges", "margin"), ("modularity", "partition"), ("modularity", "classes"), ("modularity", "method"), ("all_pairs_shortest_path_lengths", "average_distance"), ("all_pairs_shortest_path_lengths", "heatmap"), ("node_removal", "strategy"), ("edge_removal", "strategy"), ("cascade_failures", "strategy"), ("node_removal", "quality"), ("edge_removal", "quality"), ("cascade_failures", "load"), ("cascade_failures", "capacity"), ("cascade_failures", "failures"), ("cascade_failures", "elements"), "target", "by", "all_components", "levels", "model", "measurements", "positives", "probability", ("assortativity", "attribute"), "node_label", "edge_label", "max_edges", "rules", "transform", "task", "features", "hidden", "epochs", "weight", "directed", "direction", "groups", "order", "levels", "root", "attributes", "a", "b", "seeds", "runs", "node_type", "sets", "plot", "resolution", "source", "length", "walks", "max_depth", "test", "embedding", "fraction",
          ("matrix_layout", "column_groups"), ("matrix_layout", "column_order"), ("mirror_layout", "axis"), ("spanning_tree", "kind"), ("maximally_filtered_graph", "kind"), ("triangulated_filtered_graph", "kind")}
 
 
@@ -4687,7 +5464,7 @@ def _signature_of(request):
    """
    The reply of :func:`_signature`, before :func:`mark_advanced`.
    """
-   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(MINERS) | set(HIERARCHIES) | set(STATISTICS) | set(CORRECTIONS) | set(ROBUSTNESS) | {"nestedness", "link_prediction_split"}:
+   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(MINERS) | set(HIERARCHIES) | set(STATISTICS) | set(CORRECTIONS) | set(ROBUSTNESS) | set(SYNCHRONIZATION) | {"all_pairs_shortest_path_lengths", "nestedness", "link_prediction_split", "dendrogram", "community_tree"}:
       raise ValueError(f"unknown function: {request['function']}")
    tab = request.get("tab")
    net = _drawn(_spaces[tab]) if tab in _spaces else None
@@ -4714,6 +5491,14 @@ def _signature_of(request):
       return correction_signature(request["function"], net), b""
    if request["function"] in ROBUSTNESS:
       return robustness_signature(request["function"], net), b""
+   if request["function"] == "all_pairs_shortest_path_lengths":
+      return paths_signature(net), b""
+   if request["function"] == "dendrogram":
+      return dendrogram_signature(_spaces.get(tab)), b""
+   if request["function"] == "community_tree":
+      return tree_signature(_spaces.get(tab)), b""
+   if request["function"] in SYNCHRONIZATION:
+      return synchronization_signature(request["function"], _spaces[tab]["net"] if tab in _spaces else None), b""
    if request["function"] in GNNS:
       return gnn_signature(request["function"], _spaces[tab]["net"] if tab in _spaces else None), b""
    if request["function"] in set(LINK_PREDICTIONS) | {"link_prediction_split"}:
@@ -5225,7 +6010,17 @@ def _mine(request):
 
 #: Functions of Analysis › Network statistics: global values of the network, each kept as a
 #: network attribute (:func:`statistic_code`): function to its label.
-STATISTICS = {"density": "Density", "average_degree": "Average degree", "reciprocity": "Reciprocity", "global_clustering": "Global clustering coefficient", "average_clustering": "Average clustering coefficient", "global_triangle_closure": "Global triangle closure", "assortativity": "Assortativity", "average_shortest_path_length": "Average shortest path length", "degree_centralization": "Degree centralization", "connected_components_count": "Connected components"}
+STATISTICS = {"density": "Density", "average_degree": "Average degree", "reciprocity": "Reciprocity", "global_clustering": "Global clustering coefficient", "average_clustering": "Average clustering coefficient", "global_triangle_closure": "Global triangle closure", "assortativity": "Assortativity", "average_shortest_path_length": "Average shortest path length", "diameter": "Diameter", "degree_centralization": "Degree centralization", "connected_components_count": "Connected components", "modularity": "Modularity of a node attribute", "is_uniform": "Uniform hypergraph", "is_pure": "Pure complex", "is_pseudomanifold": "Pseudomanifold", "betti_numbers": "Betti numbers", "euler_characteristic": "Euler characteristic"}
+#: Network statistics of :data:`STATISTICS` for hypergraphs only.
+HYPERGRAPH_STATISTICS = {"is_uniform"}
+#: Network statistics of :data:`STATISTICS` for simplicial complexes only.
+SIMPLICIAL_STATISTICS = {"is_pure", "is_pseudomanifold", "betti_numbers", "euler_characteristic"}
+#: Ways of making classes of a numeric node attribute for its modularity (:func:`statistic_code`),
+#: as the placements of color stops (:func:`breaks`).
+MODULARITY_METHODS = ["\"quantiles\"", "\"equal\"", "\"natural\""]
+#: Numeric node attributes with at most this many distinct values, all integers (e.g. community
+#: numbers), are communities as they are, unless stops are given.
+MODULARITY_LABELS = 50
 #: Parameters of the network statistics not shown in the dialog (memory and processes, not
 #: results; precomputed lengths).
 STATISTIC_HIDDEN = {"net", "batch_size", "n_jobs", "lengths"}
@@ -5240,6 +6035,9 @@ OPTIONS[("connected_components_count", "type")] = ["\"weak\"", "\"strong\""]
 OPTIONS[("assortativity", "kind")] = ["\"uniform\"", "\"weighted\""]
 CHOICES[("assortativity", "attribute")] = ("nodes", False)
 HINTS.update({("assortativity", "attribute"): "degree", ("average_shortest_path_length", "samples"): "all nodes", ("density", "component"): "all", ("average_shortest_path_length", "component"): "largest"})
+HINTS.update({("diameter", "component"): "largest", ("modularity", "component"): "all", ("modularity", "stops"): "from classes and method"})
+CHOICES[("modularity", "partition")] = ("nodes", False)
+OPTIONS[("modularity", "overlap")] = ["\"shen\"", "\"nicosia\""]
 
 
 def statistic_signature(function, net):
@@ -5251,17 +6049,42 @@ def statistic_signature(function, net):
    """
    params = [p for p in signature(function, net)["params"] if p["name"] not in STATISTIC_HIDDEN]
    name = "degree" if function == "degree_centralization" else function
-   params.insert(0, {"name": "network_attribute", "default": literal(name), "hint": "", "doc": "Name of the network attribute written" + (" (prefix of its values: degree_centralization, degree_entropy, …)" if function == "degree_centralization" else ""), "widget": {"kind": "string"}})
+   if function == "modularity":   # the attribute, and classes of numeric values
+      for p in params:
+         if p["name"] == "partition":
+            p.update(default = "", hint = "required", doc = "Node attribute whose values are the communities: qualitative values as they are, numeric ones cut into classes")
+      at = 1 + next(i for i, p in enumerate(params) if p["name"] == "partition")
+      params[at:at] = [{"name": "classes", "default": "4", "hint": "", "doc": "Number of classes of a numeric attribute", "widget": {"kind": "int", "min": 2}},
+                       {"name": "method", "default": MODULARITY_METHODS[0], "hint": "", "doc": "How the classes of a numeric attribute are cut: at its quantiles (classes of about as many nodes), evenly spaced from the smallest to the largest value, or at its natural breaks", "widget": {"kind": "choice", "options": MODULARITY_METHODS}},
+                       {"name": "stops", "default": "", "hint": "from classes and method", "doc": "Values separating the classes of a numeric attribute, separated by commas (e.g. 30, 40: below 30, from 30 to 40, from 40 on), instead of classes and method", "widget": {"kind": "list"}}]
+   params.insert(0, {"name": "network_attribute", "default": literal(name) if function != "modularity" else "", "hint": "modularity(attribute)" if function == "modularity" else "", "doc": "Name of the network attribute written" + (" (prefix of its values: degree_centralization, degree_entropy, …)" if function == "degree_centralization" else ""), "widget": {"kind": "string"}})
    return {"params": params}
 
 
-def statistic_code(function, arguments = None):
+def statistic_code(function, arguments = None, ns = None):
    """
    Code of a network statistic (:data:`STATISTICS`), its value kept as a network attribute (shown
    in the Network tab of the data panel), e.g.
    ``net.network_attributes["global_clustering"] = gsk.global_clustering(net)``; the degree
    centralization keeps each of its values, e.g. ``degree_centralization`` and ``degree_entropy``.
+   Statistics that take precomputed shortest path lengths get those of Analysis › Shortest paths
+   when they match (:func:`paths_argument`), e.g. ``gsk.diameter(net, lengths = paths[0])``.
 
+   The modularity of a node attribute (``partition``) takes qualitative values as communities
+   (``gsk.modularity(net, "city")``), as well as numeric ones with at most
+   :data:`MODULARITY_LABELS` distinct integers (e.g. community numbers), and cuts other numeric
+   ones into classes: at ``stops``, or at the
+   values that make ``classes`` classes with ``method`` (:func:`breaks`), written in the code;
+   missing values make a class of their own, e.g.
+
+   .. code-block:: python
+
+      x = np.concatenate([v.cpu().numpy() for v in net.get_node_attribute("age", None)])   # values of age
+      classes = np.where(np.isnan(x), -1, np.digitize(x, [30.0, 40.0]))   # classes of age: below 30, from 30 to 40, from 40 on; missing values apart
+      net.network_attributes["modularity(age)"] = gsk.modularity(net, classes)   # a network attribute
+
+   :param ns: Namespace of the tab (for the lengths, the numeric values and the imports), or
+      ``None``.
    :return: Lines of code, and the names of the network attributes.
    """
    if function not in STATISTICS:
@@ -5272,25 +6095,65 @@ def statistic_code(function, arguments = None):
          compile(v, k, "eval")
       except SyntaxError:
          raise ValueError(f"{k}: not a Python value: {v}") from None
+   if function == "modularity":
+      return modularity_code(arguments, ns)
    name = ast.literal_eval(arguments.pop("network_attribute", literal("degree" if function == "degree_centralization" else function)))
-   call = f"gsk.{function}(net" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")"
+   call = f"gsk.{function}(net" + "".join(f", {k} = {v}" for k, v in arguments.items()) + (paths_argument(ns, function, arguments) if ns is not None else "") + ")"
    if function == "degree_centralization":
       return [f"net.network_attributes.update({{f\"{name}_{{k}}\": v for k, v in {call}.items()}})   # network attributes"], None
    return [f"net.network_attributes[{literal(name)}] = {call}   # a network attribute"], name
+
+
+def modularity_code(arguments, ns):
+   """
+   Code of the modularity of a node attribute (see :func:`statistic_code`).
+   """
+   arguments = dict(arguments)
+   attribute = ast.literal_eval(arguments.pop("partition", "\"\"") or "\"\"")
+   if not attribute:
+      raise ValueError("partition: choose the node attribute whose values are the communities")
+   k = int(arguments.pop("classes", "4"))
+   method = ast.literal_eval(arguments.pop("method", MODULARITY_METHODS[0]))
+   stops = arguments.pop("stops", "").strip()
+   name = ast.literal_eval(arguments.pop("network_attribute", "\"\"") or "\"\"") or f"modularity({attribute})"
+   extra = "".join(f", {a} = {v}" for a, v in arguments.items())
+   net = _drawn(ns) if ns is not None else None
+   values = node_values(net, attribute) if net is not None and attribute in net.node_attributes else None
+   distinct = np.unique(values[~np.isnan(values)]) if values is not None else None
+   if values is None or not stops and len(distinct) <= MODULARITY_LABELS and np.all(distinct == np.round(distinct)):   # qualitative, or a few integers (community labels): its values
+      return [f"net.network_attributes[{literal(name)}] = gsk.modularity(net, {literal(attribute)}{extra})   # a network attribute"], name
+   if stops:
+      cuts = sorted(float(v) for v in ast.literal_eval(f"[{stops.strip('()[]')}]"))
+   else:
+      if k < 2:
+         raise ValueError("classes: at least 2")
+      cuts = breaks(values, method, k + 1)[1:-1]
+   cuts = list(dict.fromkeys(float(f"{c:.6g}") for c in cuts))
+   if not cuts:
+      raise ValueError("stops: give at least one value separating the classes")
+   parts = [f"below {text(cuts[0])}"] + [f"from {text(a)} to {text(b)}" for a, b in zip(cuts[:-1], cuts[1:])] + [f"from {text(cuts[-1])} on"]
+   lines = [] if any(l.startswith("import numpy as np") for l in ns["__code__"]) else ["import numpy as np"]
+   return lines + [f"x = np.concatenate([v.cpu().numpy() for v in net.get_node_attribute({literal(attribute)}, None)])   # values of {attribute}",
+                   f"classes = np.where(np.isnan(x), -1, np.digitize(x, {cuts!r}))   # classes of {attribute}: {', '.join(parts)}; missing values apart",
+                   f"net.network_attributes[{literal(name)}] = gsk.modularity(net, classes{extra})   # a network attribute"], name
 
 
 def all_statistics(net):
    """
    The network statistics of Analysis › Network statistics › All of them, with their defaults,
    that apply to ``net``: reciprocity for directed networks, triangle closure for hypergraphs and
-   simplicial complexes, the average shortest path length sampled from :data:`EXACT_PATHS`
-   sources in larger networks.
+   simplicial complexes, uniformity for hypergraphs (:data:`HYPERGRAPH_STATISTICS`), purity,
+   pseudomanifold, Betti numbers and Euler characteristic for complexes
+   (:data:`SIMPLICIAL_STATISTICS`), and for those only the statistics the library computes for them
+   (the others refuse them), the average shortest path length sampled from :data:`EXACT_PATHS`
+   sources in larger networks, the diameter of directed networks only up to that many nodes
+   (undirected ones need a handful of searches), not the modularity (it needs an attribute).
 
    :return: List of ``(function, arguments)``.
    """
    chosen = []
    for f in STATISTICS:
-      if f == "reciprocity" and not net.directed or f == "global_triangle_closure" and net.higher_order is None:
+      if f == "reciprocity" and not net.directed or f == "global_triangle_closure" and net.higher_order is None or f == "modularity" or f == "diameter" and net.directed and net.number_of_nodes() > EXACT_PATHS or f in HYPERGRAPH_STATISTICS and net.higher_order != "hypergraph" or f in SIMPLICIAL_STATISTICS and net.higher_order != "simplicial" or net.higher_order is not None and not getattr(gsk, f)._higher_order[net.higher_order]:
          continue
       args = {"samples": str(EXACT_PATHS)} if f == "average_shortest_path_length" and net.number_of_nodes() > EXACT_PATHS else {}
       chosen.append((f, args))
@@ -5309,7 +6172,7 @@ def _statistics(request):
    jobs = all_statistics(net) if request["function"] == "all" else [(request["function"], request.get("arguments") or {})]
    code, done, skipped = None, [], []
    for f, args in jobs:
-      lines, _ = statistic_code(f, args)
+      lines, _ = statistic_code(f, args, ns)
       before = dict(ns["net"].network_attributes)
       try:
          code = _run(request["tab"], lines)
@@ -5370,7 +6233,8 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
    import matplotlib
    matplotlib.use("Agg")
    from matplotlib.figure import Figure
-   from matplotlib.collections import EllipseCollection, LineCollection, PolyCollection, PathCollection
+   from matplotlib.collections import EllipseCollection, LineCollection, PolyCollection, PathCollection, PatchCollection
+   from matplotlib.patches import Wedge
    from matplotlib.path import Path
    from matplotlib import patheffects
    from matplotlib.colors import to_rgb
@@ -5380,7 +6244,7 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
    if "pos_x" not in draw.node_attributes and matrix is None or draw.higher_order is not None:
       raise ValueError("the network has no drawing yet")
    style = ns["__style__"]
-   bends = ns.get("bends") if last == "bundle_edges" and not _positioned(ns) else None
+   bends = ns.get("bends") if last in CURVES and not _positioned(ns) else None
    d = drawing(draw, ns.get("__size__"), style, bends = bends, matrix = matrix)
    V = VIEW_SIZES
    W, H = (float(v) for v in view["size"])
@@ -5452,6 +6316,17 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
    if len(N):   # nodes
       x, y = screen(N[:, 3], N[:, 7])
       ax.add_collection(EllipseCollection(2 * radius * zoom, 2 * radius * zoom, np.zeros(len(N)), units = "xy", offsets = np.column_stack([x, y]), offset_transform = ax.transData, facecolors = N[:, 8:12], edgecolors = "none", zorder = 3))
+      offsets, counts, table = chart_slices(draw, style.get("node_chart")) if matrix is None else (None, None, [])
+      if len(table):   # node charts: wedges over the discs, from the top, clockwise on the page (y down)
+         wedges, faces = [], []
+         for i in np.flatnonzero(counts):
+            a = 0.
+            for k in range(int(offsets[i]), int(offsets[i] + counts[i])):
+               b = float(table[k, 0])
+               wedges.append(Wedge((x[i], y[i]), radius[i] * zoom, -90. + 360. * a, -90. + 360. * b))
+               faces.append((*table[k, 1:], N[i, 11]))
+               a = b
+         ax.add_collection(PatchCollection(wedges, facecolors = faces, edgecolors = "none", zorder = 3))
       texts = node_labels(draw, style).decode("utf-8").split("\x1f") if matrix is None else []
       if len(texts) == len(N):   # labels, centered, as in the panel
          heights = np.frombuffer(label_sizes(draw, style, size), dtype = np.float32) * zoom / spread
@@ -5754,6 +6629,8 @@ def robustness_plot(tables, x, y, colors = None, options = None, styles = None, 
 
 
 PLOT_ELEMENTS["robustness"] = (lambda **kw: robustness_plot(**kw), {}, {})
+PLOT_ELEMENTS["dendrogram"] = (lambda **kw: dendrogram_plot(**kw), {"tree": "#377eb8", "leaves": "#e41a1c"}, {"tree": "Tree", "leaves": "Leaves"})
+PLOT_OPTIONS["dendrogram"] = {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}
 PLOT_OPTIONS["robustness"] = {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None}
 #: Labels of the qualities of the robustness functions, for the axes of their plots.
 ROBUSTNESS_QUALITIES = {"lcc": "fraction of the nodes in the largest component", "apl": "average shortest path length"}
@@ -5827,10 +6704,177 @@ def _robustness_plot(request):
       quality = qualities.pop()
       what = {ROBUSTNESS[info["models"][n]["function"]][1] for n in names}
       x, y, xlabel, ylabel = "fraction", quality, f"fraction of the {what.pop()} removed" if len(what) == 1 else "fraction removed", ROBUSTNESS_QUALITIES[quality]
-   ns["__plot__"] = _plot("robustness", {"tables": runs, "x": x, "y": y}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(runs)}, {n: "lines" for n in runs}, {n: n for n in runs}, xlabel = xlabel, ylabel = ylabel)
+   ns["__plot__"] = _plot("robustness", {"tables": runs, "x": x, "y": y}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(runs)}, {n: "lines" for n in runs}, {n: n for n in runs}, source = {"tables": "{" + ", ".join(f"{literal(n)}: robustness[{literal(n)}]" for n in runs) + "}", "x": repr(x), "y": repr(y)}, xlabel = xlabel, ylabel = ylabel)
    values = ns["net"].network_attributes
    text_ = "; ".join(f"{n} = {text(values[n])}" for n in names if n in values)
    return dict(_plot_header(ns["__plot__"]), text = text_, warnings = []), _render(ns["__plot__"], "png")
+
+
+#: Functions of Simulation › Synchronization: function to its label (also the start of the names
+#: of its runs).
+SYNCHRONIZATION = {"kuramoto_model": "Kuramoto", "simplicial_kuramoto_model": "Simplicial Kuramoto", "node_link_kuramoto_model": "Node-link Kuramoto"}
+#: Parameters of the synchronization models not in their dialog: the coupling strengths are asked
+#: as a range (:func:`synchronization_signature`); initial phases, final phases and progress are
+#: left to the library.
+SYNCHRONIZATION_HIDDEN = {"net", "sigma", "theta", "phi", "phases", "progress"}
+LISTS.update({(f, "omega") for f in SYNCHRONIZATION} | {("node_link_kuramoto_model", "link_omega")})
+OPTIONS[("node_link_kuramoto_model", "model")] = ["\"nl\"", "\"ln\"", "\"lnl\""]
+INTEGERS.update({(f, "runs"): 1 for f in SYNCHRONIZATION})
+BASIC.update({(f, n) for f in SYNCHRONIZATION for n in ("sigma_from", "sigma_to", "steps", "backward", "runs")} | {("simplicial_kuramoto_model", "k"), ("simplicial_kuramoto_model", "explosive"), ("node_link_kuramoto_model", "model")})
+
+
+def synchronization_signature(function, net):
+   """
+   Parameters of the dialog of a synchronization model (:data:`SYNCHRONIZATION`), as
+   :func:`signature` without :data:`SYNCHRONIZATION_HIDDEN`: first the name of the run, then the
+   coupling strengths ``sigma`` as a range (``sigma_from``, ``sigma_to``, ``steps``, evenly
+   spaced) and ``backward`` (the range followed up then down, adiabatically: the hysteresis of
+   an explosive transition); the seed is 1 by default.
+   """
+   params = [p for p in signature(function, net)["params"] if p["name"] not in SYNCHRONIZATION_HIDDEN]
+   for p in params:
+      if p["name"] == "seed":
+         p.update(default = "1")
+   params[0:0] = [{"name": "name", "default": "", "hint": "required", "doc": "Name of the run: its table is synchronization[name]", "widget": {"kind": "string"}},
+                  {"name": "sigma_from", "default": "0.0", "hint": "", "doc": "Smallest coupling strength", "widget": {"kind": "number", "min": 0., "step": 0.05}},
+                  {"name": "sigma_to", "default": "1.0", "hint": "", "doc": "Largest coupling strength", "widget": {"kind": "number", "min": 0., "step": 0.05}},
+                  {"name": "steps", "default": "21", "hint": "", "doc": "Number of coupling strengths, evenly spaced from the smallest to the largest", "widget": {"kind": "int", "min": 2}},
+                  {"name": "backward", "default": "False", "hint": "", "doc": "Follow the strengths up then down again, each starting from the phases of the previous one (adiabatic): the two branches of the curve show the hysteresis of an explosive transition", "widget": {"kind": "bool"}}]
+   return {"params": params}
+
+
+def synchronization_code(ns, function, arguments):
+   """
+   Code of a run of Simulation › Synchronization: a synchronization model of the library with
+   coupling strengths evenly spaced in a range (and back again with ``backward``, adiabatically),
+   its table (order parameters by strength and run) kept in the dictionary ``synchronization`` by
+   name, e.g. ``synchronization["Kuramoto 1"] = gsk.kuramoto_model(net, np.linspace(0.0, 1.0,
+   21), runs = 10, seed = 1)``.
+
+   :return: Lines of code, and the name of the run.
+   """
+   if function not in SYNCHRONIZATION:
+      raise ValueError(f"unknown synchronization model: {function}")
+   arguments = {k: str(v).strip() for k, v in dict(arguments or {}).items() if str(v).strip()}
+   for k in ("omega", "link_omega"):   # (mean, sd): typed as two numbers
+      if k in arguments and not arguments[k].startswith(("(", "[")):
+         arguments[k] = f"({arguments[k]})"
+   for k, v in arguments.items():
+      try:
+         compile(v, k, "eval")
+      except SyntaxError:
+         raise ValueError(f"{k}: not a Python value: {v}") from None
+   name = str(ast.literal_eval(arguments.pop("name", "\"\"")))
+   if not name:
+      raise ValueError("name: give the run a name")
+   lo, hi = float(arguments.pop("sigma_from", "0.0")), float(arguments.pop("sigma_to", "1.0"))
+   steps = int(arguments.pop("steps", "21"))
+   backward = arguments.pop("backward", "False") == "True"
+   arguments.setdefault("seed", "1")
+   if backward:
+      arguments["adiabatic"] = "True"
+   sigma = f"np.linspace({lo!r}, {hi!r}, {steps})"
+   lines = [] if any(l.startswith("import numpy as np") for l in ns["__code__"]) else ["import numpy as np"]
+   if not (any(l.startswith("synchronization = {}") for l in ns["__code__"]) and isinstance(ns.get("synchronization"), dict)):
+      lines.append("synchronization = {}   # runs of Simulation › Synchronization, by name")
+   if backward:
+      lines.append(f"up = {sigma}   # the strengths up, then down again")
+      sigma = "np.r_[up, up[::-1]]"
+   lines.append(f"synchronization[{literal(name)}] = gsk.{function}({_target(ns) if ns['net'].higher_order is None else 'net'}, {sigma}" + "".join(f", {k} = {v}" for k, v in arguments.items()) + ")")
+   return lines, name
+
+
+def synchronization_curves(results, names):
+   """
+   Curves of the synchronization dialog: for every run (a table of a synchronization model) and
+   order parameter (``order``, or ``order_nodes``, ``order_down``, ``order_up``; those without
+   values left out), the mean over the runs of the model at every coupling strength, with the
+   mean plus and minus one standard deviation as a band; the strengths followed down again
+   (``backward``) make a second branch. A function of the interface (see :func:`plot_figure`).
+
+   :param results: Dictionary from run name to its table.
+   :param names: The runs plotted.
+   :return: Dictionary from curve name (the run, the order parameter, ``down``) to a table with
+      ``sigma``, ``order``, ``order_low`` and ``order_high``.
+   """
+   import pandas as pd
+   curves = {}
+   for name in names:
+      df = results[name]
+      runs = int(df["run"].nunique())
+      step = np.arange(len(df)) // max(runs, 1)   # rows: strength by strength, the runs of each together
+      sig = df["sigma"].to_numpy()[::max(runs, 1)]
+      turn = np.flatnonzero(np.diff(sig) <= 0)   # the strengths go down again (from the top one, repeated)
+      branch = (step > turn[0]).astype(int) if len(turn) else np.zeros(len(df), dtype = int)
+      columns = [c for c in df.columns if c.startswith("order") and df[c].notna().any()]
+      for c in columns:
+         for b in np.unique(branch):
+            part = df[branch == b].groupby(step[branch == b], sort = True)
+            mean, sd = part[c].mean(), part[c].std().fillna(0.)
+            key = name + ("" if len(columns) == 1 else f", {c}") + (", down" if b else "")
+            curves[key] = pd.DataFrame({"sigma": part["sigma"].first().to_numpy(), "order": mean.to_numpy(), "order_low": (mean - sd).to_numpy(), "order_high": (mean + sd).to_numpy()})
+   return curves
+
+
+def synchronization_runs(ns):
+   """
+   The runs of Simulation › Synchronization of a tab (the dialog lists them): ``tables``, their
+   names in order; ``models``, run name to its ``function`` and ``arguments`` (for Copy…).
+   """
+   meta = ns.setdefault("__synchronization__", {})
+   runs = ns.get("synchronization") if isinstance(ns.get("synchronization"), dict) else {}
+   names = [n for n in runs if n in meta]
+   return {"tables": names, "models": {n: meta[n] for n in names}}
+
+
+def _synchronize(request):
+   """
+   Command ``synchronize``: runs :func:`synchronization_code` in a tab and replies with the code,
+   the drawing (unchanged), the runs (:func:`synchronization_runs`) and ``result``: the order
+   parameter at the smallest and the largest coupling strength.
+   """
+   ns = _spaces[request["tab"]]
+   function = request["function"]
+   arguments = dict(request.get("arguments") or {})
+   lines, name = synchronization_code(ns, function, arguments)
+   code = _run(request["tab"], lines)
+   arguments.pop("name", None)
+   ns.setdefault("__synchronization__", {})[name] = {"function": function, "arguments": arguments}
+   header, payload = _draw(ns, code, True)
+   df = ns["synchronization"][name]
+   c = next(c for c in df.columns if c.startswith("order"))
+   mean = df.groupby("sigma", sort = False)[c].mean()
+   header["result"] = f"{name}: order parameter {mean.iloc[0]:.3g} at sigma = {mean.index[0]:.3g}, {mean.max():.3g} at most"
+   header.update(synchronization_runs(ns))
+   return header, payload
+
+
+def _synchronization_runs(request):
+   """
+   Command ``synchronization_runs``: the runs of the synchronization dialog of a tab
+   (:func:`synchronization_runs`).
+   """
+   return synchronization_runs(_spaces[request["tab"]]), b""
+
+
+def _synchronization_plot(request):
+   """
+   Command ``synchronization_plot``: the transition curves of the runs ``names`` of a tab (order
+   parameter against coupling strength, :func:`synchronization_curves`, drawn as
+   :func:`robustness_plot` draws its curves), with the PNG image as payload.
+   """
+   ns = _spaces[request["tab"]]
+   info = synchronization_runs(ns)
+   names = [n for n in request.get("names") or [] if n in info["models"]]
+   if not names:
+      raise ValueError("check the runs to plot")
+   curves = synchronization_curves(ns["synchronization"], names)
+   ns["__plot__"] = _plot("synchronization", {"tables": curves, "x": "sigma", "y": "order"}, {n: PLOT_COLORS[i % len(PLOT_COLORS)] for i, n in enumerate(curves)}, {n: "lines" for n in curves}, {n: n for n in curves}, source = {"tables": f"synchronization_curves(synchronization, {names!r})", "x": "\"sigma\"", "y": "\"order\""})
+   return dict(_plot_header(ns["__plot__"]), text = "Order parameter R against the coupling strength sigma: mean over the runs, the band one standard deviation around it.", warnings = []), _render(ns["__plot__"], "png")
+
+
+PLOT_ELEMENTS["synchronization"] = (lambda **kw: robustness_plot(**kw), {}, {})
+PLOT_OPTIONS["synchronization"] = {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "coupling strength sigma", "ylabel": "order parameter R", "xmin": None, "xmax": None, "ymin": None, "ymax": None}
 
 
 #: Most suggestions of :func:`_suggest`.
@@ -5942,18 +6986,20 @@ def _redraw(request):
 
 
 #: Commands understood by the worker.
-COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot}
+COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot, "paths": _paths, "synchronize": _synchronize, "dendrogram": _dendrogram, "community_tree": _community_tree, "synchronization_runs": _synchronization_runs, "synchronization_plot": _synchronization_plot}
 
 #: Functions of the Layout menu: layouts of node-link diagrams, the matrix layout (drawn as the
-#: adjacency matrix), transformations of layouts, and edge bundling.
-LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "matrix_layout", "umap_layout", "mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges"}
+#: adjacency matrix), transformations of layouts, edge bundling and edge routing.
+LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "matrix_layout", "umap_layout", "mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges", "route_edges"}
 
-#: Functions of :data:`LAYOUTS` transforming the current layout (or bundling its edges): the drawn
-#: nodes keep their size, and ``remove_overlaps`` gets it as ``size`` (unless given), to remove
-#: the overlaps on screen.
-TRANSFORMS = {"mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges"}
-#: Start of the line of code bundling the edges: the curves are stored in ``bends``.
-BENDS = "bends = gsk.bundle_edges"
+#: Functions of :data:`LAYOUTS` transforming the current layout (or curving its edges): the drawn
+#: nodes keep their size, and ``remove_overlaps`` and ``route_edges`` get it as ``size`` (unless
+#: given), to remove the overlaps on screen and to route the edges around the drawn nodes.
+TRANSFORMS = {"mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges", "route_edges"}
+#: Functions of :data:`LAYOUTS` computing curves of the edges, drawn instead of straight edges.
+CURVES = {"bundle_edges", "route_edges"}
+#: Start of the line of code computing curves of the edges: the curves are stored in ``bends``.
+BENDS = "bends = gsk."
 #: Comment before code using :func:`node_sizes`, which is defined by the interface.
 NODE_SIZES_NOTE = "# node_sizes: relative sizes of the drawn nodes, a function of the graphical interface"
 #: Comment before the first code moving nodes with :func:`move_nodes`, defined by the interface.
@@ -5964,10 +7010,14 @@ COMMUNITIES = {"bigclam_communities", "block_model_communities", "demon_communit
 #: Functions of Analysis › Centrality: name of the attribute they write by default, and what
 #: they give: ``"nodes"`` (a value per node), ``"edges"`` (a value per edge) or ``"hits"`` (hub
 #: and authority scores, written as ``<attribute>_hub`` and ``<attribute>_authority``).
-CENTRALITIES = {"alpha_centrality": ("alpha", "nodes"), "betweenness_centrality": ("betweenness", "nodes"), "closeness_centrality": ("closeness", "nodes"), "degree": ("degree", "nodes"), "edge_betweenness_centrality": ("edge_betweenness", "edges"), "eigenvector_centrality": ("eigenvector", "nodes"), "flow_centrality": ("flow", "nodes"), "harmonic_centrality": ("harmonic", "nodes"), "hits": ("hits", "hits"), "katz_centrality": ("katz", "nodes"), "k_core_centrality": ("coreness", "nodes"), "pagerank": ("pagerank", "nodes"), "reach_centrality": ("reach", "nodes"), "springrank": ("springrank", "nodes"), "discrete_core_periphery": ("core_discrete", "core"), "continuous_core_periphery": ("core_continuous", "core"), "rombach_core_periphery": ("core_rombach", "core")}
+CENTRALITIES = {"alpha_centrality": ("alpha", "nodes"), "betweenness_centrality": ("betweenness", "nodes"), "closeness_centrality": ("closeness", "nodes"), "degree": ("degree", "nodes"), "edge_betweenness_centrality": ("edge_betweenness", "edges"), "eigenvector_centrality": ("eigenvector", "nodes"), "flow_centrality": ("flow", "nodes"), "harmonic_centrality": ("harmonic", "nodes"), "hits": ("hits", "hits"), "katz_centrality": ("katz", "nodes"), "k_core_centrality": ("coreness", "nodes"), "pagerank": ("pagerank", "nodes"), "reach_centrality": ("reach", "nodes"), "springrank": ("springrank", "nodes"), "discrete_core_periphery": ("core_discrete", "core"), "continuous_core_periphery": ("core_continuous", "core"), "rombach_core_periphery": ("core_rombach", "core"), "hyperedge_size": ("size", "hyperedges"), "local_triangle_closure": ("triangle_closure", "higher"), "two_node_clustering": ("two_node_clustering", "higher"), "generalized_degree": ("generalized_degree", "higher"), "node_edge_centrality": ("node_edge", "node_edge")}
+#: Kinds of :data:`CENTRALITIES` of hypergraphs and simplicial complexes only, computed on the
+#: network and written on the incidence network the interface draws (:func:`incidence_values`):
+#: values of the nodes, of the hyperedges, or both (the node and edge eigenvector centrality).
+HIGHER_KINDS = {"higher", "hyperedges", "node_edge"}
 #: Parameters of the centralities not shown in the parameter dialog: the interface computes them
 #: for all components, with the default numerical settings.
-CENTRALITY_HIDDEN = {"net", "component", "node", "distribution", "lengths", "batch_size", "n_jobs", "tol", "max_iter", "personalization", "progress"}
+CENTRALITY_HIDDEN = {"net", "component", "node", "distribution", "lengths", "batch_size", "n_jobs", "tol", "max_iter", "personalization", "progress", "hyperedge", "hyperedges", "simplex", "m"}
 #: Functions of the Generators menu: the generators of synthetic networks of the library (not
 #: :func:`~graphoskop.graphrnn`, which learns from a network).
 GENERATORS = {"chain_graph", "gnm_random_graph", "gnp_random_graph", "configuration_model", "kronecker_graph", "geometric_graph", "caveman_graph", "watts_strogatz_graph", "barabasi_albert_graph", "link_selection_graph", "copying_graph", "holme_kim_graph", "planted_partition_graph", "stochastic_block_model", "degree_corrected_block_model", "mixed_membership_block_model", "nested_block_model", "girvan_newman_graph", "lfr_benchmark_graph", "growing_manifold", "simplicial_configuration_model", "hypergraph_configuration_model"}

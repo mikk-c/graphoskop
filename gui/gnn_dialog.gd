@@ -24,6 +24,8 @@ const MODELS := [
    ["GAT", "gat"],
    ["GATv2", "gatv2"],
    ["DiffPool", "diffpool"],
+   ["MLP", "mlp"],   # the baseline without the network
+   ["HGNN", "hgnn"],   # hypergraphs and simplicial complexes
 ]
 ## Plots of the Plot menu, in its order.
 const KINDS := ["roc", "pr", "scatter", "loss"]

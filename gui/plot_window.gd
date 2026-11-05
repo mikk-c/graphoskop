@@ -21,15 +21,20 @@ extends AcceptDialog
 ## PDF… write the plot as shown to a file (PNG at 200 dpi); plots of a matrix (pairwise node
 ## vector analyses) also have Save table…, which writes its values (tab separated).
 ##
-## The colors, styles, axes and font size show only with [b]Advanced[/b] on (off by default, see
+## With [b]Gradient[/b] (along x or along y), every bar, point and line segment of the data series
+## gets the color of its x or y value along a ColorBrewer palette (sequential or diverging, in
+## reverse with Reverse), instead of the color of its series (not for heatmaps).
+##
+## The colors, styles, axes, gradient and font size show only with [b]Advanced[/b] on (off by default, see
 ## [method AppSettings.advanced]); the plot, its text, its Plot menu and the Save buttons always.
 
 ## Emitted with the path chosen to save the plot of the network of tab [param tab].
 signal save_requested(tab: int, path: String)
 ## Emitted (after a short pause) with the colors of the elements of the plot (key to "#rrggbb"),
 ## the styles of its data series (key to "lines", "points", "linespoints" or "bars") and its
-## options (xlog, ylog, font_size, xlabel, ylabel, xmin, xmax, ymin, ymax, kind for
-## distributions, and zlog, zlabel, zmin, zmax for heatmaps).
+## options (xlog, ylog, font_size, xlabel, ylabel, xmin, xmax, ymin, ymax, gradient (axis, palette,
+## reversed, or null), kind for distributions and orders, and zlog, zlabel, zmin, zmax for
+## heatmaps).
 signal changed(tab: int, colors: Dictionary, styles: Dictionary, options: Dictionary)
 
 ## Labels of the styles of data series, as in the worker ([code]PLOT_STYLES[/code]).
@@ -45,6 +50,11 @@ var _file := "plot"
 ## Whether the plot is a heatmap (it has a color scale row).
 var _heatmap := false
 var _advanced := CheckButton.new()
+## Row of the gradient: none, along x or along y; the palette; reversed.
+var _gradient_row := HBoxContainer.new()
+var _gradient := OptionButton.new()
+var _palette := OptionButton.new()
+var _reverse := CheckBox.new()
 
 
 func _ready() -> void:
@@ -70,6 +80,7 @@ func _ready() -> void:
    for e in [%XLabel, %YLabel, %XMin, %XMax, %YMin, %YMax, %ZLabel, %ZMin, %ZMax]:
       e.text_changed.connect(func(_t): %Debounce.start())
    %FontSize.value_changed.connect(func(_v): %Debounce.start())
+   _gradient_menus()
    %Kind.item_selected.connect(func(i):
       for key in _menus:   # the usual style of the kind
          _styles[key] = _kinds[i][2]
@@ -90,6 +101,8 @@ func _emit() -> void:
          options[pair[0]] = float(t) if not t.is_empty() else null
    if not _kinds.is_empty():
       options.kind = _kinds[%Kind.selected][0]
+   if not _heatmap:
+      options.gradient = null if _gradient.selected == 0 else {"axis": "x" if _gradient.selected == 1 else "y", "palette": _palette.get_item_text(_palette.selected), "reversed": _reverse.button_pressed}
    changed.emit(_tab, _colors.duplicate(), _styles.duplicate(), options)
 
 
@@ -156,6 +169,13 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
       var v = options.get(pair[0])
       pair[1].text = "" if v == null else str(v)
    %FontSize.set_value_no_signal(options.get("font_size", 14))
+   var g = options.get("gradient")
+   _gradient.select(0 if g == null else (1 if g.axis == "x" else 2))
+   if g != null:
+      for i in _palette.item_count:
+         if _palette.get_item_text(i) == g.palette:
+            _palette.select(i)
+      _reverse.set_pressed_no_signal(g.get("reversed", false))
    %Debounce.stop()
    %Verdict.text = verdict
    %Warnings.text = "\n".join(warnings)
@@ -171,6 +191,9 @@ func _show_rows() -> void:
    for row in [%Colors, $Box/XAxis, $Box/YAxis, $Box/Buttons/FontLabel, %FontSize]:
       row.visible = on
    %ZAxis.visible = on and _heatmap
+   _gradient_row.visible = on and not _heatmap
+   _palette.disabled = _gradient.selected == 0
+   _reverse.disabled = _gradient.selected == 0
    size = Vector2i.ZERO
    reset_size()
 
@@ -193,3 +216,40 @@ func _ask(format: String) -> void:
    %SaveDialog.current_dir = AppSettings.folder("plots")
    %SaveDialog.current_file = "%s.%s" % [_file, format]
    %SaveDialog.popup_centered_ratio(0.6)
+
+
+## Builds the row of the gradient, under the axes: Gradient (none, along x, along y), the
+## sequential and diverging ColorBrewer palettes (with their colors), Reverse.
+func _gradient_menus() -> void:
+   var label := Label.new()
+   label.text = "Gradient"
+   label.custom_minimum_size = Vector2(50, 0)
+   _gradient_row.add_child(label)
+   for t in ["none", "along x", "along y"]:
+      _gradient.add_item(t)
+   _gradient.select(0)
+   _gradient.tooltip_text = "Colors every bar, point and line segment by its x or y value, along the palette"
+   _gradient_row.add_child(_gradient)
+   var palettes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json"))
+   for kind in ["sequential", "diverging"]:
+      for name in palettes[kind]:
+         var sizes: Array = (palettes[kind][name] as Dictionary).keys().map(func(k): return int(k))
+         sizes.sort()
+         var colors: Array = palettes[kind][name][str(sizes.back())]
+         var image := Image.create(8 * colors.size(), 12, false, Image.FORMAT_RGB8)
+         for i in colors.size():
+            image.fill_rect(Rect2i(8 * i, 0, 8, 12), Color(colors[i]))
+         _palette.add_icon_item(ImageTexture.create_from_image(image), name)
+   _palette.fit_to_longest_item = false
+   _palette.select(maxi(range(_palette.item_count).map(func(i): return _palette.get_item_text(i)).find("YlOrRd"), 0))
+   _gradient_row.add_child(_palette)
+   _reverse.text = "Reverse"
+   _gradient_row.add_child(_reverse)
+   $Box.add_child(_gradient_row)
+   $Box.move_child(_gradient_row, %ZAxis.get_index() + 1)
+   _gradient.item_selected.connect(func(i):
+      _palette.disabled = i == 0
+      _reverse.disabled = i == 0
+      %Debounce.start())
+   _palette.item_selected.connect(func(_i): %Debounce.start())
+   _reverse.toggled.connect(func(_on): %Debounce.start())

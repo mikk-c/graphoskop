@@ -103,6 +103,35 @@ join the same two nodes. Attributes come from the first network, completed by th
 
 .. autofunction:: graphoskop.network_union
 
+Line graphs
+-----------
+
+:func:`line_graph` makes the edges of a network the nodes of a new one, joined when the edges share
+a node (in directed networks, when one edge ends where the other starts). Hypergraphs and
+simplicial complexes give the line graph of their hyperedges or facets, joined when they share
+nodes; the number of shared nodes is the edge attribute ``shared``.
+
+.. code-block:: python
+
+   lg = gsk.line_graph(net)                                # nodes: the edges of net, with source and target
+   gsk.degree(lg)                                          # how many edges each edge touches
+
+.. autofunction:: graphoskop.line_graph
+
+Complement
+----------
+
+:func:`complement` keeps the nodes and inverts the edges: the pairs of nodes that are joined are
+not, and those that are not are (in bipartite networks, the pairs of nodes of different types).
+The complement of a sparse network is dense, so it is refused beyond ``max_edges`` edges.
+
+.. code-block:: python
+
+   comp = gsk.complement(net)
+   gsk.complement(net, self_loops = True)                  # every node also gets a self loop
+
+.. autofunction:: graphoskop.complement
+
 Higher-order networks
 ---------------------
 

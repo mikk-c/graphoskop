@@ -51,6 +51,25 @@ does), which plotting libraries draw exactly.
 
 .. autofunction:: graphoskop.bundle_edges
 
+Edge routing
+------------
+
+A straight edge that passes over a node it does not connect suggests an edge that does not exist
+(a "fake edge"). :func:`~graphoskop.route_edges`, an edge router (as the organic edge router of
+Cytoscape), bends such edges around the nodes, given their drawn diameters, and leaves the other
+edges straight; it returns curves in the format of :func:`~graphoskop.bundle_edges`, and does not
+move the nodes.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv")
+   gsk.force_directed_layout(net)
+   bends = gsk.route_edges(net, size = 0.2, margin = 0.05)
+
+.. autofunction:: graphoskop.route_edges
+
 Force-directed layouts
 ----------------------
 

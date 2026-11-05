@@ -343,6 +343,11 @@ visible = false
 unique_name_in_owner = true
 visible = false
 
+[node name="Synchronization" parent="." instance=ExtResource("17_robustness")]
+unique_name_in_owner = true
+visible = false
+title = "Synchronization"
+
 [node name="Links" parent="." instance=ExtResource("14_links")]
 unique_name_in_owner = true
 visible = false

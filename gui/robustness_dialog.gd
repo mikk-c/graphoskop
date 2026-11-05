@@ -1,6 +1,8 @@
 extends AcceptDialog
-## Simulation › Robustness: runs the robustness functions of the library on the network of the
-## current tab and compares them, as the epidemics dialog does for epidemic models. Add run opens
+## A dialog of runs, as the epidemics dialog: Simulation › Robustness (the default functions) and
+## Simulation › Synchronization (the functions given by [method set_functions]). For robustness:
+## runs the robustness functions of the library on the network of the current tab and compares
+## them, as the epidemics dialog does for epidemic models. Add run opens
 ## the parameter dialog of node removal, edge removal or cascading failures (the name of the run,
 ## by default the function and its strategy, e.g. node_removal(degree)); every run stores its
 ## table in the dictionary [code]robustness[/code] and its global value as a network attribute.
@@ -28,12 +30,34 @@ var _names := []
 var _unchecked := {}
 
 
+## Functions of the Add run menu (label and function of the library).
+var functions := FUNCTIONS
+
+
 func _ready() -> void:
-   var popup: PopupMenu = %Add.get_popup()
-   for i in FUNCTIONS.size():
-      popup.add_item(FUNCTIONS[i][0] + "…", i)
-   popup.id_pressed.connect(func(i): add_requested.emit(FUNCTIONS[i][1], {}))
+   set_functions(FUNCTIONS)
+   %Add.get_popup().id_pressed.connect(func(i): add_requested.emit(functions[i][1], {}))
    %Plot.pressed.connect(func(): plot_requested.emit(_names.filter(func(n): return not _unchecked.has(n))))
+
+
+## The functions of the Add run menu ([label, function]), with the [param tooltip] of the menu
+## (empty: as it is).
+func set_functions(items: Array, tooltip := "") -> void:
+   functions = items
+   var popup: PopupMenu = %Add.get_popup()
+   popup.clear()
+   for i in items.size():
+      popup.add_item(items[i][0] + "…", i)
+   if not tooltip.is_empty():
+      %Add.tooltip_text = tooltip
+
+
+## The first name "[param prefix] k" not used by a run.
+func free_name(prefix: String) -> String:
+   var k := 1
+   while _names.has("%s %d" % [prefix, k]):
+      k += 1
+   return "%s %d" % [prefix, k]
 
 
 ## Opens the dialog titled [param heading] with the runs of a network (see [method show_runs]).

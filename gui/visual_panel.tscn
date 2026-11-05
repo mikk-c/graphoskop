@@ -111,6 +111,22 @@ layout_mode = 2
 tooltip_text = "Height of the labels: one size for all, or sizes from a node attribute (relative to half the default node diameter; labels grow and shrink with the zoom)"
 text = "Edit…"
 
+[node name="ChartLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Chart"
+
+[node name="NodeChart" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeChart" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Pie charts on the nodes: the shares of numeric node attributes, or the values of a qualitative attribute (equal slices, e.g. overlapping communities)"
+text = "Edit…"
+
 [node name="Edges" type="GridContainer" parent="."]
 theme_override_constants/h_separation = 12
 visible = false

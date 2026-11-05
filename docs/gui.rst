@@ -32,6 +32,26 @@ analysis changes the look of the drawing by itself. HITS writes two attributes,
 ``hits_hub`` and ``hits_authority``. Errors of the library (e.g. reach centrality and
 SpringRank need directed networks) are shown in the dialog.
 
+Hypergraphs and simplicial complexes are drawn as their incidence networks (the nodes and, as
+nodes of the other type, the hyperedges or facets), and the centralities above run on that
+incidence network (``inc``). The last section of the menu has the measures of the library made for
+them (see :doc:`higher_order`), computed on the hypergraph or complex itself and written on the
+incidence network with :func:`gsk_worker.incidence_values` (a function of the interface: the values
+of the nodes, of the hyperedges, or both, NaN for the others): **Hyperedge size…**
+(:func:`~graphoskop.hyperedge_size`, on the hyperedges), **Local triangle closure…**
+(:func:`~graphoskop.local_triangle_closure`), **Two-node clustering…**
+(:func:`~graphoskop.two_node_clustering`), **Generalized degree (complexes)…**
+(:func:`~graphoskop.generalized_degree` of the nodes) and **Node and hyperedge centrality…**
+(:func:`~graphoskop.node_edge_centrality`, the nonlinear eigenvector centrality of Tudisco and
+Higham, on both), e.g.
+
+.. code-block:: python
+
+   scores = gsk.node_edge_centrality(net, component = None, hyperedges = True)   # per component: node scores, hyperedge scores
+   inc.set_node_attribute("node_edge", incidence_values(inc, [x for x, _ in scores], [y for _, y in scores]), None)
+
+They refuse networks that are neither (:data:`gsk_worker.HIGHER_KINDS`).
+
 **Degree** has one more option, **plot**: the complementary cumulative degree distribution (the
 fraction of nodes with degree :math:`k` or more, on log-log axes) with the best fit of
 :func:`~graphoskop.degree_power_law` (Clauset, Shalizi and Newman: the smallest degree of the
@@ -45,12 +65,29 @@ fit) is drawn as lines, points, lines with points, or bars (:data:`gsk_worker.PL
 Under them, each axis can be linear or logarithmic (log-log by default for the degree
 distribution, linear for epidemics), has its label, which can be any text, and its range (from,
 to: empty for automatic); heatmaps also have a row for their color scale (linear or logarithmic, its label and its range,
-:data:`gsk_worker.PLOT_OPTIONS`); the font size can be set (14 points by default). Tick marks are inside
-the axes, on all four sides. Colors, styles, axes and font size show only with **Advanced**, at
+:data:`gsk_worker.PLOT_OPTIONS`); **Gradient** colors every bar, point and line segment of the
+data series by its x value (**along x**) or its y value (**along y**) along a sequential or
+diverging ColorBrewer palette (a menu showing its colors; **Reverse** reverses it), instead of the
+color of its series: e.g. the bars of a histogram by the value of their bin, or a line by its
+height (:func:`gsk_worker.gradient_colors`: from the smallest to the largest value, on a
+logarithmic scale when the axis is, diverging palettes centered on 0 when the values have both
+signs; not for heatmaps); the font size can be set (14 points by default). Tick marks are inside
+the axes, on all four sides. Colors, styles, axes, gradient and font size show only with **Advanced**, at
 the bottom left (see `Generators`_); the plot, its text, its menu and the save buttons always. The font is the
 default font of gnuplot, Helvetica, or the first font with the same metrics that is installed
 (Arial, Nimbus Sans, Liberation Sans…; :data:`gsk_worker.PLOT_FONTS`). **Save PNG…** and **Save PDF…** write
-the plot, with its colors, to a file (:func:`gsk_worker.degree_plot`, PNG at 200 dpi). The same
+the plot, with its colors, to a file (:func:`gsk_worker.degree_plot`, PNG at 200 dpi), and add
+to the code panel the code that writes it again (:func:`gsk_worker.plot_code`): a call of
+:func:`gsk_worker.plot_figure`, a function of the interface, with the data of the plot taken
+from the variables of the tab and the colors, styles and options shown (the order of a heatmap
+computed again), e.g.
+
+.. code-block:: python
+
+   # plot_figure: plots of the graphical interface, as saved from the plot window
+   plot_figure("degree", {"degrees": node_values(net, "degree"), "fit": fit}, colors = {"data": "#377eb8", "fit": "#e41a1c", "k_min": "#999999"}, styles = {"data": "points", "fit": "lines"}, options = {}, path = "/data/degree.png")
+
+(**Save table…** of heatmaps likewise writes ``pd.DataFrame(...).to_csv(...)``). The same
 plot window shows the plots of the epidemic models (see `Simulation`_), the distributions of
 attributes (see `Data panel`_), the randomization tests of fitted generators (see
 `Generators`_) and the nestedness of bipartite networks (below). The fit is part of the code:
@@ -116,6 +153,33 @@ used for colors in the `Visual elements`_ panel. The look of the drawing does no
 the view keeps its zoom and center. Hypergraphs and
 simplicial complexes are analyzed as the incidence networks that are drawn.
 
+The hierarchical methods (hierarchical random graphs, Infomap and the nested stochastic
+blockmodel, :data:`gsk_worker.HIERARCHICAL_COMMUNITIES`) write one attribute per level
+(``community``, ``community_1``, ``community_2``, …), and their dialog has **tree**: after the
+run, the tree of the levels (:func:`~graphoskop.community_tree`: a root, the groups of every
+level, the nodes) opens as a network in a new tab, laid out radially with the root at the
+center, its nodes colored by ``level`` (worker command ``community_tree``), e.g.
+
+.. code-block:: python
+
+   net = gsk.community_tree(net, ["community", "community_1"])
+   gsk.hierarchical_layout(net, direction = "radial")   # the root at the center
+
+As any network, it can be laid out again, colored by the attributes of the groups (``size``,
+``depth``) or of the nodes, analyzed and saved. **Tree of a hierarchy…** opens it later, for the
+levels of the last hierarchical run or any node attributes that make levels (``levels``; with
+``leaves`` off, the groups of the finest level are the leaves, for large networks). **Dendrogram
+of a hierarchy…**, the last item of the menu, draws the same hierarchy as a dendrogram in the plot
+window (:func:`gsk_worker.dendrogram_plot`), for the levels of the last hierarchical run or any
+node attributes that make levels (``levels``, by default those of the last hierarchical run, in any
+order: they are sorted from the one with most groups). Every group hangs from the group of the
+next level holding most of its nodes (the only one, when the levels are nested), the coarsest from
+a root; the leaves are the nodes (up to :data:`gsk_worker.DENDROGRAM_NODES`, named by their id or
+by ``label``) or the groups of the finest level, with their sizes (``leaves``), in an order without
+crossing branches (:func:`gsk_worker.dendrogram_tree`, a function of the interface, also used by
+the code of the saved plot). Link communities (a single cut of a hierarchy of the edges) have no
+levels.
+
 **Analysis › Node vectors** has the analyses of vectors on the nodes of the library (see
 :doc:`node_vector_analysis`), on the numeric node attributes: **Annihilation distance**,
 **Earth mover's distance**, **Generalized Euclidean distance**, **Network correlation** (two
@@ -161,8 +225,13 @@ Under the heatmap, the **colors** row sets the scale of the colors, linear or lo
 (symmetric logarithmic when the range includes zero or negative
 values, e.g. correlations), the label of the color bar and the range of the colors (from, to:
 empty for automatic, -1 to 1 for correlations and 0 to the largest value for distances; values
-beyond get the color of the end), as for the nestedness heatmap. **Save
-table…** writes the matrix as a tab separated table. **Graph Fourier transform**
+beyond get the color of the end), as for the nestedness heatmap. The **Order** menu orders the
+rows and columns: **as computed**, **random**, or **block diagonal (clusters)**, which puts
+similar rows next to each other so that groups of similar attributes become blocks on the
+diagonal (:func:`gsk_worker.block_order`: the leaves of an average-linkage hierarchical clustering
+with the optimal leaf ordering; distances as they are, one minus the correlation for
+correlations; :func:`gsk_worker.matrix_order`). **Save
+table…** writes the matrix as a tab separated table (in the order computed). **Graph Fourier transform**
 computes the Fourier basis with the parameters of the dialog, then the coefficients of the
 attribute (``basis = gsk.graph_fourier_basis(net)``, ``coefficients =
 gsk.graph_fourier_transform(net, "age", basis = basis)``), and plots the squared coefficients
@@ -194,18 +263,79 @@ Undirected networks are refused by the library, with its message.
 (:func:`gsk_worker.statistic_code`): **Density…**, **Average degree…**, **Reciprocity…**
 (directed networks), **Global clustering coefficient…**, **Average clustering coefficient…**,
 **Global triangle closure…** (hypergraphs and simplicial complexes), **Assortativity…** (by
-degree, or by a node attribute), **Average shortest path length…**, **Degree centralization…**
-(its centralization, relative centralization and entropies, ``degree_…``) and **Connected
-components…**. Each opens its parameter dialog, whose first parameter is the name of the network
+degree, or by a node attribute), **Average shortest path length…**, **Diameter…**
+(:func:`~graphoskop.diameter`: the longest shortest path, of the largest component by default),
+**Degree centralization…** (its centralization, relative centralization and entropies,
+``degree_…``), **Connected components…**, for hypergraphs **Uniform hypergraph…**
+(:func:`~graphoskop.is_uniform`), for simplicial complexes **Pure complex…**
+(:func:`~graphoskop.is_pure`), **Pseudomanifold…** (:func:`~graphoskop.is_pseudomanifold`),
+**Betti numbers…** (:func:`~graphoskop.betti_numbers`) and **Euler characteristic…**
+(:func:`~graphoskop.euler_characteristic`), and **Modularity of a node attribute…**
+(:func:`~graphoskop.modularity` of the partition of the nodes by the values of an attribute,
+:func:`gsk_worker.modularity_code`): qualitative values are the communities as they are, and so
+are numeric ones with at most :data:`gsk_worker.MODULARITY_LABELS` distinct integers (e.g.
+community numbers); other numeric attributes are cut into **classes** (4 by default) with a
+**method** (quantiles: classes of about as many nodes; evenly spaced; natural breaks, as the color
+stops, :func:`gsk_worker.breaks`), or at the **stops** typed (e.g. ``30, 40``: below 30, from 30
+to 40, from 40 on), written in the code; missing values make a class of their own; the network
+attribute is ``modularity(age)`` unless named. Each opens its parameter dialog, whose first parameter is the name of the network
 attribute (the function, by default). **All of them** computes, with their defaults, all those
 that apply to the network (:func:`gsk_worker.all_statistics`; the average shortest path length
-from :data:`gsk_worker.EXACT_PATHS` sampled sources in larger networks), and names those the
+from :data:`gsk_worker.EXACT_PATHS` sampled sources in larger networks, the diameter of directed
+networks only up to that many nodes, not the modularity; for hypergraphs and simplicial complexes
+only those the library computes for them, with their own), and names those the
 library refuses; the message lists one value per line. E.g.
 
 .. code-block:: python
 
    net.network_attributes["global_clustering"] = gsk.global_clustering(net)   # a network attribute
    net.network_attributes.update({f"degree_{k}": v for k, v in gsk.degree_centralization(net).items()})   # network attributes
+   import numpy as np
+   x = np.concatenate([v.cpu().numpy() for v in net.get_node_attribute("age", None)])   # values of age
+   classes = np.where(np.isnan(x), -1, np.digitize(x, [30.0, 40.0]))   # classes of age: below 30, from 30 to 40, from 40 on; missing values apart
+   net.network_attributes["modularity(age)"] = gsk.modularity(net, classes)   # a network attribute
+
+**Analysis › Shortest paths › All pairs lengths…** computes the lengths of the shortest paths
+between all pairs of nodes of every component (:func:`~graphoskop.all_pairs_shortest_path_lengths`
+with ``component = None``; the dialog asks the edge lengths, ``weight`` and ``inverse``) and keeps
+them in ``paths``, a list with one matrix per component, largest first
+(:func:`gsk_worker.paths_code`, worker command ``paths``):
+
+* the analyses that take precomputed lengths reuse them while the network does not change and
+  their ``weight`` and ``inverse`` are the same (:func:`gsk_worker.paths_argument`): betweenness,
+  closeness and harmonic centrality (``lengths = paths``), the diameter and the average shortest
+  path length (``lengths = paths[0]`` for the largest component; not when it is sampled);
+* the lengths of the largest component, whatever its size, are the table **Shortest path
+  lengths** of the Tables tab of the data panel, nodes as rows and columns, sharing the memory of
+  the matrix (``copy = False``; the tab shows its first :data:`gsk_worker.TABLE_ATTRIBUTES`
+  columns);
+* **average_distance** (empty for none) is the node attribute of the average length of the shortest
+  paths from every node to the others of its component, the inverse of its closeness centrality;
+* with **heatmap** (on by default), the plot window shows the lengths of the largest component as
+  a heatmap, whose **Order** menu orders the rows and columns: as computed (the order of the
+  nodes), random, block diagonal (clusters of nodes at similar distances,
+  :func:`gsk_worker.block_order`, up to :data:`gsk_worker.BLOCK_ORDER_MAX` nodes: it is quadratic
+  in memory), block diagonal as the matrix view of the network (the order of
+  :func:`~graphoskop.matrix_layout`: densely connected nodes next to each other), or by a node
+  attribute (grouped by a qualitative one, sorted by a numeric one, also with the matrix layout;
+  up to :data:`gsk_worker.MAX_ORDER_ATTRIBUTES` attributes; :func:`gsk_worker.matrix_orders`). Any
+  size is drawn: beyond :data:`gsk_worker.MATRIX_SHOWN` nodes, one node in k of the order is
+  drawn (the text under the plot says so), the data staying whole.
+
+Nothing is asked or announced: the status bar says where the lengths are, and they are reused
+without a word. The matrices take 4 bytes per pair of nodes (400 MB for 10,000 nodes, 576 MB
+for 12,000, computed in about 20 seconds).
+
+E.g.
+
+.. code-block:: python
+
+   paths = gsk.all_pairs_shortest_path_lengths(net, component = None)   # one matrix per component, largest first
+   tables = {}
+   tables["Shortest path lengths"] = pd.DataFrame(paths[0].cpu().numpy(), index = net.node_ids[0], columns = net.node_ids[0])   # the largest component
+   net.set_node_attribute("average_distance", [1 / c for c in gsk.closeness_centrality(net, component = None, lengths = paths)], None)
+   net.set_node_attribute("betweenness", gsk.betweenness_centrality(net, component = None, lengths = paths), None)   # later, reusing them
+   net.network_attributes["diameter"] = gsk.diameter(net, lengths = paths[0])
 
 **Analysis › Frequent subgraphs** finds the frequent labeled patterns of the network (see
 :doc:`frequent_subgraphs`): **In the whole network…** (:func:`~graphoskop.single_graph_mining`,
@@ -269,8 +399,15 @@ the parameter dialog and the plot above it.
 
 **Analysis › Graph neural networks…** opens the dialog of the graph neural networks of the network
 (``gnn_dialog.gd``; see :doc:`gnn`). **Add model** opens the parameter dialog of **GCN**,
-**GraphSAGE**, **GAT**, **GATv2** (predicting a node attribute) or **DiffPool** (an attribute of
-the components, each a graph; without a target it only embeds them): the target (a menu of the
+**GraphSAGE**, **GAT**, **GATv2** (predicting a node attribute), **DiffPool** (an attribute of
+the components, each a graph; without a target it only embeds them), **MLP**
+(:func:`~graphoskop.mlp`: the same model as GCN without the network, plain linear layers on the
+attributes of each node, without weights: plotted with the other runs, it shows what the network
+structure adds to the prediction) or **HGNN** (:func:`~graphoskop.hgnn`, the hypergraph
+convolution, for hypergraphs and simplicial complexes, which the other models refuse; the
+simplicial convolutional network of the library, :func:`~graphoskop.scnn`, predicts attributes of
+the edges or triangles of a complex, simplex attributes that the interface does not load, show or
+draw, so it is not offered): the target (a menu of the
 node attributes), its transformation for regressions (**log** or **log1p**, ``log(1 + x)``: the
 model is trained on a new node attribute, e.g. ``log_income``, made first with
 :func:`gsk_worker.derived` as in Edit › New node attribute; nodes whose logarithm is not defined
@@ -324,7 +461,7 @@ Every tab has its own namespace in the worker, where the code shown in its code 
 code panel always shows exactly the code that produced what is drawn, and can be copied to a
 script to reproduce it. A few lines call functions of the interface, defined in the worker
 (:data:`gsk_worker.INTERFACE_FUNCTIONS`: e.g. :func:`gsk_worker.derived` for new node attributes,
-:func:`gsk_worker.move_nodes` for dragged nodes); before the first of them the code imports them
+:func:`gsk_worker.move_nodes` for dragged nodes, :func:`gsk_worker.plot_figure` for saved plots); before the first of them the code imports them
 from the worker, its folder added to the path (:func:`gsk_worker.interface_import`), so that the
 code runs as it is in any Python with the library, e.g.
 
@@ -351,7 +488,8 @@ The scripts of the interface:
 * ``ring.gdshader``: the rings of the selected nodes.
 * ``select_dialog.gd`` (``select_dialog.tscn``): Select › Select by attribute.
 * ``epidemics_dialog.gd`` (``epidemics_dialog.tscn``): Simulation › Epidemics.
-* ``robustness_dialog.gd`` (``robustness_dialog.tscn``): Simulation › Robustness.
+* ``robustness_dialog.gd`` (``robustness_dialog.tscn``): Simulation › Robustness and Simulation ›
+  Synchronization (two instances, with their own functions).
 * ``link_dialog.gd`` (``link_dialog.tscn``): Analysis › Link prediction.
 * ``gnn_dialog.gd`` (``gnn_dialog.tscn``): Analysis › Graph neural networks.
 * ``derive_dialog.gd`` (``derive_dialog.tscn``): Edit › New node attribute.
@@ -524,9 +662,37 @@ The nodes keep their positions, and the drawing its colors and sizes (:func:`gsk
      # groups: sets of nodes with the same value of a node attribute, a function of the graphical interface
      net = gsk.quotient_network(net, sets = groups(net, ["region", "party"]), counts = "count", qualitative = ["region", "party"])
 
+* **Complement…** (:func:`~graphoskop.complement`): the pairs of nodes not joined become the
+  edges, and the edges go (``self_loops``: every node also gets a self loop; ``max_edges``, by
+  default 100 million, refuses larger complements: the complement of a sparse network is dense);
+* **Union with another tab…**, **Intersection with another tab…** and **Difference with another
+  tab…** (:func:`~graphoskop.network_union`, :func:`~graphoskop.network_intersection`,
+  :func:`~graphoskop.network_difference`): a dialog asks for the other network, one of the other
+  open tabs. So that the code runs on its own, the code of the other tab becomes a function
+  (:func:`gsk_worker.other_code`; the interface uses the network the tab already has instead of
+  running it again):
+
+  .. code-block:: python
+
+     def other_network():   # the network of the tab "friends", made again by its code
+        import graphoskop as gsk
+        net = gsk.load_network("friends.tsv")
+        return net
+     other = other_network()
+     net = gsk.network_union(net, other)
+
+* **Line graph** (:func:`~graphoskop.line_graph`): the edges become the nodes, joined when they
+  share a node (in directed networks, when one ends where the other starts), with the edge
+  attributes and the ``source`` and ``target`` of each as node attributes; for hypergraphs and
+  simplicial complexes, the line graph of the hyperedges or facets, joined when they share nodes
+  (``shared`` of them);
 * **Clique expansion…** (:func:`~graphoskop.clique_expansion`), for hypergraphs and simplicial
-  complexes, and **Clique promotion…** (:func:`~graphoskop.clique_promotion`), for networks (its
-  hypergraph or simplicial complex is laid out as its incidence network).
+  complexes, **Clique promotion…** (:func:`~graphoskop.clique_promotion`), for networks (its
+  hypergraph or simplicial complex is laid out as its incidence network), and **Hypergraph walk
+  network…** (:func:`~graphoskop.hypergraph_walk_network`: the network of the steps of a random
+  walk on a hypergraph, by the model of Zhou, Carletti or with edge-dependent vertex weights);
+* **One layer…** (:func:`~graphoskop.layer_network`, a menu of the layers) and **Aggregate of the
+  layers…** (:func:`~graphoskop.aggregate_network`), for multilayer networks.
 
 Items with parameters (how parallel edges combine, the attribute of the quotient, …) open their
 parameter dialog first (:data:`gsk_worker.TRANSFORMATIONS`); the others run at once. Errors of the
@@ -847,7 +1013,7 @@ so that no two nodes overlap, whatever their sizes. ``node_sizes`` (:func:`gsk_w
 is a plotting utility of the interface, not a function of the library: it is defined in the
 namespace of every tab, and the comment says so in the code panel.
 
-The last item, **Bundle edges…**, bundles the edges of the current layout with
+The last section curves the edges. **Bundle edges…** bundles the edges of the current layout with
 :func:`~graphoskop.bundle_edges` (hierarchical edge bundling, as in graph-tool), with a dialog
 for the hierarchy (``groups``: attributes from the coarsest level, or the space of the layout)
 and the strength ``beta`` (a slider). The curves, chains of cubic Bézier curves, are stored in
@@ -862,6 +1028,25 @@ Bézier piece is a strip whose vertices the shader puts on the curve, smooth at 
 another item of the menu changes the layout (run **Bundle edges…** again then); changing colors,
 sizes and opacities, and community discovery, keep them. For very large networks, pieces are
 drawn with fewer segments, so that there are at most :data:`gsk_worker.MAX_SEGMENTS`.
+
+**Route edges around nodes** (and **Route edges around nodes…**, with a dialog) is an edge
+router, like the organic edge router of Cytoscape: a straight edge that passes over a node it does
+not connect looks like an edge to that node (a "fake edge"), so
+:func:`~graphoskop.route_edges` bends it around the node instead. Edges that cross no node stay
+straight; the others are cut into points pushed out of the nodes they cross (with an empty
+``margin`` around every node) and smoothed, and drawn as curves through them, stored in
+``bends`` as the bundled ones and drawn the same way. The nodes are as large as they are drawn,
+fixed or mapped from an attribute (``size``, from :func:`gsk_worker.size_code`, as for **Remove
+overlaps**; the dialog leaves it empty for that, and has ``margin``, by default a quarter of the
+median diameter, and, among the advanced parameters, the rounds and the most points of an edge):
+
+.. code-block:: python
+
+   bends = gsk.route_edges(net, size = 0.353)
+
+Nodes touching one of the ends of an edge, and nodes packed so tightly that there is no room
+between them, may still be crossed. The positions do not change, so run it again after changing
+the node sizes; like bundling, it lasts until another layout.
 
 Every item adds its line to the code panel, e.g. ``gsk.force_directed_layout(net)``. While a
 layout runs, the status bar says so, with a progress bar for long layouts.
@@ -994,7 +1179,9 @@ says what the interface is waiting for, instead of nothing happening.
   per inch, command ``image_pdf``). Edit (see `Editing`_), Select (see
   `Selecting`_), Layout (see `Layouts`_), Analysis (see `Analysis`_),
   Simulation (see `Simulation`_), Generators (see `Generators`_), Help (**Online
-  documentation**, and this chapter of it, opened in the web browser). On macOS it is the global
+  documentation**, and this chapter of it, opened in the web browser, and **Report a bug or
+  request a feature**, the issue tracker of graphoskop on GitHub,
+  https://github.com/mikk-c/graphoskop/issues). On macOS it is the global
   menu bar of the system.
 * The tab bar: one tab per open network; the close button of a tab forgets its network. On its
   right, the search box finds nodes of the current network by their id, or by the node attribute
@@ -1109,11 +1296,17 @@ Python worker
 
 .. autodata:: gsk_worker.BENDS
 
+.. autodata:: gsk_worker.BLOCK_ORDER_MAX
+
 .. autodata:: gsk_worker.CENTRALITIES
    :no-value:
 
 .. autodata:: gsk_worker.CENTRALITY_HIDDEN
    :no-value:
+
+.. autodata:: gsk_worker.CHART_PALETTE
+
+.. autodata:: gsk_worker.CHART_WIDTH
 
 .. autodata:: gsk_worker.CHOICES
    :no-value:
@@ -1132,6 +1325,12 @@ Python worker
 
 .. autodata:: gsk_worker.CURVE_STRIDE
 
+.. autodata:: gsk_worker.CURVES
+
+.. autodata:: gsk_worker.DENDROGRAM_LABELS
+
+.. autodata:: gsk_worker.DENDROGRAM_NODES
+
 .. autodata:: gsk_worker.DERIVED_NOTE
 
 .. autodata:: gsk_worker.DIRECTED_ONLY
@@ -1146,6 +1345,9 @@ Python worker
 .. autodata:: gsk_worker.DISTRIBUTIONS
    :no-value:
 
+.. autodata:: gsk_worker.DIVERGING_PALETTES
+   :no-value:
+
 .. autodata:: gsk_worker.DOCS
    :no-value:
 
@@ -1154,6 +1356,8 @@ Python worker
 .. autodata:: gsk_worker.EDGE_STRIDE
 
 .. autodata:: gsk_worker.EDGE_VALUES_NOTE
+
+.. autodata:: gsk_worker.EMPTY
 
 .. autodata:: gsk_worker.EMPTY_BOX
 
@@ -1184,6 +1388,12 @@ Python worker
 
 .. autodata:: gsk_worker.GENERATORS
    :no-value:
+
+.. autodata:: gsk_worker.HIERARCHICAL_COMMUNITIES
+
+.. autodata:: gsk_worker.HIGHER_KINDS
+
+.. autodata:: gsk_worker.HYPERGRAPH_STATISTICS
 
 .. autodata:: gsk_worker.INTERFACE_FUNCTIONS
    :no-value:
@@ -1242,7 +1452,11 @@ Python worker
 .. autodata:: gsk_worker.INTEGERS
    :no-value:
 
+.. autodata:: gsk_worker.LOGIC
+
 .. autodata:: gsk_worker.LOOP_SIZE
+
+.. autodata:: gsk_worker.MATRIX_SHOWN
 
 .. autodata:: gsk_worker.MAX_BREAK_VALUES
 
@@ -1251,6 +1465,10 @@ Python worker
 .. autodata:: gsk_worker.MAX_ELEMENTS
 
 .. autodata:: gsk_worker.MAX_FOUND
+
+.. autodata:: gsk_worker.MAX_ORDER_ATTRIBUTES
+
+.. autodata:: gsk_worker.MAX_SLICES
 
 .. autodata:: gsk_worker.MEASURES
    :no-value:
@@ -1274,6 +1492,11 @@ Python worker
 
 .. autodata:: gsk_worker.MISSING_COLOR
 
+.. autodata:: gsk_worker.MODULARITY_LABELS
+
+.. autodata:: gsk_worker.MODULARITY_METHODS
+   :no-value:
+
 .. autodata:: gsk_worker.MOVE_NOTE
 
 .. autodata:: gsk_worker.NESTEDNESS_CELLS
@@ -1294,6 +1517,10 @@ Python worker
 
 .. autodata:: gsk_worker.OPTIONS
    :no-value:
+
+.. autodata:: gsk_worker.PATHS_TABLE
+
+.. autodata:: gsk_worker.PLOT_NOTE
 
 .. autodata:: gsk_worker.PROGRESS_INTERVAL
 
@@ -1333,8 +1560,12 @@ Python worker
 .. autodata:: gsk_worker.SESSION_SKIPPED
    :no-value:
 
+.. autodata:: gsk_worker.SET_OPERATIONS
+
 .. autodata:: gsk_worker.SHOWN_DEFAULTS
    :no-value:
+
+.. autodata:: gsk_worker.SIMPLICIAL_STATISTICS
 
 .. autodata:: gsk_worker.STATE_COLORS
 
@@ -1351,6 +1582,12 @@ Python worker
    :no-value:
 
 .. autodata:: gsk_worker.SUMMARY_ATTRIBUTES
+
+.. autodata:: gsk_worker.SYNCHRONIZATION
+   :no-value:
+
+.. autodata:: gsk_worker.SYNCHRONIZATION_HIDDEN
+   :no-value:
 
 .. autodata:: gsk_worker.TABLE_ATTRIBUTES
 
@@ -1387,6 +1624,8 @@ Python worker
 
 .. autofunction:: gsk_worker.arrows
 
+.. autofunction:: gsk_worker.attribute_values
+
 .. autofunction:: gsk_worker.attributes
 
 .. autofunction:: gsk_worker.backbone_code
@@ -1398,9 +1637,13 @@ Python worker
 .. autofunction:: gsk_worker.backbone_scale
 
 
+.. autofunction:: gsk_worker.block_order
+
 .. autofunction:: gsk_worker.centrality_code
 
 .. autofunction:: gsk_worker.breaks
+
+.. autofunction:: gsk_worker.chart_slices
 
 .. autofunction:: gsk_worker.colors
 
@@ -1411,6 +1654,12 @@ Python worker
 .. autofunction:: gsk_worker.default_style
 
 .. autofunction:: gsk_worker.degree_plot
+
+.. autofunction:: gsk_worker.dendrogram_plot
+
+.. autofunction:: gsk_worker.dendrogram_signature
+
+.. autofunction:: gsk_worker.dendrogram_tree
 
 .. autofunction:: gsk_worker.derived
 
@@ -1460,6 +1709,10 @@ Python worker
 
 .. autofunction:: gsk_worker.gnn_text
 
+.. autofunction:: gsk_worker.gradient_colors
+
+.. autofunction:: gsk_worker.incidence_values
+
 .. autofunction:: gsk_worker.interface_import
 
 .. autofunction:: gsk_worker.label_sizes
@@ -1476,6 +1729,8 @@ Python worker
 
 .. autofunction:: gsk_worker.layout_code
 
+.. autofunction:: gsk_worker.level_attributes
+
 .. autofunction:: gsk_worker.link_plot
 
 .. autofunction:: gsk_worker.link_prediction_code
@@ -1488,9 +1743,15 @@ Python worker
 
 .. autofunction:: gsk_worker.literal
 
+.. autofunction:: gsk_worker.matches
+
 .. autofunction:: gsk_worker.matching
 
 .. autofunction:: gsk_worker.mark_advanced
+
+.. autofunction:: gsk_worker.matrix_order
+
+.. autofunction:: gsk_worker.matrix_orders
 
 .. autofunction:: gsk_worker.matrix_plot
 
@@ -1503,6 +1764,8 @@ Python worker
 .. autofunction:: gsk_worker.mining_code
 
 .. autofunction:: gsk_worker.mining_signature
+
+.. autofunction:: gsk_worker.modularity_code
 
 .. autofunction:: gsk_worker.move_nodes
 
@@ -1534,7 +1797,21 @@ Python worker
 
 .. autofunction:: gsk_worker.opacities
 
+.. autofunction:: gsk_worker.order_source
+
+.. autofunction:: gsk_worker.other_code
+
+.. autofunction:: gsk_worker.paths_argument
+
+.. autofunction:: gsk_worker.paths_code
+
+.. autofunction:: gsk_worker.paths_signature
+
 .. autofunction:: gsk_worker.pick_grid
+
+.. autofunction:: gsk_worker.plot_code
+
+.. autofunction:: gsk_worker.plot_figure
 
 .. autofunction:: gsk_worker.positions
 
@@ -1588,6 +1865,14 @@ Python worker
 
 .. autofunction:: gsk_worker.summary
 
+.. autofunction:: gsk_worker.synchronization_code
+
+.. autofunction:: gsk_worker.synchronization_curves
+
+.. autofunction:: gsk_worker.synchronization_runs
+
+.. autofunction:: gsk_worker.synchronization_signature
+
 .. autofunction:: gsk_worker.tab_tables
 
 .. autofunction:: gsk_worker.text
@@ -1595,6 +1880,8 @@ Python worker
 .. autofunction:: gsk_worker.too_large
 
 .. autofunction:: gsk_worker.transform
+
+.. autofunction:: gsk_worker.tree_signature
 
 .. autofunction:: gsk_worker.value_code
 
@@ -1644,12 +1931,17 @@ rectangle; see `Visualization panel`_), and with the **Select** menu:
   selection; pressed again, it grows one more step, until the whole components are selected (the
   status bar says how many nodes were added; worker command ``neighbors``). Selected edges stay
   selected;
-* **Select by attribute…**: a dialog selecting the nodes, or the edges, whose attribute is equal
-  to (=), different from (≠), smaller than (<, ≤) or larger than (>, ≥) a value, or contains a
-  text (a part of the text, or one of the values of a node with several). Numeric attributes take
-  a number; qualitative ones a value from the menu of their values (or a text, when they have
-  too many). The selection replaces the current one, or, with **Add to the current selection**,
-  is added to it. If nothing matches, the dialog says so and stays open.
+* **Select by attribute…**: a dialog selecting the nodes, or the edges, that satisfy a chain of
+  conditions. A condition compares an attribute with a value: equal to (=), different from (≠),
+  smaller than (<, ≤) or larger than (>, ≥), or contains a text (a part of the text, or one of the
+  values of a node with several). Numeric attributes take a number; qualitative ones a value from
+  the menu of their values (or a text, when they have too many). **Add condition** adds a row,
+  which starts with how it chains to the rows above: **AND** (both), **OR** (either) or **XOR**
+  (one but not both); rows are applied from top to bottom, so ``k > 6``, AND ``half = 1``, OR
+  ``age < 30`` selects (k > 6 and half = 1) or age < 30. **×** removes a row (the last one stays).
+  The selection replaces the current one, or, with **Add to the current selection**, is added to
+  it. If nothing matches, the dialog says so and stays open (worker command ``select``, with
+  :func:`gsk_worker.matches` for each condition and :data:`gsk_worker.LOGIC` for the chaining).
 
 Self loops are drawn as circles above their node, a little more than half as wide as the node, as
 thick as the edges and in their colors, which follow the node when it is dragged (in matrix views
@@ -1716,6 +2008,15 @@ on Windows):
 * the size of the window, and whether it was maximized.
 
 Deleting the file resets them.
+
+The interface spends little CPU when nothing happens: it redraws only what changes (low
+processor mode), its main loop checks for input and for replies of the worker 60 times a second
+(``application/run/low_processor_mode_sleep_usec`` in ``project.godot``; Godot's default, made
+for editors, is 145), 10 times a second when no window of the interface has the focus
+(``BACKGROUND_SLEEP_USEC`` of ``main.gd``), and it opens no audio device (the dummy audio
+driver: the interface has no sound, and an open audio stream wakes the CPU all the time). The
+size of the network makes no difference while nothing moves (the drawing is rendered once, then
+kept).
 
 Simulation
 ----------
@@ -1843,6 +2144,32 @@ Removals and cascades, or runs of two qualities, do not share axes: the dialog a
 apart. Like every plot, its colors, axes and font can be changed and it can be saved. The dialog
 is not exclusive: it stays open, with the parameter dialog and the plot above it.
 
+**Simulation › Synchronization…** runs the coupled oscillators of the library (see
+:doc:`synchronization`) in a dialog of runs like the robustness dialog: **Add run** offers
+**Kuramoto…** (:func:`~graphoskop.kuramoto_model`, phases on the nodes), **Simplicial Kuramoto…**
+(:func:`~graphoskop.simplicial_kuramoto_model`, phases on the ``k``-simplices, with the explosive
+variant) and **Node-link Kuramoto…** (:func:`~graphoskop.node_link_kuramoto_model`, phases on
+nodes and edges at once). The parameter dialog asks the name of the run (``Kuramoto 1``, …,
+proposed), the coupling strengths as a range (**sigma_from**, **sigma_to**, **steps**, evenly
+spaced), **backward** (the range up and then down again, adiabatically, each strength starting
+from the phases of the previous one: the two branches show the hysteresis of an explosive
+transition), the number of runs and the parameters of the model; with Advanced, the natural
+frequencies (mean, standard deviation), times and seed (1 by default)
+(:func:`gsk_worker.synchronization_signature`). The table of the run (the order parameters by
+strength and run) is stored in the dictionary ``synchronization`` by name
+(:func:`gsk_worker.synchronization_code`), e.g.
+
+.. code-block:: python
+
+   synchronization = {}   # runs of Simulation › Synchronization, by name
+   up = np.linspace(0.0, 1.0, 21)   # the strengths up, then down again
+   synchronization["Kuramoto 1"] = gsk.kuramoto_model(net, np.r_[up, up[::-1]], runs = 10, seed = 1, adiabatic = True)
+
+**Plot** draws the transition curves of the checked runs: the order parameter against the
+coupling strength, the mean over the runs with a band of one standard deviation, one curve per
+order parameter of the model (nodes, edges, …) and per branch (``down``)
+(:func:`gsk_worker.synchronization_curves`).
+
 Visual elements
 ---------------
 
@@ -1867,7 +2194,17 @@ current network, in three tabs:
   (:func:`gsk_worker.label_sizes`). Labels are sized in the drawing, as nodes are, so they grow
   and shrink with the zoom; labels smaller than 4 pixels on screen are left out, and only the
   nodes in view are labeled, when there are at most 2,000 of them: zoom in to see the labels of a
-  large network. Saved images have them too.
+  large network. Saved images have them too. **Chart** (none by default) turns the nodes into pie
+  charts, from the top, clockwise: **Pie of numeric attributes** (check boxes: a slice per
+  attribute, as large as its share of their sum on the node; missing and negative values count
+  0, nodes whose values sum to 0 keep their color), or **Pie of the values of a qualitative
+  attribute** (equal slices of the values of each node: several for nodes with many, such as the
+  overlapping communities of DEMON or BigCLAM, the whole disc for nodes with one), in the colors
+  of a qualitative ColorBrewer **Palette** (Set1 by default; the k-th attribute, or the k-th value,
+  has the k-th color). Charts keep the size and opacity of the nodes, at most
+  :data:`gsk_worker.MAX_SLICES` slices each (:func:`gsk_worker.chart_slices`); the node shader
+  draws them from a texture of the slices, so they cost nothing more to move and zoom. Epidemic
+  states, when shown, color the nodes instead. Vector PDF images draw them as wedges.
 * **Edges**: their color (by default ``#999999``), thickness and opacity.
 * **Network**: the background color; **Rotation**, a slider turning the view (-180° to 180°,
   counterclockwise) without changing the positions or the code; **Scale**, a logarithmic slider

@@ -550,6 +550,31 @@ def gatv2(net, target, channels, activations = None, qualitative = False, featur
    return _train(net, lambda a, b: GATv2Conv(a, b, heads = heads, concat = False, edge_dim = None if weight is None else 1), _edge_list, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "gatv2")
 
 
+class _Dense(torch.nn.Module):
+   """
+   A linear layer that ignores the network (the layers of :func:`mlp`), sparse features included.
+   """
+
+   def __init__(self, a, b):
+      super().__init__()
+      self.lin = torch.nn.Linear(a, b)
+
+   def forward(self, x, *graph):
+      return F.linear(x, self.lin.weight, self.lin.bias)
+
+
+def _no_graph(edge_index, edge_weight, n):
+   """
+   Nothing of the network (the layers of :func:`mlp` do not read it).
+   """
+   return ()
+
+
+@_higher_order()
+def mlp(net, target, channels, activations = None, qualitative = False, features = None, standardize = True, task = None, weight = None, split = (0.8, 0.2), epochs = 200, optimizer = "adam", learning_rate = 0.01, weight_decay = 5e-4, dropout = 0.5, loss = None, seed = None, progress = None):
+   return _train(net, _Dense, _no_graph, target, channels, activations, features, qualitative, standardize, task, weight, split, epochs, optimizer, learning_rate, weight_decay, dropout, loss, seed, progress, "mlp")
+
+
 gcn.__doc__ = """
    Graph convolutional network (Kipf and Welling, 2017) predicting a node attribute, with the
    ``GCNConv`` layers of PyTorch Geometric: each layer averages the features of the neighbors of
@@ -557,6 +582,14 @@ gcn.__doc__ = """
    ``weight``, the edges are weighted in the average. Each layer is a product with the normalized
    adjacency matrix, computed once as a sparse matrix.
 """ + _COMMON.format(extra = "", name = "gcn")
+
+mlp.__doc__ = """
+   Multilayer perceptron predicting a node attribute from the attributes of each node alone: the
+   same model as :func:`gcn` (layers, activations, dropout, training, evaluation, result), with
+   plain linear layers that never read the edges. It is the baseline of the graph neural
+   networks: what they predict better than it comes from the network structure. ``weight`` is
+   accepted for the same interface, and unused.
+""" + _COMMON.format(extra = "", name = "mlp")
 
 graphsage.__doc__ = """
    GraphSAGE (Hamilton, Ying and Leskovec, 2017) predicting a node attribute, with the ``SAGEConv``

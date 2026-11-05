@@ -212,6 +212,22 @@ overlapping communities.
 
 .. autofunction:: graphoskop.out_degree_fraction
 
+Hierarchies of communities
+--------------------------
+
+The hierarchical methods write one attribute per level (``community``, ``community_1``, …).
+:func:`community_tree` makes their tree a network: a root, the groups of every level and the
+nodes, each group joined to the groups or nodes it holds, to lay out with
+:func:`~graphoskop.hierarchical_layout` and analyze as any network.
+
+.. code-block:: python
+
+   gsk.infomap_communities(net)
+   tree = gsk.community_tree(net, ["community", "community_1"])
+   gsk.hierarchical_layout(tree, direction = "radial")          # the root at the center
+
+.. autofunction:: graphoskop.community_tree
+
 Similarity of partitions
 ------------------------
 

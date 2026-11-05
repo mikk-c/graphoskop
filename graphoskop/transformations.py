@@ -18,7 +18,9 @@ a facet (see :doc:`higher_order`).
 :func:`network_union`, :func:`network_difference` and :func:`network_intersection` combine the
 edges of two networks with the same node ids. :func:`quotient_network` collapses sets of nodes into
 single nodes, and :func:`network_condensation` the strongly connected components of a directed
-network.
+network. :func:`line_graph` turns the edges of a network (or the hyperedges of a hypergraph, the
+facets of a simplicial complex) into the nodes of a new one, adjacent when they share nodes.
+:func:`complement` has the edges a network does not have.
 """
 
 import itertools
@@ -1437,3 +1439,196 @@ def clique_promotion(net, kind = "simplicial", batch_size = 2 ** 22):
    device = net.components[0].edge_index.device
    load = load_simplicial_complex if kind == "simplicial" else load_hypergraph
    return load(memberships, nodes, node_format = net.node_format, device = device)
+
+
+def _pairs(group, item):
+   """
+   Every unordered pair of distinct positions with the same ``group``.
+
+   :return: ``(i, j)``, items of the pairs, ``i`` earlier than ``j`` in the order of ``group``.
+   """
+   order = np.argsort(group, kind = "stable")
+   g, x = group[order], item[order]
+   _, start, size = np.unique(g, return_index = True, return_counts = True)
+   pos = np.arange(len(g)) - np.repeat(start, size)
+   later = np.repeat(size, size) - 1 - pos   # later positions of the same group
+   first = np.repeat(np.arange(len(g)), later)
+   second = first + 1 + np.arange(len(first)) - np.repeat(np.cumsum(later) - later, later)
+   return x[first], x[second]
+
+
+def _cross(g1, x1, g2, x2):
+   """
+   Every pair of an item of the first list and one of the second with the same group.
+
+   :return: ``(i, j)``, from ``x1`` and ``x2``.
+   """
+   o1, o2 = np.argsort(g1, kind = "stable"), np.argsort(g2, kind = "stable")
+   g1, x1, g2, x2 = g1[o1], x1[o1], g2[o2], x2[o2]
+   lo, hi = np.searchsorted(g2, g1, "left"), np.searchsorted(g2, g1, "right")
+   cnt = hi - lo
+   at = np.repeat(lo, cnt) + np.arange(cnt.sum()) - np.repeat(np.cumsum(cnt) - cnt, cnt)
+   return np.repeat(x1, cnt), x2[at]
+
+
+@_higher_order(hypergraph = True, simplicial = True)
+def line_graph(net):
+   """
+   Line graph of a network: every edge becomes a node, and two of them are joined when the edges
+   share a node. In directed networks, the edge from ``u`` to ``v`` points to every edge leaving
+   ``v`` (the edges a walk can take next), the reverse edge included. Parallel edges are distinct
+   nodes, and are joined once; a self loop is not joined to itself. Every edge of the line graph
+   has the number of nodes the two share as edge attribute ``shared`` (2 for parallel edges,
+   else 1). Bipartite networks give a network with one node type.
+
+   Hypergraphs give the line graph of their hyperedges (also called their intersection graph):
+   every hyperedge becomes a node, joined to the hyperedges it shares nodes with, ``shared`` of
+   them; in directed hypergraphs, a hyperedge points to those whose tail holds a node of its head.
+   Simplicial complexes give the line graph of their facets in the same way.
+
+   The nodes of the line graph have as ids the positions of the edges in the edge table of
+   :meth:`~graphoskop.Network.to_pandas_dataframes` (from 0), and as attributes ``source`` and
+   ``target``, the ids of the nodes of the edge, and the edge attributes; for higher-order
+   networks the ids are the labels of the hyperedges (positions of the facets), with their
+   ``size`` (number of nodes) and their attributes. The result is directed if the network is, and
+   on its device.
+
+   :param net: A :class:`~graphoskop.Network`, not multilayer.
+   :return: The line graph, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If ``net`` is multilayer.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      net = gsk.load_network(pd.DataFrame({"s": ["a", "b", "c"], "t": ["b", "c", "a"]}))
+      lg = gsk.line_graph(net)               # a triangle again: every two edges share a node
+      lg.to_pandas_dataframes()[1]           # node, source, target
+      hg = gsk.load_hypergraph(pd.DataFrame({"node": ["a", "b", "b", "c"], "hyperedge": ["x", "x", "y", "y"]}))
+      gsk.line_graph(hg)                     # x and y, joined: they share b
+   """
+   from .network import load_network
+   if net.layer_labels is not None:
+      raise ValueError("line_graph does not take multilayer networks: take the line graph of one layer, from gsk.layer_network")
+   device = net.components[0].edge_index.device if net.components else "cpu"
+   tables = net.to_pandas_dataframes()
+   if net.higher_order is not None:
+      memberships, _, items = tables
+      label = items.columns[0]
+      if "attribute" in items.columns:   # long tables: the labels only
+         items = items[[label]].drop_duplicates()
+      ids = pd.Index(items[label])
+      e = ids.get_indexer(memberships[label])
+      v = pd.factorize(memberships["node"])[0]
+      if "direction" in memberships.columns:
+         head = (memberships["direction"] == "head").to_numpy()
+         a, b = _cross(v[head], e[head], v[~head], e[~head])
+         keep = a != b
+      else:
+         a, b = _pairs(v, e)
+         keep = a != b
+      nodes = items.reset_index(drop = True).rename(columns = {label: "node"})
+      nodes.insert(1, "size", np.bincount(e, minlength = len(ids)))
+      node_ids = ids.to_numpy()
+   else:
+      edges = tables[0] if isinstance(tables, tuple) else tables
+      M = len(edges)
+      code = pd.factorize(pd.concat([edges["source"], edges["target"]], ignore_index = True))[0]
+      s, t = code[:M], code[M:]
+      if net.directed:
+         a, b = _cross(t, np.arange(M), s, np.arange(M))   # into v, then out of v
+      else:
+         loop = s == t
+         a, b = _pairs(np.r_[s, t[~loop]], np.r_[np.arange(M), np.flatnonzero(~loop)])
+      keep = a != b
+      nodes = edges.reset_index(drop = True)
+      nodes.insert(0, "node", np.arange(M))
+      node_ids = np.arange(M)
+   a, b = a[keep], b[keep]
+   n = max(len(node_ids), 1)
+   if not net.directed:
+      a, b = np.minimum(a, b), np.maximum(a, b)
+   key, shared = np.unique(a.astype(np.int64) * n + b, return_counts = True)
+   out = pd.DataFrame({"source": node_ids[key // n], "target": node_ids[key % n], "shared": shared})
+   return load_network(out, nodes, directed = net.directed, device = device)
+
+
+@_higher_order()
+def complement(net, self_loops = False, max_edges = 10 ** 8):
+   """
+   Complement of a network: the same nodes, joined by the edges the network does not have, and
+   by none of those it has (parallel edges count as one edge). In directed networks every
+   ordered pair of distinct nodes is a possible edge; in bipartite networks only the pairs of
+   nodes of different types (the complement within the two types, still bipartite). Self loops
+   are not edges of the complement, unless ``self_loops``: then every node without a self loop
+   gets one. Node attributes are kept; edge attributes are not (the new edges have none).
+
+   The complement of a sparse network is dense: a network of :math:`n` nodes and :math:`m` edges
+   has about :math:`n^2 / 2 - m` (undirected) or :math:`n^2 - m` (directed) of them, so the
+   complement is refused beyond ``max_edges`` edges. Edges are made in blocks of rows, on the
+   CPU; the result is on the device of ``net``.
+
+   :param net: A :class:`~graphoskop.Network`, not multilayer.
+   :param self_loops: Whether the nodes without a self loop get one.
+   :param max_edges: Largest number of edges of the complement.
+   :return: The complement, a new :class:`~graphoskop.Network`.
+   :raises ValueError: If ``net`` is multilayer, or its complement would have more than
+      ``max_edges`` edges.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+      import pandas as pd
+
+      net = gsk.load_network(pd.DataFrame({"s": ["a", "b"], "t": ["b", "c"]}))   # a path a - b - c
+      gsk.complement(net).to_pandas_dataframes()                                 # the edge a - c
+   """
+   from .network import load_network
+   if net.layer_labels is not None:
+      raise ValueError("complement does not take multilayer networks: take the complement of one layer, from gsk.layer_network")
+   device = net.components[0].edge_index.device if net.components else "cpu"
+   tables = net.to_pandas_dataframes()
+   edges, nodes = (tables[0], tables[1]) if isinstance(tables, tuple) else (tables, None)
+   ids = np.concatenate(net.node_ids) if net.components else np.zeros(0, dtype = object)
+   n = len(ids)
+   if nodes is None:
+      nodes = pd.DataFrame({"node": ids})
+   index = pd.Index(ids)
+   u, v = index.get_indexer(edges["source"]), index.get_indexer(edges["target"])
+   bipartite = net.bipartite_labels is not None
+   side = np.zeros(n, dtype = bool)
+   if bipartite:   # the pairs of nodes of different types
+      first = np.concatenate([np.arange(len(i)) < k for i, k in zip(net.node_ids, net.bipartite_split)])
+      side = ~first
+   if not net.directed:
+      u, v = np.minimum(u, v), np.maximum(u, v)
+   loops = u == v
+   have = np.unique(u[~loops].astype(np.int64) * max(n, 1) + v[~loops])
+   if bipartite:
+      a, b = int((~side).sum()), int(side.sum())
+      possible = a * b * (2 if net.directed else 1)
+   else:
+      possible = n * (n - 1) // (1 if net.directed else 2)
+   count = possible - len(have) + ((n - len(np.unique(u[loops]))) if self_loops else 0)
+   if count > max_edges:
+      raise ValueError(f"the complement would have {count:,} edges (more than max_edges = {max_edges:,})")
+   S, T = [], []
+   block = max(1, 2 ** 24 // max(n, 1))
+   for r0 in range(0, n, block):
+      r = np.arange(r0, min(n, r0 + block))
+      i, j = np.repeat(r, n), np.tile(np.arange(n), len(r))
+      keep = (i != j) & (side[i] != side[j] if bipartite else True) & (True if net.directed else i < j)
+      i, j = i[keep], j[keep]
+      new = ~np.isin(i.astype(np.int64) * max(n, 1) + j, have, assume_unique = False)
+      S.append(i[new]), T.append(j[new])
+   s, t = (np.concatenate(S), np.concatenate(T)) if S else (np.zeros(0, dtype = np.int64),) * 2
+   if self_loops:
+      add = np.setdiff1d(np.arange(n), u[loops])
+      s, t = np.r_[s, add], np.r_[t, add]
+   out = pd.DataFrame({"source": ids[s], "target": ids[t]})
+   return load_network(out, nodes, directed = net.directed, bipartite = bipartite, node_format = net.node_format, device = device)

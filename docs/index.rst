@@ -8,6 +8,7 @@ Graphoskop
    :caption: API
 
    network
+   formats
    transformations
    network_statistics
    backboning

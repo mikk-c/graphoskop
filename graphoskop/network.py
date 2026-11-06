@@ -29,6 +29,8 @@ import contextlib
 import ctypes
 import warnings
 
+import io
+
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
@@ -2009,7 +2011,18 @@ def _column(columns, col):
    return col if col in columns else columns[col]
 
 
-def _read(table, sep, header, text):
+def _uncommented(table, comment):
+   """
+   A table file without its comment lines (lines starting with ``comment``, after any leading
+   white space), as a text stream; a DataFrame, or a file when ``comment`` is empty, as it is.
+   """
+   if isinstance(table, pd.DataFrame) or not comment:
+      return table
+   with open(table, encoding = "utf-8", errors = "replace") as f:
+      return io.StringIO("".join(line for line in f if not line.lstrip().startswith(comment)))
+
+
+def _read(table, sep, header, text, comment = "#"):
    """
    Read a table, parsing some columns as strings and the others as numbers where possible.
 
@@ -2024,16 +2037,20 @@ def _read(table, sep, header, text):
    :param sep: Column separator.
    :param header: Header row (0) or ``None``.
    :param text: Names or positions of the columns to read as strings.
+   :param comment: Lines starting with it are skipped (see :func:`_uncommented`).
    :return: Table, and the names of the ``text`` columns.
    """
    if isinstance(table, pd.DataFrame):
       return table, [_column(table.columns, c) for c in text]
+   table = _uncommented(table, comment)
    columns = pd.read_csv(table, sep = sep, header = header, nrows = 0).columns
+   if hasattr(table, "seek"):
+      table.seek(0)
    names = [_column(columns, c) for c in text]
    return pd.read_csv(table, sep = sep, header = header, dtype = {c: str for c in names}, low_memory = False), names
 
 
-def _read_nodes(nodes, sep, header, columns, node_format, multilayer):
+def _read_nodes(nodes, sep, header, columns, node_format, multilayer, comment = "#"):
    """
    Read the node table, with its key columns first, in the order the loader expects: node id (or
    entity, then layer, if multilayer), then the attributes (wide), or the attribute name and the
@@ -2046,6 +2063,7 @@ def _read_nodes(nodes, sep, header, columns, node_format, multilayer):
       for the first ones.
    :param node_format: ``"wide"`` or ``"long"``.
    :param multilayer: Whether the network is multilayer.
+   :param comment: Lines starting with it are skipped.
    :return: Table (a DataFrame given in that order is used as it is, without copying it).
    :raises ValueError: If ``columns`` does not have one name or position per key column.
    """
@@ -2055,11 +2073,14 @@ def _read_nodes(nodes, sep, header, columns, node_format, multilayer):
       what = ("entity, layer" if multilayer else "node id") + (", attribute name, value" if node_format == "long" else "")
       raise ValueError(f"node_columns must give {k} column(s) ({what}), got {columns!r}")
    if not isinstance(nodes, pd.DataFrame):
+      nodes = _uncommented(nodes, comment)
       names = pd.read_csv(nodes, sep = sep, header = header, nrows = 0).columns
+      if hasattr(nodes, "seek"):
+         nodes.seek(0)
    else:
       names = nodes.columns
    cols = [_column(names, c) for c in cols]
-   nodes = _read(nodes, sep, header, cols[:1] + cols[k - 2:k - 1] if node_format == "long" else cols[:1])[0]
+   nodes = _read(nodes, sep, header, cols[:1] + cols[k - 2:k - 1] if node_format == "long" else cols[:1], None)[0]
    if cols == list(nodes.columns[:k]):
       return nodes
    return nodes[cols] if node_format == "long" else nodes[cols + [c for c in nodes.columns if c not in cols]]
@@ -2496,7 +2517,7 @@ def _layered(edges, src, tgt, lcol, eattr, inter, iattr, nodes, node_format, dir
    return names, s, t, ea, cols, rows["key"].to_numpy(), (rows["attribute"], rows["value"]), ml, inter_mask
 
 
-def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None, order = None):
+def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None, order = None, comment = "#"):
    """
    Body of :func:`load_network`, so that its temporary tables are freed when it returns.
 
@@ -2513,7 +2534,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
    if coupling == "temporal" and not directed:
       raise ValueError("temporal couplings go forward in time, so they need directed = True (give undirected contacts in both directions)")
    hdr = 0 if header else None
-   edges, (src, tgt) = _read(edges, sep, hdr, [source, target])
+   edges, (src, tgt) = _read(edges, sep, hdr, [source, target], comment)
    drop = [src, tgt]
    if multilayer:
       if isinstance(layer, str) and layer not in edges.columns:
@@ -2523,11 +2544,11 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
    eattr = edges.drop(columns = drop) if edge_attributes else edges[[]]
    inter, iattr = None, None
    if multilayer and interlayer_edges is not None:
-      inter = _read(interlayer_edges, sep, hdr, [0, 2])[0]
+      inter = _read(interlayer_edges, sep, hdr, [0, 2], comment)[0]
       iattr = inter.drop(columns = inter.columns[:4]) if edge_attributes else inter[[]]
    (eattr, iattr), qcats = _encode_tables(eattr, iattr)   # qualitative edge attributes as codes
    if nodes is not None:
-      nodes = _read_nodes(nodes, sep, hdr, node_columns, node_format, multilayer)
+      nodes = _read_nodes(nodes, sep, hdr, node_columns, node_format, multilayer, comment)
    edges, inter, nodes = (edges, inter, nodes) if order is not None else _same_ids([(edges, [src, tgt]), (inter, [] if inter is None else list(inter.columns[[0, 2]])), (nodes, [] if nodes is None else [nodes.columns[0]])])
    m = len(edges)
 
@@ -2622,7 +2643,7 @@ def _load(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1
 
 
 @_higher_order()
-def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None):
+def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, target = 1, edge_attributes = True, directed = False, node_format = "wide", bipartite = False, device = "cpu", multilayer = False, layer = LAYER, interlayer_edges = None, coupling = None, coupling_weight = 1, layers = None, node_columns = None, comment = "#"):
    """
    Load a network from an edge list and a node attribute table, given as files or as
    :class:`pandas.DataFrame`.
@@ -2724,6 +2745,9 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
       node id (wide), or node id, attribute name and value (long); in multilayer networks, entity
       and layer first. Other columns are attributes (wide) or ignored (long). ``None`` for the
       first columns of the table, in that order.
+   :param comment: Lines of the files (edges, nodes, interlayer edges) starting with it, after any
+      leading white space, are comments and skipped; ``None`` or ``""`` for none. Only whole
+      lines: a ``#`` inside a value (e.g. the color ``#ff0000``) is kept.
    :return: The loaded :class:`Network`.
    :raises ValueError: In bipartite networks, if there is no node table or no :data:`BIPARTITE`
       attribute, if it has more than two distinct values, if a node has no type or two different
@@ -2780,7 +2804,7 @@ def load_network(edges, nodes = None, sep = "\t", header = True, source = 0, tar
       # temporal network: snapshots 1, 2, 3, couplings forward in time
       net = gsk.load_network("contacts.tsv", multilayer = True, layer = "time", coupling = "temporal", directed = True)
    """
-   net = _load(edges, nodes, sep, header, source, target, edge_attributes, directed, node_format, bipartite, device, multilayer, layer, interlayer_edges, coupling, coupling_weight, layers, node_columns)
+   net = _load(edges, nodes, sep, header, source, target, edge_attributes, directed, node_format, bipartite, device, multilayer, layer, interlayer_edges, coupling, coupling_weight, layers, node_columns, comment = comment)
    _release_memory()
    return net
 

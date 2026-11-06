@@ -296,8 +296,11 @@ def load_code(spec):
    default), with only the arguments that differ from their defaults, followed by
    :func:`~graphoskop.signed_network` for signed networks.
 
+   A network file of another program (``kind`` ``"file"``) is read with
+   :func:`~graphoskop.read_network`, with ``directed`` only for adjacency lists.
+
    :param spec: Dictionary with ``edges`` (path), ``nodes`` (path or ``None``), ``sep``,
-      ``header``, ``kind`` (``"network"``, ``"hypergraph"``, ``"simplicial"`` or ``"matrix"``), ``source`` and
+      ``header``, ``kind`` (``"network"``, ``"hypergraph"``, ``"simplicial"``, ``"matrix"`` or ``"file"``), ``source`` and
       ``target`` (column names, or positions without a header; node and hyperedge or simplex
       column in higher-order networks), ``directed``, ``bipartite``, ``multilayer``, ``layer``,
       ``direction`` (directed hypergraphs), ``node_format`` (``"wide"`` or ``"long"``),
@@ -310,6 +313,10 @@ def load_code(spec):
    def add(name, value, default):
       if value != default and value is not None:
          kw.append((name, value))
+   if kind == "file":
+      add("directed", spec.get("directed"), None)
+      add("device", spec.get("device", "cpu"), "cpu")
+      return ["net = gsk." + _call("read_network", spec["edges"], kw)]
    if kind == "matrix":
       add("nodes", spec.get("nodes"), None)
       add("sep", spec.get("sep", "\\s+"), "\\s+")
@@ -321,6 +328,7 @@ def load_code(spec):
    add("nodes", spec.get("nodes"), None)
    add("sep", spec.get("sep", "\t"), "\t")
    add("header", spec.get("header", True), True)
+   add("comment", spec.get("comment", "#"), "#")
    if kind == "network":
       add("source", spec.get("source", 0), 0)
       add("target", spec.get("target", 1), 1)
@@ -374,7 +382,8 @@ def signature(function, net = None, fit = False):
    Parameters of a generator or of a layout, for the parameter dialog of the interface, leaving
    out those of :data:`HIDDEN` for layouts, ``net`` and ``progress`` for generators: for each, its
    ``name``, its ``default`` as shown in the dialog (Python source code: the default value, or
-   for ``None`` its actual value from :data:`SHOWN_DEFAULTS`; an empty string if there is none),
+   for ``None`` its actual value from :data:`SHOWN_DEFAULTS`; an empty string if there is none; or
+   the default of the interface for this function, ``(function, name)`` in :data:`SHOWN_DEFAULTS`),
    a ``hint`` for empty fields (from :data:`HINTS`, or ``"required"``),
    its description ``doc`` (from the ``:param:`` lines of the docstring) and the ``widget`` that
    sets it (:func:`widget`).
@@ -401,8 +410,8 @@ def signature(function, net = None, fit = False):
          continue
       if p.default is inspect.Parameter.empty or p.default is None:
          shown = SHOWN_DEFAULTS.get((function, p.name), SHOWN_DEFAULTS.get(p.name, ""))
-      else:
-         shown = literal(p.default)
+      else:   # the interface's own default, for this function (the code then gives it: see embedding_code)
+         shown = SHOWN_DEFAULTS.get((function, p.name), literal(p.default))
       if (function, p.name) in EMPTY:
          shown = ""
       hint = HINTS.get((function, p.name), HINTS.get(p.name, "required"))
@@ -589,9 +598,12 @@ def _edges(net):
 def node_values(net, name):
    """
    Values of a node attribute, in the network wide order: float64 array for numeric attributes,
-   object array for qualitative ones.
+   object array for qualitative ones (also the layers of a multilayer network,
+   :func:`layer_values`).
    """
    import torch
+   if _is_layer(net, name, list(net.node_attributes) + list(net.qualitative_node_attributes)):
+      return layer_values(net)
    if name in net.node_attributes:
       return torch.cat(net.get_node_attribute(name, None)).double().cpu().numpy()
    return np.concatenate([np.asarray(v, dtype = object) for v in net.get_node_attribute(name, None)])
@@ -796,11 +808,44 @@ def _matching_note(ns, code):
    return (interface_import() if needed else []) + notes + code
 
 
+#: Value of the pseudo-attribute ``layer`` (:func:`layer_values`) of interlayer edges.
+INTERLAYER = "interlayer"
+
+
+def layer_values(net, edges = False):
+   """
+   The layers of a multilayer network as a qualitative pseudo-attribute ``layer``
+   (:data:`~graphoskop.LAYER`), offered by the visual elements panel (colors, line styles, shapes,
+   …) when the network has no attribute of that name: the layer of every node (the layer of its
+   id), or of every input edge (``edges``: the layer of its two nodes, :data:`INTERLAYER` for
+   interlayer edges).
+
+   :param net: A multilayer network.
+   :param edges: Whether the values are those of the edges.
+   :return: Object array, in the network wide order (nodes) or in the order of :func:`_edges`.
+   """
+   layer = np.array([v[1] for ids in net.node_ids for v in ids] + [None], dtype = object)[:-1]
+   if not edges:
+      return layer
+   s, t = _edges(net)
+   return np.where(layer[s] == layer[t], layer[s], INTERLAYER).astype(object) if len(s) else np.zeros(0, dtype = object)
+
+
+def _is_layer(net, name, names):
+   """
+   Whether ``name`` is the pseudo-attribute of :func:`layer_values` (not an attribute of ``names``).
+   """
+   return name == gsk.LAYER and net.layer_labels is not None and name not in names
+
+
 def edge_values(net, name):
    """
    Values of an edge attribute, for the input edges in the network wide order (as :func:`_edges`):
-   float64 array for numeric attributes, object array for qualitative ones.
+   float64 array for numeric attributes, object array for qualitative ones (also the layers of a
+   multilayer network, :func:`layer_values`).
    """
+   if _is_layer(net, name, list(net.edge_attributes) + list(net.qualitative_edge_attributes)):
+      return layer_values(net, True)
    if name in net.edge_attributes:
       j = list(net.edge_attributes).index(name)
       return np.concatenate([net._input_edges(c)[1][:, j].double().cpu().numpy() for c in range(len(net.components))])
@@ -1020,7 +1065,7 @@ def sizes(values, spec):
    with ``log``) gets ``a``, the largest ``b``, and the others are interpolated linearly in between,
    in the squares of the sizes with ``area`` (node diameters, so that areas are proportional), in
    the sizes otherwise (edge widths). Qualitative attributes count as the positions of their
-   values (:func:`numbers`); missing values get ``a``.
+   values (:func:`numbers`); missing values get ``a``, or ``spec["missing"]`` when given.
 
    :param values: Values of the attribute (ignored without an attribute), or their number.
    :param spec: Size specification, or ``None`` for 1.
@@ -1036,9 +1081,9 @@ def sizes(values, spec):
    u = np.zeros(n)
    u[ok] = (t[ok] - lo) / (hi - lo) if hi > lo else 0.5
    a, b = float(spec.get("min", 0.5)), float(spec.get("max", 2.))
-   if spec.get("area", False):
-      return np.sqrt(a * a + u * (b * b - a * a))
-   return a + u * (b - a)
+   out = np.sqrt(a * a + u * (b * b - a * a)) if spec.get("area", False) else a + u * (b - a)
+   out[~ok] = float(spec.get("missing", a))
+   return out
 
 
 def opacities(values, spec):
@@ -1134,7 +1179,7 @@ def _id_literal(v):
    return literal(v) if isinstance(v, (str, int, float, bool)) else repr(v)
 
 
-def node_sizes(net, attribute = None, smallest = 0.5, largest = 2., log = False):
+def node_sizes(net, attribute = None, smallest = 0.5, largest = 2., log = False, area = True):
    """
    Relative diameters of the drawn nodes (1 is the default diameter), from a node attribute: the
    node with the smallest value gets ``smallest``, the one with the largest value ``largest``, and
@@ -1149,11 +1194,13 @@ def node_sizes(net, attribute = None, smallest = 0.5, largest = 2., log = False)
    :param smallest: Size of the node with the smallest value.
    :param largest: Size of the node with the largest value.
    :param log: Whether the values are placed on a logarithmic scale.
+   :param area: Whether the areas grow linearly with the values, else the diameters (the sizes
+      read from network files, :func:`file_style`).
    :return: float64 array, one value per node in the network wide order.
    """
    if attribute is None:
       return np.ones(len(_ids(net)))
-   return sizes(node_values(net, attribute), {"attribute": attribute, "min": smallest, "max": largest, "log": log, "area": True})
+   return sizes(node_values(net, attribute), {"attribute": attribute, "min": smallest, "max": largest, "log": log, "area": area})
 
 
 def positions(net, style, axis, attribute = "pos"):
@@ -1183,6 +1230,74 @@ def _positioned(ns):
    return any((ns.get("__style__", {}).get("position") or {}).values())
 
 
+#: Node shapes (Visual elements › Nodes › Shape), by code: the node shader draws them inscribed in
+#: the disc of the node (vertices on its circle; the square has horizontal sides, the diamond and
+#: the polygons a vertex on top, the octagon horizontal sides; the star has five points, its inner
+#: vertices at 0.382 of the radius).
+NODE_SHAPES = ["circle", "triangle", "square", "diamond", "pentagon", "hexagon", "heptagon", "octagon", "star"]
+#: Former names of node shapes: the five-pointed star was "pentagram" in 0.13.47.
+SHAPE_ALIASES = {"pentagram": "star"}
+#: Edge line styles (Visual elements › Edges › Line style), by code, in units of the width of the
+#: line: dashes of 3.6 every 6, a dash of 3.6 and a dot of 1 every 8 (the dot in the middle of the gap), round dots every 2.5, two parallel lines
+#: (the quad three widths wide), a sine wave and a zigzag (amplitude 1.5, period 6; the quad four
+#: widths wide). Self loops and matrix cells are always solid.
+EDGE_STYLES = ["solid", "dash", "dash-dot", "dots", "parallel", "sine", "zigzag"]
+#: Default color of node borders (which have no width by default).
+BORDER_COLOR = "#000000"
+#: Width of a node border of 1 ×, as a fraction of the radius of the node (the border is inside the
+#: shape, so that it does not change its size).
+BORDER_FRACTION = 0.1
+
+
+def category_codes(values, spec, names):
+   """
+   Codes of a categorical visual element (node shapes, edge line styles) of every node or edge:
+   ``spec`` is ``{}`` (code 0 for all), ``{"value": name}`` (one for all), or ``{"attribute": a,
+   "map": {text: name}, "other": name}``: the values of a qualitative attribute, each with its
+   ``name`` (values not in ``map`` take the next names of ``names`` in the order of
+   :func:`distinct`, after those used; missing values, ``other``, by default the first).
+
+   :param values: The values of the attribute (:func:`node_values` or :func:`edge_values`), or the
+      number of items when ``spec`` has no attribute.
+   :param names: The names, in code order (:data:`NODE_SHAPES`, :data:`EDGE_STYLES`).
+   :return: int array of codes.
+   """
+   spec = spec or {}
+   count = values if np.ndim(values) == 0 else len(values)
+   if spec.get("attribute") is None or np.ndim(values) == 0:
+      return np.full(int(count), names.index(spec.get("value", names[0])) if spec.get("value", names[0]) in names else 0, dtype = np.int32)
+   texts = np.array([text(v) for v in values], dtype = object)
+   alias = lambda v: SHAPE_ALIASES.get(v, v) if names is NODE_SHAPES else v
+   spec = dict(spec, **({"value": alias(spec["value"])} if "value" in spec else {}), **({"other": alias(spec["other"])} if "other" in spec else {}))
+   mapping = {k: names.index(alias(v)) for k, v in (spec.get("map") or {}).items() if alias(v) in names}
+   free = [k for k in range(len(names)) if k not in mapping.values()] or list(range(len(names)))
+   for j, t in enumerate(t for t in distinct(texts)[0] if t not in mapping):
+      mapping[t] = free[j % len(free)]
+   other = names.index(spec.get("other", names[0])) if spec.get("other", names[0]) in names else 0
+   return np.array([mapping.get(t, other) if t is not None else other for t in texts], dtype = np.int32)
+
+
+def node_borders(net, style, n):
+   """
+   Borders of the nodes: their color (``node_border``, as node colors, :func:`colors`) and width
+   (``node_border_width``, as node sizes, :func:`sizes`, times :data:`BORDER_FRACTION` of the
+   radius), a texel each (red, green, blue, width as a fraction of the radius, at most 1).
+
+   :return: float32 array, one row per node, padded to rows of :data:`CHART_WIDTH`; empty if no
+      node has a border.
+   """
+   bw = style.get("node_border_width") or {"attribute": None, "size": 0.}
+   width = sizes(node_values(net, bw["attribute"]) if bw.get("attribute") else n, bw) * BORDER_FRACTION
+   width = np.broadcast_to(np.asarray(width, dtype = np.float32), (n,))
+   if not n or not (width > 0).any():
+      return np.zeros((0, 4), dtype = np.float32)
+   bc = style.get("node_border") or {"attribute": None, "color": BORDER_COLOR}
+   table = np.zeros((-(-n // CHART_WIDTH) * CHART_WIDTH, 4), dtype = np.float32)
+   table[:n, :3] = colors(node_values(net, bc["attribute"]) if bc.get("attribute") else n, bc, BORDER_COLOR)[:, :3]
+   table[:n, 3] = np.clip(width, 0., 1.)
+   return table
+
+
 def default_style(net):
    """
    Style of a new drawing: ``nodes`` and ``edges`` (colors, see :func:`colors`), ``node_size`` and
@@ -1190,7 +1305,12 @@ def default_style(net):
    :func:`opacities`), ``position`` (``{"x": None, "y": None}``: the layout, see
    :func:`positions`), ``labels`` (``{"attribute": None}``: no labels; ``"ids": True`` for the
    node ids, see :func:`node_labels`), ``label_size`` (``{"attribute": None, "size": 1.}``, see
-   :func:`label_sizes`), ``node_chart`` (``{}``: none; see :func:`chart_slices`). Nodes are
+   :func:`label_sizes`), ``node_chart`` (``{}``: none; see :func:`chart_slices`), ``node_shape``
+   (``{}``: circles; see :func:`category_codes`, :data:`NODE_SHAPES`), ``node_border`` (a color,
+   as ``nodes``, by default :data:`BORDER_COLOR`) and ``node_border_width`` (as ``node_size``, by
+   default 0: no border; see :func:`node_borders`), ``label_color`` (``""``: black or white by
+   the background; or a color, as ``nodes``, see :func:`label_inks`) and ``edge_style`` (``{}``: solid lines; see
+   :data:`EDGE_STYLES`). Nodes are
    :data:`NODE_COLOR` and edges :data:`EDGE_COLOR`, all of the
    default size and opaque; in bipartite networks (and incidence networks of hypergraphs and
    complexes), nodes are colored by type, the second type (hyperedges, facets)
@@ -1202,7 +1322,75 @@ def default_style(net):
       if b == "node":
          a, b = b, a
       nodes = {"attribute": gsk.BIPARTITE, "scale": "qualitative", "palette_name": "Set1", "palette": [NODE_COLOR, TYPE1_COLOR], "overrides": [[a, NODE_COLOR], [b, TYPE1_COLOR]], "missing": MISSING_COLOR}
-   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}, "labels": {"attribute": None}, "label_size": {"attribute": None, "size": 1.}, "node_chart": {}}
+   return {"nodes": nodes, "edges": {"attribute": None, "color": EDGE_COLOR}, "node_size": {"attribute": None, "size": 1.}, "edge_width": {"attribute": None, "size": 1.}, "node_opacity": {"attribute": None, "opacity": 1.}, "edge_opacity": {"attribute": None, "opacity": 1.}, "position": {"x": None, "y": None}, "labels": {"attribute": None}, "label_size": {"attribute": None, "size": 1.}, "node_chart": {}, "node_shape": {}, "node_border": {"attribute": None, "color": BORDER_COLOR}, "node_border_width": {"attribute": None, "size": 0.}, "label_color": "", "edge_style": {}}
+
+
+#: Node shapes of network files (:data:`~graphoskop.formats.VISUAL_ATTRIBUTES`) drawn as the shapes of
+#: :data:`NODE_SHAPES`; the others are circles.
+SHAPE_NAMES = {"box": "square", "rect": "square", "rectangle": "square", "square": "square", "roundrectangle": "square", "round-rectangle": "square", "triangle": "triangle", "diamond": "diamond", "pentagon": "pentagon", "hexagon": "hexagon", "septagon": "heptagon", "heptagon": "heptagon", "octagon": "octagon", "star": "star"}
+#: Edge line styles of network files drawn as the styles of :data:`EDGE_STYLES`; the others are
+#: solid.
+LINE_NAMES = {"dashed": "dash", "dash": "dash", "dotted": "dots", "dot": "dots", "dots": "dots", "dashdot": "dash-dot", "dash-dot": "dash-dot", "dashdotted": "dash-dot", "dash_dot": "dash-dot", "double": "parallel", "parallel": "parallel"}
+
+
+def _hex_color(value):
+   """
+   ``#rrggbb`` of a color of a network file (hexadecimal, or a CSS color name), or ``None``.
+   """
+   from matplotlib.colors import to_hex
+   try:
+      return to_hex(str(value).strip())
+   except ValueError:
+      return None
+
+
+def file_style(net):
+   """
+   Style of a network read from the file of another program (:func:`~graphoskop.read_network`),
+   from the attributes of :data:`~graphoskop.formats.VISUAL_ATTRIBUTES` it has: colors (node ``color``,
+   ``border_color``, edge ``color``: every value its own color, values that are not colors the
+   default color), node ``size`` (diameters proportional to the values, the median value the
+   default diameter), ``border_width`` (1 is :data:`BORDER_FRACTION` of the radius), edge
+   ``width`` (1 is the default width), ``opacity`` (missing values: the defaults, opaque, 1 ×; a
+   border width relative to the median node size when there are sizes), ``shape``
+   (:data:`SHAPE_NAMES`) and edge
+   ``style`` (:data:`LINE_NAMES`), node ``label`` (shown) and ``label_color`` (as the colors).
+   Positions ``pos_x`` and ``pos_y`` are the layout when every node has them
+   (:func:`complete_positions`); otherwise the interface lays the network out.
+
+   :param net: The network.
+   :return: Style (see :func:`default_style`).
+   """
+   style = default_style(net)
+   nodes = set(net.node_attributes) | set(net.qualitative_node_attributes)
+   edges = set(net.edge_attributes) | set(net.qualitative_edge_attributes)
+   def numbers_of(values):
+      x = numbers(values)
+      return x[~np.isnan(x)]
+   for key, name, has, values, default in [("nodes", "color", nodes, node_values, NODE_COLOR), ("node_border", "border_color", nodes, node_values, BORDER_COLOR), ("label_color", "label_color", nodes, node_values, "#000000"), ("edges", "color", edges, edge_values, EDGE_COLOR)]:
+      if name in has:
+         texts = distinct(values(net, name))[0]
+         style[key] = {"attribute": name, "scale": "qualitative", "palette_name": "", "palette": [default], "overrides": [[t, c] for t in texts if (c := _hex_color(t))], "missing": default}
+   diameter = numbers_of(node_values(net, "size")) if "size" in net.node_attributes else np.zeros(0)
+   diameter = float(np.median(diameter)) if len(diameter) and np.median(diameter) > 0 else None
+   for key, name, has, values in [("node_size", "size", nodes, node_values), ("node_border_width", "border_width", nodes, node_values), ("edge_width", "width", edges, edge_values), ("node_opacity", "opacity", nodes, node_values), ("edge_opacity", "opacity", edges, edge_values)]:
+      x = numbers_of(values(net, name)) if name in has else np.zeros(0)
+      if len(x):
+         ref = diameter if key == "node_size" else BORDER_FRACTION * diameter / 2 if key == "node_border_width" and diameter else 1.
+         style[key] = {"attribute": name, "min": float(x.min()) / ref, "max": float(x.max()) / ref, "area": False, "missing": 1. / ref if key == "node_border_width" else 1.}
+   for key, name, has, values, table, other in [("node_shape", "shape", nodes, node_values, SHAPE_NAMES, "circle"), ("edge_style", "style", edges, edge_values, LINE_NAMES, "solid")]:
+      if name in has:
+         style[key] = {"attribute": name, "map": {t: table.get(t.lower(), other) for t in distinct(values(net, name))[0]}, "other": other}
+   if "label" in nodes:
+      style["labels"] = {"attribute": "label"}
+   return style
+
+
+def complete_positions(net):
+   """
+   Whether every node has the positions ``pos_x`` and ``pos_y`` (e.g. read from a network file).
+   """
+   return {"pos_x", "pos_y"} <= set(net.node_attributes) and not any(np.isnan(node_values(net, a)).any() for a in ("pos_x", "pos_y"))
 
 
 def prune_style(style, net):
@@ -1218,8 +1406,12 @@ def prune_style(style, net):
    """
    nodes = set(net.node_attributes) | set(net.qualitative_node_attributes) | ({gsk.BIPARTITE} if net.bipartite_labels is not None else set())
    edges = set(net.edge_attributes) | set(net.qualitative_edge_attributes)
+   if net.layer_labels is not None:   # the pseudo-attribute of the layers (:func:`layer_values`)
+      nodes, edges = nodes | {gsk.LAYER}, edges | {gsk.LAYER}
    default = None
-   for key, names in [("nodes", nodes), ("node_size", nodes), ("node_opacity", nodes), ("edges", edges), ("edge_width", edges), ("edge_opacity", edges), ("labels", nodes), ("label_size", nodes)]:
+   if isinstance(style.get("label_color"), str) and style["label_color"]:   # one color, as written by former versions
+      style["label_color"] = {"attribute": None, "color": style["label_color"]}
+   for key, names in [("label_color", nodes), ("nodes", nodes), ("node_size", nodes), ("node_opacity", nodes), ("edges", edges), ("edge_width", edges), ("edge_opacity", edges), ("labels", nodes), ("label_size", nodes), ("node_shape", nodes), ("node_border", nodes), ("node_border_width", nodes), ("edge_style", edges)]:
       a = (style.get(key) or {}).get("attribute")
       if a is not None and a not in names:
          default = default or default_style(net)
@@ -1304,7 +1496,10 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None, mat
    :return: Dictionary with the node, edge, loop and arrow buffers (float32 arrays), whether edges are curves
       (``curved``) or matrix cells (``cells``), the node ids joined by ``"\\x1f"`` (UTF-8), the picking grid
       (:func:`pick_grid`), the bounding box ``[x0, y0, x1, y1]``, the default diameter of the
-      nodes and the largest one.
+      nodes and the largest one, the node ``borders`` (:func:`node_borders`), and the line style
+      of every edge (``line_styles``, codes of :data:`EDGE_STYLES`) also as a texture (``styles``,
+      float32, rows of :data:`CHART_WIDTH`, empty when all are solid). Nodes have the code of
+      their shape (:data:`NODE_SHAPES`) as custom data ``w``.
    """
    import torch
    if matrix is not None:
@@ -1324,7 +1519,7 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None, mat
    if nz.get("attribute") is None:
       d = np.full(n, size * float(nz.get("size", 1.)))
    else:
-      d = size * node_sizes(net, nz["attribute"], float(nz.get("min", 0.5)), float(nz.get("max", 2.)), bool(nz.get("log", False)))
+      d = size * node_sizes(net, nz["attribute"], float(nz.get("min", 0.5)), float(nz.get("max", 2.)), bool(nz.get("log", False)), bool(nz.get("area", True)))
    N = np.zeros((n, NODE_STRIDE), dtype = np.float32)
    N[:, 0], N[:, 5], N[:, 3], N[:, 7], N[:, 12] = d, d, x, y, d
    N[:, 8:12] = colors(node_values(net, ns["attribute"]) if ns and ns.get("attribute") else n, ns, NODE_COLOR)
@@ -1400,7 +1595,14 @@ def drawing(net, size = None, style = None, attribute = "pos", bends = None, mat
    box = [float(x.min()), float(y.min()), float(x.max()), float(y.max())] if n else [0., 0., 1., 1.]
    if matrix is not None and len(E):
       box = [min(box[0], float(E[:, 3].min()) - 0.5), min(box[1], float(E[:, 7].min()) - 0.5), max(box[2], float(E[:, 3].max()) + 0.5), max(box[3], float(E[:, 7].max()) + 0.5)]
-   return {"nodes": N, "edges": E, "loops": L, "arrows": A, "curved": bool(curved), "cells": matrix is not None, "ids": ids, "grid": grid, "order": order, "starts": starts, "box": box, "size": size, "biggest": biggest}
+   shape = style.get("node_shape") or {}
+   N[:, 15] = category_codes(node_values(net, shape["attribute"]) if shape.get("attribute") else n, shape, NODE_SHAPES)
+   borders = node_borders(net, style, n)
+   es = style.get("edge_style") or {}
+   codes = category_codes(edge_values(net, es["attribute"]) if es.get("attribute") else m, es, EDGE_STYLES) if matrix is None else np.zeros(m, dtype = np.int32)
+   styles = np.zeros(-(-m // CHART_WIDTH) * CHART_WIDTH if codes.any() else 0, dtype = np.float32)
+   styles[:m if len(styles) else 0] = codes[:len(styles)]
+   return {"nodes": N, "edges": E, "loops": L, "arrows": A, "curved": bool(curved), "cells": matrix is not None, "ids": ids, "grid": grid, "order": order, "starts": starts, "box": box, "size": size, "biggest": biggest, "borders": borders, "line_styles": codes, "styles": styles}
 
 
 #: Diameter of the circle of a self loop, relative to the diameter of its node.
@@ -1475,7 +1677,7 @@ def subdivisions(pieces):
    return int(np.clip(MAX_SEGMENTS // max(pieces, 1), 2, 16))
 
 
-def preview(path, sep = "\t", header = True, rows = 10):
+def preview(path, sep = "\t", header = True, rows = 10, comment = "#"):
    """
    First rows of a table, read as :func:`~graphoskop.load_network` reads it (all values as text),
    and a guess of its node table format: long if it has three or more columns and a node id
@@ -1485,10 +1687,16 @@ def preview(path, sep = "\t", header = True, rows = 10):
    :param sep: Column separator.
    :param header: Whether the file has a header row.
    :param rows: Number of rows returned.
+   :param comment: Lines starting with it (after any leading white space) are skipped, as
+      :func:`~graphoskop.load_network` skips them.
    :return: Dictionary with ``columns`` (names; positions as text without a header), ``rows``
       (lists of text) and ``long`` (the format guess).
    """
+   import io, itertools
    import pandas as pd
+   with open(path, encoding = "utf-8", errors = "replace") as f:   # the first lines that are not comments
+      lines = itertools.islice((l for l in f if not (comment and l.lstrip().startswith(comment))), 1001)
+      path = io.StringIO("".join(lines))
    T = pd.read_csv(path, sep = sep, header = 0 if header else None, nrows = 1000, dtype = str, keep_default_na = False, engine = "python" if len(sep) > 1 else "c")
    long = T.shape[1] >= 3 and T.iloc[:, 0].duplicated().any()
    return {"columns": [str(c) for c in T.columns], "rows": T.head(rows).values.tolist(), "long": bool(long)}
@@ -1507,6 +1715,8 @@ def attributes(net):
    long table of the qualitative ones once): ten thousand attributes of a long node table take a fraction of
    a second, not seconds each.
 
+   Multilayer networks also get the pseudo-attribute ``layer`` of :func:`layer_values`.
+
    :return: Dictionary with lists ``nodes`` and ``edges``.
    """
    def numeric(name, u):   # u: the sorted distinct numbers
@@ -1522,6 +1732,10 @@ def attributes(net):
    nodes = [numeric(a, u) for a, u in zip(net.node_attributes, _distinct_numbers(net))]
    nodes += [qualitative(a, v) for a, v in _qualitative_uniques(net).items()]
    edges = [edge(a, edge_values(net, a)) for a in list(net.edge_attributes) + list(net.qualitative_edge_attributes)]
+   if _is_layer(net, gsk.LAYER, [n["name"] for n in nodes]):   # the layers, as an attribute (:func:`layer_values`)
+      nodes.append(qualitative(gsk.LAYER, _values_once(layer_values(net))))
+   if _is_layer(net, gsk.LAYER, [e["name"] for e in edges]):
+      edges.append(qualitative(gsk.LAYER, _values_once(layer_values(net, True))))
    return {"nodes": nodes, "edges": edges}
 
 
@@ -1838,9 +2052,16 @@ def _drawing(request):
 def _load(request):
    """
    Command ``load``: runs the code of :func:`load_code` in a new namespace for the tab, and replies
-   with the code and a summary of the network.
+   with the code and a summary of the network. Network files of other programs get the style of
+   their visual attributes (:func:`file_style`), and ``positioned`` when all their nodes have
+   positions (:func:`complete_positions`: the interface draws them instead of laying them out).
    """
-   return _new(request, load_code(request["spec"]))
+   reply = _new(request, load_code(request["spec"]))
+   if request["spec"].get("kind") == "file":
+      ns = _spaces[request["tab"]]
+      ns["__style__"] = file_style(ns["net"])
+      reply[0]["positioned"] = complete_positions(ns["net"])   # drawn as in the file
+   return reply
 
 
 def _generate(request):
@@ -1893,8 +2114,9 @@ def chart_slices(net, spec):
      for the others; none for missing values); every distinct value (in the order of
      :func:`distinct`) has the next color of the palette.
 
-   The ``palette`` (list of ``#rrggbb``, cycled) is :data:`CHART_PALETTE` unless given. A node has
-   at most :data:`MAX_SLICES` slices, its largest.
+   ``colors`` (``{attribute or value: #rrggbb}``) gives the color of each attribute or value; the
+   others take the ``palette`` (list of ``#rrggbb``, cycled; :data:`CHART_PALETTE` unless
+   given), by their position. A node has at most :data:`MAX_SLICES` slices, its largest.
 
    :param net: The drawn network.
    :param spec: The chart specification, or ``None`` / ``{}`` for no charts.
@@ -1905,8 +2127,9 @@ def chart_slices(net, spec):
    """
    n = int(net.number_of_nodes())
    spec = spec or {}
-   palette = np.array([_rgba(c)[:3] for c in (spec.get("palette") or CHART_PALETTE)], dtype = np.float32)
-   rows, cols, share = [], [], []   # node, color, size of every slice
+   palette = [_rgba(c)[:3] for c in (spec.get("palette") or CHART_PALETTE)]
+   chosen = spec.get("colors") or {}
+   rows, cols, share = [], [], []   # node, slice kind, size of every slice
    if spec.get("attributes"):
       for k, a in enumerate(spec["attributes"]):
          v = np.nan_to_num(numbers(node_values(net, a)), nan = 0.).astype(float)
@@ -1916,8 +2139,11 @@ def chart_slices(net, spec):
       values = node_values(net, spec["attribute"])
       items = [[x for x in (v if isinstance(v, (tuple, list)) else [v]) if text(x) is not None] for v in values]
       order = {t: k for k, t in enumerate(distinct(np.array([text(x) for it in items for x in it], dtype = object))[0])}
+      keys = list(order)
       sizes = np.array([len(it) for it in items], dtype = int)
       rows.append(np.repeat(np.arange(n), sizes)), cols.append(np.array([order[text(x)] for it in items for x in it], dtype = int)), share.append(np.ones(int(sizes.sum())))
+   if spec.get("attributes"):
+      keys = list(spec["attributes"])
    offsets, counts = np.zeros(n, dtype = np.float32), np.zeros(n, dtype = np.float32)
    if not rows:
       return offsets, counts, np.zeros((0, 4), dtype = np.float32)
@@ -1936,7 +2162,8 @@ def chart_slices(net, spec):
    offsets[:] = np.where(counts > 0, start, 0)
    table = np.zeros((-(-len(r) // CHART_WIDTH) * CHART_WIDTH, 4), dtype = np.float32)
    table[:len(r), 0] = ends
-   table[:len(r), 1:] = palette[c % len(palette)]
+   rgb = np.array([_rgba(chosen[k])[:3] if k in chosen else palette[i % len(palette)] for i, k in enumerate(keys)], dtype = np.float32)
+   table[:len(r), 1:] = rgb[c]
    return offsets, counts, table
 
 
@@ -1973,6 +2200,23 @@ def label_sizes(net, style, size):
    return (LABEL_FRACTION * size * sizes(values, spec)).astype(np.float32).tobytes()
 
 
+def label_inks(net, style):
+   """
+   Colors of the node labels of a drawing, from ``style["label_color"]`` (Visual elements › Nodes
+   › Label color): a color specification as those of the nodes (:func:`colors`: one color for all,
+   or colors from a node attribute; a ``#rrggbb`` text of former versions is one color for all), or
+   ``""`` (or ``{}``) for automatic, black or white by the background.
+
+   :return: float32 array of RGBA rows in the drawing order, or ``None`` when automatic.
+   """
+   spec = style.get("label_color") or {}
+   if isinstance(spec, str):
+      spec = {"attribute": None, "color": spec}
+   if not spec:
+      return None
+   return colors(node_values(net, spec["attribute"]) if spec.get("attribute") is not None else net.number_of_nodes(), spec, "#000000")
+
+
 def _draw(ns, code, keep = False):
    """
    Reply with the code of a tab and, if its network has positions, its drawing (:func:`drawing`):
@@ -1983,7 +2227,8 @@ def _draw(ns, code, keep = False):
    (:func:`node_labels`, empty without), label heights (:func:`label_sizes`), the slices of the
    node charts (:func:`chart_slices`: rows of :data:`CHART_WIDTH` texels, empty without; the
    nodes have the position of their first slice and their number in the custom data ``y`` and
-   ``z`` of their buffer), in this order), the grid, the box, the
+   ``z`` of their buffer), the node borders and the edge line styles (:func:`drawing`: textures,
+   empty without), in this order), the grid, the box, the
    default and largest node diameters and the style. The default node diameter of the tab is
    recomputed for the layout, unless ``keep`` (transformations of a layout and changes of style
    keep it). Edges are drawn as the curves of ``bends`` when no layout came after them, and the
@@ -2000,7 +2245,7 @@ def _draw(ns, code, keep = False):
       ns["__style__"] = prune_style(dict(default_style(draw), **ns.get("__style__", {})), draw)
       ns["__size__"] = ns.get("__size__") or EMPTY_NODE_SIZE
       b = EMPTY_BOX
-      header = {"labels": False, "code": code, "nodes": 0, "empty": True, "edges": 0, "loops": 0, "arrows": 0, "stride": EDGE_STRIDE, "curved": False, "cells": False, "subdivisions": 1, "box": [-b, -b, b, b], "node_size": ns["__size__"], "biggest": ns["__size__"], "grid": {}, "style": ns["__style__"], "parts": [0] * 12}
+      header = {"labels": False, "code": code, "nodes": 0, "empty": True, "edges": 0, "loops": 0, "arrows": 0, "stride": EDGE_STRIDE, "curved": False, "cells": False, "subdivisions": 1, "box": [-b, -b, b, b], "node_size": ns["__size__"], "biggest": ns["__size__"], "grid": {}, "style": ns["__style__"], "parts": [0] * 14}
       header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = "", movable = True, adding = adding(ns["net"]))
       return header, b""
    if "pos_x" not in draw.node_attributes and matrix is None or draw.higher_order is not None:   # no layout yet (a new hypergraph, e.g. from clique promotion: laid out as its incidence network)
@@ -2012,11 +2257,14 @@ def _draw(ns, code, keep = False):
    s, t = _edges(draw)
    labels = node_labels(draw, ns["__style__"]) if matrix is None else b""
    heights = label_sizes(draw, ns["__style__"], d["size"]) if labels else b""
+   inks = label_inks(draw, ns["__style__"]) if labels else None
+   if inks is not None:   # the height and the color of every label
+      heights = np.column_stack([np.frombuffer(heights, dtype = np.float32), inks]).astype(np.float32).tobytes()
    offsets, counts, table = chart_slices(draw, ns["__style__"].get("node_chart")) if matrix is None else (None, None, np.zeros((0, 4), dtype = np.float32))
    if len(table):   # node charts: their slices, a texel each
       d["nodes"][:, 13], d["nodes"][:, 14] = offsets, counts
-   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes(), labels, heights, table.tobytes()]
-   header = {"labels": bool(labels), "code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "loops": len(d["loops"]), "arrows": len(d["arrows"]), "stride": int(d["edges"].shape[1]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
+   parts = [d["nodes"].tobytes(), d["edges"].tobytes(), d["ids"], d["order"].tobytes(), d["starts"].tobytes(), s.astype(np.int32).tobytes(), t.astype(np.int32).tobytes(), d["loops"].tobytes(), d["arrows"].tobytes(), labels, heights, table.tobytes(), d["borders"].tobytes(), d["styles"].tobytes()]
+   header = {"labels": bool(labels), "label_inks": inks is not None, "code": code, "nodes": len(d["nodes"]), "edges": len(d["edges"]), "loops": len(d["loops"]), "arrows": len(d["arrows"]), "stride": int(d["edges"].shape[1]), "curved": d["curved"], "cells": d["cells"], "subdivisions": subdivisions(len(d["edges"])), "box": d["box"], "node_size": d["size"], "biggest": d["biggest"], "grid": d["grid"], "style": ns["__style__"], "parts": [len(p) for p in parts]}
    header.update(undo = bool(ns.get("__undo__")), redo = bool(ns.get("__redo__")), history = _history_key(ns, draw), movable = matrix is None and not _positioned(ns), adding = adding(ns["net"]))
    return header, b"".join(parts)
 
@@ -2194,6 +2442,61 @@ def _paths(request):
    return header, payload
 
 
+#: Shallow embeddings of Analysis › Node embeddings and the prefix of their node attributes
+#: (``<prefix>_0``, ``<prefix>_1``, ...): unsupervised vectors of the nodes, which the graph neural
+#: networks can take as features (``features``: ``node2vec_*``).
+EMBEDDINGS = {"node2vec": "node2vec", "struc2vec": "struc2vec", "metapath2vec": "metapath2vec", "laplacian_eigenmaps": "eigenmaps", "locally_linear_embedding": "lle"}
+#: Number of dimensions of the embeddings in the interface (the library defaults to 128 for the
+#: trained ones: as many node attributes).
+EMBEDDING_DIMENSIONS = 16
+SHOWN_DEFAULTS.update({(f, "attribute"): literal(prefix) for f, prefix in EMBEDDINGS.items()})
+SHOWN_DEFAULTS.update({(f, "dimensions"): str(EMBEDDING_DIMENSIONS) for f in EMBEDDINGS})
+CHOICES.update({("metapath2vec", "node_type"): ("nodes", False), ("metapath2vec", "edge_type"): ("edges", False)})
+HINTS.update({("metapath2vec", "edge_type"): "any relation", ("struc2vec", "candidates"): "all pairs"})
+INTEGERS.update({(f, "dimensions"): 1 for f in EMBEDDINGS})
+
+
+def embedding_code(ns, function, arguments):
+   """
+   Code of a shallow embedding (:data:`EMBEDDINGS`) of the drawn network of a tab, written as node
+   attributes ``<attribute>_0``, ``<attribute>_1``, ... (the ``attribute`` of the dialog, by
+   default the name of :data:`EMBEDDINGS`, and :data:`EMBEDDING_DIMENSIONS` dimensions, which
+   the dialog shows but does not send unless changed), e.g.
+
+   .. code-block:: python
+
+      gsk.node2vec(net, dimensions = 16, seed = 1, attribute = "node2vec")
+
+   :return: The lines, and the attribute prefix.
+   """
+   arguments = {k: v.strip() for k, v in arguments.items() if str(v).strip()}
+   arguments.setdefault("dimensions", str(EMBEDDING_DIMENSIONS))
+   prefix = ast.literal_eval(arguments.pop("attribute", literal(EMBEDDINGS[function])))
+   t = _target(ns)
+   higher = ns["net"].higher_order is not None
+   lines = ["inc = gsk.incidence_network(net)"] if higher and "inc" not in ns else []
+   extra = "".join(f", {k} = {v}" for k, v in arguments.items())
+   return lines + [f"gsk.{function}({t}{extra}, attribute = {literal(prefix)})"], prefix
+
+
+def _embedding(request):
+   """
+   Command ``embedding`` (Analysis › Node embeddings): runs :func:`embedding_code` in the
+   namespace of a tab, and replies with the code, the drawing (unchanged) and a ``note`` naming
+   the new attributes, e.g. ``node2vec_0`` to ``node2vec_15``; with a progress bar while training.
+   """
+   ns = _spaces[request["tab"]]
+   function = request["function"]
+   if function not in EMBEDDINGS:
+      raise ValueError(f"unknown embedding: {function}")
+   lines, prefix = embedding_code(ns, function, dict(request.get("arguments") or {}))
+   code = _run(request["tab"], lines)
+   header, payload = _draw(ns, code, True)
+   k = sum(1 for a in _drawn(ns).node_attributes if a.startswith(prefix + "_") and a[len(prefix) + 1:].isdigit())
+   header["note"] = f"{function}: {k} node attributes, {prefix}_0 to {prefix}_{k - 1} (features of the graph neural networks: {prefix}_*)"
+   return header, payload
+
+
 def _centrality(request):
    """
    Command ``centrality``: runs the code of :func:`centrality_code` in the namespace of a tab, and
@@ -2304,10 +2607,23 @@ def gradient_colors(values, gradient, log = False):
    return out
 
 
+#: Sizes of the data series of the plot being drawn (set by ``_figure`` from its options):
+#: ``line_width`` and ``point_size`` (times the usual ones), ``bar_width`` (fraction of the gap).
+_SIZES = {}
+
+
+def _lw(base):
+   """
+   Width of a line of a plot: ``base`` times the ``line_width`` of the options (``_SIZES``).
+   """
+   return base * float(_SIZES.get("line_width", 1.))
+
+
 def _series(ax, x, y, style, color, label):
    """
-   Draws a data series in one of the :data:`PLOT_STYLES`. Bars are 0.8 times the smallest gap
-   between the x values wide (on a logarithmic x axis, as wide relatively). With a gradient
+   Draws a data series in one of the :data:`PLOT_STYLES`. Bars are ``bar_width`` (option, 0.8 by
+   default) times the smallest gap between the x values wide (on a logarithmic x axis, as wide
+   relatively); lines and points are ``line_width`` and ``point_size`` times their usual size. With a gradient
    (``_GRADIENT``), every bar, point and segment of line gets the color of its x or y value
    (:func:`gradient_colors`; a segment, the value at its middle).
    """
@@ -2317,26 +2633,27 @@ def _series(ax, x, y, style, color, label):
       along = x if g.get("axis") == "x" else y
       log = (ax.get_xscale() if g.get("axis") == "x" else ax.get_yscale()) == "log"
       color = gradient_colors(along, g, log)
+   lw, ps, bw = _lw(2 if style == "lines" else 1.5), float(_SIZES.get("point_size", 1.)), float(_SIZES.get("bar_width", 0.8))
    if style == "bars":
       gaps = np.diff(np.unique(x))
       if ax.get_xscale() == "log" and len(gaps) and (x > 0).all():
          r = np.diff(np.log(np.unique(x))).min()
-         ax.bar(x * np.exp(-0.4 * r), y, width = x * (np.exp(0.4 * r) - np.exp(-0.4 * r)), align = "edge", color = color, alpha = 0.8, label = label)
+         ax.bar(x * np.exp(-bw / 2 * r), y, width = x * (np.exp(bw / 2 * r) - np.exp(-bw / 2 * r)), align = "edge", color = color, alpha = 0.8, label = label)
       else:
-         ax.bar(x, y, width = 0.8 * (gaps.min() if len(gaps) else 1.), color = color, alpha = 0.8, label = label)
+         ax.bar(x, y, width = bw * (gaps.min() if len(gaps) else 1.), color = color, alpha = 0.8, label = label)
    elif not g:
-      ax.plot(x, y, {"lines": "-", "points": "o", "linespoints": "-o"}[style], color = color, lw = 2 if style == "lines" else 1.5, ms = 4, label = label)
+      ax.plot(x, y, {"lines": "-", "points": "o", "linespoints": "-o"}[style], color = color, lw = lw, ms = 4 * ps, label = label)
    else:
       from matplotlib.collections import LineCollection
       if style in ("lines", "linespoints") and len(x) > 1:
          middle = (along[:-1] + along[1:]) / 2
          segments = np.stack([np.column_stack([x[:-1], y[:-1]]), np.column_stack([x[1:], y[1:]])], axis = 1)
-         ax.add_collection(LineCollection(segments, colors = gradient_colors(middle, g, log), linewidths = 2 if style == "lines" else 1.5, label = label))
+         ax.add_collection(LineCollection(segments, colors = gradient_colors(middle, g, log), linewidths = lw, label = label))
          ax.update_datalim(np.column_stack([x, y])[np.isfinite(x) & np.isfinite(y)])
          ax.autoscale_view()
          label = None
       if style in ("points", "linespoints"):
-         ax.scatter(x, y, c = color, s = 16, label = label, zorder = 3)
+         ax.scatter(x, y, c = color, s = 16 * ps ** 2, label = label, zorder = 3)
 
 
 def _plot_font():
@@ -2355,7 +2672,8 @@ def _figure(draw, options, format, path, dpi):
    data, then the options set the labels and ranges of the axes and the size of the font
    (:func:`_plot_font`); tick marks are inside the axes, on all four sides, and a legend is added
    (if a series has a label). The option ``gradient`` colors the data series by their x or y
-   values (:func:`gradient_colors`, see ``_series``).
+   values (:func:`gradient_colors`, see ``_series``); ``line_width``, ``point_size`` and
+   ``bar_width`` size them (``_SIZES``, see :func:`_series`).
 
    :param format: ``"png"`` or ``"pdf"``.
    :param path: File to write, or ``None`` to return the bytes.
@@ -2366,17 +2684,18 @@ def _figure(draw, options, format, path, dpi):
    import matplotlib
    matplotlib.use("Agg")
    from matplotlib.figure import Figure
-   global _GRADIENT
+   global _GRADIENT, _SIZES
    with matplotlib.rc_context({"font.family": _plot_font(), "font.size": float(options["font_size"]), "pdf.fonttype": 42}):
       fig = Figure(figsize = (8, 5.5))
       ax = fig.add_subplot()
       ax.set_xscale("log" if options["xlog"] else "linear")
       ax.set_yscale("log" if options["ylog"] else "linear")
       _GRADIENT = options.get("gradient") or None
+      _SIZES = {k: options[k] for k in ("line_width", "point_size", "bar_width") if options.get(k) is not None}
       try:
          draw(ax)
       finally:
-         _GRADIENT = None
+         _GRADIENT, _SIZES = None, {}
       ax.set_xlabel(options["xlabel"])
       ax.set_ylabel(options["ylabel"])
       ax.set_xlim(options.get("xmin"), options.get("xmax"))
@@ -2739,7 +3058,7 @@ def nestedness_plot(matrix, line, rows, columns, p = None, colors = None, option
       image = ax.imshow(matrix, extent = (0, 1, 1, 0), aspect = "auto", interpolation = "nearest", cmap = cmap, norm = norm)
       ax.figure.colorbar(image, ax = ax, label = options.get("zlabel") or "share of ones")
       label = "isocline" + (f" (p = {p:.3g})" if p is not None and np.isfinite(p) else "")
-      ax.plot(line["x"], line["y"], color = colors["isocline"], lw = 2, label = label)
+      ax.plot(line["x"], line["y"], color = colors["isocline"], lw = _lw(2), label = label)
       ax.set_xlim(0, 1)
       ax.set_ylim(1, 0)
    return _figure(draw, options, format, path, dpi)
@@ -3863,13 +4182,13 @@ def backbone_plot(test, found, components = False, left = False, right = False, 
       if scale["kind"] == "symlog":
          ax.set_xscale("symlog", linthresh = scale["linthresh"])
       if observed is None:
-         ax.plot(x, test["edges_pct"], color = colors["edges_pct"], lw = 2, label = BACKBONE_LABELS["edges_pct"])
+         ax.plot(x, test["edges_pct"], color = colors["edges_pct"], lw = _lw(2), label = BACKBONE_LABELS["edges_pct"])
       else:   # error correction: observed edges kept, pairs added
          p, seen = observed
          n = max(int(seen.sum()), 1)
-         ax.plot(x, [100 * np.count_nonzero(p[seen] > np.float32(t)) / n for t in x], color = colors["edges_pct"], lw = 2, label = "% observed edges kept")
-         ax.plot(x, [100 * np.count_nonzero(p[~seen] > np.float32(t)) / n for t in x], color = colors["added"], lw = 2, label = BACKBONE_LABELS["added"])
-      ax.plot(x, test["nodes_pct"], color = colors["nodes_pct"], lw = 2, label = BACKBONE_LABELS["nodes_pct"])
+         ax.plot(x, [100 * np.count_nonzero(p[seen] > np.float32(t)) / n for t in x], color = colors["edges_pct"], lw = _lw(2), label = "% observed edges kept")
+         ax.plot(x, [100 * np.count_nonzero(p[~seen] > np.float32(t)) / n for t in x], color = colors["added"], lw = _lw(2), label = BACKBONE_LABELS["added"])
+      ax.plot(x, test["nodes_pct"], color = colors["nodes_pct"], lw = _lw(2), label = BACKBONE_LABELS["nodes_pct"])
       for name, thr in zip(found["criterion"], found["threshold"]):
          if name in colors and np.isfinite(thr) and lo <= thr <= hi:
             ax.axvline(thr, color = colors[name], ls = "--", lw = 1.5, label = name.replace("_", " "))
@@ -4098,6 +4417,9 @@ BACKBONE_OPTIONS = ["keep_isolates", "reconnect_components", "reconnect_isolates
 #: Functions of Edit › Transform: transformations of the network of the library, whose result opens
 #: in a new tab (:func:`_extract`), e.g. ``net = gsk.to_undirected(net)``.
 TRANSFORMATIONS = ["flip_edge_direction", "largest_component", "remove_isolates", "remove_parallel_edges", "remove_self_loops", "to_strongly_connected", "to_undirected", "network_condensation", "quotient_network", "line_graph", "complement", "network_union", "network_intersection", "network_difference", "clique_expansion", "clique_promotion", "hypergraph_walk_network", "layer_network", "aggregate_network"]
+OPTIONS[("signed_clustering", "kind")] = ["\"watts_strogatz\"", "\"onnela\"", "\"zhang\""]
+CHOICES.update({("signed_clustering", "weight"): ("edges", False), ("signed_clustering", "sign"): ("edges", False)})
+HINTS[("signed_clustering", "weight")] = "signs only"
 OPTIONS.update({("hypergraph_walk_network", "model"): ["\"zhou\"", "\"carletti\"", "\"edvw\""], ("node_edge_centrality", "model"): ["\"linear\"", "\"log-exp\"", "\"max\""], ("two_node_clustering", "kind"): ["\"union\"", "\"min\"", "\"max\""], ("hyperedge_size", "part"): ["\"all\"", "\"tail\"", "\"head\""]})
 CHOICES.update({("node_edge_centrality", "weight"): ("nodes", False), ("node_edge_centrality", "node_weight"): ("nodes", False), ("hypergraph_walk_network", "weight"): ("nodes", False), ("hypergraph_walk_network", "vertex_weight"): ("edges", False), ("hyperedge_size", "weight"): ("edges", False)})
 HINTS.update({("node_edge_centrality", "weight"): "unweighted", ("node_edge_centrality", "node_weight"): "unweighted", ("hypergraph_walk_network", "vertex_weight"): "none", ("hyperedge_size", "weight"): "unweighted"})
@@ -4885,7 +5207,7 @@ def gnn_plot(evaluations, names, colors = None, options = None, styles = None, f
          else:
             h = ev["history"]
             _series(ax, h["epoch"], h["training_loss"], style, c, f"{n}, training")
-            ax.plot(h["epoch"], h["validation_loss"], color = c, ls = "--", lw = 1.5, label = f"{n}, validation")
+            ax.plot(h["epoch"], h["validation_loss"], color = c, ls = "--", lw = _lw(1.5), label = f"{n}, validation")
       if kind == "roc":
          ax.plot([0, 1], [0, 1], color = "#999999", ls = "--", lw = 1)
       elif kind == "pr" and shown:
@@ -5214,7 +5536,7 @@ def size_code(ns):
    if nz.get("attribute") is None:
       return repr(float(f"{d * float(nz.get('size', 1.)):.3g}"))
    target = "inc" if "inc" in ns else "net"
-   log = ", log = True" if nz.get("log") else ""
+   log = (", log = True" if nz.get("log") else "") + (", area = False" if nz.get("area", True) is False else "")
    return f"{d!r} * node_sizes({target}, {literal(nz['attribute'])}, smallest = {float(nz.get('min', 0.5))!r}, largest = {float(nz.get('max', 2.))!r}{log})"
 
 
@@ -5434,7 +5756,7 @@ def _fit(request):
 
 #: Parameters shown in the parameter dialog also without **Advanced** (by name, or by function
 #: and name), besides those without a default (:func:`mark_advanced`).
-BASIC = {"name", "tree", ("community_tree", "leaves"), ("complement", "self_loops"), ("dendrogram", "leaves"), ("dendrogram", "label"), ("layer_network", "layer"), ("route_edges", "size"), ("route_edges", "margin"), ("modularity", "partition"), ("modularity", "classes"), ("modularity", "method"), ("all_pairs_shortest_path_lengths", "average_distance"), ("all_pairs_shortest_path_lengths", "heatmap"), ("node_removal", "strategy"), ("edge_removal", "strategy"), ("cascade_failures", "strategy"), ("node_removal", "quality"), ("edge_removal", "quality"), ("cascade_failures", "load"), ("cascade_failures", "capacity"), ("cascade_failures", "failures"), ("cascade_failures", "elements"), "target", "by", "all_components", "levels", "model", "measurements", "positives", "probability", ("assortativity", "attribute"), "node_label", "edge_label", "max_edges", "rules", "transform", "task", "features", "hidden", "epochs", "weight", "directed", "direction", "groups", "order", "levels", "root", "attributes", "a", "b", "seeds", "runs", "node_type", "sets", "plot", "resolution", "source", "length", "walks", "max_depth", "test", "embedding", "fraction",
+BASIC = {"name", ("signed_clustering", "kind"), ("node2vec", "dimensions"), ("node2vec", "attribute"), ("struc2vec", "dimensions"), ("struc2vec", "attribute"), ("metapath2vec", "dimensions"), ("metapath2vec", "attribute"), ("laplacian_eigenmaps", "dimensions"), ("laplacian_eigenmaps", "attribute"), ("locally_linear_embedding", "dimensions"), ("locally_linear_embedding", "attribute"), "tree", ("community_tree", "leaves"), ("complement", "self_loops"), ("dendrogram", "leaves"), ("dendrogram", "label"), ("layer_network", "layer"), ("route_edges", "size"), ("route_edges", "margin"), ("modularity", "partition"), ("modularity", "classes"), ("modularity", "method"), ("all_pairs_shortest_path_lengths", "average_distance"), ("all_pairs_shortest_path_lengths", "heatmap"), ("node_removal", "strategy"), ("edge_removal", "strategy"), ("cascade_failures", "strategy"), ("node_removal", "quality"), ("edge_removal", "quality"), ("cascade_failures", "load"), ("cascade_failures", "capacity"), ("cascade_failures", "failures"), ("cascade_failures", "elements"), "target", "by", "all_components", "levels", "model", "measurements", "positives", "probability", ("assortativity", "attribute"), "node_label", "edge_label", "max_edges", "rules", "transform", "task", "features", "hidden", "epochs", "weight", "directed", "direction", "groups", "order", "levels", "root", "attributes", "a", "b", "seeds", "runs", "node_type", "sets", "plot", "resolution", "source", "length", "walks", "max_depth", "test", "embedding", "fraction",
          ("matrix_layout", "column_groups"), ("matrix_layout", "column_order"), ("mirror_layout", "axis"), ("spanning_tree", "kind"), ("maximally_filtered_graph", "kind"), ("triangulated_filtered_graph", "kind")}
 
 
@@ -5464,7 +5786,7 @@ def _signature_of(request):
    """
    The reply of :func:`_signature`, before :func:`mark_advanced`.
    """
-   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(MINERS) | set(HIERARCHIES) | set(STATISTICS) | set(CORRECTIONS) | set(ROBUSTNESS) | set(SYNCHRONIZATION) | {"all_pairs_shortest_path_lengths", "nestedness", "link_prediction_split", "dendrogram", "community_tree"}:
+   if request["function"] not in GENERATORS | LAYOUTS | COMMUNITIES | set(CENTRALITIES) | set(EPIDEMICS) | set(BACKBONES) | FILTERS | set(PROJECTIONS) | set(TRANSFORMATIONS) | set(VECTORS) | set(LINK_PREDICTIONS) | set(GNNS) | set(EXPLORATIONS) | set(MINERS) | set(HIERARCHIES) | set(STATISTICS) | set(CORRECTIONS) | set(ROBUSTNESS) | set(SYNCHRONIZATION) | set(EMBEDDINGS) | {"all_pairs_shortest_path_lengths", "nestedness", "link_prediction_split", "dendrogram", "community_tree"}:
       raise ValueError(f"unknown function: {request['function']}")
    tab = request.get("tab")
    net = _drawn(_spaces[tab]) if tab in _spaces else None
@@ -5526,7 +5848,7 @@ def _preview(request):
    """
    Command ``preview``: :func:`preview` of ``path``.
    """
-   return preview(request["path"], request.get("sep", "\t"), request.get("header", True)), b""
+   return preview(request["path"], request.get("sep", "\t"), request.get("header", True), comment = request.get("comment", "#")), b""
 
 
 def _close(request):
@@ -6211,11 +6533,71 @@ def _image_pdf(request):
 VIEW_SIZES = {"node_pixels": 3., "edge_pixels": 1., "arrow_pixels": 5., "edge_fraction": 1. / 6., "arrow_length": 2.5, "arrow_breadth": 2.2, "label_pixels": 4., "max_labels": 2000}
 
 
+#: Dash patterns of :data:`EDGE_STYLES` in matplotlib (in widths of the line, as the edge shader).
+DASHES = {1: (0, (3.6, 2.4)), 2: (0, (3.6, 1.7, 1., 1.7))}
+
+
+def styled_lines(lines, widths, codes):
+   """
+   Polylines of edges with line styles (:data:`EDGE_STYLES`), for vector images: parallel lines
+   become two polylines 1.125 widths to either side, 0.75 wide; sine waves and zigzags polylines
+   waving 1.5 widths to either side every 6 widths; the others are kept, to be drawn dashed
+   (:data:`DASHES`) or dotted (round caps).
+
+   :param lines: Polylines, arrays of points (pixels).
+   :param widths: Widths of their lines (pixels).
+   :param codes: Their style codes.
+   :return: ``(lines, widths, codes, index)``: the polylines to draw, their widths, the style left
+      to draw (0 solid, 1 dash, 2 dash-dot, 3 dots) and the edge each came from.
+   """
+   out, ws, cs, at = [], [], [], []
+   for k, (p, w, c) in enumerate(zip(lines, widths, codes)):
+      p = np.asarray(p, dtype = float)
+      seg = np.diff(p, axis = 0)
+      l = np.hypot(seg[:, 0], seg[:, 1])
+      if c in (4, 5, 6) and l.sum() > 0 and w > 0:
+         cum = np.concatenate([[0.], np.cumsum(l)])
+         u = np.arange(0., cum[-1], max(w / 4., cum[-1] / 4000.)) if c != 4 else cum
+         u = np.append(u, cum[-1]) if u[-1] < cum[-1] else u
+         x, y = np.interp(u, cum, p[:, 0]), np.interp(u, cum, p[:, 1])
+         j = np.clip(np.searchsorted(cum, u, "right") - 1, 0, len(seg) - 1)
+         nx, ny = -seg[j, 1] / np.maximum(l[j], 1e-12), seg[j, 0] / np.maximum(l[j], 1e-12)
+         if c == 4:
+            for side in (-1.125, 1.125):
+               out.append(np.column_stack([x + side * w * nx, y + side * w * ny])), ws.append(0.75 * w), cs.append(0), at.append(k)
+            continue
+         phase = u / w / 6.
+         off = 1.5 * (np.sin(2 * np.pi * phase) if c == 5 else 4. * np.abs(phase % 1. - 0.5) - 1.)
+         out.append(np.column_stack([x + off * w * nx, y + off * w * ny])), ws.append(w), cs.append(0), at.append(k)
+      else:
+         out.append(p), ws.append(w), cs.append(c if c in (1, 2, 3) else 0), at.append(k)
+   return out, np.array(ws), np.array(cs, dtype = int), np.array(at, dtype = int)
+
+
+def shape_polygon(code, x, y, r, rotate):
+   """
+   Vertices on the page of a node shape (:data:`NODE_SHAPES`, not the circle) centered at ``x``,
+   ``y`` with circumradius ``r`` (pixels), turned as the view (``rotate``: world directions to the
+   page), as the node shader draws it.
+   """
+   if code == 8:   # five-pointed star
+      a = np.arange(10) * np.pi / 5
+      rr = np.where(np.arange(10) % 2 == 0, 1., 0.382)
+   else:
+      k = {1: 3, 2: 4, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8}[code]
+      a = np.arange(k) * 2 * np.pi / k + {2: np.pi / 4, 7: np.pi / 8}.get(code, 0.)
+      rr = np.ones(k)
+   dx, dy = rotate(rr * r * np.sin(a), -rr * r * np.cos(a))
+   return np.column_stack([x + dx, y + dy])
+
+
 def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
    """
    The drawing of a tab as the visualization panel shows it, as vector graphics (a PDF document
-   by default, or any format matplotlib writes from the extension of ``path``): nodes as circles,
-   straight edges as lines ending at their arrowheads, bundled edges as Bézier curves, matrix
+   by default, or any format matplotlib writes from the extension of ``path``): nodes in their
+   shapes (:func:`shape_polygon`) and borders (the shape in the border color under a smaller one),
+   straight edges as lines ending at their arrowheads, bundled edges as Bézier curves (in their
+   line styles: :func:`styled_lines`; styled curves as polylines), matrix
    cells as squares, self loops as rings, arrowheads as triangles and labels as text, in the
    colors, sizes and opacities of the style, with the smallest sizes on screen of
    :data:`VIEW_SIZES` (as in the panel, so that the document looks as the screen), edges under
@@ -6270,17 +6652,26 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
    size = d["size"]
    line = max(size * V["edge_fraction"] / spread, V["edge_pixels"] / zoom)   # default edge width (world)
    radius = np.maximum(N[:, 12] / spread, V["node_pixels"] / zoom) / 2 if len(N) else np.zeros(0)
+   fancy_lines = None
    if d["cells"]:   # matrix cells: unit squares
       x0, y0 = E[:, 3] - 0.5, E[:, 7] - 0.5
       corners = [screen(x0 + a, y0 + b) for a, b in ((0, 0), (1, 0), (1, 1), (0, 1))]
       polys = np.stack([np.column_stack(c) for c in corners], axis = 1)
       ax.add_collection(PolyCollection(polys, facecolors = E[:, 8:12], edgecolors = "none", zorder = 1))
    elif d["curved"]:   # Bézier pieces
-      keep = E[:, 14] > 0
+      styled = d["line_styles"][E[:, 15].astype(int)] if len(E) else np.zeros(0, dtype = int)
+      keep = (E[:, 14] > 0) & (styled == 0)
       pts = [screen(E[keep, i], E[keep, j]) for i, j in ((3, 7), (0, 4), (1, 5), (12, 13))]
       codes = [Path.MOVETO, Path.CURVE4, Path.CURVE4, Path.CURVE4]
       paths = [Path(np.array([[p[0][k], p[1][k]] for p in pts]), codes) for k in range(int(keep.sum()))]
       ax.add_collection(PathCollection(paths, facecolors = "none", edgecolors = E[keep, 8:12], linewidths = line * zoom * E[keep, 14] * pt, transform = ax.transData, capstyle = "butt", zorder = 1))
+      fancy = np.flatnonzero((E[:, 14] > 0) & (styled > 0))   # styled pieces: flattened, then styled
+      tt = np.linspace(0., 1., 25)[:, None]
+      lines = []
+      for k in fancy:
+         P = [np.array(screen(E[k, i], E[k, j])) for i, j in ((3, 7), (0, 4), (1, 5), (12, 13))]
+         lines.append((1 - tt) ** 3 * P[0] + 3 * (1 - tt) ** 2 * tt * P[1] + 3 * (1 - tt) * tt ** 2 * P[2] + tt ** 3 * P[3])
+      fancy_lines = (lines, line * zoom * E[fancy, 14], styled[fancy], E[fancy, 8:12])
    elif len(E):   # straight lines, ending at their arrowheads
       w = np.hypot(E[:, 1], E[:, 5])
       dx, dy = E[:, 0], E[:, 4]
@@ -6294,8 +6685,17 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
       keep = (w > 0) & (a + b < length)
       ux, uy = dx / length, dy / length
       p, q = screen(sx + a * ux, sy + a * uy), screen(tx - b * ux, ty - b * uy)
-      segments = np.stack([np.column_stack(p), np.column_stack(q)], axis = 1)[keep]
-      ax.add_collection(LineCollection(segments, colors = E[keep, 8:12], linewidths = line * zoom * w[keep] * pt, capstyle = "butt", zorder = 1))
+      segments = np.stack([np.column_stack(p), np.column_stack(q)], axis = 1)
+      if matrix is None:
+         fancy_lines = (list(segments[keep]), line * zoom * w[keep], d["line_styles"][keep], E[keep, 8:12])
+      else:
+         ax.add_collection(LineCollection(segments[keep], colors = E[keep, 8:12], linewidths = line * zoom * w[keep] * pt, capstyle = "butt", zorder = 1))
+   if fancy_lines is not None and len(fancy_lines[0]):   # lines in their styles (EDGE_STYLES)
+      lines, widths, styles, colors_ = fancy_lines
+      lines, widths, styles, at = styled_lines(lines, widths, styles)
+      for code in np.unique(styles):
+         k = np.flatnonzero(styles == code)
+         ax.add_collection(LineCollection([lines[i] for i in k], colors = colors_[at[k]], linewidths = widths[k] * pt, linestyles = DASHES.get(int(code), (0, (0., 2.5)) if code == 3 else "solid"), capstyle = "round" if code == 3 else "butt", zorder = 1))
    if len(L):   # self loops: rings above their nodes
       r = L[:, 12] / 2 / spread
       h = L[:, 13] / 2 / spread + r * 0.5
@@ -6313,9 +6713,18 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
       corners = [screen(*tip), screen(base[0] + half * nx, base[1] + half * ny), screen(base[0] - half * nx, base[1] - half * ny)]
       polys = np.stack([np.column_stack(c) for c in corners], axis = 1)
       ax.add_collection(PolyCollection(polys, facecolors = A[:, 8:12], edgecolors = "none", zorder = 2))
-   if len(N):   # nodes
+   if len(N):   # nodes: their shapes, the borders under smaller shapes in the node colors
       x, y = screen(N[:, 3], N[:, 7])
-      ax.add_collection(EllipseCollection(2 * radius * zoom, 2 * radius * zoom, np.zeros(len(N)), units = "xy", offsets = np.column_stack([x, y]), offset_transform = ax.transData, facecolors = N[:, 8:12], edgecolors = "none", zorder = 3))
+      shapes = N[:, 15].astype(int)
+      B = d["borders"][:len(N)] if len(d["borders"]) else np.zeros((len(N), 4), dtype = np.float32)
+      apothem = np.cos(np.pi / np.array([1e9, 3, 4, 4, 5, 6, 7, 8, 5]))[shapes]   # the border is a band of the shader's distance
+      inner = np.where(B[:, 3] > 0, np.clip(1. - B[:, 3] / np.where(shapes == 8, 1., apothem), 0., 1.), 1.)
+      for scale, face, rows in ((np.ones(len(N)), np.column_stack([B[:, :3], N[:, 11]]), np.flatnonzero(B[:, 3] > 0)), (inner, N[:, 8:12], np.arange(len(N)))):
+         round_ = rows[shapes[rows] == 0]
+         ax.add_collection(EllipseCollection(2 * radius[round_] * scale[round_] * zoom, 2 * radius[round_] * scale[round_] * zoom, np.zeros(len(round_)), units = "xy", offsets = np.column_stack([x[round_], y[round_]]), offset_transform = ax.transData, facecolors = face[round_], edgecolors = "none", zorder = 3))
+         other = rows[shapes[rows] != 0]
+         if len(other):
+            ax.add_collection(PolyCollection([shape_polygon(shapes[i], x[i], y[i], radius[i] * scale[i] * zoom, rotate) for i in other], facecolors = face[other], edgecolors = "none", zorder = 3))
       offsets, counts, table = chart_slices(draw, style.get("node_chart")) if matrix is None else (None, None, [])
       if len(table):   # node charts: wedges over the discs, from the top, clockwise on the page (y down)
          wedges, faces = [], []
@@ -6323,19 +6732,22 @@ def vector_image(ns, view, path, width, dpi = 300, background = "#ffffff"):
             a = 0.
             for k in range(int(offsets[i]), int(offsets[i] + counts[i])):
                b = float(table[k, 0])
-               wedges.append(Wedge((x[i], y[i]), radius[i] * zoom, -90. + 360. * a, -90. + 360. * b))
+               wedges.append(Wedge((x[i], y[i]), radius[i] * inner[i] * zoom, -90. + 360. * a, -90. + 360. * b))
                faces.append((*table[k, 1:], N[i, 11]))
                a = b
-         ax.add_collection(PatchCollection(wedges, facecolors = faces, edgecolors = "none", zorder = 3))
+         ax.add_collection(PatchCollection(wedges, facecolors = faces, edgecolors = "none", zorder = 3))   # (circles: in other shapes they are not cut to the shape)
       texts = node_labels(draw, style).decode("utf-8").split("\x1f") if matrix is None else []
       if len(texts) == len(N):   # labels, centered, as in the panel
          heights = np.frombuffer(label_sizes(draw, style, size), dtype = np.float32) * zoom / spread
          inside = (x > -40) & (x < W + 40) & (y > -40) & (y < H + 40) & (np.array([bool(t) for t in texts]))
          if inside.sum() <= V["max_labels"]:
             dark = float(np.dot(to_rgb(background), [0.2126, 0.7152, 0.0722])) > 0.5   # a light background: dark text
-            ink, halo = ("black", (1, 1, 1, 0.8)) if dark else ("white", (0, 0, 0, 0.8))
+            inks = label_inks(draw, style)   # the colors of the style, each with a halo that stands out from it
             for i in np.flatnonzero(inside & (heights >= V["label_pixels"])):
                px = float(heights[i])
+               ink = ("black" if dark else "white") if inks is None else tuple(inks[i])
+               light = dark if inks is None else float(np.dot(inks[i, :3], [0.2126, 0.7152, 0.0722])) < 0.5
+               halo = (1, 1, 1, 0.8) if light else (0, 0, 0, 0.8)
                ax.text(x[i], y[i], texts[i], ha = "center", va = "center_baseline", fontsize = px * pt, color = ink, clip_on = True, zorder = 4, path_effects = [patheffects.withStroke(linewidth = max(2., px / 5) * pt * 0.6, foreground = halo)])
    fig.savefig(path, facecolor = background)
 
@@ -6353,15 +6765,22 @@ def _image_vector(request):
 
 def _export(request):
    """
-   Command ``export`` (File › Export network…): the network of a tab as the tables of
-   :meth:`~graphoskop.Network.to_pandas_dataframes`, tab separated, next to ``path``: its name
-   without extension, then ``_edges.tsv``, ``_nodes.tsv`` (if there are node attributes) and, for
-   multilayer networks, ``_interlayer.tsv``; they load back with File › Load network (multilayer
-   networks with their interlayer edges, from code). Replies with the ``files`` written. The code
-   does not change.
+   Command ``export`` (File › Export › Network…): the network of a tab in the format of the
+   extension of ``path``: a network file of another program (:data:`~graphoskop.formats.FORMATS`,
+   :func:`~graphoskop.write_network`, with the drawing as its visual attributes,
+   :func:`drawn_visuals`), or else the tables of :meth:`~graphoskop.Network.to_pandas_dataframes`,
+   tab separated, next to ``path``: its name without extension, then ``_edges.tsv``,
+   ``_nodes.tsv`` (if there are node attributes) and, for multilayer networks,
+   ``_interlayer.tsv``; they load back with File › Load network (multilayer networks with their
+   interlayer edges, from code). Replies with the ``files`` written. The code does not change.
    """
    import pandas as pd
-   net = _spaces[request["tab"]]["net"]
+   ns = _spaces[request["tab"]]
+   net = ns["net"]
+   if os.path.splitext(request["path"])[1].lower() in gsk.FORMATS:
+      nodes, edges = drawn_visuals(ns)
+      gsk.write_network(net, request["path"], node_visuals = nodes, edge_visuals = edges)
+      return {"files": [request["path"]]}, b""
    tables = net.to_pandas_dataframes()
    names = ["edges", "interlayer", "nodes"] if net.layer_labels is not None else ["edges", "nodes"]
    tables = tables if isinstance(tables, tuple) else (tables,)
@@ -6373,6 +6792,45 @@ def _export(request):
          table.to_csv(path, sep = "\t", index = False)
          files.append(path)
    return {"files": files}, b""
+
+
+def drawn_visuals(ns):
+   """
+   The drawing of a tab as the visual attributes of :func:`~graphoskop.write_network`
+   (:data:`~graphoskop.formats.VISUAL_ATTRIBUTES`): node positions, colors and opacities, diameters
+   (in the units of the positions), shapes, border colors and widths (only where there is a
+   border), labels and label colors (when shown, or colored); edge colors and opacities, widths
+   (relative: 1 is the default width) and line styles (not in multilayer networks, whose files
+   list the interlayer edges apart). Nothing for a network that is not drawn, or not laid out.
+
+   :param ns: Namespace of the tab.
+   :return: Node and edge visuals (dictionaries from name to values), or ``(None, None)``.
+   """
+   net, style = ns["net"], ns.get("__style__") or default_style(ns["net"])
+   if ns.get("__undrawn__") or "inc" in ns or not net.components or "pos_x" not in net.node_attributes and not _positioned(ns):
+      return None, None
+   from matplotlib.colors import to_hex
+   hexes = lambda rgba: [to_hex(c[:3]) for c in rgba]
+   d = drawing(net, ns.get("__size__"), style)
+   N = d["nodes"]
+   nodes = {"pos_x": N[:, 3].astype(float), "pos_y": -N[:, 7].astype(float), "color": hexes(N[:, 8:12]), "opacity": N[:, 11].astype(float), "size": N[:, 0].astype(float), "shape": [NODE_SHAPES[int(k)] for k in N[:, 15]]}
+   borders = d["borders"][:len(N)]
+   if len(borders):
+      nodes["border_color"] = [to_hex(b[:3]) if b[3] > 0 else None for b in borders]
+      nodes["border_width"] = [float(b[3] * r / 2) if b[3] > 0 else None for b, r in zip(borders, N[:, 0])]
+   labels = node_labels(net, style)
+   if labels:
+      nodes["label"] = [t or None for t in labels.decode("utf-8").split("\x1f")]
+   inks = label_inks(net, style)
+   if inks is not None:
+      nodes["label_color"] = hexes(inks)
+   edges = None
+   if net.layer_labels is None:
+      m = len(_edges(net)[0])
+      es, ew, eo = style.get("edges"), style.get("edge_width"), style.get("edge_opacity")
+      c = colors(edge_values(net, es["attribute"]) if es and es.get("attribute") else m, es, EDGE_COLOR)
+      edges = {"color": hexes(c), "opacity": opacities(edge_values(net, eo["attribute"]) if eo and eo.get("attribute") else m, eo), "width": sizes(edge_values(net, ew["attribute"]) if ew and ew.get("attribute") else m, ew), "style": [EDGE_STYLES[int(k)] for k in d["line_styles"]] if len(d["line_styles"]) == m else ["solid"] * m}
+   return nodes, edges
 
 
 #: Functions of Edit › Error correction: function to its label (:func:`correction_code`).
@@ -6986,7 +7444,7 @@ def _redraw(request):
 
 
 #: Commands understood by the worker.
-COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot, "paths": _paths, "synchronize": _synchronize, "dendrogram": _dendrogram, "community_tree": _community_tree, "synchronization_runs": _synchronization_runs, "synchronization_plot": _synchronization_plot}
+COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "embedding": _embedding, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot, "paths": _paths, "synchronize": _synchronize, "dendrogram": _dendrogram, "community_tree": _community_tree, "synchronization_runs": _synchronization_runs, "synchronization_plot": _synchronization_plot}
 
 #: Functions of the Layout menu: layouts of node-link diagrams, the matrix layout (drawn as the
 #: adjacency matrix), transformations of layouts, edge bundling and edge routing.
@@ -7010,7 +7468,7 @@ COMMUNITIES = {"bigclam_communities", "block_model_communities", "demon_communit
 #: Functions of Analysis › Centrality: name of the attribute they write by default, and what
 #: they give: ``"nodes"`` (a value per node), ``"edges"`` (a value per edge) or ``"hits"`` (hub
 #: and authority scores, written as ``<attribute>_hub`` and ``<attribute>_authority``).
-CENTRALITIES = {"alpha_centrality": ("alpha", "nodes"), "betweenness_centrality": ("betweenness", "nodes"), "closeness_centrality": ("closeness", "nodes"), "degree": ("degree", "nodes"), "edge_betweenness_centrality": ("edge_betweenness", "edges"), "eigenvector_centrality": ("eigenvector", "nodes"), "flow_centrality": ("flow", "nodes"), "harmonic_centrality": ("harmonic", "nodes"), "hits": ("hits", "hits"), "katz_centrality": ("katz", "nodes"), "k_core_centrality": ("coreness", "nodes"), "pagerank": ("pagerank", "nodes"), "reach_centrality": ("reach", "nodes"), "springrank": ("springrank", "nodes"), "discrete_core_periphery": ("core_discrete", "core"), "continuous_core_periphery": ("core_continuous", "core"), "rombach_core_periphery": ("core_rombach", "core"), "hyperedge_size": ("size", "hyperedges"), "local_triangle_closure": ("triangle_closure", "higher"), "two_node_clustering": ("two_node_clustering", "higher"), "generalized_degree": ("generalized_degree", "higher"), "node_edge_centrality": ("node_edge", "node_edge")}
+CENTRALITIES = {"alpha_centrality": ("alpha", "nodes"), "betweenness_centrality": ("betweenness", "nodes"), "closeness_centrality": ("closeness", "nodes"), "degree": ("degree", "nodes"), "edge_betweenness_centrality": ("edge_betweenness", "edges"), "eigenvector_centrality": ("eigenvector", "nodes"), "flow_centrality": ("flow", "nodes"), "harmonic_centrality": ("harmonic", "nodes"), "hits": ("hits", "hits"), "katz_centrality": ("katz", "nodes"), "k_core_centrality": ("coreness", "nodes"), "pagerank": ("pagerank", "nodes"), "reach_centrality": ("reach", "nodes"), "springrank": ("springrank", "nodes"), "discrete_core_periphery": ("core_discrete", "core"), "continuous_core_periphery": ("core_continuous", "core"), "rombach_core_periphery": ("core_rombach", "core"), "local_clustering": ("clustering", "nodes"), "signed_clustering": ("signed_clustering", "nodes"), "hyperedge_size": ("size", "hyperedges"), "local_triangle_closure": ("triangle_closure", "higher"), "two_node_clustering": ("two_node_clustering", "higher"), "generalized_degree": ("generalized_degree", "higher"), "node_edge_centrality": ("node_edge", "node_edge")}
 #: Kinds of :data:`CENTRALITIES` of hypergraphs and simplicial complexes only, computed on the
 #: network and written on the incidence network the interface draws (:func:`incidence_values`):
 #: values of the nodes, of the hyperedges, or both (the node and edge eigenvector centrality).
@@ -7021,6 +7479,48 @@ CENTRALITY_HIDDEN = {"net", "component", "node", "distribution", "lengths", "bat
 #: Functions of the Generators menu: the generators of synthetic networks of the library (not
 #: :func:`~graphoskop.graphrnn`, which learns from a network).
 GENERATORS = {"chain_graph", "gnm_random_graph", "gnp_random_graph", "configuration_model", "kronecker_graph", "geometric_graph", "caveman_graph", "watts_strogatz_graph", "barabasi_albert_graph", "link_selection_graph", "copying_graph", "holme_kim_graph", "planted_partition_graph", "stochastic_block_model", "degree_corrected_block_model", "mixed_membership_block_model", "nested_block_model", "girvan_newman_graph", "lfr_benchmark_graph", "growing_manifold", "simplicial_configuration_model", "hypergraph_configuration_model"}
+
+
+#: Python packages listed by Help › About: the dependencies of graphoskop, of the interface, and
+#: the libraries :func:`~graphoskop.read_network` and its converters work with.
+ABOUT_PACKAGES = ["torch", "torch_geometric", "numpy", "scipy", "pandas", "numba", "tqdm", "matplotlib", "networkx", "igraph", "graph_tool"]
+
+
+def about():
+   """
+   What Help › About shows: the version and folder of graphoskop, Python (version, interpreter,
+   environment, operating system), the versions of :data:`ABOUT_PACKAGES` (``None`` when not
+   installed) and the GPUs PyTorch sees (CUDA version, device names).
+
+   :return: Dictionary with ``version``, ``library``, ``python``, ``executable``, ``environment``,
+      ``platform``, ``packages`` (name to version) and ``gpu`` (``cuda``: version or ``None``,
+      ``devices``: names).
+   """
+   import importlib.metadata as metadata
+   import platform
+   import torch
+   versions = {}
+   for name in ABOUT_PACKAGES:
+      module = sys.modules.get(name)
+      version = getattr(module, "__version__", None) if module is not None else None
+      if version is None:
+         try:
+            version = metadata.version({"torch_geometric": "torch-geometric", "igraph": "igraph", "graph_tool": "graph-tool"}.get(name, name))
+         except Exception:
+            version = None
+      versions[name] = None if version is None else str(version)
+   devices = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else []
+   return {"version": _version(), "library": os.path.dirname(os.path.abspath(gsk.__file__)), "python": sys.version.split()[0], "executable": sys.executable, "environment": environment(), "platform": platform.platform(), "packages": versions, "gpu": {"cuda": torch.version.cuda if torch.cuda.is_available() else None, "devices": devices}}
+
+
+def _about(request):
+   """
+   Command ``about``: :func:`about`.
+   """
+   return about(), b""
+
+
+COMMANDS["about"] = _about
 
 
 def environment():

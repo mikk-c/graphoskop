@@ -25,7 +25,10 @@ extends AcceptDialog
 ## gets the color of its x or y value along a ColorBrewer palette (sequential or diverging, in
 ## reverse with Reverse), instead of the color of its series (not for heatmaps).
 ##
-## The colors, styles, axes, gradient and font size show only with [b]Advanced[/b] on (off by default, see
+## [b]Line width[/b], [b]Point size[/b] (times the usual ones) and [b]Bar width[/b] (a fraction of the
+## gap between bars) size the data series, each shown when a series is drawn that way.
+##
+## The colors, styles, axes, gradient, sizes and font size show only with [b]Advanced[/b] on (off by default, see
 ## [method AppSettings.advanced]); the plot, its text, its Plot menu and the Save buttons always.
 
 ## Emitted with the path chosen to save the plot of the network of tab [param tab].
@@ -55,6 +58,12 @@ var _gradient_row := HBoxContainer.new()
 var _gradient := OptionButton.new()
 var _palette := OptionButton.new()
 var _reverse := CheckBox.new()
+## Row of the sizes of the data series: line width and point size (times the usual ones), bar width
+## (fraction of the gap between bars), each shown when a series is drawn that way.
+var _sizes_row := HBoxContainer.new()
+var _line_width := SpinBox.new()
+var _point_size := SpinBox.new()
+var _bar_width := SpinBox.new()
 
 
 func _ready() -> void:
@@ -81,6 +90,7 @@ func _ready() -> void:
       e.text_changed.connect(func(_t): %Debounce.start())
    %FontSize.value_changed.connect(func(_v): %Debounce.start())
    _gradient_menus()
+   _size_menus()
    %Kind.item_selected.connect(func(i):
       for key in _menus:   # the usual style of the kind
          _styles[key] = _kinds[i][2]
@@ -101,6 +111,9 @@ func _emit() -> void:
          options[pair[0]] = float(t) if not t.is_empty() else null
    if not _kinds.is_empty():
       options.kind = _kinds[%Kind.selected][0]
+   options.line_width = _line_width.value
+   options.point_size = _point_size.value
+   options.bar_width = _bar_width.value
    if not _heatmap:
       options.gradient = null if _gradient.selected == 0 else {"axis": "x" if _gradient.selected == 1 else "y", "palette": _palette.get_item_text(_palette.selected), "reversed": _reverse.button_pressed}
    changed.emit(_tab, _colors.duplicate(), _styles.duplicate(), options)
@@ -153,7 +166,7 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
             menu.add_item(STYLE_LABELS.get(st, st))
          menu.select(maxi(styles.find(e[3]), 0))
          menu.tooltip_text = "How %s is drawn" % e[1]
-         menu.item_selected.connect(func(i): _styles[key] = styles[i]; %Debounce.start())
+         menu.item_selected.connect(func(i): _styles[key] = styles[i]; _show_rows(); %Debounce.start())
          box.add_child(menu)
          _styles[key] = e[3]
          _menus[key] = menu
@@ -169,6 +182,9 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
       var v = options.get(pair[0])
       pair[1].text = "" if v == null else str(v)
    %FontSize.set_value_no_signal(options.get("font_size", 14))
+   _line_width.set_value_no_signal(options.get("line_width", 1.0))
+   _point_size.set_value_no_signal(options.get("point_size", 1.0))
+   _bar_width.set_value_no_signal(options.get("bar_width", 0.8))
    var g = options.get("gradient")
    _gradient.select(0 if g == null else (1 if g.axis == "x" else 2))
    if g != null:
@@ -192,6 +208,11 @@ func _show_rows() -> void:
       row.visible = on
    %ZAxis.visible = on and _heatmap
    _gradient_row.visible = on and not _heatmap
+   var used: Array = _styles.values()
+   var shown := [["lines" in used or "linespoints" in used, _line_width], ["points" in used or "linespoints" in used, _point_size], ["bars" in used, _bar_width]]
+   for pair in shown:
+      pair[1].get_parent().visible = pair[0]
+   _sizes_row.visible = on and shown.any(func(p): return p[0])
    _palette.disabled = _gradient.selected == 0
    _reverse.disabled = _gradient.selected == 0
    size = Vector2i.ZERO
@@ -216,6 +237,26 @@ func _ask(format: String) -> void:
    %SaveDialog.current_dir = AppSettings.folder("plots")
    %SaveDialog.current_file = "%s.%s" % [_file, format]
    %SaveDialog.popup_centered_ratio(0.6)
+
+
+## Builds the row of the sizes of the data series, under the gradient.
+func _size_menus() -> void:
+   for spec in [["Line width", _line_width, 0.1, 10.0, 0.1, "×"], ["Point size", _point_size, 0.1, 10.0, 0.1, "×"], ["Bar width", _bar_width, 0.05, 1.0, 0.05, ""]]:
+      var box := HBoxContainer.new()
+      var label := Label.new()
+      label.text = spec[0]
+      var spin: SpinBox = spec[1]
+      spin.min_value = spec[2]
+      spin.max_value = spec[3]
+      spin.step = spec[4]
+      spin.suffix = spec[5]
+      spin.tooltip_text = "Fraction of the gap between bars" if spec[0] == "Bar width" else "Times the usual %s" % spec[0].to_lower()
+      spin.value_changed.connect(func(_v): %Debounce.start())
+      box.add_child(label)
+      box.add_child(spin)
+      _sizes_row.add_child(box)
+   $Box.add_child(_sizes_row)
+   $Box.move_child(_sizes_row, _gradient_row.get_index() + 1)
 
 
 ## Builds the row of the gradient, under the axes: Gradient (none, along x, along y), the

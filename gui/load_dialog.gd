@@ -17,6 +17,11 @@ extends ConfirmationDialog
 ## value), and its values in that color. A role given to a column that had another one swaps them.
 ## (The menus of columns are kept, hidden, as the state of the choices.)
 ##
+## A file of another program ([constant NETWORK_FORMATS], by extension: Pajek, UCINET, adjacency
+## lists, DOT, GML, GraphML, GEXF, Cytoscape JSON) needs no choices: its nodes, edges, attributes
+## and visual attributes are read from it ([code]gsk.read_network[/code]); the dialog then shows
+## only the file, Directed for adjacency lists, and the device.
+##
 ## Without [b]Advanced[/b] (bottom left; off by default, see [method AppSettings.advanced]) the
 ## dialog shows only the files, their format and columns, Directed and Bipartite: Adjacency
 ## matrix, Signed, Multilayer, Hypergraph, Simplicial and the device show only when on (or when
@@ -26,6 +31,10 @@ extends ConfirmationDialog
 ## worker, and a function to call with the error, or an empty text once the network is loaded:
 ## the dialog stays open (with its choices) until then, and shows the error if there is one.
 signal import_requested(spec: Dictionary, done: Callable)
+
+## Network files of other programs read by [code]gsk.read_network[/code], by extension: the name of
+## their format.
+const NETWORK_FORMATS := {"net": "Pajek", "paj": "Pajek", "dl": "UCINET", "##h": "UCINET", "##d": "UCINET", "adj": "adjacency list", "adjlist": "adjacency list", "dot": "DOT (Graphviz)", "gv": "DOT (Graphviz)", "gml": "GML", "graphml": "GraphML", "gexf": "GEXF (Gephi)", "cyjs": "Cytoscape JSON", "json": "Cytoscape JSON"}
 
 ## Separators of the "Separator" menu, in its order.
 const SEPARATORS := ["\t", ",", ";", "|", "\\s+"]
@@ -59,7 +68,7 @@ const ROLE_ICONS := {
    "attr_value": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path d="M2 5h12M2 11h12" stroke="C" stroke-width="2.5"/></svg>',
 }
 ## Background of the row of column names of the previews.
-const HEAD_COLOR := Color("#e6e6e6")
+const UiTheme := preload("res://ui_theme.gd")
 var _icons := {}
 var _bold := FontVariation.new()
 ## Row of column names over each preview (tree to its Control), and what each shows: for every
@@ -126,6 +135,7 @@ func _ready() -> void:
    %NodeClear.pressed.connect(func(): %NodePath.text = ""; _preview_nodes())
    %Sep.item_selected.connect(func(_i): _preview_edges(); _preview_nodes())
    %Header.toggled.connect(func(_b): _preview_edges(); _preview_nodes())
+   %Comment.text_changed.connect(func(_t): _preview_edges(); _preview_nodes())
    %Multilayer.toggled.connect(func(_b): _node_defaults(); _update())
    for box in [%Matrix, %Directed, %Bipartite, %Signed, %Hypergraph, %Simplicial, %Long]:
       box.toggled.connect(func(_b): _update())
@@ -170,8 +180,18 @@ func _browse_nodes() -> void:
    %NodeFile.popup_centered_ratio(0.6)
 
 
+## Format of the first file if it is a network file of another program
+## ([constant NETWORK_FORMATS]), else an empty text.
+func _format() -> String:
+   return NETWORK_FORMATS.get(%EdgePath.text.strip_edges().get_extension().to_lower(), "")
+
+
 func _preview_edges() -> void:
    _edge_columns = PackedStringArray()
+   if not _format().is_empty():   # read whole by the library: nothing to preview
+      %EdgePreview.clear()
+      _update()
+      return
    _preview(%EdgePath.text, %EdgePreview, func(columns, long_guess):
       _edge_columns = columns
       for ob in [%Source, %Target, %Layer, %Direction, %Sign]:
@@ -200,7 +220,7 @@ func _preview(path: String, tree: Tree, done: Callable) -> void:
    _update()
    if path.strip_edges().is_empty():
       return
-   var request := {"cmd": "preview", "path": path, "sep": SEPARATORS[%Sep.selected], "header": %Header.button_pressed}
+   var request := {"cmd": "preview", "path": path, "sep": SEPARATORS[%Sep.selected], "header": %Header.button_pressed, "comment": %Comment.text}
    worker.request(request, func(reply, _payload):
       tree.clear()
       if not reply.ok:
@@ -313,9 +333,22 @@ func _update() -> void:
       notes.append("Each row of the edge table is a node in a %s. The node table has the node id in its first column (then the attribute name and value, in long format)." % ("hyperedge" if hyper else "simplex"))
    if %Signed.button_pressed:
       notes.append("Edges with a sign of 0 or more are positive, the others negative.")
+   var file := _format()
+   %Directed.visible = true
+   %Bipartite.visible = true
+   if %EdgePath.text.strip_edges().is_empty():
+      %EdgeLabel.text = "Network"
+   for c in [$Box/Files/NodeLabel, %NodePath, %NodeBrowse, %NodeClear, $Box/Format, %EdgeTitle, %EdgePreview, _heads[%EdgePreview], %NodeTitle, %NodePreview, _heads[%NodePreview]]:
+      c.visible = file.is_empty()
+   if not file.is_empty():
+      %EdgeLabel.text = "Network file"
+      for box in [%Matrix, %Bipartite, %Signed, %Multilayer, %Hypergraph, %Simplicial]:
+         box.visible = false
+      %Directed.visible = file == "adjacency list"
+      notes = PackedStringArray(["%s file: its nodes, edges and attributes are read from it, with its visual attributes (positions, colors, sizes, shapes, labels, …) as the style of the drawing.%s" % [file, " Directed: each line lists the targets of its first node; undirected, an edge listed on the lines of both its nodes is one edge." if file == "adjacency list" else ""]])
    %Note.text = "\n".join(notes)
    %Note.visible = not notes.is_empty()
-   get_ok_button().disabled = not edges
+   get_ok_button().disabled = not edges and file.is_empty()
 
 
 ## The roles that apply to the columns of [param tree] (edge or node preview): label, the (hidden)
@@ -342,18 +375,25 @@ func _roles(tree: Tree) -> Array:
    return roles
 
 
-## Symbol of a role in its color (made once).
+## Color of a role ([constant ROLE_COLORS]; the black of the node id is the text color of the
+## theme, so that it shows in dark mode too).
+func _role_color(key: String) -> Color:
+   return UiTheme.colors.text if key == "node" else Color(ROLE_COLORS[key])
+
+
+## Symbol of a role in its color (made once per color).
 func _icon(key: String) -> Texture2D:
-   if not _icons.has(key):
+   var color := _role_color(key)
+   var cached := "%s %s" % [key, color.to_html()]
+   if not _icons.has(cached):
       var image := Image.new()
-      image.load_svg_from_string(ROLE_ICONS[key].replace("\"C\"", "\"%s\"" % ROLE_COLORS[key]), 1.0)
-      _icons[key] = ImageTexture.create_from_image(image)
-   return _icons[key]
+      image.load_svg_from_string(ROLE_ICONS[key].replace("\"C\"", "\"#%s\"" % color.to_html(false)), 1.0)
+      _icons[cached] = ImageTexture.create_from_image(image)
+   return _icons[cached]
 
 
 ## Shows the role of each column of [param tree] on its row of names (symbol, bold name in the
-## color of the role: the first role, if a column has two) and its values in that color (but
-## black, which would not show on the dark rows).
+## color of the role: the first role, if a column has two) and its values in that color.
 func _title_columns(tree: Tree, columns: PackedStringArray) -> void:
    var root := tree.get_root()
    if columns.is_empty() or tree.columns != columns.size() or root == null:
@@ -365,7 +405,7 @@ func _title_columns(tree: Tree, columns: PackedStringArray) -> void:
    for j in columns.size():
       var mine := roles.filter(func(r): return r[1].selected == j)
       var key: String = mine[0][2] if not mine.is_empty() else ""
-      var color := Color(ROLE_COLORS[key]) if key != "" else Color.WHITE
+      var color: Color = _role_color(key) if key != "" else UiTheme.colors.text
       shown.append({"name": columns[j] if %Header.button_pressed else "column %d" % j, "key": key, "roles": mine.map(func(r): return r[0])})
       var item := root.get_first_child()
       while item != null:
@@ -407,7 +447,7 @@ func _head_tip(tree: Tree, j: int) -> String:
 ## Draws the row of column names over [param tree]: on a light band, every name over its column,
 ## after the symbol of its role, bold and in the color of the role.
 func _draw_head(tree: Tree, head: Control) -> void:
-   head.draw_rect(Rect2(Vector2.ZERO, head.size), HEAD_COLOR)
+   head.draw_rect(Rect2(Vector2.ZERO, head.size), UiTheme.colors.button)
    var size := head.get_theme_default_font_size()
    for j in (_names[tree] as Array).size():
       var span := _column_span(tree, j)
@@ -420,9 +460,9 @@ func _draw_head(tree: Tree, head: Control) -> void:
          head.draw_texture(icon, Vector2(x, (HEAD_HEIGHT - icon.get_height()) / 2.0))
          x += icon.get_width() + 4
       var font: Font = _bold if shown.key != "" else ThemeDB.fallback_font
-      var color := Color(ROLE_COLORS[shown.key]) if shown.key != "" else Color("#333333")
+      var color: Color = _role_color(shown.key) if shown.key != "" else UiTheme.colors.text
       head.draw_string(font, Vector2(x, (HEAD_HEIGHT + size * 0.7) / 2.0), shown.name, HORIZONTAL_ALIGNMENT_LEFT, maxf(span.x + span.y - x - 4, 1), size, color)
-      head.draw_line(Vector2(span.x + span.y - 1, 4), Vector2(span.x + span.y - 1, HEAD_HEIGHT - 4), Color(0, 0, 0, 0.15))
+      head.draw_line(Vector2(span.x + span.y - 1, 4), Vector2(span.x + span.y - 1, HEAD_HEIGHT - 4), UiTheme.colors.border)
 
 
 ## Opens the menu of the roles of column [param j] of [param tree] at the mouse.
@@ -465,6 +505,9 @@ func _column(ob: OptionButton, columns: PackedStringArray) -> Variant:
 
 
 func _on_import() -> void:
+   if not _format().is_empty():
+      _send({"edges": %EdgePath.text.strip_edges(), "kind": "file", "directed": true if %Directed.visible and %Directed.button_pressed else null, "device": "cuda" if %Device.selected == 1 else "cpu"})
+      return
    var hyper: bool = %Hypergraph.button_pressed
    var kind := "matrix" if %Matrix.button_pressed else ("hypergraph" if hyper else ("simplicial" if %Simplicial.button_pressed else "network"))
    var spec := {
@@ -472,6 +515,7 @@ func _on_import() -> void:
       "nodes": null if %NodePath.text.strip_edges().is_empty() else %NodePath.text,
       "sep": SEPARATORS[%Sep.selected],
       "header": %Header.button_pressed,
+      "comment": %Comment.text,
       "kind": kind,
       "source": null if %Source.selected == 0 else _column(%Source, _edge_columns),
       "target": null if %Target.selected == 1 else _column(%Target, _edge_columns),
@@ -498,9 +542,14 @@ func _on_import() -> void:
          spec.node_columns = keys.map(func(ob): return _column(ob, _node_columns))
    AppSettings.store("load", "separator", %Sep.selected)
    AppSettings.store("load", "header", %Header.button_pressed)
+   _send(spec)
+
+
+## Asks to import [param spec], and waits for the result (see [signal import_requested]).
+func _send(spec: Dictionary) -> void:
    AppSettings.store("load", "device", %Device.selected)
    AppSettings.store_folder("edges", %EdgePath.text)
-   if spec.nodes != null:
+   if spec.get("nodes") != null:
       AppSettings.store_folder("nodes", spec.nodes)
    get_ok_button().disabled = true
    %Error.visible = false

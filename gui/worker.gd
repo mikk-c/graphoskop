@@ -27,12 +27,26 @@ var _callbacks := {}
 var _queue := []
 
 
-## Path of the worker script: next to the project when run from the editor, next to the
-## executable when exported.
+## Path of the worker script: in the project folder when run from it (the editor); when exported, next to
+## the executable (python/gsk_worker.py, where the export plugin of addons/gsk_export copies it),
+## else copied out of the package (where the plugin also puts it) to user://python/, which Python
+## can read (it cannot read inside the package).
 static func script_path() -> String:
-   if OS.has_feature("editor"):
-      return ProjectSettings.globalize_path("res://python/gsk_worker.py")
-   return OS.get_executable_path().get_base_dir().path_join("python/gsk_worker.py")
+   var own := ProjectSettings.globalize_path("res://python/gsk_worker.py")
+   if own.is_absolute_path() and FileAccess.file_exists(own):   # the project folder (not a package)
+      return own
+   var beside := OS.get_executable_path().get_base_dir().path_join("python/gsk_worker.py")
+   if beside.is_absolute_path() and FileAccess.file_exists(beside):   # (a relative path would be read in the package)
+      return beside
+   var bytes := FileAccess.get_file_as_bytes("res://python/gsk_worker.py")
+   if not bytes.is_empty():
+      DirAccess.make_dir_recursive_absolute("user://python")
+      var out := FileAccess.open("user://python/gsk_worker.py", FileAccess.WRITE)
+      if out != null:
+         out.store_buffer(bytes)
+         out.close()
+         return ProjectSettings.globalize_path("user://python/gsk_worker.py")
+   return beside
 
 
 ## Starts the worker with the interpreter [param python] (a path, or a command on the PATH).

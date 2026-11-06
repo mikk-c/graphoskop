@@ -46,3 +46,22 @@ Structural balance and signed triangles
 .. autofunction:: graphoskop.signed_triangle_counts
 
 .. autofunction:: graphoskop.structural_balance
+
+Signed clustering coefficient
+-----------------------------
+
+The local clustering coefficient of Costantini and Perugini (2014) counts the triangles around a
+node with their sign: positive triangles raise it, negative ones lower it, from -1 to 1. Three
+variants generalize the Watts-Strogatz coefficient (signs only), the one of Onnela et al. (signed
+cube roots of normalized weights) and the one of Zhang and Horvath (signed weights over absolute
+ones), for undirected networks such as signed correlation networks.
+
+.. code-block:: python
+
+   c = gsk.signed_clustering(signed)                                  # signs only
+   gsk.signed_clustering(signed, kind = "onnela", weight = "correlation")
+   gsk.signed_clustering(signed, ["a", "b"], kind = "zhang", weight = "correlation")
+
+.. autofunction:: graphoskop.signed_clustering
+
+.. autodata:: graphoskop.SIGNED_CLUSTERING

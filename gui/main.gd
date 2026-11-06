@@ -5,6 +5,9 @@ extends Control
 ## environment).
 
 const NetworkView := preload("res://network_view.tscn")
+## Title of the window (debug builds, such as the exports made with "Export With Debug", add
+## " (DEBUG)" to it).
+const WINDOW_TITLE := "Graphoskop 6054"
 ## Ids of the items of the File menu.
 const FILE_LOAD := 0
 const FILE_IMAGE := 1
@@ -12,7 +15,7 @@ const FILE_IMAGE := 1
 ## [method _save_session]).
 const FILE_OPEN_SESSION := 2
 const FILE_SAVE_SESSION := 3
-## Item File › Export › Network tables…: the edge and node tables of the current network (worker
+## Item File › Export › Network…: the current network as tables or a network file (worker
 ## command [code]export[/code]); File › Export › Image… is [constant FILE_IMAGE].
 const FILE_EXPORT := 4
 ## Items File › New network… (an empty network, drawn by hand), File › Close session (closes all
@@ -21,6 +24,9 @@ const FILE_NEW := 5
 const FILE_CLOSE_SESSION := 6
 const FILE_RECENT := 7
 const FILE_EXPORTS := 8
+## Item File › Settings…: light or dark mode and the colors of the interface ([constant UiTheme]).
+const FILE_SETTINGS := 9
+const UiTheme := preload("res://ui_theme.gd")
 ## Most sessions listed by File › Recent sessions.
 const MAX_RECENT := 10
 ## Default width of saved images, relative to the width of the visualization panel on screen.
@@ -137,7 +143,11 @@ const HELP := [
    ["Online documentation", "https://graphoskop.readthedocs.io/en/latest/"],
    ["Graphical interface (online documentation)", "https://graphoskop.readthedocs.io/en/latest/gui.html"],
    ["Report a bug or request a feature", "https://github.com/mikk-c/graphoskop/issues"],
+   ["", ""],
+   ["About graphoskop…", ""],
 ]
+## Icon of Help › About graphoskop… (shown if the project has it).
+const ABOUT_ICON := "res://icon.svg"
 ## Ids of the items of the menu of the search box that are not nodes.
 const FOUND_ALL := -2
 const FOUND_MORE := -3
@@ -165,10 +175,18 @@ const CENTRALITIES := [
    ["SpringRank…", "springrank"],
    ["", ""],
    ["Hyperedge size…", "hyperedge_size"],
-   ["Local triangle closure…", "local_triangle_closure"],
-   ["Two-node clustering…", "two_node_clustering"],
    ["Generalized degree (complexes)…", "generalized_degree"],
    ["Node and hyperedge centrality…", "node_edge_centrality"],
+]
+## Items of Analysis › Clustering: the local clustering coefficient of every node, its signed
+## version (signed networks) and those of hypergraphs and simplicial complexes, written as node
+## attributes (worker command [code]centrality[/code], as the centralities).
+const CLUSTERING := [
+   ["Local clustering…", "local_clustering"],
+   ["Signed clustering…", "signed_clustering"],
+   ["", ""],
+   ["Local triangle closure (higher-order)…", "local_triangle_closure"],
+   ["Two-node clustering (higher-order)…", "two_node_clustering"],
 ]
 ## Items of Analysis › Core-periphery: label and function. The three models write the core value
 ## of every node as a node attribute (worker command [code]centrality[/code]); nestedness, for
@@ -284,6 +302,18 @@ const ANALYSIS_STATISTICS := 2004
 ## [code]paths[/code]: the lengths kept for later analyses and as a table, the average distance of
 ## every node, and the heatmap of the lengths in the plot window).
 const ANALYSIS_PATHS := 2005
+## Id of the submenu Analysis › Node embeddings.
+const ANALYSIS_EMBEDDINGS := 2006
+## Items of Analysis › Node embeddings: shallow embeddings, unsupervised vectors of the nodes written
+## as node attributes [code]<prefix>_0[/code], [code]<prefix>_1[/code], ... (worker command
+## [code]embedding[/code]); the graph neural networks can take them as features.
+const EMBEDDINGS := [
+   ["node2vec (random walks)…", "node2vec"],
+   ["struc2vec (structural roles)…", "struc2vec"],
+   ["metapath2vec (node types)…", "metapath2vec"],
+   ["Laplacian eigenmaps…", "laplacian_eigenmaps"],
+   ["Locally linear embedding…", "locally_linear_embedding"],
+]
 const PATHS := [
    ["All pairs lengths…", "all_pairs_shortest_path_lengths"],
 ]
@@ -369,6 +399,10 @@ var _image_format := OptionButton.new()
 ## Submenus File › Recent sessions and File › Export.
 var _recent_menu := PopupMenu.new()
 var _export_menu := PopupMenu.new()
+## Dialog of File › Settings…: mode and palette, applied as they are chosen.
+var _settings := AcceptDialog.new()
+var _mode := OptionButton.new()
+var _palette := OptionButton.new()
 ## Question asked when a new network is too large to draw (worker [code]too_large[/code]), and the
 ## tab it is about.
 var _large := AcceptDialog.new()
@@ -392,15 +426,16 @@ var _next_task := 0
 @onready var _params: ConfirmationDialog = $ParamsDialog
 @onready var _plot: AcceptDialog = $PlotWindow
 var _choose_python: Button
+## The splash overlay while the worker starts ([method _show_splash]), or null.
+var _splash: CanvasLayer
+var _starting := false
 var _found := PackedStringArray()
 
 
 func _ready() -> void:
-   var size: Vector2i = AppSettings.value("window", "size", Vector2i.ZERO)
-   if size != Vector2i.ZERO:
-      get_window().size = size
-   if AppSettings.value("window", "maximized", false):
-      get_window().mode = Window.MODE_MAXIMIZED
+   get_window().title = WINDOW_TITLE
+   _apply_theme()
+   _show_splash()
    %ImageDialog.file_selected.connect(_save_image)
    _menu(%Layout, LAYOUTS)
    %Layout.id_pressed.connect(_run_layout)
@@ -408,6 +443,10 @@ func _ready() -> void:
    _menu(centralities, CENTRALITIES)
    centralities.id_pressed.connect(func(id): _run_analysis("centrality", "Centrality", CENTRALITIES[id]))
    %Analysis.add_submenu_node_item("Centrality", centralities)
+   var clustering := PopupMenu.new()
+   _menu(clustering, CLUSTERING)
+   clustering.id_pressed.connect(func(id): _run_analysis("centrality", "Clustering", CLUSTERING[id]))
+   %Analysis.add_submenu_node_item("Clustering", clustering)
    var cores := PopupMenu.new()
    _menu(cores, CORE_PERIPHERY)
    cores.id_pressed.connect(func(id): _run_analysis("nestedness" if CORE_PERIPHERY[id][1] == "nestedness" else "centrality", "Core-periphery", CORE_PERIPHERY[id]))
@@ -440,6 +479,10 @@ func _ready() -> void:
    _menu(paths, PATHS)
    paths.id_pressed.connect(func(id): _run_analysis("paths", "Shortest paths", PATHS[id]))
    %Analysis.add_submenu_node_item("Shortest paths", paths, ANALYSIS_PATHS)
+   var embeddings := PopupMenu.new()
+   _menu(embeddings, EMBEDDINGS)
+   embeddings.id_pressed.connect(func(id): _run_analysis("embedding", "Node embeddings", EMBEDDINGS[id]))
+   %Analysis.add_submenu_node_item("Node embeddings", embeddings, ANALYSIS_EMBEDDINGS)
    %Analysis.add_separator("", 100000)
    %Analysis.add_item("Link prediction…", ANALYSIS_LINKS)
    %Analysis.add_item("Graph neural networks…", ANALYSIS_GNNS)
@@ -554,7 +597,7 @@ func _ready() -> void:
    _menu(%Generators, GENERATORS)
    %Generators.id_pressed.connect(_open_generator)
    _menu(%Help, HELP)
-   %Help.id_pressed.connect(func(id): OS.shell_open(HELP[id][1]))
+   %Help.id_pressed.connect(func(id): _about() if HELP[id][1].is_empty() else OS.shell_open(HELP[id][1]))
    %Tabs.tab_changed.connect(_show_tab)
    %FitButton.pressed.connect(_fit_view)
    %Tabs.tab_close_pressed.connect(_close_tab)
@@ -646,7 +689,7 @@ func _notification(what: int) -> void:
       OS.low_processor_usage_mode_sleep_usec = BACKGROUND_SLEEP_USEC
    elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
       OS.low_processor_usage_mode_sleep_usec = ProjectSettings.get_setting("application/run/low_processor_mode_sleep_usec", 16667)
-   if what == NOTIFICATION_WM_CLOSE_REQUEST:
+   if what == NOTIFICATION_WM_CLOSE_REQUEST and _splash == null and not OS.has_feature("editor"):   # not the splash, nor a run from the editor
       var maximized := get_window().mode == Window.MODE_MAXIMIZED
       AppSettings.store("window", "maximized", maximized)
       if not maximized:
@@ -663,7 +706,154 @@ func _python() -> String:
    return "python" if OS.get_name() == "Windows" else "python3"
 
 
+## The splash screen: the window opens small and borderless (project settings
+## [code]display/window/size/window_width_override[/code], [code]window_height_override[/code] and
+## [code]borderless[/code], with the boot splash [code]res://icon.png[/code] on white), and this
+## overlay keeps the image there, with the status under it, until the Python worker has started
+## ([method _leave_splash]). Problems with Python show their dialogs on top of it; when they are
+## dismissed without a worker starting, the splash goes all the same, so that another Python can be
+## chosen from the status bar.
+func _show_splash() -> void:
+   _splash = CanvasLayer.new()
+   _splash.layer = 100
+   var back := ColorRect.new()
+   back.color = ProjectSettings.get_setting("application/boot_splash/bg_color", Color.WHITE)
+   back.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+   _splash.add_child(back)
+   var path: String = ProjectSettings.get_setting("application/boot_splash/image", "")
+   if not path.is_empty() and ResourceLoader.exists(path):
+      var image := TextureRect.new()
+      image.texture = load(path)
+      image.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED   # its own size, as the boot splash (stretch disabled)
+      image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST   # pixel for pixel, as the boot splash (no filter)
+      image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+      image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)   # where the boot splash had it
+      _splash.add_child(image)
+   var label := Label.new()
+   label.name = "Status"
+   label.text = "Starting Python…"
+   label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+   label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+   label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+   label.offset_top = -26
+   _splash.add_child(label)
+   add_child(_splash)
+   _raise.call_deferred()
+   %Message.visibility_changed.connect(func(): _check_splash.call_deferred())
+   %PythonDialog.visibility_changed.connect(func(): _check_splash.call_deferred())
+
+
+## Leaves the splash when nothing is shown on it and no worker is starting (dialogs dismissed).
+func _check_splash() -> void:
+   if _splash != null and not _starting and not %Message.visible and not %PythonDialog.visible:
+      _leave_splash()
+
+
+## The window of the interface: its size and state of the last session (or the size of the
+## project, centered, maximized if the screen is smaller), with borders. Runs from the Godot editor
+## keep the window the editor gives them (the project size, with borders: the [code].editor[/code]
+## overrides of project.godot), which the editor restores when it gets the focus back.
+func _leave_splash() -> void:
+   if _splash == null:
+      return
+   _splash.queue_free()
+   _splash = null
+   if OS.has_feature("editor"):
+      return
+   var window := get_window()
+   var splash := window.size
+   window.borderless = false
+   for i in 3:   # the window manager applies the borders before it takes a new size
+      await get_tree().process_frame
+   var size: Vector2i = AppSettings.value("window", "size", Vector2i.ZERO)
+   if size.x <= splash.x and size.y <= splash.y:   # none, or the splash size kept by an older version
+      size = Vector2i(ProjectSettings.get_setting("display/window/size/viewport_width"), ProjectSettings.get_setting("display/window/size/viewport_height"))
+   var screen := DisplayServer.screen_get_usable_rect(window.current_screen)
+   window.size = Vector2i(mini(size.x, screen.size.x), mini(size.y, screen.size.y))
+   window.position = screen.position + (screen.size - window.size) / 2
+   if AppSettings.value("window", "maximized", false) or size.x > screen.size.x or size.y > screen.size.y:
+      window.mode = Window.MODE_MAXIMIZED
+   await get_tree().process_frame
+   _raise()   # the window manager may have put it behind the others when the borders came back
+
+
+## The theme of File › Settings… (light or dark mode, a ColorBrewer palette; Blues in light mode
+## by default) on the interface, its dialogs and menus, the background behind the panels and the
+## colors of the code (see [constant UiTheme]).
+func _apply_theme() -> void:
+   var highlighter: CodeHighlighter = load("res://python_highlighter.tres")
+   UiTheme.apply(self, load("res://theme.tres"), AppSettings.value("ui", "palette", UiTheme.DEFAULT_PALETTE), AppSettings.value("ui", "dark", false), highlighter)
+   for code in find_children("*", "CodeEdit", true, false):   # colored again
+      if code.syntax_highlighter == highlighter:
+         code.syntax_highlighter = null
+         code.syntax_highlighter = highlighter
+
+
+## Help › About graphoskop…: the icon of the program, its version, and what a bug report needs:
+## Python (version, interpreter, environment), the versions of the libraries (worker command
+## [code]about[/code]), the GPUs PyTorch sees, the operating system and Godot. The text can be
+## selected, or copied whole with the Copy button.
+func _about() -> void:
+   var dialog := AcceptDialog.new()
+   dialog.title = "About graphoskop"
+   var box := VBoxContainer.new()
+   box.custom_minimum_size = Vector2(520, 0)
+   if ResourceLoader.exists(ABOUT_ICON):
+      var icon := TextureRect.new()
+      icon.texture = load(ABOUT_ICON)
+      icon.custom_minimum_size = Vector2(0, 128)
+      icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+      icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+      box.add_child(icon)
+   var title := Label.new()
+   title.theme_type_variation = "HeadingLabel"
+   title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+   title.text = "graphoskop"
+   box.add_child(title)
+   var text := RichTextLabel.new()
+   text.fit_content = true
+   text.selection_enabled = true
+   text.text = "Asking the Python worker…"
+   box.add_child(text)
+   dialog.add_child(box)
+   dialog.add_button("Copy", true, "copy")
+   dialog.custom_action.connect(func(_a): DisplayServer.clipboard_set(text.get_parsed_text()))
+   dialog.visibility_changed.connect(func(): if not dialog.visible: dialog.queue_free())
+   add_child(dialog)
+   dialog.popup_centered()
+   var godot := "Interface: Godot %s, %s (%s)" % [Engine.get_version_info().string, OS.get_name(), OS.get_distribution_name()]
+   if %Worker.info.is_empty():
+      text.text = "The Python worker is not running.\n" + godot
+      return
+   %Worker.request({"cmd": "about"}, func(r, _p):
+      if not is_instance_valid(dialog):
+         return
+      if not r.ok:
+         text.text = str(r.get("error", "")) + "\n" + godot
+         return
+      title.text = "graphoskop %s" % r.version
+      var lines := PackedStringArray(["Library: " + r.library, "Python %s (%s): %s" % [r.python, r.environment, r.executable], "System: " + r.platform, godot, ""])
+      lines.append("GPU: " + ("CUDA %s, %s" % [r.gpu.cuda, ", ".join(r.gpu.devices)] if r.gpu.cuda != null else "none (PyTorch runs on the CPU)"))
+      lines.append("")
+      for name in r.packages:
+         lines.append("%s %s" % [name, r.packages[name] if r.packages[name] != null else "(not installed)"])
+      text.text = "\n".join(lines)
+      dialog.reset_size())
+
+
+## Brings the window of the interface in front of the other windows, with the focus, then
+## [param dialog] (a window of its own, see [code]embed_subwindows[/code]) in front of it: a
+## window behind others hides the dialogs it opens (e.g. on Windows).
+func _raise(dialog: Window = null) -> void:
+   for window in [get_window(), dialog]:
+      if window != null and window.visible:
+         window.grab_focus()   # also moves it to the foreground
+
+
 func _start_worker() -> void:
+   _starting = true
+   if _splash != null:
+      _splash.get_node("Status").text = "Starting Python…"
    _block(true)
    %Status.text = "Starting Python…"
    %EnvButton.text = "%s (starting)" % Environments.name_of(_python())
@@ -672,6 +862,8 @@ func _start_worker() -> void:
 
 
 func _on_started(info: Dictionary) -> void:
+   _starting = false
+   _leave_splash()
    _block(false)
    %Status.text = "Ready"
    %EnvButton.text = "%s · Python %s · graphoskop %s · %s" % [info.get("environment", "?"), info.get("python", "?"), info.get("version", "?"), "GPU" if info.get("cuda") else "CPU only"]
@@ -679,6 +871,9 @@ func _on_started(info: Dictionary) -> void:
 
 
 func _on_failed(message: String) -> void:
+   _starting = false
+   if _splash != null:
+      _splash.get_node("Status").text = "Python worker not running"
    %Status.text = "Python worker not running"
    %EnvButton.text = "%s (not running)" % Environments.name_of(_python())
    _progress_done()
@@ -738,6 +933,7 @@ func _on_environment(id: int) -> void:
 
 func _browse_python() -> void:
    %PythonDialog.current_dir = _python().get_base_dir() if _python().is_absolute_path() else AppSettings.folder("python")
+   _raise()   # the native file dialog opens over the window of the interface
    %PythonDialog.popup_centered_ratio(0.6)
 
 
@@ -823,10 +1019,15 @@ func _message(title: String, text: String, python := false) -> void:
    %Message.dialog_text = text
    _choose_python.visible = python
    %Message.popup_centered()
+   _raise(%Message)
 
 
 func _on_file(id: int) -> void:
-   if id == FILE_LOAD:
+   if id == FILE_SETTINGS:
+      _mode.select(1 if AppSettings.value("ui", "dark", false) else 0)
+      _palette.select(maxi(UiTheme.PALETTES.keys().find(AppSettings.value("ui", "palette", UiTheme.DEFAULT_PALETTE)), 0))
+      _settings.popup_centered()
+   elif id == FILE_LOAD:
       %LoadDialog.open()
    elif id == FILE_OPEN_SESSION:
       %SessionOpenDialog.current_dir = AppSettings.folder("sessions", AppSettings.folder("edges"))
@@ -925,10 +1126,11 @@ func _open_session(path: String) -> void:
       %Status.text = "Opened the session %s (%d tabs)%s" % [path.get_file(), states.size(), " · " + r.warning if r.has("warning") else ""])
 
 
-## File › Export › Network tables…: the network of the current tab as tab-separated tables next to
-## [param path] (worker command [code]export[/code]: name_edges.tsv, name_nodes.tsv, and
-## name_interlayer.tsv for multilayer networks), as [code]to_pandas_dataframes[/code] gives them;
-## the code does not change.
+## File › Export › Network…: the network of the current tab in the format of the extension of
+## [param path] (worker command [code]export[/code]; the formats of the load dialog): a network
+## file of another program, with the drawing as its visual attributes, or tab-separated tables
+## next to [param path] (name_edges.tsv, name_nodes.tsv, and name_interlayer.tsv for multilayer
+## networks), as [code]to_pandas_dataframes[/code] gives them; the code does not change.
 func _export(path: String) -> void:
    var tab := _current()
    if tab.is_empty():
@@ -1032,8 +1234,8 @@ func _save_image(path: String) -> void:
 
 
 ## Builds the File menu: New network…; Open session…, Recent sessions, Save session…, Close
-## session; Load network…, Export (Network tables…, Image…). Also the dialogs of New network…
-## and Export › Image….
+## session; Load network…, Export (Network…, Image…); Settings…. Also the dialogs of New
+## network…, Export › Image… and Settings….
 func _file_menu() -> void:
    %File.clear()
    %File.add_item("New network…", FILE_NEW)
@@ -1044,9 +1246,11 @@ func _file_menu() -> void:
    %File.add_item("Close session", FILE_CLOSE_SESSION)
    %File.add_separator("", 101)
    %File.add_item("Load network…", FILE_LOAD)
-   _export_menu.add_item("Network tables…", FILE_EXPORT)
+   _export_menu.add_item("Network…", FILE_EXPORT)
    _export_menu.add_item("Image…", FILE_IMAGE)
    %File.add_submenu_node_item("Export", _export_menu, FILE_EXPORTS)
+   %File.add_separator("", 102)
+   %File.add_item("Settings…", FILE_SETTINGS)
    %File.id_pressed.connect(_on_file)
    _export_menu.id_pressed.connect(_on_file)
    %File.about_to_popup.connect(_fill_recent)
@@ -1062,6 +1266,26 @@ func _file_menu() -> void:
    box.add_child(_new_directed)
    _new_dialog.add_child(box)
    _new_dialog.confirmed.connect(_new_network)
+   _settings.title = "Settings"
+   var choices := GridContainer.new()
+   choices.columns = 2
+   var mode_label := Label.new()
+   mode_label.text = "Mode"
+   _mode.add_item("Light")
+   _mode.add_item("Dark")
+   var palette_label := Label.new()
+   palette_label.text = "Colors"
+   for name in UiTheme.PALETTES:   # each with a strip of its colors
+      var strip := Image.create(45, 12, false, Image.FORMAT_RGBA8)
+      for k in 9:
+         strip.fill_rect(Rect2i(5 * k, 0, 5, 12), Color(UiTheme.PALETTES[name][k]))
+      _palette.add_icon_item(ImageTexture.create_from_image(strip), name)
+   for c in [mode_label, _mode, palette_label, _palette]:
+      choices.add_child(c)
+   _settings.add_child(choices)
+   add_child(_settings)
+   _mode.item_selected.connect(func(i): AppSettings.store("ui", "dark", i == 1); _apply_theme())
+   _palette.item_selected.connect(func(i): AppSettings.store("ui", "palette", UiTheme.PALETTES.keys()[i]); _apply_theme())
    add_child(_image_dialog)
    _image_dialog.title = "Export image"
    _image_dialog.ok_button_text = "Save…"
@@ -1204,7 +1428,8 @@ func _fit_generator(item: Array) -> void:
                _plot.show_plot(tab.id, "%s of %s against %s" % [t.measure, tab.name, item[0]], png, t.elements, t.options, t.styles, t.text, t.warnings, "randomization_test", t.kinds, t.kind_label))))
 
 
-## Creates the network of a new tab with [param request] ("load" or "generate"), then lays it out;
+## Creates the network of a new tab with [param request] ("load" or "generate"), then lays it out (a
+## network file with positions is drawn with them);
 ## [param done] (from a parameter dialog) gets the error, or an empty text when the network is
 ## made (without it, errors show in a message).
 func _new_tab(name: String, request: Dictionary, done := Callable()) -> void:
@@ -1227,6 +1452,8 @@ func _new_tab(name: String, request: Dictionary, done := Callable()) -> void:
          _large_tab = tab
          _large.dialog_text = "%s has %s.\nNetworks with more than %s nodes and edges together can probably not be drawn.\nIt can be laid out, analyzed, simulated and edited without drawing it." % [name, reply.summary, String.num_int64(int(reply.get("max_elements", 10000000)))]
          _large.popup_centered()
+      elif reply.get("positioned", false):   # a network file with positions: drawn as it is
+         _set_drawn(tab, true)
       else:
          _layout(tab, "grid_layout", {"fast": "True"}))
 

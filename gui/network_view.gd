@@ -72,6 +72,9 @@ const EDGE_PIXELS := 1.0
 const NODE_STRIDE := 16
 ## Texels per row of the texture of the slices of the node charts (CHART_WIDTH of the worker).
 const CHART_WIDTH := 4096
+## Colors of the node labels from the style ([code]label_color[/code], one per node, sent with
+## their heights), or empty: black or white by the background.
+var _label_inks := PackedColorArray()
 const EDGE_STRIDE := 12
 const CURVE_STRIDE := 16
 ## Shader of bundled edges (cubic Bézier pieces computed by the GPU).
@@ -224,7 +227,18 @@ func show_network(header: Dictionary, payload: PackedByteArray, keep_view := fal
    _arrow_data = parts[8].to_float32_array() if int(header.get("arrows", 0)) > 0 else PackedFloat32Array()
    labels = parts[9].get_string_from_utf8().split(char(31)) if header.get("labels", false) and parts.size() > 10 else PackedStringArray()
    _label_heights = parts[10].to_float32_array() if not labels.is_empty() else PackedFloat32Array()
+   _label_inks = PackedColorArray()
+   if header.get("label_inks", false) and not labels.is_empty():   # five floats per label: height, color
+      var both := _label_heights
+      _label_heights = PackedFloat32Array()
+      _label_heights.resize(both.size() / 5)
+      _label_inks.resize(both.size() / 5)
+      for i in _label_heights.size():
+         _label_heights[i] = both[5 * i]
+         _label_inks[i] = Color(both[5 * i + 1], both[5 * i + 2], both[5 * i + 3], both[5 * i + 4])
    _show_charts(parts[11] if parts.size() > 11 else PackedByteArray())
+   _show_texture(_nodes.material, "borders", "bordered", parts[12] if parts.size() > 12 else PackedByteArray(), Image.FORMAT_RGBAF, 16)
+   _show_texture(_edges.material, "styles", "styled", parts[13] if parts.size() > 13 else PackedByteArray(), Image.FORMAT_RF, 4)
    _labels.queue_redraw()
    _fill(_arrows.multimesh, int(header.get("arrows", 0)), _arrow_data)
    _grid = header.grid
@@ -266,6 +280,18 @@ func _show_charts(table: PackedByteArray) -> void:
    var image := Image.create_from_data(CHART_WIDTH, texels / CHART_WIDTH, false, Image.FORMAT_RGBAF, table)
    _nodes.material.set_shader_parameter("slices", ImageTexture.create_from_image(image))
    _nodes.material.set_shader_parameter("chart_width", CHART_WIDTH)
+
+
+## A texture of one texel per node or edge (rows of [constant CHART_WIDTH], [param bytes] per texel)
+## as the uniform [param uniform] of [param material], and [param flag] whether there is one: the
+## node borders and the edge line styles.
+func _show_texture(material: ShaderMaterial, uniform: String, flag: String, table: PackedByteArray, format: int, bytes: int) -> void:
+   if material == null:   # matrix cells
+      return
+   var texels := table.size() / bytes
+   material.set_shader_parameter(flag, texels > 0)
+   material.set_shader_parameter(uniform, ImageTexture.create_from_image(Image.create_from_data(CHART_WIDTH, texels / CHART_WIDTH, false, format, table)) if texels > 0 else null)
+   material.set_shader_parameter("chart_width", CHART_WIDTH)
 
 
 ## Edges as straight quads ([param kind] "lines", the edge shader setting their width), as Bézier
@@ -594,9 +620,11 @@ func _draw_labels() -> void:
             return
    var font := ThemeDB.fallback_font
    var dark: bool = %Background.color.get_luminance() > 0.5
-   var ink := Color.BLACK if dark else Color.WHITE
-   var halo := Color(1, 1, 1, 0.8) if dark else Color(0, 0, 0, 0.8)
+   var colored := _label_inks.size() == labels.size()
    for i in shown:
+      var ink := (Color.BLACK if dark else Color.WHITE) if not colored else _label_inks[i]
+      var light := dark if not colored else ink.get_luminance() < 0.5   # a halo that stands out from the color
+      var halo := Color(1, 1, 1, 0.8) if light else Color(0, 0, 0, 0.8)
       var px := roundi(_label_heights[i] * zoom / spread)
       if px < LABEL_MIN_PIXELS:
          continue

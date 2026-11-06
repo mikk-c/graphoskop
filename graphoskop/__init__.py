@@ -93,10 +93,11 @@ Long computations show a progress bar with the time left, at no measurable cost 
 from importlib.metadata import version, PackageNotFoundError
 
 from .network import BIPARTITE, LAYER, Network, Hyperedge, Simplex, load_network, save_network, load_pickled_network, load_matrix, save_matrix
+from .formats import FORMATS, VISUAL_ATTRIBUTES, read_network, write_network, from_networkx, from_igraph, from_graph_tool, to_networkx, to_igraph, to_graph_tool
 from .higher_order import load_hypergraph, load_simplicial_complex, incidence_network, clique_expansion, generalized_degree, incidence_number, is_uniform, is_pure, is_pseudomanifold, hypergraph_walk_network, boundary_matrix, hodge_laplacian, simplicial_random_walk, betti_numbers, euler_characteristic, hodge_decomposition, simplicial_fourier_basis, simplicial_fourier_transform, inverse_simplicial_fourier_transform, set_hypergraph_route
 from .multilayer import layer_network, aggregate_network
 from .transformations import to_undirected, remove_isolates, largest_component, remove_self_loops, remove_parallel_edges, subgraph, ego_network, to_strongly_connected, add_nodes, add_edges, remove_nodes, remove_edges, flip_edge_direction, network_union, network_difference, network_intersection, quotient_network, network_condensation, clique_promotion, line_graph, complement
-from .signed import SIGN, signed_network, signed_adjacency, structural_balance, signed_triangle_counts
+from .signed import SIGN, signed_network, signed_adjacency, structural_balance, signed_triangle_counts, signed_clustering, SIGNED_CLUSTERING
 from .utils import laplacian, laplacian_pinv, laplacian_solver, stationary_distribution, effective_resistance, hitting_time, fundamental_matrix
 from .shortest_paths import shortest_path, shortest_path_length, single_source_shortest_paths, single_source_shortest_path_lengths, all_pairs_shortest_paths, all_pairs_shortest_path_lengths, shortest_path_length_distribution, diameter
 from .communities import modularity, codelength, conductance, internal_density, out_degree_fraction
@@ -135,7 +136,9 @@ except PackageNotFoundError:
    __version__ = "unknown"
 
 __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_network", "save_network",
-           "load_pickled_network", "load_matrix", "save_matrix", "load_hypergraph",
+           "load_pickled_network", "load_matrix", "save_matrix", "FORMATS", "VISUAL_ATTRIBUTES",
+           "read_network", "write_network", "from_networkx", "from_igraph", "from_graph_tool",
+           "to_networkx", "to_igraph", "to_graph_tool", "load_hypergraph",
            "load_simplicial_complex", "incidence_network", "clique_expansion", "generalized_degree",
            "incidence_number", "is_uniform", "is_pure", "is_pseudomanifold",
            "hypergraph_walk_network", "boundary_matrix", "hodge_laplacian",
@@ -147,7 +150,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "add_edges", "remove_nodes", "remove_edges", "flip_edge_direction", "network_union",
            "network_difference", "network_intersection", "quotient_network", "network_condensation",
            "clique_promotion", "line_graph", "complement", "SIGN", "signed_network", "signed_adjacency", "structural_balance",
-           "signed_triangle_counts", "laplacian", "laplacian_pinv", "laplacian_solver",
+           "signed_triangle_counts", "signed_clustering", "SIGNED_CLUSTERING", "laplacian", "laplacian_pinv", "laplacian_solver",
            "stationary_distribution", "effective_resistance", "hitting_time", "fundamental_matrix",
            "shortest_path", "shortest_path_length", "single_source_shortest_paths",
            "single_source_shortest_path_lengths", "all_pairs_shortest_paths",

@@ -185,7 +185,7 @@ def _object_array(values):
 
 
 @_higher_order()
-def load_hypergraph(hyperedges, nodes = None, hyperedge_table = None, sep = "\t", header = True, node = 0, hyperedge = 1, membership_attributes = True, directed = False, direction = "direction", node_format = "wide", device = "cpu"):
+def load_hypergraph(hyperedges, nodes = None, hyperedge_table = None, sep = "\t", header = True, node = 0, hyperedge = 1, membership_attributes = True, directed = False, direction = "direction", node_format = "wide", device = "cpu", comment = "#"):
    """
    Load a hypergraph: its hyperedges, and optionally attribute tables of its nodes and of its
    hyperedges (see the module description).
@@ -227,6 +227,8 @@ def load_hypergraph(hyperedges, nodes = None, hyperedge_table = None, sep = "\t"
       ``"head"``, in directed hypergraphs.
    :param node_format: ``"wide"`` or ``"long"``, the format of both attribute tables.
    :param device: Device of the tensors, e.g. ``"cuda"``.
+   :param comment: Lines of the files starting with it (after any leading white space) are skipped;
+      ``None`` or ``""`` for none.
    :return: The hypergraph, a :class:`~graphoskop.Network` with ``higher_order = "hypergraph"``.
    :raises ValueError: If a node or label is missing, a membership is repeated, a direction is not
       ``"tail"`` or ``"head"``, a collection is a string, or a table sets
@@ -256,7 +258,7 @@ def load_hypergraph(hyperedges, nodes = None, hyperedge_table = None, sep = "\t"
    hdr = 0 if header else None
    extra = []
    if isinstance(hyperedges, pd.DataFrame) or isinstance(hyperedges, (str, bytes)) or hasattr(hyperedges, "__fspath__"):
-      table, cols = _read(hyperedges, sep, hdr, [node, hyperedge] + ([direction] if directed else []))
+      table, cols = _read(hyperedges, sep, hdr, [node, hyperedge] + ([direction] if directed else []), comment)
       if directed:
          d = table[cols[2]]
          if not d.isin(["tail", "head"]).all():
@@ -268,8 +270,8 @@ def load_hypergraph(hyperedges, nodes = None, hyperedge_table = None, sep = "\t"
       memb, extra = _collections(hyperedges, directed, "hyperedge")
       head = memb.pop("head").to_numpy() if directed else None
       attrs = pd.DataFrame(index = range(len(memb)))
-   ntab = None if nodes is None else _read_nodes(nodes, sep, hdr, None, node_format, False)
-   htab = None if hyperedge_table is None else _read_nodes(hyperedge_table, sep, hdr, None, node_format, False)
+   ntab = None if nodes is None else _read_nodes(nodes, sep, hdr, None, node_format, False, comment)
+   htab = None if hyperedge_table is None else _read_nodes(hyperedge_table, sep, hdr, None, node_format, False, comment)
    for t, kind in ((ntab, "node"), (htab, "hyperedge")):
       if t is not None:
          _attribute_rows(t, node_format, kind)
@@ -391,7 +393,7 @@ def _merge_wide(table, key):
 
 
 @_higher_order()
-def load_simplicial_complex(simplices, nodes = None, simplex_table = None, sep = "\t", header = True, node = 0, simplex = 1, node_format = "wide", device = "cpu"):
+def load_simplicial_complex(simplices, nodes = None, simplex_table = None, sep = "\t", header = True, node = 0, simplex = 1, node_format = "wide", device = "cpu", comment = "#"):
    """
    Load a simplicial complex from simplices, and optionally attribute tables of its nodes and of
    its facets (see the module description).
@@ -432,6 +434,8 @@ def load_simplicial_complex(simplices, nodes = None, simplex_table = None, sep =
    :param simplex: Name or position of the simplex column of the membership table.
    :param node_format: ``"wide"`` or ``"long"``, the format of both attribute tables.
    :param device: Device of the tensors, e.g. ``"cuda"``.
+   :param comment: Lines of the files starting with it (after any leading white space) are skipped;
+      ``None`` or ``""`` for none.
    :return: The complex, a :class:`~graphoskop.Network` with ``higher_order = "simplicial"``.
    :raises ValueError: If a node or label is missing or a simplex is empty, if the simplex table
       has a row for a simplex that is not a facet or not in ``simplices``, if a collection is a
@@ -456,14 +460,14 @@ def load_simplicial_complex(simplices, nodes = None, simplex_table = None, sep =
    hdr = 0 if header else None
    listed = False
    if isinstance(simplices, pd.DataFrame) or isinstance(simplices, (str, bytes)) or hasattr(simplices, "__fspath__"):
-      table, cols = _read(simplices, sep, hdr, [node, simplex])
+      table, cols = _read(simplices, sep, hdr, [node, simplex], comment)
       memb, extra = pd.DataFrame({"node": table[cols[0]], "group": table[cols[1]]}), []
       del table
    else:
       listed = not isinstance(simplices, dict)
       memb, extra = _collections(simplices, False, "simplex")
-   ntab = None if nodes is None else _read_nodes(nodes, sep, hdr, None, node_format, False)
-   stab = None if simplex_table is None else _read_nodes(simplex_table, sep, hdr, None, node_format, False)
+   ntab = None if nodes is None else _read_nodes(nodes, sep, hdr, None, node_format, False, comment)
+   stab = None if simplex_table is None else _read_nodes(simplex_table, sep, hdr, None, node_format, False, comment)
    for t, kind in ((ntab, "node"), (stab, "simplex")):
       if t is not None:
          _attribute_rows(t, node_format, kind)

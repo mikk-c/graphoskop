@@ -127,6 +127,68 @@ layout_mode = 2
 tooltip_text = "Pie charts on the nodes: the shares of numeric node attributes, or the values of a qualitative attribute (equal slices, e.g. overlapping communities)"
 text = "Edit…"
 
+[node name="ShapeLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Shape"
+
+[node name="NodeShape" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeShape" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Shape of the nodes: one for all, or one per value of a qualitative node attribute"
+text = "Edit…"
+
+[node name="BorderLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Border color"
+
+[node name="NodeBorder" type="HBoxContainer" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditNodeBorder" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Color of the node borders: one color, or colors from a node attribute"
+text = "Edit…"
+
+[node name="BorderWidthLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Border width"
+
+[node name="NodeBorderWidth" type="Label" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditNodeBorderWidth" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Width of the node borders, inside the shape (1 × is a tenth of the radius; 0: no border), one for all or from a node attribute"
+text = "Edit…"
+
+[node name="LabelColorLabel" type="Label" parent="Nodes"]
+layout_mode = 2
+text = "Label color"
+
+[node name="LabelColor" type="HBoxContainer" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditLabelColor" type="Button" parent="Nodes"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Color of the node labels: one color, or colors from a node attribute (automatic, black or white by the background, until edited)"
+text = "Edit…"
+
 [node name="Edges" type="GridContainer" parent="."]
 theme_override_constants/h_separation = 12
 visible = false
@@ -177,6 +239,22 @@ text_overrun_behavior = 3
 [node name="EditEdgeOpacity" type="Button" parent="Edges"]
 unique_name_in_owner = true
 layout_mode = 2
+text = "Edit…"
+
+[node name="StyleLabel" type="Label" parent="Edges"]
+layout_mode = 2
+text = "Line style"
+
+[node name="EdgeStyle" type="Label" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+
+[node name="EditEdgeStyle" type="Button" parent="Edges"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Line style of the edges: one for all, or one per value of a qualitative edge attribute"
 text = "Edit…"
 
 [node name="Network" type="GridContainer" parent="."]

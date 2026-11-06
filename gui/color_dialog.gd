@@ -253,7 +253,7 @@ func _show() -> void:
       for kind in (["sequential", "diverging"] if quantitative else ["qualitative"]):
          for name in palettes[kind]:
             %Palette.add_icon_item(_icon(name), name)
-            if name == _spec.palette_name:
+            if name == _spec.get("palette_name", ""):
                %Palette.select(%Palette.item_count - 1)
       if _spec.get("palette_name", "").is_empty():
          %Palette.select(-1)   # cleared: no palette

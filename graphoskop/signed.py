@@ -15,6 +15,10 @@ in exactly one of the two layers. :func:`signed_network` builds one in either of
 The signed adjacency matrix :math:`A` (:func:`signed_adjacency`) has :math:`A_{ij}` equal to the
 sign of the edge from :math:`i` to :math:`j`, and 0 without an edge; parallel edges count once (they
 must have the same sign). Edges with sign 0 or NaN in the sign attribute are treated as absent.
+
+:func:`signed_clustering` is the local clustering coefficient of signed networks of Costantini and
+Perugini (2014): positive triangles (an even number of negative edges) raise it, negative ones
+lower it, so it ranges from -1 to 1.
 """
 
 import numpy as np
@@ -595,3 +599,114 @@ def structural_balance(net, component = None, sign = SIGN, beta = None, exact = 
    num = sum(val * np.exp(sh - top) for (sh, val), _ in parts)
    den = sum(val * np.exp(sh - top) for _, (sh, val) in parts)
    return float(num / den)
+
+
+#: Kinds of :func:`signed_clustering`.
+SIGNED_CLUSTERING = ("watts_strogatz", "onnela", "zhang")
+
+
+@_higher_order()
+def signed_clustering(net, node = None, component = 0, kind = "watts_strogatz", weight = None, sign = SIGN, batch_size = 2 ** 22):
+   r"""
+   Local signed clustering coefficient of the nodes of an undirected signed network (Costantini
+   and Perugini, "Generalization of clustering coefficients to signed correlation networks",
+   PLoS ONE 9(2): e88669, 2014). Every triangle around node :math:`i` counts with the sign of the
+   product of its three edges: positive triangles (none or two negative edges, balanced) raise the
+   coefficient, negative ones lower it, so it ranges from -1 (all triangles negative) to 1 (all
+   closed and positive); 0 means no triangles, or as many positive as negative ones. With signed
+   weights :math:`w_{ij}` (the sign times the absolute weight, or the sign alone without
+   ``weight``), :math:`k_i` neighbors and :math:`s_i = \sum_j |w_{ij}|`:
+
+   * ``"watts_strogatz"`` (signs only): :math:`C_i = \sum_{j, q} a_{ij} a_{jq} a_{qi} / (k_i (k_i - 1))`;
+   * ``"onnela"``: :math:`C_i = \sum_{j, q} (\hat w_{ij} \hat w_{jq} \hat w_{qi})^{1/3} / (k_i (k_i - 1))`,
+     with :math:`\hat w = w / \max |w|` over the network and the signed cube root;
+   * ``"zhang"`` (Zhang and Horvath): :math:`C_i = \sum_{j, q} w_{ij} w_{jq} w_{qi} / (s_i^2 - \sum_j w_{ij}^2)`.
+
+   Sums run over ordered pairs of distinct neighbors (every triangle twice). Parallel edges count
+   once (with the sum of their absolute weights, and the same sign); self loops are ignored. NaN
+   for nodes with fewer than two neighbors. Triangles are enumerated as in
+   :func:`~graphoskop.local_clustering`, in batches of 2-paths.
+
+   :param net: An undirected signed :class:`~graphoskop.Network` (see :func:`signed_network`).
+   :param node: Node (input id or internal id ``(component, index)``), list of nodes, or ``None``.
+   :param component: With ``node = None``, index of the component (0 is the largest), or ``None``
+      for a list with one vector per component; ignored when ``node`` is given.
+   :param kind: ``"watts_strogatz"``, ``"onnela"`` or ``"zhang"`` (:data:`SIGNED_CLUSTERING`).
+   :param weight: Numeric edge attribute (name or position) of the magnitudes (their absolute
+      value is used), or ``None`` for 1 (``"onnela"`` and ``"zhang"`` then equal ``"watts_strogatz"``
+      up to the denominator of ``"zhang"``, which is the same).
+   :param sign: Edge attribute (name or position) holding the sign.
+   :param batch_size: Number of 2-paths expanded at once.
+   :return: With ``node``, a float; with a list of nodes, a :class:`pandas.DataFrame` with columns
+      ``node`` (as given) and ``signed_clustering``; with ``node = None``, a float64 vector over
+      the nodes of the component, on its device, ordered by internal index.
+   :raises ValueError: If the network is directed or multilayer, ``kind`` is unknown, or parallel
+      edges have opposite signs.
+   :raises KeyError: If there is no such edge attribute, or a node does not exist.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      signed = gsk.signed_network(net, weight = "correlation")   # signs from the correlations
+      c = gsk.signed_clustering(signed)                          # signs only, component 0
+      gsk.signed_clustering(signed, kind = "zhang", weight = "correlation")
+      signed.set_node_attribute("signed_clustering", gsk.signed_clustering(signed, component = None), None)
+   """
+   from .network_statistics import _paths, _skeleton
+   if kind not in SIGNED_CLUSTERING:
+      raise ValueError(f"kind must be one of {SIGNED_CLUSTERING}")
+   if net.directed:
+      raise ValueError("signed_clustering is for undirected networks")
+   if net.layer_labels is not None:
+      raise ValueError("the network is multilayer: build a signed network first (signed_network)")
+   if node is not None:
+      single = not isinstance(node, (list, np.ndarray, pd.Series, pd.Index))
+      ids = [net._nodes(x)[0] for x in ([node] if single else node)]
+      vec = {c: signed_clustering(net, None, c, kind, weight, sign, batch_size).cpu().numpy() for c in set(c for c, _ in ids)}
+      values = [float(vec[c][i]) for c, i in ids]
+      return values[0] if single else pd.DataFrame({"node": list(node), "signed_clustering": values})
+   def pairs(c):   # distinct pairs without self loops: lower node, higher node, signed weight
+      m = net.number_of_edges(c)   # the input edges, without the reverse copies
+      s, t = net.components[c].edge_index[:, :m]
+      v = torch.sign(net._numeric_edge(sign, c)[:m]).nan_to_num(0).double()
+      w = net._numeric_edge(weight, c)[:m].double().abs().nan_to_num(0) if weight is not None else torch.ones_like(v)
+      keep = (v != 0) & (s != t)
+      n = net.components[c].num_nodes
+      key, inv = torch.unique(torch.minimum(s, t)[keep] * n + torch.maximum(s, t)[keep], return_inverse = True)
+      lo = torch.full(key.shape, 2., dtype = v.dtype, device = v.device).scatter_reduce(0, inv, v[keep], "amin")
+      hi = torch.full(key.shape, -2., dtype = v.dtype, device = v.device).scatter_reduce(0, inv, v[keep], "amax")
+      if bool((lo != hi).any()):
+         raise ValueError(f"parallel edges with opposite signs in component {c}")
+      size = torch.zeros(key.shape, dtype = v.dtype, device = v.device).index_add_(0, inv, w[keep])
+      return key // n, key % n, hi * size
+   if component is None:
+      return [signed_clustering(net, None, c, kind, weight, sign, batch_size) for c in range(len(net.components))]
+   a, b, x = pairs(component)
+   n = net.components[component].num_nodes
+   if kind == "onnela":   # normalized by the largest weight of the network
+      top = max((float(pairs(c)[2].abs().max()) for c in range(len(net.components)) if net.components[c].num_edges), default = 1.)
+      x = x / (top if top > 0 else 1.)
+   elif kind == "watts_strogatz":
+      x = torch.sign(x)
+   num = torch.zeros(n, dtype = torch.float64, device = x.device)
+   if len(a):
+      src, dst, slot, along = _skeleton(a, b, n)
+      y = torch.empty_like(x)
+      y[slot] = x
+      for ab, bc, ac in _paths(src, dst, n, batch_size):
+         p = y[ab] * y[bc] * y[ac]
+         if kind == "onnela":   # the signed cube root
+            p = torch.sign(p) * p.abs() ** (1. / 3.)
+         for at in (src[ab], dst[ab], dst[bc]):
+            num.index_add_(0, at, 2. * p)
+   k = torch.bincount(torch.cat([a, b]), minlength = n).double()
+   if kind == "zhang":
+      strength = torch.zeros(n, dtype = torch.float64, device = x.device).index_add_(0, a, x.abs()).index_add_(0, b, x.abs())
+      squares = torch.zeros(n, dtype = torch.float64, device = x.device).index_add_(0, a, x * x).index_add_(0, b, x * x)
+      den = strength ** 2 - squares
+   else:
+      den = k * (k - 1.)
+   return torch.where((k >= 2) & (den > 0), num / den.clamp(min = 1e-300), torch.nan)

@@ -32,6 +32,18 @@ analysis changes the look of the drawing by itself. HITS writes two attributes,
 ``hits_hub`` and ``hits_authority``. Errors of the library (e.g. reach centrality and
 SpringRank need directed networks) are shown in the dialog.
 
+**Analysis › Clustering** has the local clustering coefficient (:func:`~graphoskop.local_clustering`,
+attribute ``clustering``) and, for undirected signed networks, the signed clustering coefficient
+of Costantini and Perugini (:func:`~graphoskop.signed_clustering`, attribute
+``signed_clustering``, from -1 to 1: triangles count with their sign), with its ``kind``
+(``watts_strogatz``: signs only; ``onnela`` and ``zhang``: with the magnitudes of ``weight``),
+and, for hypergraphs and simplicial complexes, the local triangle closure and the two-node
+clustering (written on the incidence network, as the higher-order centralities above), e.g.
+
+.. code-block:: python
+
+   net.set_node_attribute("signed_clustering", gsk.signed_clustering(net, component = None, kind = "zhang", weight = "correlation"), None)
+
 Hypergraphs and simplicial complexes are drawn as their incidence networks (the nodes and, as
 nodes of the other type, the hyperedges or facets), and the centralities above run on that
 incidence network (``inc``). The last section of the menu has the measures of the library made for
@@ -40,7 +52,7 @@ incidence network with :func:`gsk_worker.incidence_values` (a function of the in
 of the nodes, of the hyperedges, or both, NaN for the others): **Hyperedge size…**
 (:func:`~graphoskop.hyperedge_size`, on the hyperedges), **Local triangle closure…**
 (:func:`~graphoskop.local_triangle_closure`), **Two-node clustering…**
-(:func:`~graphoskop.two_node_clustering`), **Generalized degree (complexes)…**
+(:func:`~graphoskop.two_node_clustering`; both under Analysis › Clustering), **Generalized degree (complexes)…**
 (:func:`~graphoskop.generalized_degree` of the nodes) and **Node and hyperedge centrality…**
 (:func:`~graphoskop.node_edge_centrality`, the nonlinear eigenvector centrality of Tudisco and
 Higham, on both), e.g.
@@ -71,7 +83,10 @@ diverging ColorBrewer palette (a menu showing its colors; **Reverse** reverses i
 color of its series: e.g. the bars of a histogram by the value of their bin, or a line by its
 height (:func:`gsk_worker.gradient_colors`: from the smallest to the largest value, on a
 logarithmic scale when the axis is, diverging palettes centered on 0 when the values have both
-signs; not for heatmaps); the font size can be set (14 points by default). Tick marks are inside
+signs; not for heatmaps); **Line width** and **Point size** (times the usual ones) and **Bar
+width** (a fraction of the gap between bars, 0.8 by default) size the data series, each shown
+when a series is drawn that way (options ``line_width``, ``point_size``, ``bar_width``); the font
+size can be set (14 points by default). Tick marks are inside
 the axes, on all four sides. Colors, styles, axes, gradient and font size show only with **Advanced**, at
 the bottom left (see `Generators`_); the plot, its text, its menu and the save buttons always. The font is the
 default font of gnuplot, Helvetica, or the first font with the same metrics that is installed
@@ -321,6 +336,27 @@ them in ``paths``, a list with one matrix per component, largest first
   up to :data:`gsk_worker.MAX_ORDER_ATTRIBUTES` attributes; :func:`gsk_worker.matrix_orders`). Any
   size is drawn: beyond :data:`gsk_worker.MATRIX_SHOWN` nodes, one node in k of the order is
   drawn (the text under the plot says so), the data staying whole.
+
+**Analysis › Node embeddings** computes shallow embeddings, unsupervised vectors of the nodes
+learned from the structure alone (see :doc:`gnn`): **node2vec** (random walks; ``p = q = 1``
+is DeepWalk), **struc2vec** (structural roles), **metapath2vec** (walks along a chain of node
+types, ``metapath``, of the qualitative node attribute ``node_type``), **Laplacian eigenmaps**
+and **Locally linear embedding** (eigenvectors: no training). Unlike the graph neural networks,
+they predict nothing: each writes its vectors as numeric node attributes ``<attribute>_0``,
+``<attribute>_1``, … (``attribute``, by default ``node2vec``, ``struc2vec``, ``metapath2vec``,
+``eigenmaps`` or ``lle``), of :data:`gsk_worker.EMBEDDING_DIMENSIONS` dimensions unless set
+(the library's default for the trained ones, 128, would make as many attributes); the status bar
+names them (:func:`gsk_worker.embedding_code`), e.g.
+
+.. code-block:: python
+
+   gsk.node2vec(net, dimensions = 16, seed = 1, attribute = "node2vec")
+
+They can then color, size or position the nodes, and be the ``features`` of the graph neural
+networks (Analysis › Graph neural networks…): in the menu of ``features``, **Pattern…** checks
+``node2vec_*`` at once, e.g. ``features = [a for a in net.node_attributes if
+a.startswith("node2vec_")]``; with a target, a GCN on the embedding and an MLP on it compare
+what the walks and the graph convolution each add. Trained embeddings show a progress bar.
 
 Nothing is asked or announced: the status bar says where the lengths are, and they are reused
 without a word. The matrices take 4 bytes per pair of nodes (400 MB for 10,000 nodes, 576 MB
@@ -1105,6 +1141,38 @@ Loading a network
 
 * the device, CPU or GPU (offered when PyTorch finds CUDA).
 
+**Comments start with** (next to the separator, ``#`` by default): lines of the tables starting with
+it, after any spaces, are skipped, in the previews and when loading (``comment`` of
+:func:`~graphoskop.load_network`, written in the code when it is not ``#``); empty for none. A
+``#`` inside a value (e.g. a color ``#ff0000``) stays.
+
+Without a file, the first field lists the formats it reads (edge table, Pajek, UCINET, adjacency
+list, DOT, GML, GraphML, GEXF, Cytoscape JSON). **Network files of other programs**: when the first file has the extension of a format of
+:func:`~graphoskop.read_network` (``.net`` and ``.paj`` Pajek, ``.dl`` UCINET, ``.adj`` and
+``.adjlist`` adjacency lists, ``.dot`` and ``.gv`` Graphviz, ``.gml``, ``.graphml``, ``.gexf``
+Gephi, ``.cyjs`` and ``.json`` Cytoscape; ``.##h`` and ``.##d`` UCINET binary data, whose
+relations are the layers of a multilayer network), there is nothing to choose: the file holds the nodes,
+the edges, their attributes and whether the network is directed. The dialog shows only the file,
+a note, **Directed** for adjacency lists (each line lists the targets of its first node; unchecked,
+an edge on the lines of both its nodes is one edge) and the device, and the code is e.g.
+
+.. code-block:: python
+
+   net = gsk.read_network("/data/karate.gml")
+
+The visual attributes of the file (:data:`~graphoskop.formats.VISUAL_ATTRIBUTES`) become the style of the
+drawing (:func:`gsk_worker.file_style`), as if chosen in `Visual elements`_: node and edge colors
+and node border colors (each value its own color: hexadecimal colors, or CSS color names; other
+names, e.g. the Pajek colors that are not CSS colors, and nodes without one, get the default
+color), node sizes (diameters proportional to the values, the median value at the default
+diameter; nodes without one at the default), edge widths (1 is the default width), border widths
+(relative to the node sizes when the file has them), opacities, node shapes and edge line styles
+(:data:`gsk_worker.SHAPE_NAMES`, :data:`gsk_worker.LINE_NAMES`: e.g. ``box`` is a square,
+``dashed`` a dash; others are circles and solid lines), labels (shown) and the most common label
+color. Visual attributes the interface does not draw (e.g. fonts, curved edges, arrowheads) are
+ignored, though they stay node and edge attributes. When every node has a position, the network is
+drawn with them, without laying it out; otherwise it is laid out as other networks.
+
 On **Import**, the network opens in a new tab: the code panel shows the code that loaded it, for
 example
 
@@ -1158,15 +1226,20 @@ or an analysis of a network of millions of nodes), the same dialog opens after 0
 says what the interface is waiting for, instead of nothing happening.
 
 
-* The menu bar: File, in three groups: **New network…** (see below); **Open session…**,
+* The menu bar: File, in four groups: **New network…** (see below); **Open session…**,
   **Recent sessions** (the last ten sessions saved or opened, by file name, the folder in the
   tooltip: choosing one opens it), **Save session…** and **Close session** (closes every tab,
   after asking; see below); **Load network…** (see `Loading a network`_) and **Export**, with
-  **Network tables…** (the network of the current tab as tab-separated tables, as
+  **Network…** (the network of the current tab, in the formats of the load dialog, chosen by the
+  file type of the file dialog: tab-separated tables, as
   :meth:`~graphoskop.Network.to_pandas_dataframes` gives them: ``name_edges.tsv``,
   ``name_nodes.tsv`` if there are node attributes, and ``name_interlayer.tsv`` for multilayer
-  networks; File › Load network reads them back; the code does not change; worker command
-  ``export``) and **Image…** (the visualization panel of the current network as on screen,
+  networks; or a Pajek, UCINET, adjacency list, DOT, GML, GraphML, GEXF or Cytoscape JSON file,
+  written by :func:`~graphoskop.write_network` with the drawing as its visual attributes,
+  :func:`gsk_worker.drawn_visuals`: positions, colors, opacities, sizes, shapes, borders, labels
+  and label colors of the nodes, colors, opacities, relative widths and line styles of the edges,
+  as on screen; File › Load network reads them all back; the code does not change; worker
+  command ``export``) and **Image…** (the visualization panel of the current network as on screen,
   without the selection marks: a dialog asks its width in pixels, twice the width on screen by
   default, the height following the shape of the panel, and its format: a **PNG image**, with
   smooth edges, drawn three times larger still then reduced; a **PDF document, vector**, drawn by
@@ -1176,12 +1249,19 @@ says what the interface is waiting for, instead of nothing happening.
   text, with the colors, sizes, opacities and smallest sizes on screen of the panel, sharp at any
   zoom and editable in a vector editor, the page as large as the width at 300 dots per inch (tens
   of seconds for 100,000 nodes); or a **PDF document, image**, holding the PNG image at 300 dots
-  per inch, command ``image_pdf``). Edit (see `Editing`_), Select (see
+  per inch, command ``image_pdf``); **Settings…** (light or dark mode and the colors of the
+  interface, see `Settings`_). Edit (see `Editing`_), Select (see
   `Selecting`_), Layout (see `Layouts`_), Analysis (see `Analysis`_),
   Simulation (see `Simulation`_), Generators (see `Generators`_), Help (**Online
   documentation**, and this chapter of it, opened in the web browser, and **Report a bug or
   request a feature**, the issue tracker of graphoskop on GitHub,
-  https://github.com/mikk-c/graphoskop/issues). On macOS it is the global
+  https://github.com/mikk-c/graphoskop/issues, and **About graphoskop…**: a dialog with the icon
+  of the program (``res://icon.svg``, if the project has it), the version of graphoskop and its
+  folder, Python (version, environment, interpreter), the operating system, Godot, the GPUs PyTorch
+  sees (CUDA version and device names, or none), and the versions of PyTorch, PyTorch Geometric,
+  NumPy, SciPy, pandas, Numba, tqdm, Matplotlib, networkx, igraph and graph-tool (or "not
+  installed"); its text can be selected, or copied whole with **Copy**, e.g. for a bug report;
+  worker command ``about``, :func:`gsk_worker.about`). On macOS it is the global
   menu bar of the system.
 * The tab bar: one tab per open network; the close button of a tab forgets its network. On its
   right, the search box finds nodes of the current network by their id, or by the node attribute
@@ -1298,6 +1378,10 @@ Python worker
 
 .. autodata:: gsk_worker.BLOCK_ORDER_MAX
 
+.. autodata:: gsk_worker.BORDER_COLOR
+
+.. autodata:: gsk_worker.BORDER_FRACTION
+
 .. autodata:: gsk_worker.CENTRALITIES
    :no-value:
 
@@ -1327,6 +1411,8 @@ Python worker
 
 .. autodata:: gsk_worker.CURVES
 
+.. autodata:: gsk_worker.DASHES
+
 .. autodata:: gsk_worker.DENDROGRAM_LABELS
 
 .. autodata:: gsk_worker.DENDROGRAM_NODES
@@ -1355,7 +1441,22 @@ Python worker
 
 .. autodata:: gsk_worker.EDGE_STRIDE
 
+.. autodata:: gsk_worker.ABOUT_PACKAGES
+
+.. autodata:: gsk_worker.EDGE_STYLES
+
+.. autodata:: gsk_worker.INTERLAYER
+
+.. autodata:: gsk_worker.LINE_NAMES
+
+.. autodata:: gsk_worker.SHAPE_NAMES
+
+
 .. autodata:: gsk_worker.EDGE_VALUES_NOTE
+
+.. autodata:: gsk_worker.EMBEDDING_DIMENSIONS
+
+.. autodata:: gsk_worker.EMBEDDINGS
 
 .. autodata:: gsk_worker.EMPTY
 
@@ -1503,6 +1604,8 @@ Python worker
 
 .. autodata:: gsk_worker.NODE_COLOR
 
+.. autodata:: gsk_worker.NODE_SHAPES
+
 .. autodata:: gsk_worker.NODE_SIZES_NOTE
 
 .. autodata:: gsk_worker.NODE_STRIDE
@@ -1561,6 +1664,8 @@ Python worker
    :no-value:
 
 .. autodata:: gsk_worker.SET_OPERATIONS
+
+.. autodata:: gsk_worker.SHAPE_ALIASES
 
 .. autodata:: gsk_worker.SHOWN_DEFAULTS
    :no-value:
@@ -1626,6 +1731,8 @@ Python worker
 
 .. autofunction:: gsk_worker.attribute_values
 
+.. autofunction:: gsk_worker.about
+
 .. autofunction:: gsk_worker.attributes
 
 .. autofunction:: gsk_worker.backbone_code
@@ -1638,6 +1745,8 @@ Python worker
 
 
 .. autofunction:: gsk_worker.block_order
+
+.. autofunction:: gsk_worker.category_codes
 
 .. autofunction:: gsk_worker.centrality_code
 
@@ -1652,6 +1761,17 @@ Python worker
 .. autofunction:: gsk_worker.correction_signature
 
 .. autofunction:: gsk_worker.default_style
+
+.. autofunction:: gsk_worker.drawn_visuals
+
+.. autofunction:: gsk_worker.complete_positions
+
+.. autofunction:: gsk_worker.file_style
+
+.. autofunction:: gsk_worker.label_inks
+
+.. autofunction:: gsk_worker.layer_values
+
 
 .. autofunction:: gsk_worker.degree_plot
 
@@ -1674,6 +1794,8 @@ Python worker
 .. autofunction:: gsk_worker.edge_values
 
 .. autofunction:: gsk_worker.edit_code
+
+.. autofunction:: gsk_worker.embedding_code
 
 .. autofunction:: gsk_worker.empty_code
 
@@ -1779,6 +1901,8 @@ Python worker
 
 .. autofunction:: gsk_worker.nestedness_text
 
+.. autofunction:: gsk_worker.node_borders
+
 .. autofunction:: gsk_worker.node_labels
 
 .. autofunction:: gsk_worker.node_matrix
@@ -1837,6 +1961,8 @@ Python worker
 
 .. autofunction:: gsk_worker.set_edge_values
 
+.. autofunction:: gsk_worker.shape_polygon
+
 .. autofunction:: gsk_worker.shown_attributes
 
 .. autofunction:: gsk_worker.shown_edges
@@ -1860,6 +1986,8 @@ Python worker
 .. autofunction:: gsk_worker.statistic_code
 
 .. autofunction:: gsk_worker.statistic_signature
+
+.. autofunction:: gsk_worker.styled_lines
 
 .. autofunction:: gsk_worker.subdivisions
 
@@ -1915,6 +2043,46 @@ The worker is started with the interpreter chosen before (see `Python environmen
 the one in the environment variable ``GRAPHOSKOP_PYTHON``, or else ``python3`` (``python`` on
 Windows). If it cannot start or cannot import graphoskop, a message offers to choose the
 interpreter, e.g. ``~/miniconda3/envs/gsk/bin/python``.
+
+While the worker starts, a splash screen shows: the window opens small (905 by 372 pixels) and
+without borders, with the boot splash of the project (``application/boot_splash/image``,
+``res://icon.png``, 825 by 292 pixels, at its own size on white: no stretching
+(``boot_splash/stretch_mode`` 0) nor filtering (``boot_splash/use_filter`` off; the interface
+draws it with the nearest filter), centered with 40 pixels around it, so that it shows pixel
+for pixel and whole; another image needs a window larger by an even number of pixels in each
+direction, for whole-pixel centering), and the interface keeps it there, with "Starting
+Python…" under it, until the worker has imported the library; then the window takes its borders
+and, a few frames later (once the window manager has applied them), its size and state of the last
+session, and comes in front of the other windows with the focus (as it does when it opens, and
+before the messages and the file dialog to choose Python, which would otherwise open behind other
+windows when the interface is behind them): maximized if it was, else its last size; on the first start, 1440 by 900 pixels
+(``display/window/size/viewport_width`` and ``viewport_height``), centered, maximized on smaller
+screens. If Python cannot start, its message shows on top of the splash; once it is dismissed
+without another interpreter starting, the splash goes, so that one can be chosen from the status
+bar. The size of the splash is ``display/window/size/window_width_override`` and
+``window_height_override`` in ``project.godot``.
+
+Runs from the Godot editor (F5) skip the small window: the ``.editor`` overrides of these settings
+in ``project.godot`` open it at 1440 by 900 pixels with borders, with the splash drawn inside it,
+and the interface leaves its size to the editor (which restores it when it gets the focus back) and
+does not store it for the exported interface.
+
+**Exporting the interface** (Project › Export… in the Godot editor): Godot exports only the
+resources it knows, so the plugin ``addons/gsk_export`` (enabled in ``project.godot``) adds the
+worker: it puts ``python/gsk_worker.py`` inside the package and next to the exported executable
+(``python/gsk_worker.py``): in a folder beside it, or, with Export Project… to a ``.zip`` file,
+inside the archive (no filter of the export preset is needed). The plugin is loaded when the
+project is opened: after an update, reopen the project in the editor (or check that "Graphoskop
+export" is on in Project › Project Settings › Plugins). The exported interface runs the copy
+next to it; without one (e.g. a macOS application bundle), it copies the worker out of the package
+to ``user://python/`` (the user data folder, see `Settings`_), since Python cannot read inside the
+package. Python and its environment are not part of the export: they are chosen as above.
+
+The title of the window is ``WINDOW_TITLE`` of ``main.gd`` ("Graphoskop 6054"; the name of the
+project, ``application/config/name``, stays "Graphoskop", since it names the user data folder).
+Debug builds add " (DEBUG)" to it: the runs from the editor, and the exports made with **Export
+With Debug** checked in the Export Project… file dialog (the default); uncheck it for the release
+build, which is also faster.
 
 The interface uses Godot's Compatibility renderer (OpenGL 3.3, OpenGL ES 3.0 or WebGL 2), which
 runs on any GPU of the last fifteen years; its file dialogs are those of the operating system.
@@ -2005,7 +2173,18 @@ on Windows):
   in the load dialog (the most likely to hold its node table), or else in that of the last node
   table;
 * the separator, header and device chosen last in the load dialog;
-* the size of the window, and whether it was maximized.
+* the size of the window, and whether it was maximized;
+* the look of the interface, chosen in **File › Settings…** (last item of the File menu): the
+  mode, **Light** (the default) or **Dark**, and the **Colors**, one of the ColorBrewer sequential
+  palettes Blues (the default), Greens, Greys, Purples, Reds or Oranges (each shown with its nine
+  colors). Choices apply at once to the whole interface, its dialogs and menus (the theme is built
+  in code by ``ui_theme.gd`` on the fonts of ``theme.tres``: in light mode, the lightest colors of
+  the palette for backgrounds, panels and buttons and its darkest for the text; in dark mode,
+  darkened and less saturated shades of its eighth color, with a light one for the text; check
+  boxes drawn in the colors of the palette and the icons of arrows and close buttons recolored as
+  the text), and to the colors of the code (those of Visual Studio Code's Light+ and Dark+
+  themes). The drawing of a network keeps its own background (Visual elements › Network), white
+  by default; the file dialogs are those of the operating system.
 
 Deleting the file resets them.
 
@@ -2174,7 +2353,15 @@ Visual elements
 ---------------
 
 The visual elements panel, left of the visualization panel, sets the look of the drawing of the
-current network, in three tabs:
+current network, in three tabs. In the Nodes and Edges tabs the elements come in groups (nodes:
+**Fill**: color, opacity, chart; **Shape**: shape, size; **Border**: color, width; **Label**:
+text, size, color; **Placement**: position; edges: **Line**: color, thickness, opacity, style),
+each a row with its name and its value: a click anywhere on the row edits it.
+
+In multilayer networks, the attributes offered for nodes and edges (colors, shapes, line styles,
+…) include ``layer`` (unless the network has an attribute of that name): the layer of each node,
+and of each edge, ``interlayer`` for the edges between layers (:func:`gsk_worker.layer_values`).
+It is drawing only: the code does not change.
 
 * **Nodes**: their color, size, opacity, position and label. By default all nodes are ``#e41a1c``; in bipartite networks
   (and incidence networks of hypergraphs and complexes) the second type of nodes is ``#377eb8``,
@@ -2186,7 +2373,7 @@ current network, in three tabs:
   Like the other visual elements, this changes the drawing only, not the network or the code; while
   positions come from attributes, nodes cannot be dragged, and bundled edges are drawn straight
   (their curves follow the layout). **Label** (none by default) writes the id of every node
-  (**node id**), or the value of a node attribute, chosen in the menu of its Edit button,
+  (**node id**), or the value of a node attribute, chosen in the menu that opens under its row,
   centered on every node, upright, in black or
   white (by the background) with an outline (:func:`gsk_worker.node_labels`). **Label size** sets
   their height, like node sizes (see `Sizes`_): one size for all, or sizes given by a node
@@ -2201,11 +2388,36 @@ current network, in three tabs:
   attribute** (equal slices of the values of each node: several for nodes with many, such as the
   overlapping communities of DEMON or BigCLAM, the whole disc for nodes with one), in the colors
   of a qualitative ColorBrewer **Palette** (Set1 by default; the k-th attribute, or the k-th value,
-  has the k-th color). Charts keep the size and opacity of the nodes, at most
+  has the k-th color), and each slice can take another color: the dialog lists the attributes, or
+  the values (those of nodes with several split), each with a color button (values beyond those
+  listed keep the palette). Charts keep the size and opacity of the nodes, at most
   :data:`gsk_worker.MAX_SLICES` slices each (:func:`gsk_worker.chart_slices`); the node shader
   draws them from a texture of the slices, so they cost nothing more to move and zoom. Epidemic
   states, when shown, color the nodes instead. Vector PDF images draw them as wedges.
-* **Edges**: their color (by default ``#999999``), thickness and opacity.
+  **Shape** (circles by default): one shape for all, or one per value of a qualitative node
+  attribute (or of a numeric one with at most 20 values, such as communities), among circle,
+  triangle, square, diamond, pentagon, hexagon, heptagon, octagon and a five-pointed star
+  (:data:`gsk_worker.NODE_SHAPES`), in a menu per value (values beyond those the interface lists,
+  and missing ones, take **Others**; :func:`gsk_worker.category_codes`). Shapes are inscribed in
+  the disc of the node (their vertices on its circle), and turn with the view; charts take the
+  shape of their node. **Border color** (black by default) and **Border width** (0: no border)
+  draw a border inside the shape of every node, so that its size does not change: one color or
+  colors from a node attribute (as node colors), one width or widths from a node attribute (as
+  node sizes; 1 × is a tenth of the radius; :func:`gsk_worker.node_borders`). **Label color** is
+  edited as the node colors (the same dialog): one color, or colors from a node attribute
+  (qualitative or quantitative scales, palettes, colors of single values; sent with the label
+  heights, :func:`gsk_worker.label_inks`). Until it is edited it is automatic, black or white by
+  the background; the halo around the letters of each label is white or black, whichever stands
+  out from its color. **Opacity** (above) sets the opacity of the
+  nodes, one for all or from a node attribute. The node shader draws shapes and borders, so they
+  cost nothing to pan and zoom; vector images draw them as polygons (charts stay round there).
+* **Edges**: their color (by default ``#999999``), thickness and opacity, and **Line style**
+  (solid by default): one for all, or one per value of a qualitative edge attribute (or of a
+  numeric one with few values), among solid, dash, dash-dot, dots, parallel lines, sine wave and
+  zigzag (:data:`gsk_worker.EDGE_STYLES`; the dot of dash-dot in the middle of its gap), drawn in units of the width of each line by the edge
+  shaders (straight and bundled or routed edges; self loops and matrix cells stay solid). Vector
+  images draw dashes and dots as dash patterns, the others as polylines
+  (:func:`gsk_worker.styled_lines`).
 * **Network**: the background color; **Rotation**, a slider turning the view (-180° to 180°,
   counterclockwise) without changing the positions or the code; **Scale**, a logarithmic slider
   (and a number) from a tenth to a hundred times, which blows up the layout: the distances
@@ -2218,7 +2430,7 @@ current network, in three tabs:
   background, the rotation and the scale); those mapped to attributes the current network does not
   have go back to their defaults (:func:`gsk_worker.prune_style`).
 
-Each row sums up the current choice (a swatch or the colors of the scale); its **Edit…** button
+Each row sums up the current choice (a swatch or the colors of the scale); a click on the row
 opens a dialog. Changes in the dialogs apply to the drawing as they are made; **Cancel** restores
 what was there when the dialog opened. Colors and sizes do not change the network or the code:
 they are part of the drawing only, computed by the worker (:func:`gsk_worker.colors`,

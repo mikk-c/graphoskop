@@ -29,7 +29,7 @@ text = "Edge table"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Required: one row per edge"
+placeholder_text = "Edge table, Pajek, UCINET, adjacency list, DOT, GML, GraphML, GEXF, Cytoscape JSON"
 
 [node name="EdgeBrowse" type="Button" parent="Box/Files"]
 unique_name_in_owner = true
@@ -87,6 +87,17 @@ unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 text = "First row is a header"
+
+[node name="CommentLabel" type="Label" parent="Box/Format"]
+layout_mode = 2
+text = "   Comments start with"
+
+[node name="Comment" type="LineEdit" parent="Box/Format"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+tooltip_text = "Lines starting with this text (after any spaces) are comments, skipped; empty for none"
+text = "#"
 
 [node name="EdgeTitle" type="Label" parent="Box"]
 unique_name_in_owner = true

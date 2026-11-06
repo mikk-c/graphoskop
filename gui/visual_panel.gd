@@ -17,8 +17,17 @@ extends TabContainer
 ## turns the nodes into pie charts (its dialog, made here): none, the shares of numeric node
 ## attributes (check boxes, a slice each), or the values of a qualitative attribute (equal slices
 ## of the values of each node, e.g. overlapping communities), in the colors of a qualitative
-## ColorBrewer palette: [code]{"attributes": [names], "palette": [colors], "palette_name": name}[/code]
-## or [code]{"attribute": name, ...}[/code] ([code]chart_slices[/code] in the worker).
+## ColorBrewer palette, then a color button per slice (each attribute, or each value, those of nodes
+## with several split): [code]{"attributes": [names], "colors": {name: color}, "palette": [colors],
+## "palette_name": name}[/code] or [code]{"attribute": name, "colors": {value: color}, ...}[/code]
+## ([code]chart_slices[/code] in the worker; values not listed take the palette). Nodes › Shape
+## and Edges › Line style (dialogs made here) give one shape or style for all
+## ([code]{"value": name}[/code]) or one per value of a qualitative attribute
+## ([code]{"attribute": name, "map": {value: name}, "other": name}[/code]; [code]category_codes[/code]
+## in the worker); Border color and Border width edit [code]node_border[/code] (a color) and
+## [code]node_border_width[/code] (1 × is a tenth of the radius, 0 none); Label color edits
+## [code]label_color[/code] as the node colors (one color, or colors from a node attribute;
+## automatic, black or white by the background, until edited: "").
 
 ## Emitted when the colors or sizes of nodes or edges change, with the whole style.
 signal style_changed(style: Dictionary)
@@ -41,11 +50,32 @@ var tab_names := Callable()
 var _style := {}
 var _attributes := {}
 var _editing := ""
+## Node shapes and edge line styles (NODE_SHAPES and EDGE_STYLES of the worker, in code order).
+const NODE_SHAPES := ["circle", "triangle", "square", "diamond", "pentagon", "hexagon", "heptagon", "octagon", "star"]
+const EDGE_STYLES := ["solid", "dash", "dash-dot", "dots", "parallel", "sine", "zigzag"]
+## Most distinct values of a numeric attribute offered for shapes and line styles.
+const MAX_CATEGORIES := 20
+## Groups of the rows of the Nodes and Edges tabs: heading, then the rows (name, value node,
+## edit control, as unique names of the scene). Each row is a button: a click edits it.
+const GROUPS := {
+   "Nodes": [
+      ["Fill", [["Color", "NodeColor", "EditNodeColor"], ["Opacity", "NodeOpacity", "EditNodeOpacity"], ["Chart", "NodeChart", "EditNodeChart"]]],
+      ["Shape", [["Shape", "NodeShape", "EditNodeShape"], ["Size", "NodeSize", "EditNodeSize"]]],
+      ["Border", [["Color", "NodeBorder", "EditNodeBorder"], ["Width", "NodeBorderWidth", "EditNodeBorderWidth"]]],
+      ["Label", [["Text", "NodeLabel", "EditNodeLabel"], ["Size", "LabelSize", "EditLabelSize"], ["Color", "LabelColor", "EditLabelColor"]]],
+      ["Placement", [["Position", "NodePosition", "EditNodePosition"]]],
+   ],
+   "Edges": [
+      ["Line", [["Color", "EdgeColor", "EditEdgeColor"], ["Thickness", "EdgeWidth", "EditEdgeWidth"], ["Opacity", "EdgeOpacity", "EditEdgeOpacity"], ["Style", "EdgeStyle", "EditEdgeStyle"]]],
+   ],
+}
 var _chart := ConfirmationDialog.new()
 var _chart_kind := OptionButton.new()
 var _chart_numeric := VBoxContainer.new()
 var _chart_qualitative := OptionButton.new()
 var _chart_palette := OptionButton.new()
+var _chart_rows_box := GridContainer.new()
+var _chart_colors := {}
 
 
 func _ready() -> void:
@@ -58,6 +88,11 @@ func _ready() -> void:
    %EditLabelSize.pressed.connect(func(): _edit_size("label_size", "Label size", "nodes", "label"))
    _build_chart_dialog()
    %EditNodeChart.pressed.connect(_edit_chart)
+   %EditNodeShape.pressed.connect(func(): _edit_category("node_shape", "Node shapes", NODE_SHAPES, "nodes"))
+   %EditEdgeStyle.pressed.connect(func(): _edit_category("edge_style", "Edge line styles", EDGE_STYLES, "edges"))
+   %EditNodeBorder.pressed.connect(func(): _edit_color("node_border", "Node border colors", Color("#000000"), "nodes"))
+   %EditNodeBorderWidth.pressed.connect(func(): _edit_size("node_border_width", "Node border width", "nodes", "border"))
+   %EditLabelColor.pressed.connect(func(): _edit_color("label_color", "Label colors", Color.BLACK, "nodes"))
    %ColorDialog.changed.connect(_changed)
    %SizeDialog.changed.connect(_changed)
    %EditNodePosition.pressed.connect(func(): _editing = "position"; %PositionDialog.open(_style.get("position", {}), _attributes.get("nodes", [])))
@@ -93,6 +128,7 @@ func _ready() -> void:
          copies.add_item("No other tab", 100000)
          copies.set_item_disabled(0, true))
    copies.id_pressed.connect(func(id): if id < 100000: copy_requested.emit(id))
+   _group_rows()   # last: the rows move into their groups
 
 
 ## The dialog of Nodes › Chart: the kind of chart, the numeric attributes (check boxes) or the
@@ -104,22 +140,29 @@ func _build_chart_dialog() -> void:
    for k in ["None", "Pie of numeric attributes", "Pie of the values of a qualitative attribute"]:
       _chart_kind.add_item(k)
    _chart_kind.item_selected.connect(func(_i): _chart_show())
+   _chart_qualitative.item_selected.connect(func(_i): _chart_rows())
    var palettes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json")).qualitative
    for name in palettes:
       _chart_palette.add_item(name)
    _chart_palette.select(maxi(Array(palettes.keys()).find("Set1"), 0))
+   _chart_palette.item_selected.connect(func(_i): _chart_colors.clear(); _chart_rows())   # the colors of the palette
    var scroll := ScrollContainer.new()
-   scroll.custom_minimum_size = Vector2(320, 200)
+   scroll.custom_minimum_size = Vector2(320, 160)
    scroll.add_child(_chart_numeric)
    _chart_numeric.set_meta("scroll", scroll)
-   for c in [_chart_kind, scroll, _chart_qualitative]:
-      box.add_child(c)
    var row := HBoxContainer.new()
    var label := Label.new()
    label.text = "Palette"
    row.add_child(label)
    row.add_child(_chart_palette)
-   box.add_child(row)
+   var colors := ScrollContainer.new()
+   colors.custom_minimum_size = Vector2(320, 160)
+   _chart_rows_box.columns = 2
+   colors.add_child(_chart_rows_box)
+   var heading := Label.new()
+   heading.text = "Colors of the slices"
+   for c in [_chart_kind, scroll, _chart_qualitative, row, heading, colors]:
+      box.add_child(c)
    _chart.add_child(box)
    _chart.confirmed.connect(_apply_chart)
    add_child(_chart)
@@ -136,6 +179,7 @@ func _edit_chart() -> void:
          var check := CheckBox.new()
          check.text = a.name
          check.button_pressed = a.name in chosen
+         check.toggled.connect(func(_on): _chart_rows())
          _chart_numeric.add_child(check)
       else:
          _chart_qualitative.add_item(a.name)
@@ -146,6 +190,7 @@ func _edit_chart() -> void:
       for i in _chart_palette.item_count:
          if _chart_palette.get_item_text(i) == spec.palette_name:
             _chart_palette.select(i)
+   _chart_colors = spec.get("colors", {}).duplicate()
    _chart_show()
    _chart.popup_centered()
 
@@ -153,23 +198,68 @@ func _edit_chart() -> void:
 func _chart_show() -> void:
    _chart_numeric.get_meta("scroll").visible = _chart_kind.selected == 1
    _chart_qualitative.visible = _chart_kind.selected == 2
+   _chart_rows()
+
+
+## The colors of the palette (its largest set).
+func _palette_colors() -> Array:
+   var palette: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json")).qualitative[_chart_palette.get_item_text(_chart_palette.selected)]
+   return palette[str(Array(palette.keys()).map(func(k): return int(k)).max())]
+
+
+## What the slices are: the checked numeric attributes, or the values of the qualitative one
+## (those of nodes with several values split, numbers in numeric order).
+func _chart_keys() -> Array:
+   if _chart_kind.selected == 1:
+      return _chart_numeric.get_children().filter(func(c): return c.button_pressed and not c.is_queued_for_deletion()).map(func(c): return c.text)
+   if _chart_kind.selected == 2 and _chart_qualitative.selected >= 0:
+      var name := _chart_qualitative.get_item_text(_chart_qualitative.selected)
+      for a in _attributes.get("nodes", []):
+         if a.name == name:
+            var keys := []
+            for v in a.get("values", []):
+               for part in str(v).split(", "):
+                  if not part in keys:
+                     keys.append(part)
+            keys.sort_custom(func(x, y): return float(x) < float(y) if x.is_valid_float() and y.is_valid_float() else x < y)
+            return keys
+   return []
+
+
+## A color button per slice ([method _chart_keys]), in its color or the next of the palette.
+func _chart_rows() -> void:
+   for c in _chart_rows_box.get_children():
+      _chart_rows_box.remove_child(c)
+      c.queue_free()
+   var palette := _palette_colors()
+   var keys := _chart_keys()
+   for i in keys.size():
+      var label := Label.new()
+      label.text = keys[i]
+      var pick := ColorPickerButton.new()
+      pick.custom_minimum_size = Vector2(60, 24)
+      pick.edit_alpha = false
+      pick.color = Color(_chart_colors.get(keys[i], palette[i % palette.size()]))
+      var key: String = keys[i]
+      pick.color_changed.connect(func(c): _chart_colors[key] = "#" + c.to_html(false))
+      _chart_rows_box.add_child(label)
+      _chart_rows_box.add_child(pick)
    _chart.reset_size()
 
 
 func _apply_chart() -> void:
    var name := _chart_palette.get_item_text(_chart_palette.selected)
-   var palette: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json")).qualitative[name]
-   var colors: Array = palette[str(Array(palette.keys()).map(func(k): return int(k)).max())]   # the largest set of the palette
+   var colors := {}
+   var children := _chart_rows_box.get_children()
+   for i in range(0, children.size(), 2):
+      colors[children[i].text] = "#" + children[i + 1].color.to_html(false)
    var spec := {}
    if _chart_kind.selected == 1:
-      var chosen := []
-      for c in _chart_numeric.get_children():
-         if c.button_pressed:
-            chosen.append(c.text)
+      var chosen := _chart_keys()
       if not chosen.is_empty():
-         spec = {"attributes": chosen, "palette": colors, "palette_name": name}
+         spec = {"attributes": chosen, "colors": colors, "palette": _palette_colors(), "palette_name": name}
    elif _chart_kind.selected == 2 and _chart_qualitative.selected >= 0:
-      spec = {"attribute": _chart_qualitative.get_item_text(_chart_qualitative.selected), "palette": colors, "palette_name": name}
+      spec = {"attribute": _chart_qualitative.get_item_text(_chart_qualitative.selected), "colors": colors, "palette": _palette_colors(), "palette_name": name}
    _editing = "node_chart"
    _changed(spec)
 
@@ -191,10 +281,169 @@ func show_turn(degrees: float) -> void:
    %TurnSlider.set_value_no_signal(degrees)
 
 
-func _edit_color(key: String, heading: String, default_color: Color) -> void:
+func _edit_color(key: String, heading: String, default_color: Color, kind := "") -> void:
    _editing = key
-   var kind := key
-   %ColorDialog.open(heading, _style.get(key, {}), _attributes.get(key, []), default_color, func(attribute, method, k, log, done): breaks.call(attribute, kind, method, k, log, done))
+   kind = key if kind.is_empty() else kind
+   var spec = _style.get(key)
+   if spec is String and not spec.is_empty():   # label colors of former versions: one color
+      spec = {"attribute": null, "color": spec}
+   if not spec is Dictionary or spec.is_empty():
+      spec = {"attribute": null, "color": default_color.to_html(false)}
+   %ColorDialog.open(heading, spec, _attributes.get(kind, []), default_color, func(attribute, method, k, log, done): breaks.call(attribute, kind, method, k, log, done))
+
+
+## Rebuilds the Nodes and Edges tabs as the groups of [constant GROUPS]: a heading per group, then a
+## button per row (its name and its value, the summary of the style); the edit controls of the scene
+## stay, hidden, and a click on a row presses its control (or opens its menu, under the row).
+func _group_rows() -> void:
+   for tab in GROUPS:
+      var grid: GridContainer = get_node(tab)
+      var keep := {}
+      for group in GROUPS[tab]:
+         for r in group[1]:
+            keep[r[1]] = get_node("%" + r[1])
+            keep[r[2]] = get_node("%" + r[2])
+      var hidden := Control.new()
+      hidden.visible = false
+      for c in grid.get_children():
+         if not keep.values().has(c):
+            grid.remove_child(c)
+            c.queue_free()
+      grid.columns = 1
+      grid.add_child(hidden)
+      for group in GROUPS[tab]:
+         var heading := Label.new()
+         heading.text = group[0]
+         heading.theme_type_variation = "HeadingLabel"   # the heading color of the theme
+         heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+         grid.add_child(heading)
+         for r in group[1]:
+            var value: Control = keep[r[1]]
+            var edit: Control = keep[r[2]]
+            var row := Button.new()
+            row.custom_minimum_size = Vector2(0, 28)
+            row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            row.tooltip_text = edit.tooltip_text
+            row.focus_mode = Control.FOCUS_NONE
+            var box := HBoxContainer.new()
+            box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+            box.offset_left = 8
+            box.offset_right = -8
+            box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+            var name := Label.new()
+            name.text = r[0]
+            name.custom_minimum_size.x = 80
+            box.add_child(name)
+            row.add_child(box)
+            grid.add_child(row)
+            value.reparent(box, false)
+            value.owner = self   # its unique name again
+            value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+            edit.reparent(hidden, false)
+            edit.owner = self
+            row.pressed.connect(func(): _press(edit, row))
+   _ignore_mouse(self)
+
+
+## Presses the edit control of a row, or opens its menu under the row (filled first, as a press
+## of the menu button would: [signal MenuButton.about_to_popup]).
+func _press(edit: Control, row: Control) -> void:
+   if edit is MenuButton:
+      edit.about_to_popup.emit()
+      var popup: PopupMenu = edit.get_popup()
+      popup.reset_size()
+      popup.position = Vector2i(row.get_screen_position() + Vector2(0, row.size.y))
+      popup.popup()
+   else:
+      edit.pressed.emit()
+
+
+## Lets the clicks on the values of the rows reach the row buttons: every control inside a row
+## (or, with [param inside], inside [param node]) ignores the mouse.
+func _ignore_mouse(node: Node, inside := false) -> void:
+   for c in node.get_children():
+      if inside and c is Control:
+         c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      _ignore_mouse(c, inside or (c is Button and c.get_parent() is GridContainer))
+
+
+## Node shapes or edge line styles ([param key] of the style, a choice among [param names]): one
+## for all, or one per value of a qualitative attribute, or of a numeric one with few values
+## (menus of the values the worker lists;
+## the other values, and missing ones, take [b]Others[/b]). A dialog made here, each time.
+func _edit_category(key: String, heading: String, names: Array, kind: String) -> void:
+   var spec: Dictionary = _style.get(key, {})
+   var dialog := ConfirmationDialog.new()
+   dialog.title = heading
+   dialog.ok_button_text = "Apply"
+   var box := VBoxContainer.new()
+   var by := OptionButton.new()
+   by.add_item("One for all")
+   var qualitative: Array = _attributes.get(kind, []).filter(func(a): return not a.get("numeric", false) or a.get("count", 0) <= mini(MAX_CATEGORIES, a.get("values", []).size()))   # numeric ones with few values too (e.g. communities)
+   for a in qualitative:
+      by.add_item("By " + a.name)
+   var rows := VBoxContainer.new()
+   var menu := func(chosen: String) -> OptionButton:
+      var m := OptionButton.new()
+      for n in names:
+         m.add_item(n)
+      m.select(maxi(names.find(chosen), 0))
+      return m
+   var fill := func():
+      for c in rows.get_children():
+         c.queue_free()
+      var grid := GridContainer.new()
+      grid.columns = 2
+      rows.add_child(grid)
+      if by.selected <= 0:
+         var label := Label.new()
+         label.text = "All"
+         grid.add_child(label)
+         grid.add_child(menu.call(spec.get("value", names[0])))
+         return
+      var a: Dictionary = qualitative[by.selected - 1]
+      var mapping: Dictionary = spec.get("map", {}) if spec.get("attribute") == a.name else {}
+      var values: Array = a.get("values", [])
+      for i in values.size():
+         var label := Label.new()
+         label.text = str(values[i])
+         grid.add_child(label)
+         grid.add_child(menu.call(mapping.get(str(values[i]), names[i % names.size()])))
+      var label := Label.new()
+      label.text = "Others" if a.get("count", 0) > values.size() else "Missing"
+      label.tooltip_text = "Values not listed, and missing values"
+      grid.add_child(label)
+      grid.add_child(menu.call(spec.get("other", names[0]) if spec.get("attribute") == a.name else names[0]))
+   by.select(0)
+   for i in qualitative.size():
+      if qualitative[i].name == spec.get("attribute"):
+         by.select(i + 1)
+   by.item_selected.connect(func(_i): fill.call(); dialog.reset_size())
+   fill.call()
+   var scroll := ScrollContainer.new()
+   scroll.custom_minimum_size = Vector2(300, 260)
+   scroll.add_child(rows)
+   box.add_child(by)
+   box.add_child(scroll)
+   dialog.add_child(box)
+   dialog.confirmed.connect(func():
+      var grid: GridContainer = rows.get_child(rows.get_child_count() - 1)
+      var menus := grid.get_children().filter(func(c): return c is OptionButton)
+      var texts := grid.get_children().filter(func(c): return c is Label)
+      var out := {}
+      if by.selected <= 0:
+         out = {"value": names[menus[0].selected]} if menus[0].selected > 0 else {}
+      else:
+         var mapping := {}
+         for i in menus.size() - 1:
+            mapping[texts[i].text] = names[menus[i].selected]
+         out = {"attribute": qualitative[by.selected - 1].name, "map": mapping, "other": names[menus[-1].selected]}
+      _editing = key
+      _changed(out))
+   dialog.visibility_changed.connect(func(): if not dialog.visible: dialog.queue_free())
+   add_child(dialog)
+   dialog.popup_centered()
 
 
 func _edit_size(key: String, heading: String, kind: String, values: String) -> void:
@@ -236,6 +485,29 @@ func _summarize() -> void:
    var chart: Dictionary = _style.get("node_chart", {})
    %NodeChart.text = ("pie: " + ", ".join(chart.attributes)) if chart.has("attributes") else ("pie: " + str(chart.attribute) if chart.has("attribute") else "none")
    %NodeChart.tooltip_text = %NodeChart.text
+   %NodeShape.text = _category_summary(_style.get("node_shape", {}), "circle")
+   %EdgeStyle.text = _category_summary(_style.get("edge_style", {}), "solid")
+   _color_summary(%NodeBorder, _style.get("node_border", {"attribute": null, "color": "#000000"}))
+   %NodeBorderWidth.text = _size_summary(_style.get("node_border_width", {"attribute": null, "size": 0.0}))
+   var ink = _style.get("label_color", "")
+   if ink is String and not ink.is_empty():   # former versions: one color
+      ink = {"attribute": null, "color": ink}
+   if ink is Dictionary and not ink.is_empty():
+      _color_summary(%LabelColor, ink)
+   else:   # automatic: no swatch
+      for child in %LabelColor.get_children():
+         child.queue_free()
+      var auto := Label.new()
+      auto.text = "automatic (black or white)"
+      auto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+      %LabelColor.add_child(auto)
+
+
+## Text of a node shape or edge line style specification.
+func _category_summary(spec: Dictionary, default: String) -> String:
+   if spec.get("attribute") != null:
+      return "by %s" % spec.attribute
+   return str(spec.get("value", default))
 
 
 ## Swatch or color ramp of a color specification, and what it colors by.
@@ -269,6 +541,7 @@ func _color_summary(box: HBoxContainer, spec: Dictionary) -> void:
    label.clip_text = true
    label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
    box.add_child(label)
+   _ignore_mouse(box, true)
 
 
 ## Text of a size (or, with [param key] "opacity", opacity) specification.

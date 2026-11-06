@@ -4,7 +4,11 @@
 // networks the custom data holds the diameters of the source and of the target and whether each end
 // has an arrowhead (1 or 0): the line then stops at the base of the arrowhead (arrow.gdshader: the
 // node radius, never smaller than min_pixels / 2 on screen, plus the length of the arrowhead).
+// With styles, the texel of each edge (by instance) is its line style (EDGE_STYLES of the worker),
+// drawn in units of the width of the line (see line_style.gdshaderinc).
 shader_type canvas_item;
+
+#include "res://line_style.gdshaderinc"
 
 // Default width in world units.
 uniform float width = 0.05;
@@ -23,5 +27,16 @@ void vertex() {
    float b = INSTANCE_CUSTOM.w * (max(INSTANCE_CUSTOM.y / spread, min_pixels / zoom) / 2.0 + l) / max(along, 1e-12);
    float cut = max(a + b, 1.0);   // nodes too close: nothing left of the line
    VERTEX.x = mix(-0.5 + a / cut, 0.5 - b / cut, VERTEX.x + 0.5);
-   VERTEX.y *= width;
+   float w = max(width * length(MODEL_MATRIX[1].xy), 1e-12);   // width of the line, world units
+   style = styled ? texelFetch(styles, ivec2(INSTANCE_ID % chart_width, INSTANCE_ID / chart_width), 0).r : 0.0;
+   float grow = style_breadth(style);
+   along_w = (VERTEX.x + 0.5) * along / w;
+   across_w = VERTEX.y * grow;
+   VERTEX.y *= width * grow;
+}
+
+void fragment() {
+   if (!line_kept(style, along_w, across_w)) {
+      discard;
+   }
 }

@@ -17,6 +17,7 @@ const KINDS := {
    "area": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 2.0, "suffix": "×", "single": "Single size"},
    "width": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 3.0, "suffix": "×", "single": "Single size"},
    "label": {"key": "size", "max": 50.0, "step": 0.05, "low": 0.5, "high": 2.0, "suffix": "×", "single": "Single size"},
+   "border": {"key": "size", "max": 10.0, "step": 0.05, "low": 0.5, "high": 3.0, "suffix": "×", "single": "Single width"},
    "opacity": {"key": "opacity", "max": 1.0, "step": 0.01, "low": 0.2, "high": 1.0, "suffix": "", "single": "Single opacity"},
 }
 
@@ -52,15 +53,15 @@ func open(heading: String, spec: Dictionary, attributes: Array, kind: String) ->
    var k: Dictionary = KINDS[kind]
    for pair in [[%Single, %SingleSlider], [%Min, %MinSlider], [%Max, %MaxSlider]]:
       var spin: SpinBox = pair[0]
-      spin.min_value = 0.0 if kind == "opacity" else 0.05
+      spin.min_value = 0.0 if kind in ["opacity", "border"] else 0.05   # no border: 0
       spin.max_value = k.max
       spin.step = k.step
       spin.suffix = k.suffix
       pair[1].visible = kind == "opacity"
       if kind == "opacity":
          pair[1].share(spin)
-   %SingleLabel.text = "Opacity" if kind == "opacity" else "Size"
-   %ByLabel.text = "Opacity by" if kind == "opacity" else "Size by"
+   %SingleLabel.text = "Opacity" if kind == "opacity" else ("Width" if kind == "border" else "Size")
+   %ByLabel.text = "Opacity by" if kind == "opacity" else ("Width by" if kind == "border" else "Size by")
    _show()
    reset_size()
    popup_centered()
@@ -96,11 +97,11 @@ func _show() -> void:
    %Min.value = _spec.get("min", k.low)
    %Max.value = _spec.get("max", k.high)
    %Log.button_pressed = _spec.get("log", false)
-   var what: String = {"area": "Node areas", "width": "Edge widths", "label": "Label heights", "opacity": "Opacities"}[_kind]
+   var what: String = {"area": "Node areas", "width": "Edge widths", "label": "Label heights", "border": "Border widths", "opacity": "Opacities"}[_kind]
    if _kind == "opacity":
       %Note.text = "0 is transparent, 1 opaque." if single else "%s grow linearly from the smallest value to the largest; qualitative values count by their order, missing values get the smallest opacity." % what
    else:
-      %Note.text = "Sizes are relative to the default size (1 ×)." if single else "%s grow linearly from the smallest value (smallest size) to the largest (largest size); qualitative values count by their order, missing values get the smallest size." % what
+      %Note.text = ("Border widths are inside the shape: 1 × is a tenth of the radius, 0 no border." if _kind == "border" else "Sizes are relative to the default size (1 ×).") if single else "%s grow linearly from the smallest value (smallest size) to the largest (largest size); qualitative values count by their order, missing values get the smallest size." % what
    _building = false
 
 

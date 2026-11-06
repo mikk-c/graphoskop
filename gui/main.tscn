@@ -294,10 +294,10 @@ use_native_dialog = true
 
 [node name="ExportDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
-title = "Export network tables (name_edges.tsv, name_nodes.tsv)"
+title = "Export network"
 file_mode = 4
 access = 2
-filters = PackedStringArray("*.tsv ; tab-separated tables")
+filters = PackedStringArray("*.tsv ; Tables, tab separated (name_edges.tsv, name_nodes.tsv)", "*.net ; Pajek", "*.dl ; UCINET", "*.adj ; Adjacency list", "*.dot ; DOT (Graphviz)", "*.gml ; GML", "*.graphml ; GraphML", "*.gexf ; GEXF (Gephi)", "*.cyjs ; Cytoscape JSON")
 use_native_dialog = true
 
 [node name="SessionSaveDialog" type="FileDialog" parent="."]

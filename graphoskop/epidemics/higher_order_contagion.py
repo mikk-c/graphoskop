@@ -432,7 +432,7 @@ def higher_order_si_model(net, beta, threshold = None, seeds = 1, ranking = None
       the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``: the mean fraction of nodes in each state and
       its 95% confidence interval.
@@ -498,7 +498,7 @@ def higher_order_sis_model(net, beta, mu, threshold = None, seeds = 1, ranking =
       the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``.
    :raises ValueError: If ``net`` is a plain network or a directed hypergraph, or a parameter is
@@ -554,7 +554,7 @@ def higher_order_sir_model(net, beta, mu, threshold = None, seeds = 1, ranking =
       first step at which it recovered (or was removed), as ``f"{attribute}_first_R"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by ``step``, with columns ``S``, ``I`` and ``R``
       and their 95% confidence intervals (``_low``, ``_high``).
    :raises ValueError: If ``net`` is a plain network or a directed hypergraph, or a parameter is

@@ -1058,7 +1058,7 @@ def si_model(net, beta, seeds = 1, ranking = None, selection = "top", runs = 100
       the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by step (0 is the start), with columns ``S`` and
       ``I`` (mean fraction of nodes in each state), ``S_low``, ``S_high``, ``I_low`` and
       ``I_high`` (confidence intervals).
@@ -1145,7 +1145,7 @@ def sis_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
       the last run, as the numeric node attribute ``f"{attribute}_first_I"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``S_low``,
       ``S_high``, ``I``, ``I_low`` and ``I_high``.
    :raises ValueError: As :func:`si_model`, or if ``mu``, ``window`` or ``tolerance`` is not
@@ -1206,7 +1206,7 @@ def sir_model(net, beta, mu, seeds = 1, ranking = None, selection = "top", runs 
       first step at which it recovered (or was removed), as ``f"{attribute}_first_R"``; missing
       for nodes that never did. Needs ``attribute``.
    :param progress: Whether to show a progress bar of the runs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by step, with columns ``S``, ``I`` and ``R`` and
       their confidence intervals (``S_low``, ``S_high``, ...).
    :raises ValueError: As :func:`si_model`, or if ``mu`` is not valid.

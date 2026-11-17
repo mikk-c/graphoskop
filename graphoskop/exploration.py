@@ -1,6 +1,7 @@
 """
 Graph exploration: breadth first and depth first search, random walks and Metropolis-Hastings
-random walks from a node.
+random walks from a node. The searches are documented with the shortest paths, the random walks
+with the other random walk functions (see :ref:`random-walks`).
 
 Searches return the nodes reached from the source, each once, in the order they are visited, with
 the node they were reached from (their parent in the search tree) and their depth in that tree; in

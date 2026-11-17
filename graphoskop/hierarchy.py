@@ -6,7 +6,8 @@ reaching (or controlling) many others and being reached by few.
 :mod:`~graphoskop.centrality`); :func:`flow_hierarchy` from the edges (or nodes) in no directed
 cycle, through which flows only go one way; :func:`arborescence_hierarchy` from the edges that
 survive the reduction of the network to an arborescence; :func:`agony_hierarchy` from the agony of
-the best division of the nodes into levels.
+the best division of the nodes into levels. :func:`~graphoskop.springrank`, in
+:mod:`~graphoskop.centrality`, places the nodes themselves on a continuous scale of levels.
 """
 
 import numpy as np

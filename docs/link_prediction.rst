@@ -4,6 +4,8 @@ Link prediction
 .. automodule:: graphoskop.link_prediction
    :no-members:
 
+*Atlas:* Part VII (Chapters 23 to 25).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -40,6 +42,122 @@ Link prediction
    gsk.common_neighbors_lp(net, ("alice", "bob"))
    gsk.common_neighbors_jaccard_lp(net, [("alice", "bob"), ("bob", "carol")])
 
+Scores
+------
+
+*Atlas:* Chapter 23 (For Simple Graphs).
+
+Preferential attachment
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 23.1 (Preferential Attachment).
+
+.. autofunction:: graphoskop.preferential_attachment_lp
+
+Common neighbors
+~~~~~~~~~~~~~~~~
+
+*Atlas:* Sections 23.2 (Common Neighbor), 23.3 (Adamic-Adar) and 23.4 (Resource Allocation).
+
+Two nodes with many neighbors in common are likely to become neighbors themselves (triadic
+closure). The scores of this family count the common neighbors of the two nodes, each with a
+weight, or as a fraction of all their neighbors, or with the links among them. Neighborhoods are
+sets (self loops and parallel edges ignored); in directed networks, the score of ``(u, v)``
+counts the paths :math:`u \to z \to v`. They work best in assortative networks with many
+triangles, and give 0 to any pair at distance more than 2 (except
+:func:`~graphoskop.mutual_information_index_lp`, which ranks those pairs by degree).
+
+.. autofunction:: graphoskop.adamic_adar_lp
+
+.. autofunction:: graphoskop.car_index_lp
+
+.. autofunction:: graphoskop.common_neighbors_lp
+
+.. autofunction:: graphoskop.common_neighbors_jaccard_lp
+
+.. autofunction:: graphoskop.mutual_information_index_lp
+
+.. autofunction:: graphoskop.resource_allocation_lp
+
+Hierarchical random graphs
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 23.5 (Hierarchical Random Graphs).
+
+.. autofunction:: graphoskop.hierarchical_random_graph_lp
+
+Association rules
+~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 23.6 (Association Rules).
+
+Frequent patterns that differ by one edge give association rules
+(:func:`~graphoskop.graph_association_rules`): a pair is scored by the rules whose antecedent
+occurs around it and whose added edge would join it, so the score learns any labeled local
+structure that precedes an edge (feed-forward triads between roles, for instance), not only
+triangles. Rules whose added edge brings a new node predict new neighbors that are not in the
+network yet. In a directed network of 20,000 nodes with three roles (hubs, brokers and leaves
+following a broker and two of its hubs, plus random edges), mining the training network
+(:func:`~graphoskop.single_graph_mining`, MNI threshold 500, up to 3 edges: 206 patterns, 2.1 s)
+gives 407 rules, which score the 14,774 validation pairs in 1 s with AUC 0.79, against 0.63 for
+common neighbors and 0.76 for preferential attachment; predicting the new neighbors of all the
+nodes too takes 5 s.
+
+.. autofunction:: graphoskop.association_rules_lp
+
+Random walks
+~~~~~~~~~~~~
+
+*Atlas:* Section 23.7 (Other Approaches).
+
+Two nodes are similar if random walkers move easily from one to the other, or, started at the
+two, soon meet. Unlike common neighbors, walks of a few steps also relate nodes farther apart.
+
+.. autofunction:: graphoskop.local_random_walk_lp
+
+.. autofunction:: graphoskop.simrank_lp
+
+Stochastic block models
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 23.7 (Other Approaches).
+
+.. autofunction:: graphoskop.block_model_reliability_lp
+
+Vertex similarity
+~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 23.7 (Other Approaches).
+
+.. autofunction:: graphoskop.vertex_similarity_lp
+
+Embeddings
+~~~~~~~~~~
+
+*Atlas:* node embeddings, Chapters 42 (Shallow Graph Learning) and 43 (Random Walk Embeddings).
+
+Node embeddings, such as the vectors of :func:`~graphoskop.node2vec` stored as node attributes,
+score a pair through the edge features of its two nodes. AUC (10% of the edges hidden, as many
+negatives, vectors of :func:`~graphoskop.node2vec` with the defaults, computed on the training
+network):
+
+==============================  =======  ========  ===========  ===========  ========
+Network                         Average  Hadamard  Weighted-L1  Weighted-L2  Common
+                                                                             neighbors
+==============================  =======  ========  ===========  ===========  ========
+20 communities of 100 nodes     0.484    0.872     0.872        0.871        0.802
+Holme-Kim, 3,000 nodes          0.596    0.724     0.680        0.693        0.766
+Two groups, edges only between  0.512    0.476     0.479        0.487        0.428
+==============================  =======  ========  ===========  ===========  ========
+
+As in node2vec's experiments, Hadamard is the best operator and average the worst; Hadamard
+scores as well as the plain dot product of the vectors (0.871 and 0.724). Walks keep nodes close
+when they are near each other, so embeddings find communities but not edges between groups that
+avoid themselves, for which the block models above are needed. On 225,000 training edges with 128
+dimensions, scoring 50,000 pairs takes 3 s (two CPU threads), most of it the regression.
+
+.. autofunction:: graphoskop.embedding_lp
+
 Ensembles
 ---------
 
@@ -53,16 +171,32 @@ dragged down by weak ones.
 
 .. autofunction:: graphoskop.ensemble_link_prediction
 
+Signed networks
+---------------
+
+*Atlas:* Section 24.1 (Signed Networks).
+
+In signed networks, the signs of the positives can also be predicted from the signs
+of the training network, by social balance or social status.
+
+.. autofunction:: graphoskop.link_prediction_sign_evaluation
+
+Training and validation sets
+----------------------------
+
+*Atlas:* Section 25.1 (Train/Test Sets).
+
+.. autofunction:: graphoskop.link_prediction_split
+
 Evaluation
 ----------
 
+*Atlas:* Section 25.2 (Evaluating).
+
 A score is evaluated by how well it ranks the positives of the validation set above the
-negatives. In signed networks, the signs of the positives can also be predicted from the signs
-of the training network, by social balance or social status.
+negatives.
 
 .. autofunction:: graphoskop.link_prediction_evaluation
-
-.. autofunction:: graphoskop.link_prediction_sign_evaluation
 
 Performance
 -----------
@@ -182,106 +316,3 @@ Common neighbors only see triangles, so they fail where edges are between groups
 within them. Local random walks of 3 steps reach the nodes at distance 3, which, in the two
 groups, are in the other group; hierarchical random graphs and block models learn either pattern.
 Between seeds, the scores of the Markov chain models vary by a few hundredths.
-
-Scores
-------
-
-Association rules
-~~~~~~~~~~~~~~~~~
-
-Frequent patterns that differ by one edge give association rules
-(:func:`~graphoskop.graph_association_rules`): a pair is scored by the rules whose antecedent
-occurs around it and whose added edge would join it, so the score learns any labeled local
-structure that precedes an edge (feed-forward triads between roles, for instance), not only
-triangles. Rules whose added edge brings a new node predict new neighbors that are not in the
-network yet. In a directed network of 20,000 nodes with three roles (hubs, brokers and leaves
-following a broker and two of its hubs, plus random edges), mining the training network
-(:func:`~graphoskop.single_graph_mining`, MNI threshold 500, up to 3 edges: 206 patterns, 2.1 s)
-gives 407 rules, which score the 14,774 validation pairs in 1 s with AUC 0.79, against 0.63 for
-common neighbors and 0.76 for preferential attachment; predicting the new neighbors of all the
-nodes too takes 5 s.
-
-.. autofunction:: graphoskop.association_rules_lp
-
-Common neighbors
-~~~~~~~~~~~~~~~~
-
-Two nodes with many neighbors in common are likely to become neighbors themselves (triadic
-closure). The scores of this family count the common neighbors of the two nodes, each with a
-weight, or as a fraction of all their neighbors, or with the links among them. Neighborhoods are
-sets (self loops and parallel edges ignored); in directed networks, the score of ``(u, v)``
-counts the paths :math:`u \to z \to v`. They work best in assortative networks with many
-triangles, and give 0 to any pair at distance more than 2 (except
-:func:`~graphoskop.mutual_information_index_lp`, which ranks those pairs by degree).
-
-.. autofunction:: graphoskop.adamic_adar_lp
-
-.. autofunction:: graphoskop.car_index_lp
-
-.. autofunction:: graphoskop.common_neighbors_lp
-
-.. autofunction:: graphoskop.common_neighbors_jaccard_lp
-
-.. autofunction:: graphoskop.mutual_information_index_lp
-
-.. autofunction:: graphoskop.resource_allocation_lp
-
-Embeddings
-~~~~~~~~~~
-
-Node embeddings, such as the vectors of :func:`~graphoskop.node2vec` stored as node attributes,
-score a pair through the edge features of its two nodes. AUC (10% of the edges hidden, as many
-negatives, vectors of :func:`~graphoskop.node2vec` with the defaults, computed on the training
-network):
-
-==============================  =======  ========  ===========  ===========  ========
-Network                         Average  Hadamard  Weighted-L1  Weighted-L2  Common
-                                                                             neighbors
-==============================  =======  ========  ===========  ===========  ========
-20 communities of 100 nodes     0.484    0.872     0.872        0.871        0.802
-Holme-Kim, 3,000 nodes          0.596    0.724     0.680        0.693        0.766
-Two groups, edges only between  0.512    0.476     0.479        0.487        0.428
-==============================  =======  ========  ===========  ===========  ========
-
-As in node2vec's experiments, Hadamard is the best operator and average the worst; Hadamard
-scores as well as the plain dot product of the vectors (0.871 and 0.724). Walks keep nodes close
-when they are near each other, so embeddings find communities but not edges between groups that
-avoid themselves, for which the block models above are needed. On 225,000 training edges with 128
-dimensions, scoring 50,000 pairs takes 3 s (two CPU threads), most of it the regression.
-
-.. autofunction:: graphoskop.embedding_lp
-
-Hierarchical random graphs
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.hierarchical_random_graph_lp
-
-Preferential attachment
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.preferential_attachment_lp
-
-Random walks
-~~~~~~~~~~~~
-
-Two nodes are similar if random walkers move easily from one to the other, or, started at the
-two, soon meet. Unlike common neighbors, walks of a few steps also relate nodes farther apart.
-
-.. autofunction:: graphoskop.local_random_walk_lp
-
-.. autofunction:: graphoskop.simrank_lp
-
-Stochastic block models
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.block_model_reliability_lp
-
-Vertex similarity
-~~~~~~~~~~~~~~~~~
-
-.. autofunction:: graphoskop.vertex_similarity_lp
-
-Training and validation sets
-----------------------------
-
-.. autofunction:: graphoskop.link_prediction_split

@@ -1,6 +1,6 @@
 """
 Communities: discovery of communities, quality of partitions of the nodes into groups, and
-maximal cliques.
+maximal cliques (documented with density and clustering, see :doc:`network_statistics`).
 
 :func:`block_model_communities` finds communities by fitting the stochastic blockmodels of the
 generators (nested, degree-corrected, plain, planted partition, mixed membership) to a network;
@@ -154,7 +154,7 @@ def modularity(net, partition, weight = None, resolution = 1, component = None, 
      interlayer edges this is the ordinary modularity.
 
    Communities can overlap: a node in several communities has a list, tuple or set of labels
-   (see :doc:`network`). Overlapping modularity then weighs every pair of nodes by their
+   (see :ref:`overlapping-communities`). Overlapping modularity then weighs every pair of nodes by their
    belonging to each community they share, in the same variants (directed, bipartite,
    multilayer), following ``overlap``:
 

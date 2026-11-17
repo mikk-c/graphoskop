@@ -1,11 +1,11 @@
 """
 Synthetic network generators, in seven families:
 
-* simple graphs, with simple fixed topologies: :func:`chain_graph`;
 * random graphs, wired at random given a few numbers (edges, density, the degree of every node,
   a small initiator matrix, or positions in space): :func:`gnm_random_graph`,
   :func:`gnp_random_graph`, :func:`configuration_model`, :func:`edge_swap` (only randomizes a
-  network), :func:`kronecker_graph`, :func:`geometric_graph`;
+  network; documented with the tests against null models, see :doc:`ergm`),
+  :func:`kronecker_graph`, :func:`geometric_graph`;
 * clustered graphs, with many triangles: :func:`caveman_graph`, :func:`watts_strogatz_graph`;
 * broad degree graphs, with hubs: :func:`barabasi_albert_graph`, :func:`link_selection_graph`,
   :func:`copying_graph`, :func:`holme_kim_graph` (with clustering);
@@ -19,7 +19,8 @@ Synthetic network generators, in seven families:
 * higher-order networks (see :doc:`higher_order`): simplicial complexes with
   :func:`growing_manifold` (discrete manifolds grown simplex by simplex) and
   :func:`simplicial_configuration_model` (given facets per node and facet dimensions), hypergraphs
-  with :func:`hypergraph_configuration_model` (given hyperedges per node and hyperedge sizes).
+  with :func:`hypergraph_configuration_model` (given hyperedges per node and hyperedge sizes);
+* simple graphs, with simple fixed topologies: :func:`chain_graph`.
 
 Every random generator takes its natural parameters (e.g. the number of nodes and edges) or, with
 ``net``, an existing network, from which it infers them: the result is then a randomization of
@@ -38,7 +39,8 @@ All random numbers are drawn with :mod:`torch` on the device of the network, so 
 on ``seed`` and on the device.
 
 :func:`randomization_test` compares a statistic of a network with its distribution over the
-randomizations of any of these generators (or networks drawn from a fitted ERGM).
+randomizations of any of these generators (or networks drawn from a fitted ERGM); it is
+documented with the tests against null models (see :doc:`ergm`).
 """
 
 import itertools
@@ -940,7 +942,7 @@ def edge_swap(net, swaps = None, seed = None, progress = None):
       networks (Milo et al., 2003). In multilayer networks, a number per layer or a dictionary.
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param progress: Whether to show a progress bar over the swaps (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`); one bar per layer.
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`); one bar per layer.
    :return: The randomized network, a new :class:`~graphoskop.Network`.
    :raises ValueError: For dictionaries as in :func:`gnm_random_graph`.
 
@@ -4199,7 +4201,7 @@ def growing_manifold(n = None, d = None, p = 0., net = None, seed = None, device
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param device: Device of the result.
    :param progress: Whether to show a progress bar, or ``None`` for the global setting (see
-      :doc:`progress`).
+      :ref:`progress-bars`).
    :return: A simplicial complex (see :doc:`higher_order`), nodes ``0`` to ``n - 1`` in order of
       arrival.
    :raises ValueError: If a parameter is not valid, or ``n`` is given with ``net``.
@@ -4603,7 +4605,7 @@ def randomization_test(net, statistic, model, n = 100, seed = None, progress = N
    :param n: Number of randomizations.
    :param seed: Seed of the random numbers (randomization ``k`` gets ``seed + k``), or ``None``.
    :param progress: Whether to show a progress bar over the randomizations (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`); the generator shows none.
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`); the generator shows none.
    :param parameters: Other arguments of the generator (e.g. ``swaps``, ``p``), or of
       :meth:`~graphoskop.ERGMFit.simulate` (``burnin``, ``interval``).
    :return: Dictionary with ``observed`` (the value on ``net``), ``samples``

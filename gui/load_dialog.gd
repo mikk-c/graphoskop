@@ -2,7 +2,8 @@ extends ConfirmationDialog
 ## Load dialog: decides how [code]gsk.load_network[/code] (or [code]load_hypergraph[/code],
 ## [code]load_simplicial_complex[/code], or [code]load_matrix[/code] for an adjacency matrix) is
 ## called. The previews are read by the Python worker, as the library will read the files. With
-## Adjacency matrix, the first file is the matrix: Header means ids in its first row and column,
+## Correlations (with Pearson or Spearman), the first file is a table of vectors, one node per
+## column ([code]gsk.correlation_network[/code]), with no node table. With Adjacency matrix, the first file is the matrix: Header means ids in its first row and column,
 ## Directed and Bipartite unchecked are found from the matrix, and the node table has the node id
 ## in its first column.
 ##
@@ -137,7 +138,7 @@ func _ready() -> void:
    %Header.toggled.connect(func(_b): _preview_edges(); _preview_nodes())
    %Comment.text_changed.connect(func(_t): _preview_edges(); _preview_nodes())
    %Multilayer.toggled.connect(func(_b): _node_defaults(); _update())
-   for box in [%Matrix, %Directed, %Bipartite, %Signed, %Hypergraph, %Simplicial, %Long]:
+   for box in [%Matrix, %Correlation, %Directed, %Bipartite, %Signed, %Hypergraph, %Simplicial, %Long]:
       box.toggled.connect(func(_b): _update())
    confirmed.connect(_on_import)
    for ob in $Box/EdgeColumns.get_children() + %NodeColumns.get_children():   # long column names must not widen the dialog
@@ -279,16 +280,19 @@ func _update() -> void:
    var hyper: bool = %Hypergraph.button_pressed
    var simplicial: bool = %Simplicial.button_pressed
    var higher := hyper or simplicial
-   var matrix: bool = %Matrix.button_pressed
-   _allow(%Matrix, not higher and not %Multilayer.button_pressed and not %Signed.button_pressed)
+   var correlation: bool = %Correlation.button_pressed
+   var matrix: bool = %Matrix.button_pressed or correlation   # no roles to choose
+   _allow(%Matrix, not higher and not %Multilayer.button_pressed and not %Signed.button_pressed and not correlation)
+   _allow(%Correlation, not higher and not %Multilayer.button_pressed and not %Signed.button_pressed and not %Matrix.button_pressed and not %Bipartite.button_pressed)
    _allow(%Simplicial, not hyper and not matrix)
    _allow(%Hypergraph, not simplicial and not matrix)
-   _allow(%Directed, not simplicial)
-   _allow(%Bipartite, not higher)
+   _allow(%Directed, not simplicial and not correlation)
+   _allow(%Bipartite, not higher and not correlation)
    _allow(%Signed, not higher and not %Multilayer.button_pressed and not matrix)
    _allow(%Multilayer, not higher and not %Signed.button_pressed and not matrix)
    _allow(%Long, not matrix)
-   %EdgeLabel.text = "Matrix" if matrix else "Edge table"
+   %Method.visible = correlation
+   %EdgeLabel.text = "Vectors" if correlation else ("Matrix" if matrix else "Edge table")
    %EdgeTitle.text = "%s: first 10 rows" % %EdgeLabel.text
    %EdgeColumns.visible = not matrix
    %SourceLabel.text = "Node" if higher else "Source"
@@ -312,7 +316,7 @@ func _update() -> void:
    %NameLabel.visible = %AttrName.visible
    %AttrValue.visible = %AttrName.visible
    %ValueLabel.visible = %AttrName.visible
-   for box in [%Matrix, %Signed, %Multilayer, %Hypergraph, %Simplicial]:   # advanced options, unless chosen
+   for box in [%Matrix, %Correlation, %Signed, %Multilayer, %Hypergraph, %Simplicial]:   # advanced options, unless chosen
       box.visible = _advanced.button_pressed or box.button_pressed
    %Device.visible = _advanced.button_pressed or %Device.selected != 0
    $Box/Kind/DeviceLabel.visible = %Device.visible
@@ -325,7 +329,9 @@ func _update() -> void:
    _title_columns(%EdgePreview, _edge_columns)
    _title_columns(%NodePreview, _node_columns)
    var notes := PackedStringArray()
-   if matrix:
+   if correlation:
+      notes.append("One column per node, one row per observation (the values of the vectors). Every two numeric columns are joined by an undirected edge, its weight their correlation (over the rows where both have a value); other columns are left out. Threshold it with Edit › Backbone › Threshold (absolute values keep strong negative correlations too).")
+   elif matrix:
       notes.append("One row and one column per node (rows of one type and columns of the other for bipartite networks); non-zero entries are edges, their values the weights unless all are 1. Unchecked, Directed and Bipartite are found from the matrix (not symmetric: directed; not square: bipartite). With Header, the ids are in the first row and column. The node table has the node id in its first column.")
    elif %Bipartite.button_pressed:
       notes.append("Bipartite networks need a node table giving every node its type in the column \"bipartite_type\".")
@@ -340,9 +346,11 @@ func _update() -> void:
       %EdgeLabel.text = "Network"
    for c in [$Box/Files/NodeLabel, %NodePath, %NodeBrowse, %NodeClear, $Box/Format, %EdgeTitle, %EdgePreview, _heads[%EdgePreview], %NodeTitle, %NodePreview, _heads[%NodePreview]]:
       c.visible = file.is_empty()
+   for c in [$Box/Files/NodeLabel, %NodePath, %NodeBrowse, %NodeClear, %NodeTitle, %NodePreview, _heads[%NodePreview]]:   # no node table for correlations
+      c.visible = c.visible and not correlation
    if not file.is_empty():
       %EdgeLabel.text = "Network file"
-      for box in [%Matrix, %Bipartite, %Signed, %Multilayer, %Hypergraph, %Simplicial]:
+      for box in [%Matrix, %Correlation, %Method, %Bipartite, %Signed, %Multilayer, %Hypergraph, %Simplicial]:
          box.visible = false
       %Directed.visible = file == "adjacency list"
       notes = PackedStringArray(["%s file: its nodes, edges and attributes are read from it, with its visual attributes (positions, colors, sizes, shapes, labels, …) as the style of the drawing.%s" % [file, " Directed: each line lists the targets of its first node; undirected, an edge listed on the lines of both its nodes is one edge." if file == "adjacency list" else ""]])
@@ -356,7 +364,7 @@ func _update() -> void:
 func _roles(tree: Tree) -> Array:
    var higher: bool = %Hypergraph.button_pressed or %Simplicial.button_pressed
    var multilayer: bool = %Multilayer.button_pressed
-   if %Matrix.button_pressed:
+   if %Matrix.button_pressed or %Correlation.button_pressed:
       return []
    if tree == %EdgePreview:
       var roles := [[%SourceLabel.text, %Source, "node" if higher else "source"], [%TargetLabel.text, %Target, "hyperedge" if higher else "target"]]
@@ -509,6 +517,9 @@ func _on_import() -> void:
       _send({"edges": %EdgePath.text.strip_edges(), "kind": "file", "directed": true if %Directed.visible and %Directed.button_pressed else null, "device": "cuda" if %Device.selected == 1 else "cpu"})
       return
    var hyper: bool = %Hypergraph.button_pressed
+   if %Correlation.button_pressed:
+      _send({"edges": %EdgePath.text, "kind": "correlation", "method": ["pearson", "spearman"][%Method.selected], "sep": SEPARATORS[%Sep.selected], "header": %Header.button_pressed, "comment": %Comment.text, "device": "cuda" if %Device.selected == 1 else "cpu"})
+      return
    var kind := "matrix" if %Matrix.button_pressed else ("hypergraph" if hyper else ("simplicial" if %Simplicial.button_pressed else "network"))
    var spec := {
       "edges": %EdgePath.text,

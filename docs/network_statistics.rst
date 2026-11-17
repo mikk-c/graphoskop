@@ -1,28 +1,138 @@
-Network statistics
-==================
+Simple properties
+=================
 
 .. automodule:: graphoskop.network_statistics
 
-Assortativity
--------------
+*Atlas:* Part III (Chapters 9 to 12).
+
+Degree
+------
+
+*Atlas:* Chapter 9 (Degree).
+
+Degree variants
+~~~~~~~~~~~~~~~
+
+*Atlas:* Section 9.1 (Degree Variants); hyperedge sizes, Section 7.3 (Many-to-Many Relationships).
+
+.. autofunction:: graphoskop.degree
+
+.. autofunction:: graphoskop.average_degree
+
+.. autofunction:: graphoskop.hyperedge_size
+
+Degree distributions and power laws
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Sections 9.2 (Degree Distributions) to 9.4 (Testing Power Laws).
+
+.. autofunction:: graphoskop.degree_power_law
+
+The degree centralization, :func:`~graphoskop.degree_centralization`, is with the other
+centralizations in :doc:`centrality`.
+
+Paths and walks
+---------------
+
+*Atlas:* Chapter 10 (Paths & Walks).
+
+Reciprocity
+~~~~~~~~~~~
+
+*Atlas:* Section 10.3 (Reciprocity).
+
+.. autofunction:: graphoskop.reciprocity
+
+Connected components
+~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 10.4 (Connected Components).
+
+To keep the largest component of a network, or to split it into its strongly connected components,
+use :func:`~graphoskop.largest_component` and :func:`~graphoskop.to_strongly_connected`
+(:doc:`transformations`).
+
+.. autofunction:: graphoskop.connected_components_count
+
+.. autofunction:: graphoskop.connected_components_nodes
+
+.. _random-walks:
+
+Random walks
+------------
+
+*Atlas:* Chapter 11 (Random Walks).
+
+Simulating random walks
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* random walks to sample networks, Section 29.3 (Random Walk).
 
 .. code-block:: python
 
-   gsk.assortativity(net)              # degree assortativity
-   gsk.assortativity(net, "age")       # numeric attribute: Pearson correlation over the edges
-   gsk.assortativity(net, "city")      # qualitative attribute: Newman's categorical coefficient
-   hg = gsk.load_hypergraph("meetings.tsv")
-   gsk.assortativity(hg, kind = "top-2")   # Chodrow: degrees of the two best connected members of every hyperedge
+   import graphoskop as gsk
 
-.. autofunction:: graphoskop.assortativity
+   net = gsk.load_network("edges.tsv")
+   gsk.random_walk(net, "alice", 20, walks = 5)            # walk, step, node
+   gsk.metropolis_hastings_random_walk(net, "alice", 20)   # not biased towards hubs
 
-Average shortest path length
-----------------------------
+.. autofunction:: graphoskop.random_walk
 
-.. autofunction:: graphoskop.average_shortest_path_length
+.. autofunction:: graphoskop.metropolis_hastings_random_walk
 
-Clustering
-----------
+Stationary distribution
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 11.1 (Stationary Distribution).
+
+.. autofunction:: graphoskop.stationary_distribution
+
+Hitting time
+~~~~~~~~~~~~
+
+*Atlas:* Section 11.3 (Hitting Time).
+
+.. autofunction:: graphoskop.hitting_time
+
+.. autofunction:: graphoskop.fundamental_matrix
+
+Effective resistance
+~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 11.4 (Effective Resistance).
+
+.. autofunction:: graphoskop.effective_resistance
+
+Density
+-------
+
+*Atlas:* Chapter 12 (Density).
+
+Network density
+~~~~~~~~~~~~~~~
+
+*Atlas:* Section 12.1 (Density & Real Networks).
+
+.. autofunction:: graphoskop.density
+
+Clustering coefficient
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 12.2 (Clustering Coefficient).
+
+The signed clustering coefficient is :func:`~graphoskop.signed_clustering` (:doc:`signed`).
+
+.. autofunction:: graphoskop.average_clustering
+
+.. autofunction:: graphoskop.global_clustering
+
+.. autofunction:: graphoskop.local_clustering
+
+Clustering in hypergraphs and simplicial complexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Atlas:* Section 12.2 (Clustering Coefficient); hypergraphs and simplicial complexes, Section 7.3
+(Many-to-Many Relationships).
 
 On hypergraphs and simplicial complexes, the clustering of the projection
 (:func:`~graphoskop.clique_expansion`) is high by construction: every group of three nodes or more
@@ -39,44 +149,37 @@ the hyperedges of two neighbors overlap.
    o = gsk.two_node_clustering(hg, kind = "union")  # overlap of the meetings of neighbors, per node
    test = gsk.randomization_test(hg, gsk.global_triangle_closure, gsk.hypergraph_configuration_model, n = 100)
 
-.. autofunction:: graphoskop.average_clustering
-
-.. autofunction:: graphoskop.global_clustering
-
 .. autofunction:: graphoskop.global_triangle_closure
-
-.. autofunction:: graphoskop.local_clustering
 
 .. autofunction:: graphoskop.local_triangle_closure
 
 .. autofunction:: graphoskop.two_node_clustering
 
-Connected components
---------------------
+Cliques
+~~~~~~~
 
-.. autofunction:: graphoskop.connected_components_count
+*Atlas:* Section 12.3 (Cliques).
 
-.. autofunction:: graphoskop.connected_components_nodes
+.. autofunction:: graphoskop.maximal_cliques
 
-Degree
-------
+.. _independent-sets:
 
-.. autofunction:: graphoskop.average_degree
+Independent sets and graph coloring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: graphoskop.degree
+*Atlas:* Section 12.4 (Independent Sets).
 
-.. autofunction:: graphoskop.degree_centralization
+.. automodule:: graphoskop.coloring
+   :no-members:
 
-.. autofunction:: graphoskop.degree_power_law
+.. code-block:: python
 
-.. autofunction:: graphoskop.hyperedge_size
+   import graphoskop as gsk
 
-Density
--------
+   net = gsk.load_network("edges.tsv")
+   colors = gsk.graph_coloring(net)              # one array of node ids per color, fewest colors
+   mis = gsk.maximum_independent_set(net)        # node ids of a largest independent set
 
-.. autofunction:: graphoskop.density
+.. autofunction:: graphoskop.maximum_independent_set
 
-Reciprocity
------------
-
-.. autofunction:: graphoskop.reciprocity
+.. autofunction:: graphoskop.graph_coloring

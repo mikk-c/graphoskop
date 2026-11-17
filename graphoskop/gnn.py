@@ -496,7 +496,7 @@ _COMMON = """
       repeat exactly on the CPU (PyTorch's deterministic algorithms, during training), and up to
       rounding on a GPU.{extra}
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Dictionary with ``"scores"`` (:class:`pandas.DataFrame`, rows ``training`` and
       ``validation``: accuracy and macro F1, or mean squared error, mean absolute error and
       :math:`R^2`), ``"predictions"`` (one row per node: ``node`` id, ``set`` (``training``,
@@ -730,7 +730,7 @@ def hgnn(net, target, channels, activations = None, qualitative = False, feature
    :param loss: Loss name or function, or ``None`` (see :func:`gcn`).
    :param seed: Seed of the split, the initial weights and dropout, or ``None`` (see :func:`gcn`).
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Dictionary with ``"scores"``, ``"predictions"`` (one row per node), ``"history"``,
       ``"model"``, ``"features"`` and ``"task"``, as :func:`gcn`.
    :raises ValueError: If ``net`` is a plain network, a weight is negative or missing, and as
@@ -897,7 +897,7 @@ def scnn(net, target, channels, order = 1, oriented = False, activations = None,
    :param loss: Loss name or function, or ``None`` (see :func:`gcn`).
    :param seed: Seed of the split, the initial weights and dropout, or ``None`` (see :func:`gcn`).
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Dictionary with ``"scores"``, ``"predictions"`` (one row per simplex), ``"history"``,
       ``"model"``, ``"features"`` and ``"task"``, as :func:`gcn`.
    :raises ValueError: If ``net`` is not a simplicial complex, ``target`` is not a simplex
@@ -1096,7 +1096,7 @@ def node2vec(net, dimensions = 128, walk_length = 20, context_size = 10, walks_p
    :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
       where to store the vectors (e.g. as features of :func:`gcn`), or ``None`` to only return them.
    :param progress: Whether to show a progress bar over the training steps (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per node, indexed by node id (``(entity,
       layer)`` in multilayer networks), in the network wide node order, and one column per
       dimension.
@@ -1462,7 +1462,7 @@ def diffpool(net, target = None, clusters = (0.25,), channels = 64, features = N
    :param loss: Loss of the target: as in :func:`gcn`, or ``None`` for the default of the task.
    :param seed: Seed of the split, the initial weights and the random pairs, or ``None``.
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Dictionary with ``"embeddings"`` (:class:`pandas.DataFrame`, one row per graph,
       indexed by component, one column per channel), ``"assignments"`` (one row per node:
       ``node`` id, ``graph`` and its most likely first level ``cluster``), ``"history"`` (losses
@@ -1698,7 +1698,7 @@ def struc2vec(net, dimensions = 128, walk_length = 80, context_size = 10, walks_
    :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
       where to store the vectors, or ``None`` to only return them.
    :param progress: Whether to show progress bars over the rings, the distances and the training
-      steps (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      steps (``None``: as set by :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
       wide node order, and one column per dimension.
    :raises ValueError: If a size or parameter is not valid.
@@ -1869,7 +1869,7 @@ def metapath2vec(net, node_type, metapath, edge_type = None, dimensions = 128, w
    :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
       where to store the vectors, or ``None`` to only return them.
    :param progress: Whether to show a progress bar over the training steps (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
       wide node order, and one column per dimension.
    :raises KeyError: If ``node_type`` or ``edge_type`` is not a qualitative attribute.
@@ -2051,7 +2051,7 @@ _AUTOENCODER = """
    :param attribute: Prefix of numeric node attributes ``<attribute>_0``, ``<attribute>_1``, ...
       where to store the vectors, or ``None`` to only return them.
    :param progress: Whether to show a progress bar over the epochs (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Dictionary with ``"embeddings"`` (:class:`pandas.DataFrame`, one row per node,
       indexed by node id, one column per dimension{vec}), ``"history"`` (loss at each epoch),
       ``"model"`` (the trained ``{cls}`` of PyTorch Geometric, whose ``decoder`` scores pairs) and

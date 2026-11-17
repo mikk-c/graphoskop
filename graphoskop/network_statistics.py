@@ -1,8 +1,9 @@
 """
-Simple network statistics: connected components, degree of nodes, degree distributions, sizes of
-hyperedges, average degree, power law fits of the degree distribution, degree centralization, density,
-reciprocity, average shortest path length, clustering coefficients,
-assortativity.
+Simple network statistics: degree of nodes, average degree, sizes of hyperedges, degree
+distributions and their power law fits; reciprocity and connected components; density and
+clustering coefficients. The module also has the degree centralization, documented with the other
+centralizations (see :doc:`centrality`), the average shortest path length, with the shortest paths
+(see :doc:`shortest_paths`), and assortativity (see :doc:`assortativity`).
 
 Nodes are given by their input id (a key of :attr:`~graphoskop.Network.node_map`) or by their
 internal id ``(component, index)``; a tuple that is both raises :class:`ValueError`. Parallel

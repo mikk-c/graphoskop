@@ -48,3 +48,10 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0.7)
 text = "Attributes override the layout, now and after new layouts. Nodes without a value go to the smallest one."
 autowrap_mode = 3
+
+[node name="MakeLayout" type="Button" parent="Box"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+tooltip_text = "Copy the positions taken from the attributes into the layout (pos_x, pos_y) and draw the layout again: the positions no longer follow the attributes, and the layout can be mirrored, rotated, zoomed and changed like any other"
+text = "Make these positions the layout"

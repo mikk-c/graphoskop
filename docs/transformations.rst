@@ -4,6 +4,10 @@ Transformations
 .. automodule:: graphoskop.transformations
    :no-members:
 
+*Atlas:* simple graphs without self loops and parallel edges, Section 6.1 (Simple Graphs); directed
+graphs, Section 6.2 (Directed Graphs); connected components, Section 10.4 (Connected Components);
+induced subgraphs, Section 29.1 (Induced); ego networks, Section 30.1 (Ego Networks).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -71,6 +75,8 @@ Adding and removing nodes and edges
 Collapsing nodes
 ----------------
 
+*Atlas:* Section 46.1 (Aggregation); the condensation of a directed network, Section 33.2 (Cycles).
+
 :func:`quotient_network` collapses sets of nodes into single nodes, merging the edges between them;
 :func:`network_condensation` collapses the strongly connected components of a directed network,
 giving a directed acyclic graph.
@@ -106,6 +112,9 @@ join the same two nodes. Attributes come from the first network, completed by th
 Line graphs
 -----------
 
+*Atlas:* Section 6.1 (Simple Graphs); link communities, found on line graphs, Section 38.5
+(Clustering Links).
+
 :func:`line_graph` makes the edges of a network the nodes of a new one, joined when the edges share
 a node (in directed networks, when one edge ends where the other starts). Hypergraphs and
 simplicial complexes give the line graph of their hyperedges or facets, joined when they share
@@ -121,6 +130,8 @@ nodes; the number of shared nodes is the edge attribute ``shared``.
 Complement
 ----------
 
+*Atlas:* Section 6.1 (Simple Graphs).
+
 :func:`complement` keeps the nodes and inverts the edges: the pairs of nodes that are joined are
 not, and those that are not are (in bipartite networks, the pairs of nodes of different types).
 The complement of a sparse network is dense, so it is refused beyond ``max_edges`` edges.
@@ -134,6 +145,8 @@ The complement of a sparse network is dense, so it is refused beyond ``max_edges
 
 Higher-order networks
 ---------------------
+
+*Atlas:* Section 7.3 (Many-to-Many Relationships).
 
 :func:`clique_promotion` turns the maximal cliques of a network into the facets of a simplicial
 complex (its clique complex) or into hyperedges; :func:`clique_expansion` goes back, from a

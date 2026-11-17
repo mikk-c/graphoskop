@@ -682,7 +682,7 @@ def nestedness(net, null_model = None, samples = 100, seed = None, progress = No
    :param samples: Number of random matrices of the null model.
    :param seed: Seed of the random matrices, or ``None`` for a random seed.
    :param progress: Whether to show a progress bar over the random matrices (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: A dictionary with ``nodf`` (between 0 and 100), ``nodf_rows`` and ``nodf_columns`` (the
       averages over pairs of rows, nodes of type 0, and over pairs of columns, nodes of type 1;
       NaN with fewer than two of them); with a null model also ``null_mean``, ``null_std``,

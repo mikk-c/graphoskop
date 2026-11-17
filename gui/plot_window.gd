@@ -23,7 +23,9 @@ extends AcceptDialog
 ##
 ## With [b]Gradient[/b] (along x or along y), every bar, point and line segment of the data series
 ## gets the color of its x or y value along a ColorBrewer palette (sequential or diverging, in
-## reverse with Reverse), instead of the color of its series (not for heatmaps).
+## reverse with Reverse), instead of the color of its series (not for heatmaps). Plots of an
+## attribute against another also offer "by" any attribute: its numbers along the palette, its
+## categories each their own color.
 ##
 ## [b]Line width[/b], [b]Point size[/b] (times the usual ones) and [b]Bar width[/b] (a fraction of the
 ## gap between bars) size the data series, each shown when a series is drawn that way.
@@ -53,9 +55,13 @@ var _file := "plot"
 ## Whether the plot is a heatmap (it has a color scale row).
 var _heatmap := false
 var _advanced := CheckButton.new()
-## Row of the gradient: none, along x or along y; the palette; reversed.
+## Row of the gradient: none, along x or along y, or (plots of attributes against each other) by a
+## third attribute; the palette; reversed.
 var _gradient_row := HBoxContainer.new()
 var _gradient := OptionButton.new()
+## Attributes that can color the points ("by …" in the gradient menu; plots of attributes against
+## each other, option [code]color_attributes[/code]).
+var _color_attributes := []
 var _palette := OptionButton.new()
 var _reverse := CheckBox.new()
 ## Row of the sizes of the data series: line width and point size (times the usual ones), bar width
@@ -115,7 +121,9 @@ func _emit() -> void:
    options.point_size = _point_size.value
    options.bar_width = _bar_width.value
    if not _heatmap:
-      options.gradient = null if _gradient.selected == 0 else {"axis": "x" if _gradient.selected == 1 else "y", "palette": _palette.get_item_text(_palette.selected), "reversed": _reverse.button_pressed}
+      options.gradient = null if _gradient.selected == 0 else {"axis": ["", "x", "y"][_gradient.selected] if _gradient.selected < 3 else "attribute", "palette": _palette.get_item_text(_palette.selected), "reversed": _reverse.button_pressed}
+      if _gradient.selected >= 3:   # by a third attribute
+         options.gradient.attribute = _color_attributes[_gradient.selected - 3]
    changed.emit(_tab, _colors.duplicate(), _styles.duplicate(), options)
 
 
@@ -185,8 +193,12 @@ func show_plot(tab: int, heading: String, png: PackedByteArray, elements: Array,
    _line_width.set_value_no_signal(options.get("line_width", 1.0))
    _point_size.set_value_no_signal(options.get("point_size", 1.0))
    _bar_width.set_value_no_signal(options.get("bar_width", 0.8))
+   _color_attributes = options.get("color_attributes", [])
+   _gradient.clear()
+   for t in ["none", "along x", "along y"] + _color_attributes.map(func(a): return "by " + a):
+      _gradient.add_item(t)
    var g = options.get("gradient")
-   _gradient.select(0 if g == null else (1 if g.axis == "x" else 2))
+   _gradient.select(0 if g == null else (1 if g.axis == "x" else (2 if g.axis == "y" else 3 + maxi(_color_attributes.find(g.get("attribute", "")), 0))))
    if g != null:
       for i in _palette.item_count:
          if _palette.get_item_text(i) == g.palette:
@@ -269,7 +281,7 @@ func _gradient_menus() -> void:
    for t in ["none", "along x", "along y"]:
       _gradient.add_item(t)
    _gradient.select(0)
-   _gradient.tooltip_text = "Colors every bar, point and line segment by its x or y value, along the palette"
+   _gradient.tooltip_text = "Colors every bar, point and line segment by its x or y value, along the palette; in plots of attributes, also the points by a third attribute (numbers along the palette, categories each their color)"
    _gradient_row.add_child(_gradient)
    var palettes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://colorbrewer.json"))
    for kind in ["sequential", "diverging"]:

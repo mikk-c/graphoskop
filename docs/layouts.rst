@@ -3,6 +3,8 @@ Layouts
 
 .. automodule:: graphoskop.layouts
 
+*Atlas:* Chapter 51 (Network Layouts).
+
 Six families of layouts are available: circular, grid and matrix layouts, driven by node
 attributes (groups and orders) and by the edges between groups; force-directed layouts, driven
 by the edges; hierarchical layouts, in layers given by the direction of the edges, by a node
@@ -10,68 +12,10 @@ attribute or by the distance from a root; and UMAP layouts, driven by node vecto
 attributes, embeddings, or the adjacency matrix). Any layout can then be mirrored, rotated and
 zoomed, and its overlaps removed, and its edges can be bundled.
 
-Circular layouts
-----------------
-
-Circular layouts put the nodes of every component on a circle. Hierarchical groups become sectors
-of sectors, arranged so that groups sharing many edges are close, and a numeric attribute, or
-the edges to the neighboring sectors, orders the nodes inside each sector.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("edges.tsv", "nodes.tsv")
-   gsk.circular_layout(net, ["region", "city"], order = "age")
-   gsk.circular_layout(net, "community")      # inside sectors: by edges to the adjacent sectors
-
-.. autofunction:: graphoskop.circular_layout
-
-Edge bundling
--------------
-
-Edge bundling draws the edges as curves that follow a hierarchy of groups of the nodes
-(hierarchical edge bundling, as in graph-tool): edges between the same groups run together, and
-the drawing shows how groups connect rather than a tangle of lines. The hierarchy can be given by
-node attributes (from the coarsest level), such as the levels of a nested blockmodel, or found in
-the layout itself. The curves are returned as chains of cubic Bézier curves (as graph-tool
-does), which plotting libraries draw exactly.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("edges.tsv")
-   gsk.block_model_communities(net)                        # community, community_1, ...
-   levels = ["community_2", "community_1", "community"]
-   gsk.circular_layout(net, groups = levels)
-   bends = gsk.bundle_edges(net, groups = levels)          # graph-tool's look
-   gsk.force_directed_layout(net)
-   bends = gsk.bundle_edges(net, beta = 0.6)               # hierarchy of the layout's space
-
-.. autofunction:: graphoskop.bundle_edges
-
-Edge routing
-------------
-
-A straight edge that passes over a node it does not connect suggests an edge that does not exist
-(a "fake edge"). :func:`~graphoskop.route_edges`, an edge router (as the organic edge router of
-Cytoscape), bends such edges around the nodes, given their drawn diameters, and leaves the other
-edges straight; it returns curves in the format of :func:`~graphoskop.bundle_edges`, and does not
-move the nodes.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("edges.tsv")
-   gsk.force_directed_layout(net)
-   bends = gsk.route_edges(net, size = 0.2, margin = 0.05)
-
-.. autofunction:: graphoskop.route_edges
-
 Force-directed layouts
 ----------------------
+
+*Atlas:* Section 51.1 (Force-Directed).
 
 Force-directed layouts treat edges as springs pulling their nodes together and nodes as
 particles pushing each other apart, and let the nodes move until the forces balance. The layout
@@ -102,6 +46,116 @@ edges; the default, 0.25, leans towards uniform edges. Positions in three dimens
 
 .. autofunction:: graphoskop.force_directed_layout
 
+Circular layouts
+----------------
+
+*Atlas:* Section 51.2 (Other Node-Link Layouts).
+
+Circular layouts put the nodes of every component on a circle. Hierarchical groups become sectors
+of sectors, arranged so that groups sharing many edges are close, and a numeric attribute, or
+the edges to the neighboring sectors, orders the nodes inside each sector.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv", "nodes.tsv")
+   gsk.circular_layout(net, ["region", "city"], order = "age")
+   gsk.circular_layout(net, "community")      # inside sectors: by edges to the adjacent sectors
+
+.. autofunction:: graphoskop.circular_layout
+
+Hierarchical layouts
+--------------------
+
+*Atlas:* Section 51.2 (Other Node-Link Layouts); drawing hierarchies, Section 33.6 (Drawing
+Hierarchies).
+
+Hierarchical (layered) layouts draw directed acyclic networks with all edges pointing down, trees
+from their root, and any network in layers given by a node attribute, with few edge crossings
+and parents above the middle of their children. Radial layouts put the layers on concentric
+circles instead, the root at the center, each subtree in its own wedge.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("citations.tsv", directed = True)
+   gsk.hierarchical_layout(net)                                   # edges point down
+   gsk.hierarchical_layout(net, levels = "year", direction = "right")
+   tree = gsk.load_network("tree.tsv")
+   gsk.hierarchical_layout(tree, root = "ceo", direction = "radial")   # inside out
+
+.. autofunction:: graphoskop.hierarchical_layout
+
+Edge bundling
+-------------
+
+*Atlas:* Section 51.3 (Edge Bends).
+
+Edge bundling draws the edges as curves that follow a hierarchy of groups of the nodes
+(hierarchical edge bundling, as in graph-tool): edges between the same groups run together, and
+the drawing shows how groups connect rather than a tangle of lines. The hierarchy can be given by
+node attributes (from the coarsest level), such as the levels of a nested blockmodel, or found in
+the layout itself. The curves are returned as chains of cubic Bézier curves (as graph-tool
+does), which plotting libraries draw exactly.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv")
+   gsk.block_model_communities(net)                        # community, community_1, ...
+   levels = ["community_2", "community_1", "community"]
+   gsk.circular_layout(net, groups = levels)
+   bends = gsk.bundle_edges(net, groups = levels)          # graph-tool's look
+   gsk.force_directed_layout(net)
+   bends = gsk.bundle_edges(net, beta = 0.6)               # hierarchy of the layout's space
+
+.. autofunction:: graphoskop.bundle_edges
+
+Edge routing
+------------
+
+*Atlas:* Section 51.3 (Edge Bends).
+
+A straight edge that passes over a node it does not connect suggests an edge that does not exist
+(a "fake edge"). :func:`~graphoskop.route_edges`, an edge router (as the organic edge router of
+Cytoscape), bends such edges around the nodes, given their drawn diameters, and leaves the other
+edges straight; it returns curves in the format of :func:`~graphoskop.bundle_edges`, and does not
+move the nodes.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv")
+   gsk.force_directed_layout(net)
+   bends = gsk.route_edges(net, size = 0.2, margin = 0.05)
+
+.. autofunction:: graphoskop.route_edges
+
+Matrix layouts
+--------------
+
+*Atlas:* Section 51.4 (Alternative Layouts).
+
+Matrix layouts order the rows and columns of the adjacency matrix, to draw it as a matrix (heat
+map): one order for square matrices, independent orders for the rows and columns of bipartite
+networks. Groups become blocks, and the network's structure places similar rows and columns next
+to each other; sorting by degree draws nested networks as triangles.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv", "nodes.tsv")
+   gsk.matrix_layout(net, "community")                  # communities as blocks on the diagonal
+   bip = gsk.load_network("plants_pollinators.tsv", "species.tsv", bipartite = True)
+   gsk.matrix_layout(bip, order = "degree", column_order = "degree", descending = True)
+
+.. autofunction:: graphoskop.matrix_layout
+
 Grid layouts
 ------------
 
@@ -123,74 +177,10 @@ cheapest layout there is, meant as a first placement of large networks.
 
 .. autofunction:: graphoskop.grid_layout
 
-Hierarchical layouts
---------------------
-
-Hierarchical (layered) layouts draw directed acyclic networks with all edges pointing down, trees
-from their root, and any network in layers given by a node attribute, with few edge crossings
-and parents above the middle of their children. Radial layouts put the layers on concentric
-circles instead, the root at the center, each subtree in its own wedge.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("citations.tsv", directed = True)
-   gsk.hierarchical_layout(net)                                   # edges point down
-   gsk.hierarchical_layout(net, levels = "year", direction = "right")
-   tree = gsk.load_network("tree.tsv")
-   gsk.hierarchical_layout(tree, root = "ceo", direction = "radial")   # inside out
-
-.. autofunction:: graphoskop.hierarchical_layout
-
-Matrix layouts
---------------
-
-Matrix layouts order the rows and columns of the adjacency matrix, to draw it as a matrix (heat
-map): one order for square matrices, independent orders for the rows and columns of bipartite
-networks. Groups become blocks, and the network's structure places similar rows and columns next
-to each other; sorting by degree draws nested networks as triangles.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("edges.tsv", "nodes.tsv")
-   gsk.matrix_layout(net, "community")                  # communities as blocks on the diagonal
-   bip = gsk.load_network("plants_pollinators.tsv", "species.tsv", bipartite = True)
-   gsk.matrix_layout(bip, order = "degree", column_order = "degree", descending = True)
-
-.. autofunction:: graphoskop.matrix_layout
-
-Transforming layouts
---------------------
-
-Positions computed by any layout can be mirrored, rotated and zoomed (along both axes or one of
-them) around the center of the drawing, either in the node attributes of the network or in the
-table a layout function returned. Nodes drawn as disks of a given size can be moved apart until
-none overlap, keeping the arrangement of the layout.
-
-.. code-block:: python
-
-   import graphoskop as gsk
-
-   net = gsk.load_network("edges.tsv")
-   gsk.hierarchical_layout(net)              # positions in pos_x, pos_y
-   gsk.mirror_layout(net, "y")               # root at the bottom
-   gsk.rotate_layout(net, -90)               # clockwise: root on the left
-   gsk.scale_layout(net, 0.5, axis = "y")    # half as tall
-   gsk.remove_overlaps(net, 0.3)             # disks of diameter 0.3 do not overlap
-
-.. autofunction:: graphoskop.mirror_layout
-
-.. autofunction:: graphoskop.remove_overlaps
-
-.. autofunction:: graphoskop.rotate_layout
-
-.. autofunction:: graphoskop.scale_layout
-
 UMAP
 ----
+
+*Atlas:* Section 43.4 (Applications).
 
 UMAP lays out nodes so that those with similar vectors end up close. The vectors can be numeric
 node attributes, node embeddings computed on the fly, or the rows of the adjacency matrix, in
@@ -221,3 +211,30 @@ as the new edges and nodes require (aligned UMAP).
    pos_2025 = gsk.umap_layout(net_2025, initial = pos_2024, seed = 0)
 
 .. autofunction:: graphoskop.umap_layout
+
+Transforming layouts
+--------------------
+
+Positions computed by any layout can be mirrored, rotated and zoomed (along both axes or one of
+them) around the center of the drawing, either in the node attributes of the network or in the
+table a layout function returned. Nodes drawn as disks of a given size can be moved apart until
+none overlap, keeping the arrangement of the layout.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv")
+   gsk.hierarchical_layout(net)              # positions in pos_x, pos_y
+   gsk.mirror_layout(net, "y")               # root at the bottom
+   gsk.rotate_layout(net, -90)               # clockwise: root on the left
+   gsk.scale_layout(net, 0.5, axis = "y")    # half as tall
+   gsk.remove_overlaps(net, 0.3)             # disks of diameter 0.3 do not overlap
+
+.. autofunction:: graphoskop.mirror_layout
+
+.. autofunction:: graphoskop.remove_overlaps
+
+.. autofunction:: graphoskop.rotate_layout
+
+.. autofunction:: graphoskop.scale_layout

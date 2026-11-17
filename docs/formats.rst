@@ -4,6 +4,8 @@ File formats and other libraries
 .. automodule:: graphoskop.formats
    :no-members:
 
+*Atlas:* Section 53.1 (Libraries) presents NetworkX, igraph and graph-tool.
+
 .. autofunction:: graphoskop.read_network
 
 .. autofunction:: graphoskop.write_network

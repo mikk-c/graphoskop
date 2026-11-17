@@ -4,6 +4,9 @@ Synchronization
 .. automodule:: graphoskop.synchronization
    :no-members:
 
+*Atlas:* Section 34.1 (High Order with Simplicial Complexes), which presents the higher-order
+Kuramoto models.
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -19,14 +22,14 @@ Synchronization
    loop = gsk.node_link_kuramoto_model(sc, np.r_[up, up[::-1]], model = "nlt", omega = (2., 1.), link_omega = (2., 1.), adiabatic = True, seed = 1)
    forward, backward = loop["order_nodes"][:16], loop["order_nodes"][16:]         # explosive: a hysteresis loop
 
+Kuramoto model
+--------------
+
+.. autofunction:: graphoskop.kuramoto_model
+
 Higher-order Kuramoto models
 ----------------------------
 
 .. autofunction:: graphoskop.node_link_kuramoto_model
 
 .. autofunction:: graphoskop.simplicial_kuramoto_model
-
-Kuramoto model
---------------
-
-.. autofunction:: graphoskop.kuramoto_model

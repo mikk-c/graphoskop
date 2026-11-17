@@ -4,6 +4,8 @@ Graph neural networks
 .. automodule:: graphoskop.gnn
    :no-members:
 
+*Atlas:* Chapters 42 (Shallow Graph Learning) to 45 (Deep Graph Learning Models).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -15,26 +17,53 @@ Graph neural networks
    out["history"].plot(x = "epoch")                       # training and validation loss
    reg = gsk.gcn(net, "income", [16, 1], activations = ["tanh", None], epochs = 500, learning_rate = 0.005)
 
-Autoencoders
-------------
+Shallow embeddings
+------------------
 
-Graph autoencoders learn node vectors without a target: an encoder of GCN layers gives every node
-a vector from the node attributes and the edges, trained so that the dot products of the vectors
-reconstruct the edges. Unlike the shallow embeddings below, they use the node attributes, and the
-trained encoder (``out["model"]``) can embed new nodes from their attributes.
+*Atlas:* spectral embeddings, Section 42.3 (Spectral Embeddings); random walk embeddings, Chapter 43
+(Random Walk Embeddings): node2vec and DeepWalk in Sections 43.1 (Basic Idea) and 43.2 (Variants on
+Simple Graphs), struc2vec in Section 43.2, metapath2vec in Section 43.3 (Heterogeneous Graph
+Embeddings).
+
+Shallow embeddings learn one vector per node directly, from the structure alone: no node
+attribute is used or predicted. The vectors can be stored as node attributes and used anywhere
+numeric attributes are, e.g. as features of the models below, in node vector analysis or for
+clustering. :func:`~graphoskop.node2vec` learns them from random walks (for DeepWalk, use
+``p = q = 1``, the default), so that nearby nodes get similar vectors;
+:func:`~graphoskop.struc2vec` from walks on a multilayer graph of structural similarity, so that
+nodes with similar roles get similar vectors, wherever they are;
+:func:`~graphoskop.metapath2vec` from walks that follow a chain of node types (and relations) in a
+heterogeneous network; :func:`~graphoskop.laplacian_eigenmaps` and
+:func:`~graphoskop.locally_linear_embedding` compute them as eigenvectors, with no training and
+nothing random.
 
 .. code-block:: python
 
-   train, validation = gsk.link_prediction_split(net, seed = 1)
-   out = gsk.vgae(train, seed = 1, attribute = "z")          # vectors stored as z_0 ... z_15
-   scored = gsk.embedding_lp(train, validation, [f"z_{j}" for j in range(16)])
+   emb = gsk.node2vec(net, seed = 1)                       # DataFrame: one row per node id
+   emb = gsk.node2vec(net, q = 0.5, attribute = "n2v")     # also node attributes n2v_0, n2v_1, ...
+   le = gsk.laplacian_eigenmaps(net, 16)                   # eigenvectors: exact, no training
+   lle = gsk.locally_linear_embedding(net, 16, attribute = "lle")
+   roles = gsk.struc2vec(net, seed = 1)                    # structural roles, not proximity
+   typed = gsk.metapath2vec(net, "kind", ["author", "paper", "venue", "paper", "author"])
+   out = gsk.gcn(net, "city", [16, 4], features = [f"n2v_{j}" for j in range(128)])
 
-.. autofunction:: graphoskop.gae
+Stored vectors also predict links, with :func:`~graphoskop.embedding_lp` (see
+:doc:`link_prediction`).
 
-.. autofunction:: graphoskop.vgae
+.. autofunction:: graphoskop.laplacian_eigenmaps
+
+.. autofunction:: graphoskop.locally_linear_embedding
+
+.. autofunction:: graphoskop.node2vec
+
+.. autofunction:: graphoskop.struc2vec
+
+.. autofunction:: graphoskop.metapath2vec
 
 Graph embeddings
 ----------------
+
+*Atlas:* Section 42.4 (Pooling).
 
 A network whose components are the graphs of a dataset (molecules, ego networks...) gets one
 vector per graph with :func:`~graphoskop.diffpool`, trained to predict a graph attribute or, without
@@ -49,11 +78,35 @@ one, unsupervised.
 
 .. autofunction:: graphoskop.diffpool
 
+Models
+------
+
+*Atlas:* Chapter 44 (Message-Passing & Graph Convolution), with graph convolution in Section 44.3
+(Convolution); attention, Section 45.1 (Attention).
+
+All models take the same parameters and return the same results; the attention models also take
+the number of heads. The weights of ``weight`` average the neighbors in :func:`~graphoskop.gcn`
+and :func:`~graphoskop.graphsage`, and enter the attention as an edge feature in
+:func:`~graphoskop.gat` and :func:`~graphoskop.gatv2`. :func:`~graphoskop.mlp` is the same model without the network (plain linear layers),
+the baseline that shows what the structure adds to the prediction.
+
+.. autofunction:: graphoskop.gcn
+
+.. autofunction:: graphoskop.graphsage
+
+.. autofunction:: graphoskop.gat
+
+.. autofunction:: graphoskop.gatv2
+
+.. autofunction:: graphoskop.mlp
+
 Higher-order networks
 ---------------------
 
+*Atlas:* Section 44.2 (Limits of the Message-Passing Approach).
+
 Hypergraphs and simplicial complexes (see :doc:`higher_order`) have two models, with the
-parameters and results of the models below. :func:`~graphoskop.hgnn` predicts a node attribute:
+parameters and results of the models above. :func:`~graphoskop.hgnn` predicts a node attribute:
 its layers (the hypergraph convolution of ``HypergraphConv`` in PyTorch Geometric) pass features
 from the nodes to their hyperedges and back, so that a group of any size counts once, without the many pairs of the clique
 expansion; on a simplicial complex, the facets are the hyperedges. :func:`~graphoskop.scnn`
@@ -90,61 +143,25 @@ take 10 s.
 
 .. autofunction:: graphoskop.scnn
 
-Models
-------
+Autoencoders
+------------
 
-All models take the same parameters and return the same results; the attention models also take
-the number of heads. The weights of ``weight`` average the neighbors in :func:`~graphoskop.gcn`
-and :func:`~graphoskop.graphsage`, and enter the attention as an edge feature in
-:func:`~graphoskop.gat` and :func:`~graphoskop.gatv2`. :func:`~graphoskop.mlp` is the same model without the network (plain linear layers),
-the baseline that shows what the structure adds to the prediction.
+*Atlas:* Section 45.3 (Deep Generative Graph Models).
 
-.. autofunction:: graphoskop.gat
-
-.. autofunction:: graphoskop.gatv2
-
-.. autofunction:: graphoskop.gcn
-
-.. autofunction:: graphoskop.graphsage
-
-.. autofunction:: graphoskop.mlp
-
-Shallow embeddings
-------------------
-
-Shallow embeddings learn one vector per node directly, from the structure alone: no node
-attribute is used or predicted. The vectors can be stored as node attributes and used anywhere
-numeric attributes are, e.g. as features of the models above, in node vector analysis or for
-clustering. :func:`~graphoskop.node2vec` learns them from random walks (for DeepWalk, use
-``p = q = 1``, the default), so that nearby nodes get similar vectors;
-:func:`~graphoskop.struc2vec` from walks on a multilayer graph of structural similarity, so that
-nodes with similar roles get similar vectors, wherever they are;
-:func:`~graphoskop.metapath2vec` from walks that follow a chain of node types (and relations) in a
-heterogeneous network; :func:`~graphoskop.laplacian_eigenmaps` and
-:func:`~graphoskop.locally_linear_embedding` compute them as eigenvectors, with no training and
-nothing random.
+Graph autoencoders learn node vectors without a target: an encoder of GCN layers gives every node
+a vector from the node attributes and the edges, trained so that the dot products of the vectors
+reconstruct the edges. Unlike the shallow embeddings above, they use the node attributes, and the
+trained encoder (``out["model"]``) can embed new nodes from their attributes.
 
 .. code-block:: python
 
-   emb = gsk.node2vec(net, seed = 1)                       # DataFrame: one row per node id
-   emb = gsk.node2vec(net, q = 0.5, attribute = "n2v")     # also node attributes n2v_0, n2v_1, ...
-   le = gsk.laplacian_eigenmaps(net, 16)                   # eigenvectors: exact, no training
-   lle = gsk.locally_linear_embedding(net, 16, attribute = "lle")
-   roles = gsk.struc2vec(net, seed = 1)                    # structural roles, not proximity
-   typed = gsk.metapath2vec(net, "kind", ["author", "paper", "venue", "paper", "author"])
-   out = gsk.gcn(net, "city", [16, 4], features = [f"n2v_{j}" for j in range(128)])
+   train, validation = gsk.link_prediction_split(net, seed = 1)
+   out = gsk.vgae(train, seed = 1, attribute = "z")          # vectors stored as z_0 ... z_15
+   scored = gsk.embedding_lp(train, validation, [f"z_{j}" for j in range(16)])
 
-Stored vectors also predict links, with :func:`~graphoskop.embedding_lp` (see :doc:`link_prediction`).
+.. autofunction:: graphoskop.gae
 
-.. autofunction:: graphoskop.laplacian_eigenmaps
-
-.. autofunction:: graphoskop.locally_linear_embedding
-
-.. autofunction:: graphoskop.metapath2vec
-
-.. autofunction:: graphoskop.node2vec
-
-.. autofunction:: graphoskop.struc2vec
+.. autofunction:: graphoskop.vgae
 
 Performance
 -----------

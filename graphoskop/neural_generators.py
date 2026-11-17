@@ -177,7 +177,7 @@ class GraphRNNFit:
       :param graphs: Number of graphs in every network, or ``None`` for :attr:`graphs`.
       :param seed: Seed of the random numbers, or ``None``.
       :param progress: Whether to show a progress bar over the nodes (``None``: as set by
-         :func:`~graphoskop.set_progress`; see :doc:`progress`). Nodes are written one after the
+         :func:`~graphoskop.set_progress`; see :ref:`progress-bars`). Nodes are written one after the
          other, and the full model decides their edges one after the other too: a graph of ``n``
          nodes takes about ``n * M`` small steps (minutes or more for thousands of nodes).
       :return: List of :class:`~graphoskop.Network`.
@@ -262,7 +262,7 @@ def graphrnn(net, dataset = None, simple = False, max_previous = None, steps = 2
    :param edge_embedding: Size of the inputs of the edge-level GRU and of its output network.
    :param seed: Seed of the orders, the initial weights and the training, or ``None``.
    :param progress: Whether to show a progress bar over the training steps (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`GraphRNNFit`.
    :raises ValueError: If a size or parameter is not valid.
 

@@ -558,7 +558,7 @@ def node_removal(net, strategy = "random", selection = "top", quality = "lcc", r
       again on the remaining network after every removal (adaptive attack), a number of removals
       between computations, or ``False`` to compute it once.
    :param progress: Whether to show progress bars over the adaptive attack and the path
-      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by the number of removed nodes (``removed``), with
       columns ``fraction`` (of the nodes removed), the mean quality (``lcc`` or ``apl``) and its
       confidence interval (``lcc_low``, ``lcc_high``, ...; NaN with a single run).
@@ -616,7 +616,7 @@ def edge_removal(net, strategy = "random", selection = "top", quality = "lcc", r
       again on the remaining network after every removal (adaptive attack), a number of removals
       between computations, or ``False`` to compute it once.
    :param progress: Whether to show progress bars over the adaptive attack and the path
-      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      lengths (``None``: as set by :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by the number of removed edges (``removed``), with
       columns ``fraction`` (of the edges removed), the mean quality (``lcc`` or ``apl``) and its
       confidence interval (NaN with a single run).
@@ -845,7 +845,7 @@ def cascade_failures(net, load = "random", capacity = "random", failures = 1, st
    :param interdependent: In multilayer networks with node items, whether all the copies of an
       entity fail together.
    :param progress: Whether to show a progress bar over the path lengths (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` indexed by step (0: the initial failures), with columns
       ``failed`` (mean fraction of the items failed so far), the mean quality (``lcc`` or ``apl``)
       and their confidence intervals (``failed_low``, ``failed_high``, ``lcc_low``, ...; NaN with a

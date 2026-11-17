@@ -5,7 +5,8 @@ shortest paths, random walk (current flow) betweenness (:func:`flow_centrality`)
 centrality (:func:`eigenvector_centrality`), Katz centrality (:func:`katz_centrality`), alpha
 centrality (:func:`alpha_centrality`), PageRank (:func:`pagerank`), hubs and authorities
 (:func:`hits`), k-core centrality (:func:`k_core_centrality`) and the SpringRank hierarchy of
-directed networks (:func:`springrank`). On hypergraphs and simplicial complexes, the nonlinear
+directed networks (:func:`springrank`, documented with the other hierarchy measures, see
+:doc:`hierarchy`). On hypergraphs and simplicial complexes, the nonlinear
 node and edge eigenvector centrality (:func:`node_edge_centrality`) scores nodes and hyperedges
 together. Any of them can be turned into a centralization of the whole network with
 :func:`centralization` (against a star, or a sunflower for higher-order networks).

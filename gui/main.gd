@@ -26,6 +26,10 @@ const FILE_RECENT := 7
 const FILE_EXPORTS := 8
 ## Item File › Settings…: light or dark mode and the colors of the interface ([constant UiTheme]).
 const FILE_SETTINGS := 9
+## Items File › Import node attributes… and Import edge attributes…: a table merged into the
+## network of the current tab (see [method _import_attributes]).
+const FILE_IMPORT_NODES := 10
+const FILE_IMPORT_EDGES := 11
 const UiTheme := preload("res://ui_theme.gd")
 ## Most sessions listed by File › Recent sessions.
 const MAX_RECENT := 10
@@ -43,7 +47,7 @@ const PDF_DPI := 300
 ## (Python source code), and whether a parameter dialog opens (layouts, edge bundling) or the
 ## function runs at once (other transformations); an empty label is a separator. The view is
 ## rotated with the slider of the visual elements panel (Network tab), which does not change the
-## positions.
+## positions; Rotate… and Scale… change them (rotate_layout, scale_layout).
 const LAYOUTS := [
    ["Circular…", "circular_layout", {}, true],
    ["Force-directed…", "force_directed_layout", {}, true],
@@ -56,6 +60,8 @@ const LAYOUTS := [
    ["", "", {}, false],
    ["Mirror left to right", "mirror_layout", {}, false],
    ["Mirror top to bottom", "mirror_layout", {"axis": "\"y\""}, false],
+   ["Rotate…", "rotate_layout", {}, true],
+   ["Scale…", "scale_layout", {}, true],
    ["Remove overlaps", "remove_overlaps", {}, false],
    ["", "", {}, false],
    ["Bundle edges…", "bundle_edges", {}, true],
@@ -92,6 +98,7 @@ const BACKBONES := [
    ["High salience skeleton…", "high_salience_skeleton", false],
    ["Convex skeleton…", "convex_skeleton", false],
    ["", "", false],
+   ["Threshold…", "threshold_filter", true],
    ["Maximum spanning tree…", "spanning_tree", true],
    ["Maximally filtered graph…", "maximally_filtered_graph", true],
    ["Triangulated filtered graph…", "triangulated_filtered_graph", true],
@@ -381,6 +388,8 @@ var _backbone_tab := {}
 ## Menu of a column of the Nodes and Edges tables (right click on its title), the column it is for
 ## ([kind, attribute]), and the confirmation of the deletion of an attribute.
 var _column_menu := PopupMenu.new()
+## Submenu Plot … against of the column menu: the other attributes.
+var _against_menu := PopupMenu.new()
 var _column := ["", ""]
 var _confirm_delete := ConfirmationDialog.new()
 ## Question asked before a session replaces the open networks, and the file it is about.
@@ -399,6 +408,9 @@ var _image_format := OptionButton.new()
 ## Submenus File › Recent sessions and File › Export.
 var _recent_menu := PopupMenu.new()
 var _export_menu := PopupMenu.new()
+## File dialog of File › Import node / edge attributes…, and what it imports ("nodes", "edges").
+var _import_dialog := FileDialog.new()
+var _import_kind := "nodes"
 ## Dialog of File › Settings…: mode and palette, applied as they are chosen.
 var _settings := AcceptDialog.new()
 var _mode := OptionButton.new()
@@ -624,6 +636,7 @@ func _ready() -> void:
    %Data.attribute_menu_requested.connect(_attribute_menu)
    %Data.value_edit_requested.connect(_edit_value)
    add_child(_column_menu)
+   _against_menu.index_pressed.connect(func(i): _plot_scatter(_against_menu.get_item_text(i)))
    _column_menu.id_pressed.connect(func(id):
       if id == 2:
          _open_derive(_column[1])
@@ -648,6 +661,7 @@ func _ready() -> void:
    %Visual.turn_changed.connect(func(d): if not _current().is_empty(): _current().view.set_turn(d))
    %Visual.scale_changed.connect(func(f): if not _current().is_empty(): _current().view.set_spread(f))
    %Visual.tab_names = func(): return _tabs.filter(func(t): return t != _current()).map(func(t): return t.name)
+   %Visual.detach_requested.connect(_positions_to_layout)
    %Visual.copy_requested.connect(func(i): _copy_style(_tabs.filter(func(t): return t != _current())[i]))
    %Worker.started.connect(_on_started)
    %Worker.failed.connect(_on_failed)
@@ -1046,6 +1060,11 @@ func _on_file(id: int) -> void:
       _image_width.value = roundi(w * IMAGE_SCALE)
       _image_height_text()
       _image_dialog.popup_centered()
+   elif id in [FILE_IMPORT_NODES, FILE_IMPORT_EDGES] and not _current().is_empty():
+      _import_kind = "nodes" if id == FILE_IMPORT_NODES else "edges"
+      _import_dialog.title = "Import node attributes" if id == FILE_IMPORT_NODES else "Import edge attributes"
+      _import_dialog.current_dir = AppSettings.folder("imports", AppSettings.folder("edges"))
+      _import_dialog.popup_centered_ratio(0.6)
    elif id == FILE_NEW:
       _new_dialog.popup_centered()
    elif id == FILE_CLOSE_SESSION and not _tabs.is_empty():
@@ -1124,6 +1143,26 @@ func _open_session(path: String) -> void:
          _show_tab(current)
       %Data.set_panel_state(r.gui.get("data", {}))
       %Status.text = "Opened the session %s (%d tabs)%s" % [path.get_file(), states.size(), " · " + r.warning if r.has("warning") else ""])
+
+
+## File › Import node / edge attributes…: the table in [param path] is merged into the network of
+## the current tab (worker command [code]import_attributes[/code]): new columns become new
+## attributes, columns named as attributes update their values on the nodes (edges) of the table.
+func _import_attributes(path: String) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   AppSettings.store_folder("imports", path)
+   var title := "Import %s attributes" % _import_kind.trim_suffix("s")
+   _task("%s: importing %s…" % [tab.name, path.get_file()], {"cmd": "import_attributes", "tab": tab.id, "path": path, "kind": _import_kind}, func(r, payload):
+      if not _tabs.has(tab):
+         return
+      _idle_status(tab)
+      if not r.ok:
+         _message(title, str(r.error))
+         return
+      _drawn(tab, r, payload, true)
+      %Status.text = r.note)
 
 
 ## File › Export › Network…: the network of the current tab in the format of the extension of
@@ -1246,6 +1285,8 @@ func _file_menu() -> void:
    %File.add_item("Close session", FILE_CLOSE_SESSION)
    %File.add_separator("", 101)
    %File.add_item("Load network…", FILE_LOAD)
+   %File.add_item("Import node attributes…", FILE_IMPORT_NODES)
+   %File.add_item("Import edge attributes…", FILE_IMPORT_EDGES)
    _export_menu.add_item("Network…", FILE_EXPORT)
    _export_menu.add_item("Image…", FILE_IMAGE)
    %File.add_submenu_node_item("Export", _export_menu, FILE_EXPORTS)
@@ -1286,6 +1327,12 @@ func _file_menu() -> void:
    add_child(_settings)
    _mode.item_selected.connect(func(i): AppSettings.store("ui", "dark", i == 1); _apply_theme())
    _palette.item_selected.connect(func(i): AppSettings.store("ui", "palette", UiTheme.PALETTES.keys()[i]); _apply_theme())
+   _import_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+   _import_dialog.access = FileDialog.ACCESS_FILESYSTEM
+   _import_dialog.filters = PackedStringArray(["*.tsv, *.csv, *.txt ; Tables (first row: column names)", "* ; All files"])
+   _import_dialog.use_native_dialog = true
+   _import_dialog.file_selected.connect(_import_attributes)
+   add_child(_import_dialog)
    add_child(_image_dialog)
    _image_dialog.title = "Export image"
    _image_dialog.ok_button_text = "Save…"
@@ -1531,6 +1578,22 @@ func _move(tab: Dictionary, nodes: PackedInt32Array, positions: PackedVector2Arr
       else:
          _message("Move nodes", str(reply.error))
          _restyle(tab.style, tab))
+
+
+## Node position dialog: the positions of the current tab taken from node attributes become its
+## layout (worker command [code]detach[/code]), so that layouts can transform them; the drawing does
+## not move.
+func _positions_to_layout() -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   %Worker.request({"cmd": "detach", "tab": tab.id}, func(reply, payload):
+      if not _tabs.has(tab):
+         return
+      if reply.ok:
+         _drawn(tab, reply, payload, true)
+      else:
+         _message("Node positions", str(reply.error)))
 
 
 ## Edit menu ([param item] of [constant EDITS]) on the selection of the current tab: removals
@@ -2533,13 +2596,20 @@ func _replot(tab_id: int, colors: Dictionary, styles: Dictionary, options: Dicti
 
 
 ## Right click on the title of the column of [param attribute] in the Nodes or Edges table
-## ([param kind] "nodes" or "edges"): a menu to plot its distribution or to delete it.
+## ([param kind] "nodes" or "edges"): a menu to plot its distribution, to plot it against another
+## attribute (Plot against ›, [method _plot_scatter]), or to delete it.
 func _attribute_menu(kind: String, attribute: String) -> void:
    if _current().is_empty():
       return
    _column = [kind, attribute]
    _column_menu.clear()
    _column_menu.add_item("Plot the distribution of %s…" % attribute, 0)
+   _against_menu.clear()
+   for a in tab_attributes(kind):   # Plot against ›: the other attributes of the nodes or edges
+      if a != attribute:
+         _against_menu.add_item(a)
+   if _against_menu.item_count > 0:
+      _column_menu.add_submenu_node_item("Plot %s against" % attribute, _against_menu, 4)
    _column_menu.add_item("Delete %s…" % attribute, 1)
    if kind == "nodes":
       _column_menu.add_item("New node attribute from %s…" % attribute, 2)
@@ -2645,6 +2715,32 @@ func _plot_distribution() -> void:
          _plot.hide()
          _plot.reparent(self, false)
       _plot.show_plot(tab.id, "Distribution of the %s attribute %s of %s" % [kind.trim_suffix("s"), attribute, tab.name], payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, attribute, reply.kinds))
+
+
+## Names of the node or edge attributes ([param kind]) of the current tab (as the visual elements
+## panel lists them: also the layers of multilayer networks).
+func tab_attributes(kind: String) -> Array:
+   var tab := _current()
+   return [] if tab.is_empty() else tab.get("attributes", {}).get(kind, []).map(func(a): return str(a.name))
+
+
+## Column menu › Plot … against › [param against]: the attribute of the column along the x axis,
+## [param against] along the y axis, one point per node or edge, in the plot window (worker
+## command [code]scatter[/code]; its text gives the correlations of numeric attributes).
+func _plot_scatter(against: String) -> void:
+   var tab := _current()
+   if tab.is_empty():
+      return
+   var kind: String = _column[0]
+   var attribute: String = _column[1]
+   _ask({"cmd": "scatter", "tab": tab.id, "kind": kind, "attribute": attribute, "against": against}, func(reply, payload):
+      if not reply.ok:
+         _message("Plot", str(reply.error))
+         return
+      if _plot.get_parent() != self:   # out of the epidemics dialog
+         _plot.hide()
+         _plot.reparent(self, false)
+      _plot.show_plot(tab.id, "%s against %s, %s of %s" % [against, attribute, kind, tab.name], payload, reply.elements, reply.options, reply.styles, reply.text, reply.warnings, "%s_%s" % [attribute, against], []))
 
 
 ## Column menu › Delete: asks to confirm (an attribute cannot be put back).

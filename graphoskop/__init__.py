@@ -27,54 +27,85 @@ and a node table ``nodes.tsv``::
    net.qualitative_node_attr  # city (qualitative), always in CPU memory
    net.node_map["alice"]      # (component, index)
 
+Networks are read from and written to the files of other programs, and converted to and from
+NetworkX, igraph and graph-tool (see :doc:`formats`). They are turned into other networks:
+undirected, without self loops or parallel edges, restricted to a component, a set of nodes or an
+ego network, with nodes and edges added or removed, collapsed into groups, combined with another
+network, or made into line graphs and complements (see :doc:`transformations`).
+
 Multilayer networks are loaded with ``multilayer = True`` from an edge list with a ``layer``
-column; nodes are then copies ``(entity, layer)`` (see :doc:`multilayer`). Hypergraphs and
-simplicial complexes, interactions among any number of nodes, are loaded with
-:func:`load_hypergraph` and :func:`load_simplicial_complex` and stored as incidence graphs;
-functions say whether they support them (see :doc:`higher_order`). Higher-order dependencies
-in paths (where one goes next depends on where one came from) are kept in an ordinary directed
-network by :func:`higher_order_dependency_network` and :func:`memory_network`. Signed networks carry
+column; nodes are then copies ``(entity, layer)`` (see :doc:`multilayer`). Signed networks carry
 a +1 / -1 sign on their edges, built from a positive and a negative layer or by thresholding a
-weight (see :doc:`signed`).
+weight (see :doc:`signed`). Hypergraphs and simplicial complexes, interactions among any number of
+nodes, are loaded with :func:`load_hypergraph` and :func:`load_simplicial_complex` and stored as
+incidence graphs; functions say whether they support them (see :doc:`higher_order`). Laplacians of
+all these networks, their pseudoinverses and Laplacian solvers run on the device of the network
+(see :doc:`laplacians`).
+
+Simple properties of networks are degrees and their distributions (with power law fits),
+reciprocity and connected components, random walks (stationary distributions, hitting times,
+effective resistances), density, clustering coefficients, cliques, independent sets and graph
+coloring (see :doc:`network_statistics`).
+
+Shortest paths are found from one or all nodes, and networks explored by breadth first and depth
+first search (see :doc:`shortest_paths`); centralities rank nodes and edges by their paths, walks
+and neighbors (see :doc:`centrality`), and equivalences tell how far two nodes have the same role
+(see :doc:`equivalence`).
 
 Synthetic networks come from generators, which can also randomize an existing network, keeping
 its nodes and their attributes, or, with neural generators such as GraphRNN, learn to produce
-networks like observed ones (see :doc:`generators`).
-
-Exponential random graph models, with node attributes and dyadic covariates, are written and
-fitted as in R's ``ergm`` package (see :doc:`ergm`).
+networks like observed ones (see :doc:`generators`). A statistic of a network is tested against
+such null models, edge swaps, or exponential random graph models, with node attributes and dyadic
+covariates, written and fitted as in R's ``ergm`` package (see :doc:`ergm`).
 
 Epidemics spread on networks with compartmental models (SI, SIS, SIR), by simple or complex
 contagion, simulated in parallel runs (see :doc:`epidemics`). The robustness of a network to node
 or edge failures and attacks, another percolation process, and cascades of failures driven by
-loads and capacities are in :doc:`robustness`. Oscillators coupled on the nodes of a network, or
-on the edges and triangles of a simplicial complex, synchronize with the Kuramoto model and its
-higher-order versions (see :doc:`synchronization`).
+loads and capacities are in :doc:`robustness`.
 
-Core-periphery structures, a dense core of nodes and a sparse periphery attached to it, are fit
-with the discrete and continuous models of Borgatti and Everett and the model of Rombach et al. (see
-:doc:`core_periphery`).
+Link prediction hides some edges of a network and scores the hidden pairs, and as many
+unconnected ones, from the rest of the network (see :doc:`link_prediction`).
+
+Bipartite networks are projected onto one of their node types (see :doc:`bipartite_projections`),
+and weighted networks reduced to their backbones, the edges stronger than expected (see
+:doc:`backboning`). Network error correction does both jobs of cleaning observed networks, finding
+spurious and missing edges, with the nested stochastic blockmodel (see :doc:`error_correction`).
+
+Assortativity measures how much nodes link to nodes with similar degrees or attributes (see
+:doc:`assortativity`). Core-periphery structures, a dense core of nodes and a sparse periphery
+attached to it, are fit with the discrete and continuous models of Borgatti and Everett and the
+model of Rombach et al., and nestedness is measured in bipartite networks (see
+:doc:`core_periphery`). Hierarchy measures tell how far directed networks are organized in levels
+(see :doc:`hierarchy`). Simplicial complexes have generalized degrees, holes and signals on their
+simplices, and on them and on hypergraphs contagion spreads through groups of nodes; higher-order
+dependencies in paths (where
+one goes next depends on where one came from) are kept in an ordinary directed network by
+:func:`higher_order_dependency_network` and :func:`memory_network` (see
+:doc:`high_order_dynamics`). Oscillators coupled on the nodes of a network, or on the edges and
+triangles of a simplicial complex, synchronize with the Kuramoto model and its higher-order
+versions (see :doc:`synchronization`).
+
+Communities are found by fitting stochastic blockmodels, by Infomap, label propagation, Leiden
+and hierarchical random graphs, overlapping ones by BigCLAM, DEMON, OSLOM and link communities;
+the quality of partitions is measured, and partitions compared with each other (see
+:doc:`communities`).
 
 Isomorphism tests tell whether two networks are the same up to a relabeling of their nodes, and
 whether a network contains another one, exactly (a compiled parallel search) or approximately
 (Weisfeiler-Leman color refinement and candidate filtering on tensors; see :doc:`isomorphism`).
-
 Frequent subgraph mining finds the labeled patterns that occur in many components of a network,
 or many times in a single network (minimum image based support), with gSpan, and the association
-rules between patterns that differ by one edge (see :doc:`frequent_subgraphs`).
+rules between patterns that differ by one edge (see :doc:`frequent_subgraphs`). Node2vec,
+Laplacian eigenmaps and locally linear embeddings give every node a vector from the structure
+alone, struc2vec one that reflects its structural role, metapath2vec one from walks along chains
+of node types, and DiffPool every graph; graph neural networks predict a node attribute from the
+others and the network, with the layers of PyTorch Geometric (GCN, GraphSAGE, GAT and GATv2), in
+one call that prepares the features, splits the nodes, trains and scores; graph autoencoders (GAE
+and VGAE) learn node vectors from the attributes and the edges without a target (see :doc:`gnn`).
 
-Graph neural networks predict a node attribute from the others and the network, with the layers
-of PyTorch Geometric (GCN, GraphSAGE, GAT and GATv2), in one call that prepares the features,
-splits the nodes, trains and scores; graph autoencoders (GAE and VGAE) learn node vectors from
-the attributes and the edges without a target; node2vec, Laplacian eigenmaps and locally linear embeddings
-give every node a vector from the structure alone, struc2vec one that reflects its structural
-role, metapath2vec one from walks along chains of node types, and DiffPool every graph (see
-:doc:`gnn`).
-
-Link prediction hides some edges of a network and scores the hidden pairs, and as many
-unconnected ones, from the rest of the network (see :doc:`link_prediction`). Network error
-correction does both jobs of cleaning observed networks, finding spurious and missing edges, with
-the nested stochastic blockmodel (see :doc:`error_correction`).
+Vectors defined on the nodes are compared by the generalized Euclidean distance and other
+distances that account for the network, their variance, correlation and entropy are measured on
+it, and they are expanded on the graph Fourier basis (see :doc:`node_vector_analysis`).
 
 Layouts place the nodes in the plane or in space to draw the network, storing the positions as node
 attributes ``pos_x``, ``pos_y`` (and ``pos_z``); the circular and grid layouts make sectors and
@@ -86,13 +117,14 @@ adjacency matrix; any layout can be mirrored, rotated and zoomed, and its overla
 for nodes of different sizes, and its edges bundled along a hierarchy of groups (see
 :doc:`layouts`).
 
-Long computations show a progress bar with the time left, at no measurable cost (see
-:doc:`progress`).
+A graphical interface, in the ``gui`` folder of the source tree, draws networks and runs the
+library on them (see :doc:`gui`). Long computations show a progress bar with the time left, at no
+measurable cost (see :ref:`progress-bars`).
 """
 
 from importlib.metadata import version, PackageNotFoundError
 
-from .network import BIPARTITE, LAYER, Network, Hyperedge, Simplex, load_network, save_network, load_pickled_network, load_matrix, save_matrix
+from .network import BIPARTITE, LAYER, Network, Hyperedge, Simplex, load_network, save_network, load_pickled_network, load_matrix, save_matrix, correlation_network
 from .formats import FORMATS, VISUAL_ATTRIBUTES, read_network, write_network, from_networkx, from_igraph, from_graph_tool, to_networkx, to_igraph, to_graph_tool
 from .higher_order import load_hypergraph, load_simplicial_complex, incidence_network, clique_expansion, generalized_degree, incidence_number, is_uniform, is_pure, is_pseudomanifold, hypergraph_walk_network, boundary_matrix, hodge_laplacian, simplicial_random_walk, betti_numbers, euler_characteristic, hodge_decomposition, simplicial_fourier_basis, simplicial_fourier_transform, inverse_simplicial_fourier_transform, set_hypergraph_route
 from .multilayer import layer_network, aggregate_network
@@ -117,7 +149,7 @@ from .progress import set_progress
 from .frequent_subgraphs import transactional_graph_mining, single_graph_mining, graph_association_rules
 from .equivalence import structural_equivalence, automorphic_equivalence, pairwise_structural_equivalence, pairwise_automorphic_equivalence, regular_equivalence, pairwise_regular_equivalence, path_regular_equivalence, pairwise_path_regular_equivalence
 from .network_statistics import connected_components_count, connected_components_nodes, degree, average_degree, degree_power_law, degree_centralization, hyperedge_size, density, reciprocity, average_shortest_path_length, local_clustering, global_clustering, average_clustering, assortativity, local_triangle_closure, global_triangle_closure, two_node_clustering
-from .backboning import noise_corrected, convex_skeleton, disparity_filter, polya_filter, doubly_stochastic, high_salience_skeleton, extract_backbone, test_bb_thresholds, find_bb_thresholds, spanning_tree, maximally_filtered_graph, triangulated_filtered_graph
+from .backboning import noise_corrected, convex_skeleton, disparity_filter, polya_filter, doubly_stochastic, high_salience_skeleton, extract_backbone, threshold_filter, test_bb_thresholds, find_bb_thresholds, spanning_tree, maximally_filtered_graph, triangulated_filtered_graph
 from .bipartite_projections import simple_count_projection, hist_intersection_projection, hyperbolic_projection, resource_allocation_projection, random_walk_projection, cosine_similarity_projection, pearson_correlation_projection, inverse_euclidean_projection
 from .generators import chain_graph, gnm_random_graph, gnp_random_graph, configuration_model, edge_swap, kronecker_graph, geometric_graph, caveman_graph, watts_strogatz_graph, barabasi_albert_graph, link_selection_graph, copying_graph, holme_kim_graph, planted_partition_graph, stochastic_block_model, degree_corrected_block_model, mixed_membership_block_model, nested_block_model, girvan_newman_graph, lfr_benchmark_graph, randomization_test, growing_manifold, simplicial_configuration_model, hypergraph_configuration_model
 from .ergms import ergm, ergm_statistics, ERGMFit
@@ -136,7 +168,7 @@ except PackageNotFoundError:
    __version__ = "unknown"
 
 __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_network", "save_network",
-           "load_pickled_network", "load_matrix", "save_matrix", "FORMATS", "VISUAL_ATTRIBUTES",
+           "load_pickled_network", "load_matrix", "save_matrix", "correlation_network", "FORMATS", "VISUAL_ATTRIBUTES",
            "read_network", "write_network", "from_networkx", "from_igraph", "from_graph_tool",
            "to_networkx", "to_igraph", "to_graph_tool", "load_hypergraph",
            "load_simplicial_complex", "incidence_network", "clique_expansion", "generalized_degree",
@@ -180,7 +212,7 @@ __all__ = ["BIPARTITE", "LAYER", "Network", "Hyperedge", "Simplex", "load_networ
            "average_shortest_path_length", "local_clustering", "global_clustering",
            "average_clustering", "assortativity", "noise_corrected", "convex_skeleton",
            "disparity_filter", "polya_filter", "doubly_stochastic", "high_salience_skeleton",
-           "extract_backbone", "test_bb_thresholds", "find_bb_thresholds", "spanning_tree",
+           "extract_backbone", "threshold_filter", "test_bb_thresholds", "find_bb_thresholds", "spanning_tree",
            "maximally_filtered_graph", "triangulated_filtered_graph", "simple_count_projection",
            "hist_intersection_projection", "hyperbolic_projection",
            "resource_allocation_projection", "random_walk_projection",

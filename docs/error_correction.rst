@@ -4,6 +4,10 @@ Network error correction
 .. automodule:: graphoskop.error_correction
    :no-members:
 
+*Atlas:* Chapter 28 (Uncertainty & Measurement Error): correcting measured networks, Section 28.1
+(Error Estimation & Correction); networks of edge probabilities, Sections 28.2 (Probabilistic
+Networks) and 28.3 (Specific Probabilistic Network Solutions).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -27,8 +31,8 @@ Network error correction
    scored = gsk.load_network("predictions.tsv")                 # column probability, from another method
    corrected, summary = gsk.uncertain_network_correction(scored, "probability")
 
-.. autofunction:: graphoskop.fit_nested_block_model
-
 .. autofunction:: graphoskop.measured_network_correction
 
 .. autofunction:: graphoskop.uncertain_network_correction
+
+.. autofunction:: graphoskop.fit_nested_block_model

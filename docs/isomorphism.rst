@@ -4,6 +4,9 @@ Isomorphism
 .. automodule:: graphoskop.isomorphism
    :no-members:
 
+*Atlas:* Section 41.3 (Graph Isomorphism); the Weisfeiler-Leman test and graph neural networks,
+Section 44.2 (Limits of the Message-Passing Approach).
+
 .. code-block:: python
 
    import pandas as pd

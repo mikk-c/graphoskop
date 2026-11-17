@@ -4,6 +4,8 @@ Robustness
 .. automodule:: graphoskop.robustness
    :no-members:
 
+*Atlas:* Chapter 22 (Catastrophic Failures).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -33,20 +35,27 @@ Robustness
    ml = gsk.load_network("layers.tsv", multilayer = True, coupling = "all")
    c = gsk.cascade_failures(ml, failures = 5)                             # all copies of an entity fail together
 
-Cascade failures
-----------------
+Node removal
+------------
 
-.. autofunction:: graphoskop.cascade_failures
+*Atlas:* Sections 22.1 (Random Failures) and 22.2 (Targeted Attacks).
+
+.. autofunction:: graphoskop.node_removal
 
 Edge removal
 ------------
 
+*Atlas:* Sections 22.1 (Random Failures) and 22.2 (Targeted Attacks).
+
 .. autofunction:: graphoskop.edge_removal
 
-Node removal
-------------
+Cascade failures
+----------------
 
-.. autofunction:: graphoskop.node_removal
+*Atlas:* Section 22.3 (Chain Effects); in multilayer networks, Section 22.4 (Interdependent
+Networks).
+
+.. autofunction:: graphoskop.cascade_failures
 
 Performance
 -----------

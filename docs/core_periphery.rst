@@ -4,6 +4,9 @@ Core-periphery structure
 .. automodule:: graphoskop.core_periphery
    :no-members:
 
+*Atlas:* Chapter 32 (Core-Periphery); models, Section 32.1 (Models); coreness as k-cores, Section
+14.7 (k-Core), is :func:`~graphoskop.k_core_centrality`.
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -24,9 +27,9 @@ References:
   networks, *SIAM Journal on Applied Mathematics* 74(1), 167-190,
   https://doi.org/10.1137/120881683.
 
-.. autofunction:: graphoskop.continuous_core_periphery
-
 .. autofunction:: graphoskop.discrete_core_periphery
+
+.. autofunction:: graphoskop.continuous_core_periphery
 
 .. autofunction:: graphoskop.rombach_core_periphery
 
@@ -34,6 +37,8 @@ References:
 
 Nestedness
 ----------
+
+*Atlas:* Section 32.4 (Nestedness).
 
 Nestedness of bipartite networks: the core-periphery structure of a biadjacency matrix in which
 the neighbors of each node are a subset of the neighbors of every node of the same type with more

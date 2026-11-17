@@ -1453,6 +1453,69 @@ def extract_backbone(net, threshold, score = "nc_score", keep_isolates = False, 
    return _subnetwork(net, s, t, keep | inter, eoffset, keep_isolates, inter)
 
 
+def threshold_filter(net, threshold, weight = "weight", absolute = False, below = False, keep_isolates = False, reconnect_components = False, reconnect_isolates = False):
+   """
+   Backbone of the edges whose weight is above a threshold (or below it, with ``below``), the
+   simplest backbone: e.g. the strong correlations of a correlation network
+   (:func:`~graphoskop.correlation_network`), with ``absolute`` the strong negative ones too.
+   Edges with a NaN weight are dropped.
+
+   As :func:`~graphoskop.extract_backbone`, the backbone is a new network with its components
+   recomputed, all attributes kept (a bipartite network gives a bipartite backbone); in undirected
+   networks both directions of an edge are kept or dropped together; in multilayer networks only
+   intra-layer edges are filtered, interlayer edges kept between the copies kept. Dropped edges
+   can be added back as there (``reconnect_components``, ``reconnect_isolates``), the closest to
+   being kept first: the largest weights (or absolute values), the smallest with ``below``.
+
+   :param net: A :class:`~graphoskop.Network`.
+   :param threshold: Threshold.
+   :param weight: Name of the edge attribute compared with the threshold (any numeric edge
+      attribute, e.g. a score).
+   :param absolute: Compare the absolute value of the weight.
+   :param below: Keep the edges whose weight (or its absolute value) is below the threshold,
+      instead of above it.
+   :param keep_isolates: Keep nodes left without edges, as isolated components.
+   :param reconnect_components: Add back the fewest dropped edges keeping every component of
+      ``net`` whole (see :func:`~graphoskop.extract_backbone`).
+   :param reconnect_isolates: Add back a dropped edge for each node left without edges.
+   :return: The backbone, a new :class:`~graphoskop.Network`.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.correlation_network("prices.tsv")
+      strong = gsk.threshold_filter(net, 0.6, absolute = True)        # |r| > 0.6
+      tree = gsk.threshold_filter(net, 0.6, absolute = True, reconnect_components = True)
+      weak = gsk.threshold_filter(net, 0.1, absolute = True, below = True)
+   """
+   j = net._column(net.edge_attributes, weight, "edge")
+   offset = np.cumsum([0] + [d.num_nodes for d in net.components])
+   s, t, keep, sig = [], [], [], []
+   for c in range(len(net.components)):
+      ei, X = net._input_edges(c)
+      w = X[:, j].double()
+      w = w.abs() if absolute else w
+      keep.append((w < threshold if below else w > threshold).cpu().numpy())
+      sig.append((-w if below else w).cpu().numpy())
+      ei = ei.cpu().numpy() + offset[c]
+      s.append(ei[0])
+      t.append(ei[1])
+   eoffset = np.cumsum([0] + [len(k) for k in keep])
+   s, t, keep, sig = np.concatenate(s), np.concatenate(t), np.concatenate(keep), np.concatenate(sig)
+   inter = _inter_input(net)
+   keep &= ~inter
+   e = np.flatnonzero(~inter)   # reconnect within layers
+   n = int(offset[-1])
+   if reconnect_components:
+      keep[e[_spanning_edges(s[e], t[e], keep[e], sig[e], n)]] = True
+   elif reconnect_isolates:
+      keep[e[_isolate_edges(s[e], t[e], keep[e], sig[e], n)]] = True
+   return _subnetwork(net, s, t, keep | inter, eoffset, keep_isolates, inter)
+
+
 def _subnetwork(net, s, t, keep, eoffset, keep_isolates, inter = None):
    """
    New network with some of the input edges of a network, all attributes kept, components

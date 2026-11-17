@@ -967,9 +967,10 @@ class Network:
          return [self._get_qualitative_edges(key, c, None) for c in range(len(self.components))]
       return np.asarray(col.iloc[self._arc_rows(component)], dtype = object)
 
-   def set_edge_attribute(self, key, values, component = 0):
+   def set_edge_attribute(self, key = None, values = None, component = 0, source_column = None, target_column = None, layer_column = None):
       """
-      Set an edge attribute on the edges of a component, creating it if it does not exist.
+      Set an edge attribute on the edges of a component, creating it if it does not exist; or,
+      without ``key``, set several edge attributes from a table.
 
       A new attribute is numeric if its values are numbers (or booleans), qualitative otherwise;
       it is appended to :attr:`edge_attributes` (a new column of ``edge_attr`` in every component)
@@ -980,14 +981,55 @@ class Network:
       Numeric values are cast to the dtype of ``edge_attr``; the values of a qualitative attribute
       can be anything hashable (NaN or ``None`` for missing values).
 
-      :param key: Attribute name, or position in :attr:`edge_attributes`.
+      **Several attributes from a table** (no ``key``): ``values`` is a :class:`pandas.DataFrame`
+      with one row per edge and one column per attribute, plus the columns ``source_column`` and
+      ``target_column`` with the ids of the two nodes (names or positions of columns); the table
+      can also be given in place of ``key``. A row sets the edges from its source to its target
+      (in either direction in undirected networks); if the network has several edges between them
+      (parallel edges), the row sets all of them, or, when the table has as many rows for the pair
+      as the network has edges, the rows set the edges one by one, in input order (as
+      :meth:`to_pandas_dataframes` lists them, so an edge table it gave comes back unchanged).
+      Edges not in the table keep their values; for a new attribute, they get missing values. A new
+      attribute is numeric if its column holds numbers or booleans, qualitative otherwise. Node ids
+      are matched as in :meth:`set_node_attribute`. In multilayer networks, ``layer_column`` gives
+      the layer of each row, which sets the edges between the copies of its two entities in that
+      layer; without it, the ids are entities (or copies ``(entity, layer)``), and a row sets all
+      the edges between their copies, interlayer edges included.
+
+      :param key: Attribute name, or position in :attr:`edge_attributes`; ``None`` for a table.
       :param values: Vector with one entry per stored edge, or a list of them (one per component)
-         if ``component`` is ``None``.
+         if ``component`` is ``None``; without ``key``, the table.
       :param component: Index of the component (0 is the largest), or ``None`` for all components.
-      :raises KeyError: If ``key`` is a position and there is no edge attribute there.
-      :raises ValueError: If a vector does not have one value per stored edge, or if non-numeric
-         values are given for a numeric attribute.
+      :param source_column: With a table, the column with the source of every edge.
+      :param target_column: With a table, the column with the target of every edge.
+      :param layer_column: With a table of a multilayer network, the column with the layers, or
+         ``None``.
+      :raises KeyError: If ``key`` is a position and there is no edge attribute there, or if a node
+         of the table is not in the network, or two nodes of a row are not joined by an edge.
+      :raises ValueError: If a vector does not have one value per stored edge, if non-numeric
+         values are given for a numeric attribute, if a table has no ``source_column`` or
+         ``target_column``, if the rows of an edge are neither one nor as many as its parallel
+         edges, if ``layer_column`` is given for a network that is not multilayer, or for a table
+         of a hypergraph or simplicial complex (whose edges are memberships).
+
+      Example:
+
+      .. code-block:: python
+
+         import graphoskop as gsk
+         import pandas as pd
+
+         net = gsk.load_network("edges.tsv")
+         table = pd.DataFrame({"from": ["alice", "bob"], "to": ["bob", "carol"], "trust": [0.9, 0.4]})
+         net.set_edge_attribute(table, source_column = "from", target_column = "to")
       """
+      if isinstance(key, pd.DataFrame) and values is None:
+         key, values = None, key
+      if key is None:
+         if source_column is None or target_column is None:
+            raise ValueError("a table of edge attributes needs source_column and target_column, the columns with the node ids")
+         self._set_edge_table(values, source_column, target_column, layer_column)
+         return
       if isinstance(key, str) and key not in self.edge_attributes and key not in self.qualitative_edge_attributes:
          first = next((v for v in values if len(v)), values[0] if len(values) else []) if component is None else values
          if _is_numeric(first):
@@ -1027,6 +1069,77 @@ class Network:
          return
       X = self.components[component].edge_attr
       X[:, j] = self._values(values, X.shape[0], X)
+
+   def _set_edge_table(self, table, source_column, target_column, layer_column):
+      """
+      Set edge attributes from a table matched by the ids of the two nodes of every edge (see
+      :meth:`set_edge_attribute`).
+
+      :param table: :class:`pandas.DataFrame`.
+      :param source_column: Column with the sources.
+      :param target_column: Column with the targets.
+      :param layer_column: Column with the layers (multilayer networks), or ``None``.
+      """
+      if self.higher_order is not None:
+         raise ValueError("edge attributes from a table are not available for hypergraphs and simplicial complexes: their edges are memberships")
+      if layer_column is not None and self.layer_labels is None:
+         raise ValueError("layer_column is only for multilayer networks")
+      col = lambda c: table.columns[c] if isinstance(c, (int, np.integer)) and c not in table.columns else c
+      idc = [col(source_column), col(target_column)] + ([] if layer_column is None else [col(layer_column)])
+      layers = table[idc[2]].tolist() if layer_column is not None else [None] * len(table)
+      found = {}
+      def nodes(x, layer):   # network wide positions of a node, an entity or a copy
+         key = x if layer is None else (x, layer)
+         if key not in found:
+            found[key] = [int(self.node_offsets[c]) + i for c, i in self._nodes(key)]
+         return found[key]
+      rows = {}   # (source, target) positions to the network wide rows of their input edges, in order
+      offsets = self._edge_offsets()
+      for c in range(len(self.components)):
+         m = self.number_of_edges(c)
+         s, t = (self.components[c].edge_index[:, :m].cpu().numpy() + self.node_offsets[c]).tolist()
+         for k, (u, v) in enumerate(zip(s, t)):
+            rows.setdefault((u, v) if self.directed else (min(u, v), max(u, v)), []).append(int(offsets[c]) + k)
+      matched = []
+      for u, v, layer in zip(table[idc[0]].tolist(), table[idc[1]].tolist(), layers):
+         e = sorted(r for a in nodes(u, layer) for b in nodes(v, layer) for r in rows.get((a, b) if self.directed else (min(a, b), max(a, b)), []))
+         if not e:
+            raise KeyError(f"no edge between {u!r} and {v!r}" + ("" if layer is None else f" in layer {layer!r}"))
+         matched.append(tuple(e))
+      count, seen, target, source = {}, {}, [], []
+      for e in matched:
+         count[e] = count.get(e, 0) + 1
+      for r, e in enumerate(matched):
+         if count[e] == 1:
+            target.extend(e)
+            source.extend([r] * len(e))
+         elif count[e] == len(e):
+            k = seen.get(e, 0)
+            seen[e] = k + 1
+            target.append(e[k])
+            source.append(r)
+         else:
+            raise ValueError(f"{count[e]} rows of the table for {len(e)} edges: give one row, or one row per parallel edge")
+      target, source = np.array(target, dtype = np.int64), np.array(source, dtype = np.int64)
+      n = int(offsets[-1])
+      for a in table.columns:
+         if a in idc:
+            continue
+         v = table[a].to_numpy()[source]
+         if a in self.qualitative_edge_attributes or (a not in self.edge_attributes and not _is_numeric(table[a].dropna().to_numpy())):
+            old = np.asarray(self.qualitative_edge_attr[a], dtype = object) if a in self.qualitative_edge_attributes else np.full(n, np.nan, dtype = object)
+            for p, x in zip(target, v):
+               old[p] = x
+         else:
+            if not _is_numeric(table[a].dropna().to_numpy()):
+               raise ValueError(f"edge attribute {a!r} is numeric, got non-numeric values")
+            old = np.full(n, np.nan)
+            if a in self.edge_attributes:
+               for c in range(len(self.components)):
+                  m = self.number_of_edges(c)
+                  old[offsets[c]:offsets[c] + m] = self.get_edge_attribute(a, c)[:m].cpu().double().numpy()
+            old[target] = v.astype(np.float64)
+         self.set_edge_attribute(a, [old[self._arc_rows(c)] for c in range(len(self.components))], None)
 
    def remove_edge_attribute(self, key):
       """
@@ -3190,6 +3303,76 @@ def load_matrix(matrix, nodes = None, ids = None, directed = None, bipartite = N
 
 
 @_higher_order(hypergraph = True, simplicial = True)
+def correlation_network(table, method = "pearson", sep = "\t", header = True, comment = "#", columns = None, weight = "weight", device = "cpu"):
+   """
+   Correlation network of the columns of a table: one node per column, a vector of values (one
+   per row, e.g. the expression of a gene in each sample, the price of a stock each day), and an
+   undirected edge between every two columns with their correlation as its weight, so a complete
+   network (minus the pairs without a correlation) to be thresholded, e.g. with
+   :func:`~graphoskop.threshold_filter` (``absolute = True`` keeps strong negative correlations
+   too).
+
+   Pearson correlations are those of the values, Spearman ones those of their ranks (ties
+   averaged). With missing values, each pair is correlated over the rows where both columns have
+   one (pairwise); otherwise the correlations are one product of standardized matrices, computed
+   with PyTorch on ``device``. Columns that are not numeric are left out; pairs with a constant
+   column (no correlation) have no edge. Each node gets the number of values of its column
+   (node attribute ``n_values``).
+
+   :param table: Path of a text table (rows of values, one column per node), or a
+      :class:`pandas.DataFrame`.
+   :param method: ``"pearson"`` or ``"spearman"``.
+   :param sep: Separator of the columns of a text table.
+   :param header: Whether the first row of a text table holds the names of the columns (the node
+      ids); otherwise the nodes are numbered from 0.
+   :param comment: Lines of a text table starting with it, after any leading white space, are
+      skipped; ``None`` or ``""`` for none.
+   :param columns: Names (or positions) of the columns to correlate, ``None`` for every numeric
+      column.
+   :param weight: Name of the edge attribute holding the correlations.
+   :param device: Device of the tensors, e.g. ``"cuda"``.
+   :return: The undirected :class:`Network`.
+   :raises ValueError: If ``method`` is unknown or there are fewer than two numeric columns.
+
+   Example:
+
+   .. code-block:: python
+
+      import graphoskop as gsk
+
+      net = gsk.correlation_network("expression.tsv", method = "spearman")
+      strong = gsk.threshold_filter(net, 0.7, absolute = True)
+   """
+   import torch
+   if method not in ("pearson", "spearman"):
+      raise ValueError(f"unknown correlation method: {method} (pearson or spearman)")
+   if isinstance(table, pd.DataFrame):
+      T = table
+   else:
+      T = pd.read_csv(_uncommented(table, comment), sep = sep, header = 0 if header else None)
+   if columns is not None:
+      T = T[[T.columns[c] if isinstance(c, (int, np.integer)) and c not in T.columns else c for c in columns]]
+   T = T.select_dtypes(include = "number")
+   if T.shape[1] < 2:
+      raise ValueError("a correlation network needs two numeric columns or more")
+   names = list(T.columns)
+   if T.isna().to_numpy().any():   # pairwise complete observations
+      C = T.corr(method = method).to_numpy()
+   else:
+      X = T.rank().to_numpy(dtype = np.float64) if method == "spearman" else T.to_numpy(dtype = np.float64)
+      X = torch.as_tensor(X, dtype = torch.float64, device = device)
+      X = X - X.mean(0)
+      norm = X.norm(dim = 0)
+      C = ((X.T @ X) / torch.outer(norm, norm)).clamp(-1., 1.).cpu().numpy()
+      C[:, norm.cpu().numpy() == 0] = np.nan
+   i, j = np.triu_indices(len(names), 1)
+   w = C[i, j]
+   ok = np.isfinite(w)
+   edges = pd.DataFrame({"source": [names[k] for k in i[ok]], "target": [names[k] for k in j[ok]], weight: w[ok]})
+   nodes = pd.DataFrame({"node": names, "n_values": T.notna().sum().to_numpy(dtype = np.float64)})
+   return load_network(edges, nodes, directed = False, device = device)
+
+
 def save_matrix(net, path = None, weight = "weight", sparse = False, sep = "\t"):
    """
    The adjacency matrix of a network, or the biadjacency matrix of a bipartite network, optionally

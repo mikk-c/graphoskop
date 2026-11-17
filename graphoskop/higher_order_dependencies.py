@@ -122,7 +122,7 @@ def higher_order_dependency_network(sequences, max_order = 5, min_support = 1, s
    :param sep: Separator of the nodes in a file (``None``: any whitespace).
    :param device: Device of the counts and of the result.
    :param progress: Whether to show a progress bar (reading, each order, wiring; ``None``: as set
-      by :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      by :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :param labeled: Whether every line of the file starts with the id of its sequence, as in the
       authors' data (``ship port port ...``): the id is skipped. Without it, the id would be read
       as the first node of the path, giving nodes such as ``35|34.99388`` (at 35, coming from 34,
@@ -339,7 +339,7 @@ def memory_network(sequences, order = 2, sep = None, labeled = False, device = "
    :param labeled: Whether every line of the file starts with the id of its sequence (skipped).
    :param device: Device of the counts and of the result.
    :param progress: Whether to show a progress bar (``None``: as set by
-      :func:`~graphoskop.set_progress`; see :doc:`progress`).
+      :func:`~graphoskop.set_progress`; see :ref:`progress-bars`).
    :return: Directed :class:`~graphoskop.Network`.
    :raises ValueError: If ``order`` < 1, or no path has ``order + 1`` steps.
 

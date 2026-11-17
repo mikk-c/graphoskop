@@ -40,6 +40,9 @@ signal scale_changed(factor: float)
 ## Emitted when Network › Copy › From tab… is chosen, with the position of the other tab among the
 ## names given by [member tab_names].
 signal copy_requested(index: int)
+## Emitted when the node positions taken from attributes are to become the layout (Node position
+## dialog, see position_dialog.gd).
+signal detach_requested
 
 ## Function (attribute, kind, method, k, log, done) asking the worker for stop values (set by the
 ## main scene).
@@ -97,6 +100,7 @@ func _ready() -> void:
    %SizeDialog.changed.connect(_changed)
    %EditNodePosition.pressed.connect(func(): _editing = "position"; %PositionDialog.open(_style.get("position", {}), _attributes.get("nodes", [])))
    %PositionDialog.changed.connect(_changed)
+   %PositionDialog.detach_requested.connect(func(): detach_requested.emit())
    var labels: PopupMenu = %EditNodeLabel.get_popup()
    %EditNodeLabel.about_to_popup.connect(func():
       labels.clear()

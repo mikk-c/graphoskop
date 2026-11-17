@@ -4,6 +4,9 @@ Signed networks
 .. automodule:: graphoskop.signed
    :no-members:
 
+*Atlas:* signed networks as two-layer networks, Section 7.2 (Multilayer Graphs); structural balance
+and social status, Section 24.1 (Signed Networks).
+
 .. autodata:: graphoskop.SIGN
    :annotation: = "sign"
 
@@ -37,6 +40,8 @@ attribute, kept when saving and loading.
 Structural balance and signed triangles
 ---------------------------------------
 
+*Atlas:* Section 24.1 (Signed Networks).
+
 .. code-block:: python
 
    gsk.structural_balance(signed)        # Tr(A^3) / Tr(|A|^3), a float
@@ -49,6 +54,8 @@ Structural balance and signed triangles
 
 Signed clustering coefficient
 -----------------------------
+
+*Atlas:* the clustering coefficient, Section 12.2 (Clustering Coefficient).
 
 The local clustering coefficient of Costantini and Perugini (2014) counts the triangles around a
 node with their sign: positive triangles raise it, negative ones lower it, from -1 to 1. Three

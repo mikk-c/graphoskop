@@ -170,7 +170,7 @@ def _pairwise(attrs, apply, finish, output_device, output_dtype):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse = False, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Generalized Euclidean distance :math:`\\sqrt{(a - b)^H L^+ (a - b)}` between two node vectors,
    or norm :math:`\\sqrt{a^H L^+ a}` of a single one, with :math:`L^+` the pseudoinverse of the
@@ -236,7 +236,7 @@ def generalized_euclidean(net, a, b = None, component = 0, lpinv = None, sparse 
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64, attributes = None):
+def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05, output_device = None, output_dtype = torch.float64, attributes = None):
    """
    Generalized Euclidean distances between all pairs of node attributes.
 
@@ -315,7 +315,7 @@ def pairwise_generalized_euclidean(net, component = 0, lpinv = None, sparse = No
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Network Pearson correlation (Coscia, 2021; Coscia and Devriendt, 2024,
    https://arxiv.org/abs/2402.09489):
@@ -386,7 +386,7 @@ def network_correlation(net, a, b, component = 0, W = None, k = 1, lpinv = None,
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15, output_device = None, output_dtype = torch.float64, attributes = None):
+def pairwise_network_correlation(net, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05, output_device = None, output_dtype = torch.float64, attributes = None):
    """
    Network Pearson correlations between all pairs of node attributes.
 
@@ -463,7 +463,7 @@ def _distribution(net, component, a, name):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_variance(net, a, component = 0, R = None, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def network_variance(net, a, component = 0, R = None, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Network variance of a node vector interpreted as a probability distribution (Devriendt,
    Martin-Gutierrez and Lambiotte, 2022, https://arxiv.org/abs/2008.09155):
@@ -522,7 +522,7 @@ def network_variance(net, a, component = 0, R = None, lpinv = None, weight = Non
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def network_entropy(net, a, component = 0, W = None, k = 1, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Network entropy of a node vector interpreted as a probability distribution:
 
@@ -595,7 +595,7 @@ def _signals(net, component, a):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def graph_fourier_basis(net, component = 0, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Graph Fourier basis: the eigenvalues (frequencies) and eigenvectors (Fourier modes) of the
    Laplacian, :math:`L = U \\Lambda U^H`, in increasing order of frequency (Shuman, Narang,
@@ -722,7 +722,7 @@ def _inv_sqrt(d):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def graph_fourier_transform(net, a, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def graph_fourier_transform(net, a, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Graph Fourier transform of a signal on the nodes, :math:`\\hat{a} = U^H a`: its coefficients on
    the Fourier modes of :func:`graph_fourier_basis`, from the lowest frequency to the highest. A
@@ -779,7 +779,7 @@ def graph_fourier_transform(net, a, component = 0, basis = None, k = None, norma
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def inverse_graph_fourier_transform(net, coefficients, component = 0, basis = None, k = None, normalized = False, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Inverse graph Fourier transform, :math:`a = U \\hat{a}`: the signal on the nodes with the given
    coefficients on the Fourier modes of :func:`graph_fourier_basis`. With all ``n`` modes, it

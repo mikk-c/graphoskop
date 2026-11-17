@@ -119,7 +119,7 @@ EXTRA_CHOICES = {("matrix_layout", "order"): ["\"degree\""], ("matrix_layout", "
 HIDDEN = {"net", "layout", "attribute", "dimensions", "progress"}
 #: Parameters chosen from a list of values (Python source code; ``""`` is ``None``, shown with its
 #: hint), by name or by function and name: the dialog shows a menu.
-OPTIONS = {"direction": ["\"down\"", "\"up\"", "\"left\"", "\"right\"", "\"radial\""], "metric": ["\"euclidean\"", "\"cosine\""], "rewire": ["\"target\"", "\"both\"", "\"add\""], ("mirror_layout", "axis"): ["\"x\"", "\"y\"", "\"both\""], ("rotate_layout", "axis"): ["\"z\"", "\"x\"", "\"y\""], "embedding": ["", "\"node2vec\"", "\"laplacian_eigenmaps\"", "\"locally_linear_embedding\"", "\"struc2vec\""], "model": ["\"nested_block_model\"", "\"stochastic_block_model\"", "\"degree_corrected_block_model\"", "\"planted_partition_graph\"", "\"mixed_membership_block_model\""], "quality": ["\"modularity\"", "\"cpm\""], "strategy": ["\"semisynchronous\"", "\"asynchronous\""], "line_graph": ["\"random_walk\"", "\"weighted\"", "\"plain\""], ("infomap_communities", "directed"): ["", "True", "False"], ("degree", "direction"): ["\"out\"", "\"in\"", "\"total\""], ("degree", "by"): ["\"layer\"", "\"entity\""], ("closeness_centrality", "direction"): ["\"out\"", "\"in\""], ("harmonic_centrality", "direction"): ["\"out\"", "\"in\""], ("reach_centrality", "direction"): ["\"out\"", "\"in\""], ("eigenvector_centrality", "direction"): ["\"in\"", "\"out\""], ("katz_centrality", "direction"): ["\"in\"", "\"out\""], ("alpha_centrality", "direction"): ["\"in\"", "\"out\""], "mode": ["\"all\"", "\"in\"", "\"out\""]}
+OPTIONS = {"direction": ["\"down\"", "\"up\"", "\"left\"", "\"right\"", "\"radial\""], "metric": ["\"euclidean\"", "\"cosine\""], "rewire": ["\"target\"", "\"both\"", "\"add\""], ("mirror_layout", "axis"): ["\"x\"", "\"y\"", "\"both\""], ("rotate_layout", "axis"): ["\"z\"", "\"x\"", "\"y\""], ("scale_layout", "axis"): ["\"both\"", "\"x\"", "\"y\""], "embedding": ["", "\"node2vec\"", "\"laplacian_eigenmaps\"", "\"locally_linear_embedding\"", "\"struc2vec\""], "model": ["\"nested_block_model\"", "\"stochastic_block_model\"", "\"degree_corrected_block_model\"", "\"planted_partition_graph\"", "\"mixed_membership_block_model\""], "quality": ["\"modularity\"", "\"cpm\""], "strategy": ["\"semisynchronous\"", "\"asynchronous\""], "line_graph": ["\"random_walk\"", "\"weighted\"", "\"plain\""], ("infomap_communities", "directed"): ["", "True", "False"], ("degree", "direction"): ["\"out\"", "\"in\"", "\"total\""], ("degree", "by"): ["\"layer\"", "\"entity\""], ("closeness_centrality", "direction"): ["\"out\"", "\"in\""], ("harmonic_centrality", "direction"): ["\"out\"", "\"in\""], ("reach_centrality", "direction"): ["\"out\"", "\"in\""], ("eigenvector_centrality", "direction"): ["\"in\"", "\"out\""], ("katz_centrality", "direction"): ["\"in\"", "\"out\""], ("alpha_centrality", "direction"): ["\"in\"", "\"out\""], "mode": ["\"all\"", "\"in\"", "\"out\""]}
 #: Numeric parameters between two bounds: smallest and largest value and step; the dialog shows a
 #: slider next to the number.
 RANGES = {"p": (0., 1., 0.0001), "mu": (0., 1., 0.01), "p_in": (0., 1., 0.0001), "p_out": (0., 1., 0.0001), "clustering": (0., 1., 0.01), "alignment": (0., 1., 0.01), "min_dist": (0., 1., 0.01), ("growing_manifold", "p"): (0., 0.99, 0.01), ("rotate_layout", "degrees"): (-180., 180., 1.), ("bundle_edges", "beta"): (0., 1., 0.01), "epsilon": (0.01, 1., 0.01), "damping": (0., 1., 0.01), "consensus": (0.5, 0.99, 0.01), "tolerance": (0., 1., 0.01), "union": (0., 1., 0.01), "teleportation": (0., 1., 0.01)}
@@ -296,11 +296,13 @@ def load_code(spec):
    default), with only the arguments that differ from their defaults, followed by
    :func:`~graphoskop.signed_network` for signed networks.
 
-   A network file of another program (``kind`` ``"file"``) is read with
+   A table of vectors (``kind`` ``"correlation"``, one node per column) gives the correlation
+   network of :func:`~graphoskop.correlation_network` (``method``). A network file of another
+   program (``kind`` ``"file"``) is read with
    :func:`~graphoskop.read_network`, with ``directed`` only for adjacency lists.
 
    :param spec: Dictionary with ``edges`` (path), ``nodes`` (path or ``None``), ``sep``,
-      ``header``, ``kind`` (``"network"``, ``"hypergraph"``, ``"simplicial"``, ``"matrix"`` or ``"file"``), ``source`` and
+      ``header``, ``kind`` (``"network"``, ``"hypergraph"``, ``"simplicial"``, ``"matrix"``, ``"correlation"`` or ``"file"``), ``source`` and
       ``target`` (column names, or positions without a header; node and hyperedge or simplex
       column in higher-order networks), ``directed``, ``bipartite``, ``multilayer``, ``layer``,
       ``direction`` (directed hypergraphs), ``node_format`` (``"wide"`` or ``"long"``),
@@ -317,6 +319,13 @@ def load_code(spec):
       add("directed", spec.get("directed"), None)
       add("device", spec.get("device", "cpu"), "cpu")
       return ["net = gsk." + _call("read_network", spec["edges"], kw)]
+   if kind == "correlation":
+      add("method", spec.get("method", "pearson"), "pearson")
+      add("sep", spec.get("sep", "\t"), "\t")
+      add("header", spec.get("header", True), True)
+      add("comment", spec.get("comment", "#"), "#")
+      add("device", spec.get("device", "cpu"), "cpu")
+      return ["net = gsk." + _call("correlation_network", spec["edges"], kw)]
    if kind == "matrix":
       add("nodes", spec.get("nodes"), None)
       add("sep", spec.get("sep", "\\s+"), "\\s+")
@@ -835,7 +844,7 @@ def _is_layer(net, name, names):
    """
    Whether ``name`` is the pseudo-attribute of :func:`layer_values` (not an attribute of ``names``).
    """
-   return name == gsk.LAYER and net.layer_labels is not None and name not in names
+   return net.layer_labels is not None and name == gsk.LAYER and name not in names
 
 
 def edge_values(net, name):
@@ -2665,13 +2674,32 @@ def _plot_font():
    return next((f for f in PLOT_FONTS if f in have), "DejaVu Sans")
 
 
+def tex_label(text):
+   """
+   An axis label as matplotlib draws it: plain text, with TeX formulas between dollar signs
+   (matplotlib's mathtext, e.g. ``"degree $k_i$"``, ``"$\\frac{1}{N} \\sum_i x_i$"``; a single
+   ``$`` is a dollar sign). A label whose formulas mathtext cannot read is drawn as typed, the
+   dollar signs as dollar signs, instead of failing the plot.
+   """
+   text = "" if text is None else str(text)
+   if text.replace("\\$", "").count("$") < 2:
+      return text
+   from matplotlib.mathtext import MathTextParser
+   try:
+      MathTextParser("path").parse(text)
+      return text
+   except Exception:
+      return text.replace("$", "\\$")
+
+
 def _figure(draw, options, format, path, dpi):
    """
    A plot drawn with matplotlib (needed for plots only), 8 by 5.5 inches, without a title:
    the ``options`` (see :data:`PLOT_OPTIONS`) set the scales of the axes, ``draw(ax)`` draws the
    data, then the options set the labels and ranges of the axes and the size of the font
    (:func:`_plot_font`); tick marks are inside the axes, on all four sides, and a legend is added
-   (if a series has a label). The option ``gradient`` colors the data series by their x or y
+   (if a series has a label). Axis labels may hold TeX formulas between dollar signs
+   (:func:`tex_label`). The option ``gradient`` colors the data series by their x or y
    values (:func:`gradient_colors`, see ``_series``); ``line_width``, ``point_size`` and
    ``bar_width`` size them (``_SIZES``, see :func:`_series`).
 
@@ -2690,14 +2718,15 @@ def _figure(draw, options, format, path, dpi):
       ax = fig.add_subplot()
       ax.set_xscale("log" if options["xlog"] else "linear")
       ax.set_yscale("log" if options["ylog"] else "linear")
-      _GRADIENT = options.get("gradient") or None
+      g = options.get("gradient") or None
+      _GRADIENT = g if g and g.get("axis") in ("x", "y") else None   # by an attribute: the plot colors itself
       _SIZES = {k: options[k] for k in ("line_width", "point_size", "bar_width") if options.get(k) is not None}
       try:
          draw(ax)
       finally:
          _GRADIENT, _SIZES = None, {}
-      ax.set_xlabel(options["xlabel"])
-      ax.set_ylabel(options["ylabel"])
+      ax.set_xlabel(tex_label(options["xlabel"]))
+      ax.set_ylabel(tex_label(options["ylabel"]))
       ax.set_xlim(options.get("xmin"), options.get("xmax"))
       ax.set_ylim(options.get("ymin"), options.get("ymax"))
       ax.tick_params(which = "both", direction = "in", top = True, right = True)   # tick marks inside, on all sides
@@ -2827,7 +2856,7 @@ def plot_code(ns, path):
       return lines + _pandas(ns) + [f"pd.DataFrame({source['matrix']}, index = {source['names']}, columns = {source['names']}).to_csv({literal(path)}, sep = \"\\t\")"]
    data = "{" + ", ".join(f"{literal(k)}: {v}" for k, v in source.items()) + "}"
    extra = "" if plot.get("labels") is None else f", labels = {plot['labels']!r}"
-   options = {k: v for k, v in plot["options"].items() if v != PLOT_OPTIONS[plot["kind"]].get(k, None) or k == "kind"}
+   options = {k: v for k, v in plot["options"].items() if k != "color_attributes" and (v != PLOT_OPTIONS[plot["kind"]].get(k, None) or k == "kind")}
    return lines + [f"plot_figure({literal(plot['kind'])}, {data}, colors = {plot['colors']!r}, styles = {plot['styles']!r}, options = {options!r}{extra}, path = {literal(path)})"]
 
 
@@ -2877,7 +2906,8 @@ def _replot(request):
    ``xlabel`` and ``ylabel``, ranges ``xmin``, ``xmax``, ``ymin``, ``ymax``: numbers or ``None``;
    for heatmaps the label ``zlabel``, range ``zmin``, ``zmax`` and logarithmic scale ``zlog`` of
    the color scale; ``gradient``, the colors of the data series along x or y, see
-   :func:`gradient_colors`, or ``None``),
+   :func:`gradient_colors`, or, in plots of attributes against each other (:func:`scatter_plot`),
+   by a third attribute of their option ``color_attributes``, or ``None``),
    and replies with the PNG image as payload.
    """
    plot = _spaces[request["tab"]]["__plot__"]
@@ -2891,10 +2921,21 @@ def _replot(request):
    plot["options"].update({k: str(o[k]) for k in ("xlabel", "ylabel") if k in o})
    if "font_size" in o:
       plot["options"]["font_size"] = min(max(float(o["font_size"]), 4.), 72.)
-   if "gradient" in o:   # colors along x or y, or none
-      g = o["gradient"]
-      plot["options"]["gradient"] = None if not g else {"axis": "x" if g.get("axis") == "x" else "y", "palette": str(g.get("palette", "YlOrRd")), "reversed": bool(g.get("reversed", False))}
    ns = _spaces[request["tab"]]
+   if "gradient" in o:   # colors along x or y, by a third attribute (scatter plots), or none
+      g = o["gradient"]
+      by = g.get("attribute") if g and g.get("axis") == "attribute" and g.get("attribute") in plot["options"].get("color_attributes", []) else None
+      plot["options"]["gradient"] = None if not g else {"axis": "attribute" if by else ("x" if g.get("axis") == "x" else "y"), "palette": str(g.get("palette", "YlOrRd")), "reversed": bool(g.get("reversed", False))}
+      if by:
+         plot["options"]["gradient"]["attribute"] = by
+      if plot["kind"] == "scatter":   # the values of the third attribute, and where they come from
+         for k in ("c", "cname"):
+            plot["data"].pop(k, None)
+            plot["source"].pop(k, None)
+         if by:
+            kind = plot["attribute_kind"]
+            plot["data"].update(c = attribute_values(_drawn(ns), kind, by), cname = by)
+            plot["source"].update(c = f"attribute_values({_target(ns)}, {literal(kind)}, {literal(by)})", cname = literal(by))
    if plot["kind"] == "matrix" and o.get("kind") in dict(matrix_orders(plot, ns)):
       matrix_order(ns, plot, o["kind"])
       plot["options"]["kind"] = o["kind"]
@@ -3056,7 +3097,7 @@ def nestedness_plot(matrix, line, rows, columns, p = None, colors = None, option
       cmap = LinearSegmentedColormap.from_list("ones", ["#ffffff", colors["matrix"]])
       norm = _color_norm(0., max(float(matrix.max()), 1e-12) if matrix.size else 1., options, matrix)
       image = ax.imshow(matrix, extent = (0, 1, 1, 0), aspect = "auto", interpolation = "nearest", cmap = cmap, norm = norm)
-      ax.figure.colorbar(image, ax = ax, label = options.get("zlabel") or "share of ones")
+      ax.figure.colorbar(image, ax = ax, label = tex_label(options.get("zlabel") or "share of ones"))
       label = "isocline" + (f" (p = {p:.3g})" if p is not None and np.isfinite(p) else "")
       ax.plot(line["x"], line["y"], color = colors["isocline"], lw = _lw(2), label = label)
       ax.set_xlim(0, 1)
@@ -3210,7 +3251,7 @@ def matrix_plot(matrix, names, what, diverging = False, orders = None, rows = No
       norm = _color_norm(lo, hi, options, matrix)
       cmap.set_bad("#cccccc")
       image = ax.imshow(np.ma.masked_invalid(matrix), cmap = cmap, norm = norm, interpolation = "nearest", aspect = "equal")
-      ax.figure.colorbar(image, ax = ax, label = options.get("zlabel") or what)
+      ax.figure.colorbar(image, ax = ax, label = tex_label(options.get("zlabel") or what))
       if k <= MATRIX_NAMES:
          ax.set_xticks(range(k), names, rotation = 90)
          ax.set_yticks(range(k), names)
@@ -3563,6 +3604,163 @@ def _distribution(request):
    return header, _render(ns["__plot__"], "png")
 
 
+def _axis_values(values):
+   """
+   Numbers of an attribute along an axis of :func:`scatter_plot`: the values of numeric
+   attributes, the positions of the categories (sorted) of qualitative ones, with the categories
+   as tick labels (``None`` for numbers). Missing values are NaN.
+   """
+   import pandas as pd
+   if isinstance(values, pd.Categorical) or np.asarray(values).dtype.kind not in "fiub":
+      v = pd.Series(np.asarray(values, dtype = object))
+      present = v.notna()
+      names = sorted({str(x) for x in v[present]}, key = lambda t: (_number_key(t), t))
+      position = {n: i for i, n in enumerate(names)}
+      return np.array([position[str(x)] if ok else np.nan for x, ok in zip(v, present)], dtype = float), names
+   return np.asarray(values, dtype = float), None
+
+
+def _number_key(text):
+   """
+   Sorting key of a category: numbers first, by value.
+   """
+   try:
+      return (0, float(text))
+   except ValueError:
+      return (1, 0.)
+
+
+def scatter_plot(x, y, xname, yname, c = None, cname = None, colors = None, options = None, styles = None, format = "png", path = None, dpi = 100):
+   """
+   Plot of one attribute against another (Plot against in the column menu of the data panel):
+   one point per node (or edge) with both values, ``x`` along the x axis; qualitative attributes
+   by category (sorted, the names as tick labels, the points spread a little across their
+   category so that they do not hide each other). Empty axis labels are the names of the
+   attributes (see ``_figure``).
+
+   With a third attribute ``c`` and the option ``gradient`` ``{"axis": "attribute", "palette": …,
+   "reversed": …}``, the points are colored by it: numeric values along the palette
+   (:func:`gradient_colors`, with a color scale), categories with ColorBrewer's Set1 (Matplotlib's
+   tab20 past 9 categories, with a legend); points without a value are grey.
+
+   :param x: Values of the attribute along the x axis (array, or :class:`pandas.Categorical`).
+   :param y: Values along the y axis.
+   :param xname: Name of the x attribute.
+   :param yname: Name of the y attribute.
+   :param c: Values of the attribute coloring the points, or ``None``.
+   :param cname: Name of that attribute.
+   :param colors: Color of the ``data``, or ``None`` for the default.
+   :param options: Options of the plot (see :data:`PLOT_OPTIONS`), or ``None`` for the defaults.
+   :param styles: How the ``data`` is drawn (:data:`PLOT_STYLES`; points by default).
+   :param format: ``"png"`` or ``"pdf"``.
+   :param path: File to write, or ``None`` to return the bytes.
+   :param dpi: Resolution of PNG images.
+   :return: The bytes of the image, or ``None`` with ``path``.
+   """
+   options = dict(PLOT_OPTIONS["scatter"], **(options or {}))
+   (u, ux), (v, vy) = _axis_values(x), _axis_values(y)
+   keep = np.isfinite(u) & np.isfinite(v)
+   u, v = u[keep], v[keep]
+   g = options.get("gradient") or {}
+   shade, names = (None, None) if c is None or g.get("axis") != "attribute" else _axis_values(c)
+   shade = None if shade is None else shade[keep]
+   rng = np.random.default_rng(0)
+   if ux is not None:
+      options["xlog"] = False
+      u = u + rng.uniform(-0.2, 0.2, len(u))
+   if vy is not None:
+      options["ylog"] = False
+      v = v + rng.uniform(-0.2, 0.2, len(v))
+   order = np.argsort(u, kind = "stable")   # for lines, along x
+   options["xlabel"] = options["xlabel"] or xname
+   options["ylabel"] = options["ylabel"] or yname
+   color = (colors or {}).get("data", PLOT_ELEMENTS["scatter"][1]["data"])
+   style = (styles or {}).get("data", "points")
+   def draw(ax):
+      if shade is None:
+         _series(ax, u[order], v[order], style, color, None)
+      else:
+         _shaded(ax, u[order], v[order], shade[order], names, cname, g, style, color)
+      for names_, ticks in ((ux, ax.set_xticks), (vy, ax.set_yticks)):
+         if names_ is not None:
+            ticks(range(len(names_)), names_, **({"rotation": 45, "ha": "right"} if ticks == ax.set_xticks and len(names_) > 6 else {}))
+   return _figure(draw, options, format, path, dpi)
+
+
+def _shaded(ax, u, v, shade, names, cname, gradient, style, color):
+   """
+   Points of :func:`scatter_plot` colored by a third attribute (``shade``: its numbers, or the
+   positions of its categories ``names``), joined by a line in ``color`` for line styles.
+   """
+   import matplotlib
+   from matplotlib.cm import ScalarMappable
+   from matplotlib.colors import Normalize
+   ps = float(_SIZES.get("point_size", 1.))
+   if style in ("lines", "linespoints"):
+      ax.plot(u, v, "-", color = color, lw = _lw(2), zorder = 2)
+   ok = np.isfinite(shade)
+   if names is None:   # numbers: along the palette, with a color scale
+      rgba = gradient_colors(shade, gradient, False)
+      ax.scatter(u, v, c = rgba, s = 16 * ps ** 2, zorder = 3)
+      if ok.any():
+         cmap = matplotlib.colormaps[str(gradient.get("palette", "YlOrRd"))]
+         cmap = cmap.reversed() if gradient.get("reversed") else cmap
+         if str(gradient.get("palette", "YlOrRd")) not in DIVERGING_PALETTES:
+            cmap = matplotlib.colors.ListedColormap(cmap(np.linspace(0.25, 1., 256)))
+         bar = ax.figure.colorbar(ScalarMappable(Normalize(float(shade[ok].min()), float(shade[ok].max())), cmap), ax = ax)
+         bar.set_label(tex_label(cname or ""))
+      return
+   cmap = matplotlib.colormaps["Set1" if len(names) <= 9 else "tab20"]
+   for k, name in enumerate(names):
+      at = shade == k
+      ax.scatter(u[at], v[at], color = cmap(k % cmap.N), s = 16 * ps ** 2, zorder = 3, label = name if k < 20 else None)
+   if (~ok).any():
+      ax.scatter(u[~ok], v[~ok], color = (0.6, 0.6, 0.6), s = 16 * ps ** 2, zorder = 3, label = "missing")
+   ax.legend(title = cname, fontsize = "small", title_fontsize = "small", frameon = False)
+
+
+def scatter_text(x, y, what):
+   """
+   The text under a plot of one attribute against another: the number of points (both values
+   present), and, when both attributes are numeric, their Pearson and Spearman correlations.
+   """
+   from scipy.stats import pearsonr, spearmanr
+   (u, ux), (v, vy) = _axis_values(x), _axis_values(y)
+   keep = np.isfinite(u) & np.isfinite(v)
+   text_ = f"{int(keep.sum())} {what} with both values"
+   if ux is None and vy is None and keep.sum() > 2 and np.std(u[keep]) > 0 and np.std(v[keep]) > 0:
+      text_ += f"; Pearson correlation {pearsonr(u[keep], v[keep])[0]:.4g}, Spearman {spearmanr(u[keep], v[keep])[0]:.4g}"
+   return text_ + (f"; {len(u) - int(keep.sum())} without." if keep.sum() < len(u) else ".")
+
+
+def _scatter(request):
+   """
+   Command ``scatter``: plots the node (``kind = "nodes"``) or edge attribute ``against`` (y axis)
+   against ``attribute`` (x axis) for the drawn network of a tab (:func:`scatter_plot`), and
+   replies with the PNG image as payload, ``elements``, ``options``, ``styles`` (see
+   :func:`_plot_header`) and the ``text`` of :func:`scatter_text`.
+   """
+   ns = _spaces[request["tab"]]
+   draw = _drawn(ns)
+   kind, a, b = request["kind"], request["attribute"], request["against"]
+   names = (list(draw.node_attributes) + list(draw.qualitative_node_attributes) + ([gsk.BIPARTITE] if draw.bipartite_labels is not None else [])) if kind == "nodes" else list(draw.edge_attributes) + list(draw.qualitative_edge_attributes)
+   if draw.layer_labels is not None:
+      names.append(gsk.LAYER)
+   for name in (a, b):
+      if name not in names:
+         raise ValueError(f"{name} is not {'a node' if kind == 'nodes' else 'an edge'} attribute")
+   x, y = attribute_values(draw, kind, a), attribute_values(draw, kind, b)
+   source = {"x": f"attribute_values({_target(ns)}, {literal(kind)}, {literal(a)})", "y": f"attribute_values({_target(ns)}, {literal(kind)}, {literal(b)})", "xname": literal(a), "yname": literal(b)}
+   ns["__plot__"] = _plot("scatter", {"x": x, "y": y, "xname": a, "yname": b}, dict(PLOT_ELEMENTS["scatter"][1]), {"data": "points"}, source = source, color_attributes = names)
+   ns["__plot__"]["attribute_kind"] = kind
+   header = dict(_plot_header(ns["__plot__"]), text = scatter_text(x, y, kind), warnings = [])
+   return header, _render(ns["__plot__"], "png")
+
+
+PLOT_ELEMENTS["scatter"] = (lambda **kw: scatter_plot(**kw), {"data": "#377eb8"}, {"data": "Data"})
+PLOT_OPTIONS["scatter"] = {"xlog": False, "ylog": False, "font_size": 14, "xlabel": "", "ylabel": "", "xmin": None, "xmax": None, "ymin": None, "ymax": None, "color_attributes": []}
+
+
 #: Names of the visual attributes of the style (see :func:`default_style`), for messages.
 STYLE_LABELS = {"nodes": "node color", "node_size": "node size", "node_opacity": "node opacity", "edges": "edge color", "edge_width": "edge width", "edge_opacity": "edge opacity"}
 
@@ -3624,6 +3822,33 @@ def _target(ns):
    or complex) or ``net``.
    """
    return "inc" if "inc" in ns else "net"
+
+
+def _detach(request):
+   """
+   Command ``detach``: the node attributes giving the positions of a tab (the ``position`` of its
+   style, see :func:`positions`) become its layout: their values are copied into the position
+   attributes ``pos_x`` and ``pos_y``, missing values at the smallest one, as they are drawn, with
+   :func:`derived`; the style takes its positions from the layout again, so that layout
+   transformations (mirror, rotate, zoom, overlaps) and new layouts apply to them. The drawing does
+   not change. Replies with the code and the drawing.
+
+   :raises ValueError: If the positions of the tab already come from the layout.
+   """
+   ns = _spaces[request["tab"]]
+   position = ns.get("__style__", {}).get("position") or {}
+   target = _target(ns)
+   lines = []
+   for axis in "xy":
+      name = position.get(axis)
+      if name is not None:
+         f = formula_name(name)
+         lines.append(f"{target}.set_node_attribute({literal('pos_' + axis)}, derived({target}, {literal(f'fill({f}, min({f}))')}), None)   # the layout takes the {axis} of the nodes from {name}")
+   if not lines:
+      raise ValueError("the positions already come from the layout")
+   code = _run(request["tab"], lines)
+   ns["__style__"] = dict(ns["__style__"], position = {"x": None, "y": None})
+   return _draw(ns, code, True)
 
 
 def _move(request):
@@ -4060,8 +4285,9 @@ def _select(request):
 #: Functions of Edit › Backbone that score the edges: the prefix of the attributes they write
 #: (``prefix + "_score"``, and ``prefix + "_sdev"`` for the noise corrected backbone).
 BACKBONES = {"noise_corrected": "nc", "disparity_filter": "df", "polya_filter": "pf", "doubly_stochastic": "ds", "high_salience_skeleton": "hss", "convex_skeleton": "cs"}
-#: Functions of Edit › Backbone that filter the edges directly: their backbone opens in a new tab.
-FILTERS = {"spanning_tree", "maximally_filtered_graph", "triangulated_filtered_graph"}
+#: Functions of Edit › Backbone that filter the edges directly (a threshold on any edge attribute,
+#: spanning trees, planar filtered graphs): their backbone opens in a new tab.
+FILTERS = {"threshold_filter", "spanning_tree", "maximally_filtered_graph", "triangulated_filtered_graph"}
 #: Parameters of the backbone functions not shown in the parameter dialog.
 BACKBONE_HIDDEN = {"net", "prefix", "progress"}
 #: Steps of the backbone plot, from keeping every edge to dropping them all (quantiles of the
@@ -4194,14 +4420,14 @@ def backbone_plot(test, found, components = False, left = False, right = False, 
             ax.axvline(thr, color = colors[name], ls = "--", lw = 1.5, label = name.replace("_", " "))
       ax.set_xlim(lo, hi)
       ax.set_ylim(0 if o["ymin"] is None else float(o["ymin"]), 102 if o["ymax"] is None else float(o["ymax"]))
-      ax.set_xlabel(o["xlabel"])
-      ax.set_ylabel(o["ylabel"])
+      ax.set_xlabel(tex_label(o["xlabel"]))
+      ax.set_ylabel(tex_label(o["ylabel"]))
       ax.tick_params(which = "both", direction = "in", top = True, right = not components)
       handles, labels = ax.get_legend_handles_labels()
       if components:
          ax2 = ax.twinx()
          line, = ax2.plot(x, test["components"], color = colors["components"], lw = 2, label = "components")
-         ax2.set_ylabel(o["y2label"])
+         ax2.set_ylabel(tex_label(o["y2label"]))
          ax2.set_ylim(bottom = 0)
          ax2.tick_params(which = "both", direction = "in")
          handles.append(line)
@@ -5261,8 +5487,9 @@ def last_layout(code):
    """
    The function of the last line of code that changes the drawing: the function of :data:`CURVES`
    of a line computing curves of the edges (:data:`BENDS`), else the function of :data:`LAYOUTS`
-   of the last line calling one, or of a line moving nodes (:func:`move_nodes`) or changing the
-   network (``net = gsk.…``); ``None`` if none. Edges are drawn as curves after a function of
+   of the last line calling one, or of a line moving nodes (:func:`move_nodes`), setting a position
+   attribute (``net.set_node_attribute("pos_x", …``, :func:`_detach`) or changing the network
+   (``net = gsk.…``); ``None`` if none. Edges are drawn as curves after a function of
    :data:`CURVES`, the network as a matrix after ``matrix_layout``; anything else draws nodes and
    straight edges again.
 
@@ -5273,6 +5500,8 @@ def last_layout(code):
          return line[len(BENDS):].split("(")[0]
       if line.startswith(("move_nodes(", "net = gsk.", "inc = gsk.")):   # moved nodes, a changed network
          return line.split("(")[0].split(".")[-1]
+      if re.match(r"(net|inc)\.set_node_attribute\(\"pos_[xyz]\"", line):   # positions set from values (:func:`_detach`)
+         return "set_node_attribute"
       for f in LAYOUTS:
          if line.startswith(f"gsk.{f}("):
             return f
@@ -6047,7 +6276,7 @@ def derived(net, formula):
    :return: List of float arrays (numeric values) or object arrays (texts).
    """
    v = formula_values(net, formula)
-   v = v.to_numpy(dtype = float) if v.dtype.kind == "f" else v.to_numpy(dtype = object)
+   v = v.to_numpy(dtype = float, copy = True) if v.dtype.kind == "f" else v.to_numpy(dtype = object, copy = True)   # writable (pandas 3 arrays are read-only)
    sizes = list(net.bipartite_split) if net.higher_order is not None else [d.num_nodes for d in net.components]
    return np.split(v, np.cumsum(sizes)[:-1])
 
@@ -6763,6 +6992,86 @@ def _image_vector(request):
    return {"size": os.path.getsize(request["path"])}, b""
 
 
+#: Names of the column of node ids looked for in a table of node attributes (File › Import),
+#: in order, case ignored; without any, the first column.
+NODE_ID_COLUMNS = ["node", "id", "name"]
+
+
+def table_separator(path):
+   """
+   Separator of the columns of a text table, from its first line: a tab, else a comma, else a
+   semicolon, else spaces.
+   """
+   with open(path, encoding = "utf-8", errors = "replace") as f:
+      first = f.readline()
+   return next((c for c in ("\t", ",", ";") if c in first), r"\s+")
+
+
+def import_code(ns, path, kind):
+   """
+   Code merging a table of node or edge attributes (File › Import node / edge attributes…) into
+   the network of a tab: :meth:`~graphoskop.Network.set_node_attribute` or
+   :meth:`~graphoskop.Network.set_edge_attribute` with the table read by :func:`pandas.read_csv`
+   (separator from :func:`table_separator`, first row the column names). New columns become new
+   attributes; columns named as attributes of the network update their values, on the nodes or
+   edges of the table (the others keep theirs). The id columns are found by name: for nodes, the
+   first of :data:`NODE_ID_COLUMNS` (else the first column); for edges, ``source`` and ``target``
+   (else the first two columns); in multilayer networks, ``layer`` (:data:`~graphoskop.LAYER`) if
+   the table has it (else the ids are entities, and a row sets all their copies). Ids are read
+   as texts when those of the network are texts.
+
+   :param ns: Namespace of the tab.
+   :param path: The file of the table.
+   :param kind: ``"nodes"`` or ``"edges"``.
+   :return: Lines of code, the names of the new attributes, and the names of the updated ones.
+   :raises ValueError: If the network is a hypergraph or a simplicial complex, or the table has
+      no column of attributes.
+   """
+   import pandas as pd
+   net = ns["net"]
+   if net.higher_order is not None:
+      raise ValueError("importing attributes is not available for hypergraphs and simplicial complexes yet")
+   sep = table_separator(path)
+   columns = [str(c) for c in pd.read_csv(path, sep = sep, nrows = 0).columns]
+   lower = [c.lower() for c in columns]
+   if kind == "nodes":
+      ids = [next((columns[lower.index(n)] for n in NODE_ID_COLUMNS if n in lower), columns[0])]
+   else:
+      ids = ["source", "target"] if {"source", "target"} <= set(columns) else columns[:2]
+   layer = gsk.LAYER if net.layer_labels is not None and gsk.LAYER in columns and gsk.LAYER not in ids else None
+   names = [c for c in columns if c not in ids and c != layer]
+   if len(columns) < len(ids) or not names:
+      raise ValueError(f"the table has no column of {kind[:-1]} attributes besides {', '.join(ids)}")
+   entities = [i[0] if net.layer_labels is not None else i for i in _ids(net)]
+   text = [c for c in ids if all(isinstance(i, str) for i in entities)]
+   if layer is not None and all(isinstance(l, str) for l in net.layer_labels):
+      text.append(layer)
+   read = f"pd.read_csv({literal(path)}, sep = {literal(sep)}" + (f", dtype = {{{', '.join(f'{literal(c)}: str' for c in text)}}}" if text else "") + ")"
+   if kind == "nodes":
+      call = f"net.set_node_attribute({read}, node_column = {literal(ids[0])}"
+      known = set(net.node_attributes) | set(net.qualitative_node_attributes)
+   else:
+      call = f"net.set_edge_attribute({read}, source_column = {literal(ids[0])}, target_column = {literal(ids[1])}"
+      known = set(net.edge_attributes) | set(net.qualitative_edge_attributes)
+   call += (f", layer_column = {literal(layer)}" if layer is not None else "") + f")   # {kind[:-1]} attributes from {os.path.basename(path)}, merged"
+   return _pandas(ns) + [call], [n for n in names if n not in known], [n for n in names if n in known]
+
+
+def _import_attributes(request):
+   """
+   Command ``import_attributes``: merges the table of node or edge attributes in ``path`` into the
+   network of a tab (``kind``: ``"nodes"`` or ``"edges"``; :func:`import_code`). Replies with the
+   code, the drawing and a ``note`` naming the new and the updated attributes.
+   """
+   ns = _spaces[request["tab"]]
+   lines, new, updated = import_code(ns, request["path"], request["kind"])
+   code = _run(request["tab"], lines)
+   reply, payload = _draw(ns, code, True)
+   parts = ([f"new: {', '.join(new)}"] if new else []) + ([f"updated: {', '.join(updated)}"] if updated else [])
+   reply["note"] = f"{request['kind'][:-1].capitalize()} attributes from {os.path.basename(request['path'])}: {'; '.join(parts)}"
+   return reply, payload
+
+
 def _export(request):
    """
    Command ``export`` (File › Export › Network…): the network of a tab in the format of the
@@ -7444,11 +7753,11 @@ def _redraw(request):
 
 
 #: Commands understood by the worker.
-COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "embedding": _embedding, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot, "paths": _paths, "synchronize": _synchronize, "dendrogram": _dendrogram, "community_tree": _community_tree, "synchronization_runs": _synchronization_runs, "synchronization_plot": _synchronization_plot}
+COMMANDS = {"preview": _preview, "load": _load, "generate": _generate, "signature": _signature, "layout": _layout, "communities": _communities, "style": _style, "breaks": _breaks, "attributes": _attributes, "table": _table, "replay": _replay, "close": _close, "centrality": _centrality, "embedding": _embedding, "save_plot": _save_plot, "replot": _replot, "move": _move, "edit": _edit, "select": _select, "simulate": _simulate, "simulations": _simulations, "epidemic_plot": _epidemic_plot, "undo": _undo, "spread": _spread, "animation": _animation, "find": _find, "backbone": _backbone, "backbone_plot": _backbone_plot, "backbone_stats": _backbone_stats, "extract": _extract, "distribution": _distribution, "scatter": _scatter, "remove_attribute": _remove_attribute, "drawing": _drawing, "fit": _fit, "nestedness": _nestedness, "vectors": _vectors, "add": _add, "set_value": _set_value, "link_predictions": _link_predictions, "link_split": _link_split, "link_predict": _link_predict, "link_signs": _link_signs, "link_plot": _link_plot, "gnns": _gnns, "gnn": _gnn, "gnn_plot": _gnn_plot, "derive": _derive, "formulas": _formulas, "explore": _explore, "neighbors": _neighbors, "mine": _mine, "hierarchy": _hierarchy, "suggest": _suggest, "save_session": _save_session, "open_session": _open_session, "redraw": _redraw, "statistics": _statistics, "export": _export, "correct": _correct, "empty": _empty, "image_pdf": _image_pdf, "image_vector": _image_vector, "robustness": _robustness, "robustness_runs": _robustness_runs, "robustness_plot": _robustness_plot, "paths": _paths, "synchronize": _synchronize, "dendrogram": _dendrogram, "community_tree": _community_tree, "synchronization_runs": _synchronization_runs, "synchronization_plot": _synchronization_plot, "detach": _detach, "import_attributes": _import_attributes}
 
 #: Functions of the Layout menu: layouts of node-link diagrams, the matrix layout (drawn as the
 #: adjacency matrix), transformations of layouts, edge bundling and edge routing.
-LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "matrix_layout", "umap_layout", "mirror_layout", "rotate_layout", "remove_overlaps", "bundle_edges", "route_edges"}
+LAYOUTS = {"circular_layout", "force_directed_layout", "grid_layout", "hierarchical_layout", "matrix_layout", "umap_layout", "mirror_layout", "rotate_layout", "scale_layout", "remove_overlaps", "bundle_edges", "route_edges"}
 
 #: Functions of :data:`LAYOUTS` transforming the current layout (or curving its edges): the drawn
 #: nodes keep their size, and ``remove_overlaps`` and ``route_edges`` get it as ``size`` (unless
@@ -7538,7 +7847,9 @@ def _import():
    """
    Imports the library from the source tree the interface belongs to (the parent of the ``gui``
    folder), so that the worker and the library always match, or, without it, the installed one;
-   and shows its progress bars in the interface (:class:`ProgressBar`).
+   shows its progress bars in the interface (:class:`ProgressBar`); and registers this module as
+   ``gsk_worker``, so that ``from gsk_worker import …`` in the code of a tab
+   (:func:`interface_import`) gets the functions of the running worker, with the library.
 
    :return: Dictionary for the ``ready`` frame.
    """
@@ -7549,6 +7860,7 @@ def _import():
    import graphoskop
    import torch
    gsk = graphoskop
+   sys.modules.setdefault("gsk_worker", sys.modules[__name__])   # the code of the tabs imports this module, not a second copy without the library
    sys.modules["graphoskop.progress"]._tqdm = lambda: ProgressBar
    return {"version": _version(), "cuda": torch.cuda.is_available()}
 
@@ -7639,6 +7951,10 @@ def main(port):
          payload = b""
          traceback.print_exc()
       _send(sock, reply, payload)
+
+
+if __name__ != "__main__":   # imported by code run outside the interface (:func:`interface_import`): the functions of the interface need the library
+   import graphoskop as gsk
 
 
 if __name__ == "__main__":

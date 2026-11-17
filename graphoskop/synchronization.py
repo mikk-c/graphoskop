@@ -198,7 +198,7 @@ def kuramoto_model(net, sigma, omega = (0., 1.), theta = None, component = 0, we
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param phases: Whether to also return the final phases.
    :param progress: Whether to show a progress bar over the time steps, or ``None`` for the global
-      setting (see :doc:`progress`).
+      setting (see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per value of ``sigma`` (in the given order) and
       run: columns ``sigma``, ``run`` and ``order``; with ``phases``, also the final phases, a
       tensor ``[n, len(sigma), runs]``.
@@ -275,7 +275,7 @@ def simplicial_kuramoto_model(net, sigma, k = 1, explosive = False, omega = (0.,
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param phases: Whether to also return the final phases.
    :param progress: Whether to show a progress bar over the time steps, or ``None`` for the global
-      setting (see :doc:`progress`).
+      setting (see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per value of ``sigma`` and run: columns
       ``sigma``, ``run``, ``order``, ``order_down`` and ``order_up``; with ``phases``, also the
       final phases, a tensor ``[n_k, len(sigma), runs]``.
@@ -360,7 +360,7 @@ def node_link_kuramoto_model(net, sigma, model = "nl", omega = (0., 1.), link_om
    :param seed: Seed of the random numbers, or ``None`` for a random seed.
    :param phases: Whether to also return the final phases.
    :param progress: Whether to show a progress bar over the time steps, or ``None`` for the global
-      setting (see :doc:`progress`).
+      setting (see :ref:`progress-bars`).
    :return: :class:`pandas.DataFrame` with one row per value of ``sigma`` and run: columns
       ``sigma``, ``run``, ``order_nodes``, ``order_down`` and ``order_up``; with ``phases``, also
       the final node and edge phases, tensors ``[n, len(sigma), runs]`` and

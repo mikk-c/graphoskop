@@ -1,6 +1,7 @@
 """
 Laplacians of network components, their pseudoinverses, and Laplacian solvers; random walks
-(stationary distribution, fundamental matrix).
+(stationary distribution, fundamental matrix, hitting times, effective resistances), documented
+with the other random walk functions (see :ref:`random-walks`).
 
 All functions take a :class:`~graphoskop.Network` and a component index (default 0,
 the largest component; ``None`` applies the function to every component and returns a list).
@@ -384,7 +385,7 @@ def _pinv_null(L, g):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def laplacian(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.15, sparse = False):
+def laplacian(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.05, sparse = False):
    """
    Laplacian of network components (see the module description for the available kinds).
 
@@ -423,7 +424,7 @@ def laplacian(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def laplacian_pinv(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def laplacian_pinv(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Moore-Penrose pseudoinverse of the Laplacian of network components.
 
@@ -470,7 +471,7 @@ def laplacian_pinv(net, component = 0, weight = None, kind = "chung", q = 0.25, 
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def effective_resistance(net, component = 0, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.15):
+def effective_resistance(net, component = 0, lpinv = None, weight = None, kind = "chung", q = 0.25, alpha = 0.05):
    """
    Effective resistance between all pairs of nodes,
    :math:`R_{uv} = (e_u - e_v)^H L^+ (e_u - e_v) = L^+_{uu} + L^+_{vv} - L^+_{uv} - L^+_{vu}`,
@@ -700,7 +701,7 @@ def _cgls(mv, mvt, b, tol, max_iter):
 
 
 @_higher_order(hypergraph = True, simplicial = True)
-def laplacian_solver(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.15, tol = 1e-8, max_iter = None):
+def laplacian_solver(net, component = 0, weight = None, kind = "chung", q = 0.25, alpha = 0.05, tol = 1e-8, max_iter = None):
    """
    Solver computing :math:`L^+ b` without forming the pseudoinverse :math:`L^+`.
 

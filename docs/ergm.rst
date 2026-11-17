@@ -1,8 +1,49 @@
-Exponential random graph models
-===============================
+Statistical significance
+========================
+
+*Atlas:* Chapter 19 (Evaluating Statistical Significance).
+
+Network shuffling
+-----------------
+
+*Atlas:* Section 19.1 (Network Shuffling).
+
+Edge swaps randomize an existing network keeping the degree of every node, fully or partially. Like
+the generators of :doc:`generators` and fitted exponential random graph models, they give null
+models, against which a statistic of the network is tested.
+
+.. code-block:: python
+
+   import graphoskop as gsk
+
+   net = gsk.load_network("edges.tsv")
+   rnd = gsk.edge_swap(net)                                        # degrees of net exactly, 10 swaps per edge
+   part = gsk.edge_swap(net, swaps = 100)                          # only a few edges moved
+
+.. autofunction:: graphoskop.edge_swap
+
+Testing against null models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Any generator (or a fitted ERGM) is a null model for a statistic: the statistic of the network is
+compared with its distribution over randomizations.
+
+.. code-block:: python
+
+   test = gsk.randomization_test(net, gsk.average_clustering, gsk.configuration_model, n = 200, seed = 1)
+   test["observed"], test["mean"], test["z"], test["above"], test["below"], test["p_value"]
+   test["distribution"]                                                # rounded values and their counts
+   gsk.randomization_test(net, gsk.average_clustering, gsk.edge_swap, n = 50, swaps = 1000)
+
+.. autofunction:: graphoskop.randomization_test
+
+Exponential random graphs
+-------------------------
 
 .. automodule:: graphoskop.ergms
    :no-members:
+
+*Atlas:* Section 19.2 (Exponential Random Graphs).
 
 .. code-block:: python
 
@@ -20,7 +61,7 @@ Exponential random graph models
    fit.samples.mean() - fit.observed                                 # sampled statistics around the observed ones
 
 Fitting
--------
+~~~~~~~
 
 .. autofunction:: graphoskop.ergm
 
@@ -28,7 +69,7 @@ Fitting
    :members: simulate, gof, pseudo_r2
 
 Simulation and goodness of fit
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -39,6 +80,6 @@ Simulation and goodness of fit
    gsk.randomization_test(net, gsk.average_clustering, fit, n = 100)   # clustering of net against the model
 
 Statistics
-----------
+~~~~~~~~~~
 
 .. autofunction:: graphoskop.ergm_statistics

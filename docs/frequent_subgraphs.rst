@@ -4,6 +4,10 @@ Frequent subgraph mining
 .. automodule:: graphoskop.frequent_subgraphs
    :no-members:
 
+*Atlas:* Chapter 41 (Frequent Subgraph Mining): many graphs, Section 41.4 (Transactional Graph
+Mining); one network, Section 41.5 (Single Graph Mining); association rules, Section 41.4, and to
+predict links, Section 23.6 (Association Rules).
+
 .. code-block:: python
 
    import graphoskop as gsk
@@ -23,11 +27,11 @@ Frequent subgraph mining
    rules = gsk.graph_association_rules(net, patterns, support, transactional = False)
    rules[rules["confidence"] > 0.5].sort_values("lift", ascending = False)
 
-.. autofunction:: graphoskop.graph_association_rules
+.. autofunction:: graphoskop.transactional_graph_mining
 
 .. autofunction:: graphoskop.single_graph_mining
 
-.. autofunction:: graphoskop.transactional_graph_mining
+.. autofunction:: graphoskop.graph_association_rules
 
 Performance
 -----------

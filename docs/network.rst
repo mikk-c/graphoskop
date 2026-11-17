@@ -4,11 +4,16 @@ Networks and their attributes
 .. automodule:: graphoskop.network
    :no-members:
 
+*Atlas:* Chapters 6 (Basic Graphs) and 7 (Extended Graphs); correlation networks
+(:func:`~graphoskop.correlation_network`) in Sections 6.3 (Weighted Graphs) and 6.4 (Network Types).
+
 .. autofunction:: graphoskop.load_network
 
 .. autofunction:: graphoskop.save_network
 
 .. autofunction:: graphoskop.load_matrix
+
+.. autofunction:: graphoskop.correlation_network
 
 .. autofunction:: graphoskop.save_matrix
 
@@ -22,6 +27,8 @@ Networks and their attributes
 
 Numeric and qualitative node attributes
 ---------------------------------------
+
+*Atlas:* Section 7.5 (Attributes on Nodes).
 
 Numeric node attributes live in the ``node_attr`` tensor of each component, on the device of the
 network, and are what Laplacian solvers and node vector analysis work on. Qualitative node
@@ -46,6 +53,8 @@ order (component by component). Both kinds are read, written and removed by name
 
 Numeric and qualitative edge attributes
 ---------------------------------------
+
+*Atlas:* Section 6.3 (Weighted Graphs).
 
 Edge attributes are numeric (numbers, booleans) or qualitative (text, any other value), decided
 column by column when loading and by the values given to
@@ -74,6 +83,7 @@ distinct values otherwise. Qualitative edge attributes can be compared by
    net.get_edge_attribute("kind")                      # NumPy object array, on the CPU
    net.get_edge_attribute("kind", edge = ("alice", "bob"))   # e.g. "friend"
    net.set_edge_attribute("tie", ["strong"] * net.components[0].edge_index.shape[1])
+   net.set_edge_attribute(table, source_column = "source", target_column = "target")   # one attribute per other column
    net.remove_edge_attribute("kind")                   # numeric or qualitative
 
 Network attributes
@@ -97,6 +107,8 @@ measures store their values there.
 
 Several values per node: overlapping communities
 ------------------------------------------------
+
+*Atlas:* Chapter 38 (Overlapping Coverage).
 
 A qualitative node attribute can give a node several values, e.g. the communities of a node in
 more than one. In Python, the value of such a node is a list, tuple, set or array of values; it is
@@ -123,6 +135,8 @@ overlapping communities. Functions that need one value per node, e.g. categorica
 
 Bipartite networks
 ------------------
+
+*Atlas:* Section 7.1 (Bipartite Graphs).
 
 A bipartite network is loaded with ``bipartite = True`` and a node table giving every node a value
 of the ``bipartite_type`` attribute, with two distinct values. Node ids must be unique across the
@@ -152,6 +166,8 @@ Unipartite networks of one node type are obtained with the functions in
 
 Multilayer networks
 -------------------
+
+*Atlas:* Section 7.2 (Multilayer Graphs).
 
 A multilayer network is loaded with ``multilayer = True`` from an edge table with a ``layer``
 column. Nodes are then copies of entities in layers, with input ids ``(entity, layer)``, and

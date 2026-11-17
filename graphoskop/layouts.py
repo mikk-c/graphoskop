@@ -449,7 +449,7 @@ def force_directed_layout(net, dimensions = 2, weight = None, iterations = 200, 
       layouts.
    :param attribute: Prefix of the numeric node attributes ``<attribute>_x``, ``<attribute>_y``
       (and ``<attribute>_z``) where to store the positions, or ``None`` to only return them.
-   :param progress: Whether to show a progress bar (see :doc:`progress`); ``None`` uses the
+   :param progress: Whether to show a progress bar (see :ref:`progress-bars`); ``None`` uses the
       global setting.
    :return: :class:`pandas.DataFrame` with one row per node, indexed by node id, in the network
       wide node order, and one column per dimension (named as the attributes, or ``x``, ``y``,
@@ -811,7 +811,7 @@ def umap_layout(net, attributes = None, embedding = None, dimensions = 2, n_neig
       embedding function).
    :param attribute: Prefix of the numeric node attributes where to store the positions, or
       ``None`` to only return them.
-   :param progress: Whether to show a progress bar (see :doc:`progress`); ``None`` uses the
+   :param progress: Whether to show a progress bar (see :ref:`progress-bars`); ``None`` uses the
       global setting.
    :param initial: Previous positions: the prefix of numeric node attributes ``<initial>_x``,
       ``<initial>_y`` (and ``<initial>_z``; missing values for nodes without one), or a table

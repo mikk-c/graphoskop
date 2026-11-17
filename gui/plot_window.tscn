@@ -75,7 +75,7 @@ popup/item_1/id = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Label of the x axis"
+tooltip_text = "Label of the x axis: text, with TeX formulas between dollar signs, e.g. degree $k_i$ or $\\frac{1}{N}\\sum_i x_i$"
 
 [node name="XFromLabel" type="Label" parent="Box/XAxis"]
 layout_mode = 2
@@ -120,7 +120,7 @@ popup/item_1/id = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Label of the y axis"
+tooltip_text = "Label of the y axis: text, with TeX formulas between dollar signs, e.g. $P(k)$ or $\\langle k \\rangle$"
 
 [node name="YFromLabel" type="Label" parent="Box/YAxis"]
 layout_mode = 2
@@ -168,7 +168,7 @@ popup/item_1/id = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-tooltip_text = "Label of the color scale"
+tooltip_text = "Label of the color scale: text, with TeX formulas between dollar signs"
 
 [node name="ZFromLabel" type="Label" parent="Box/ZAxis"]
 layout_mode = 2
